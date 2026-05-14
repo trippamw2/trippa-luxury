@@ -1,49 +1,302 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Plus, Edit2, Trash2, X, Search, MapPin, Star, Check, AlertCircle } from "lucide-react";
 import { PROPERTIES } from "@/lib/constants";
 import { formatDestination } from "@/lib/utils";
 
+interface Property {
+  id: string;
+  name: string;
+  destination: string;
+  location: string;
+  priceRange: string;
+  rating: number;
+}
+
 export default function AdminProperties() {
+  const [properties, setProperties] = useState<Property[]>(
+    PROPERTIES.map(p => ({ id: p.id, name: p.name, destination: p.destination, location: p.location, priceRange: p.priceRange, rating: p.rating }))
+  );
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [editingProperty, setEditingProperty] = useState<Property | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const [formData, setFormData] = useState({ name: "", destination: "lake-malawi", location: "", priceRange: "", rating: "4.5" });
+
+  const showToast = (message: string, type: "success" | "error") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const filtered = properties.filter(p => 
+    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.location.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleAdd = () => {
+    const newProperty: Property = {
+      id: `prop-${Date.now()}`,
+      name: formData.name,
+      destination: formData.destination,
+      location: formData.location,
+      priceRange: formData.priceRange || "$500 to $1,000 per night",
+      rating: parseFloat(formData.rating) || 4.5,
+    };
+    setProperties([...properties, newProperty]);
+    setShowModal(false);
+    setFormData({ name: "", destination: "lake-malawi", location: "", priceRange: "", rating: "4.5" });
+    showToast("Property added successfully", "success");
+  };
+
+  const handleEdit = () => {
+    if (!editingProperty) return;
+    setProperties(properties.map(p => p.id === editingProperty.id ? editingProperty : p));
+    setEditingProperty(null);
+    showToast("Property updated successfully", "success");
+  };
+
+  const handleDelete = (id: string) => {
+    setProperties(properties.filter(p => p.id !== id));
+    setDeleteConfirm(null);
+    showToast("Property deleted successfully", "success");
+  };
+
   return (
-    <div>
+    <div className="min-h-screen">
+      {/* Toast */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className={`fixed top-6 right-6 px-5 py-3 rounded-lg shadow-lg z-50 flex items-center gap-3 ${
+              toast.type === "success" ? "bg-emerald-50 text-emerald-800 border border-emerald-200" : "bg-red-50 text-red-800 border border-red-200"
+            }`}
+          >
+            {toast.type === "success" ? <Check className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+            <span className="text-sm font-medium">{toast.message}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Properties</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage your luxury property collection.</p>
+          <h1 className="text-2xl font-bold text-soft-black">Properties</h1>
+          <p className="text-sm text-earth mt-1">Manage your luxury property collection.</p>
         </div>
-        <Button variant="primary" size="sm">Add Property</Button>
+        <button
+          onClick={() => { setEditingProperty(null); setFormData({ name: "", destination: "lake-malawi", location: "", priceRange: "", rating: "4.5" }); setShowModal(true); }}
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-gold text-soft-black text-sm font-medium tracking-widest uppercase hover:bg-gold-dark transition-all"
+        >
+          <Plus className="w-4 h-4" />
+          Add Property
+        </button>
       </div>
 
-      <div className="bg-white border border-gray-100 overflow-hidden">
+      {/* Search */}
+      <div className="bg-white border border-sand-light p-4 mb-6">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-earth" />
+          <input
+            type="text"
+            placeholder="Search properties by name or location..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-cream/50"
+          />
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="bg-white border border-sand-light overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-100">
+          <thead className="bg-warm-white border-b border-sand-light">
             <tr>
-              <th className="text-left px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider">Name</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider">Destination</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider">Location</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider">Rating</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider">Price</th>
-              <th className="text-right px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider">Actions</th>
+              <th className="text-left px-4 py-3 font-medium text-earth text-xs uppercase tracking-wider">Name</th>
+              <th className="text-left px-4 py-3 font-medium text-earth text-xs uppercase tracking-wider">Destination</th>
+              <th className="text-left px-4 py-3 font-medium text-earth text-xs uppercase tracking-wider">Location</th>
+              <th className="text-left px-4 py-3 font-medium text-earth text-xs uppercase tracking-wider">Rating</th>
+              <th className="text-left px-4 py-3 font-medium text-earth text-xs uppercase tracking-wider">Price</th>
+              <th className="text-right px-4 py-3 font-medium text-earth text-xs uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-50">
-            {PROPERTIES.map((property) => (
-              <tr key={property.id} className="hover:bg-gray-50 transition-colors">
-                <td className="px-4 py-3 font-medium text-gray-900">{property.name}</td>
-                <td className="px-4 py-3 text-gray-500 capitalize">{formatDestination(property.destination)}</td>
-                <td className="px-4 py-3 text-gray-500">{property.location}</td>
-                <td className="px-4 py-3">{property.rating}</td>
-                <td className="px-4 py-3 text-gray-500 text-xs">{property.priceRange}</td>
+          <tbody className="divide-y divide-sand-light/50">
+            {filtered.map((property) => (
+              <tr key={property.id} className="hover:bg-warm-white transition-colors">
+                <td className="px-4 py-3 font-medium text-soft-black">{property.name}</td>
+                <td className="px-4 py-3 text-earth">{formatDestination(property.destination)}</td>
+                <td className="px-4 py-3 text-earth flex items-center gap-1">
+                  <MapPin className="w-3 h-3" /> {property.location}
+                </td>
+                <td className="px-4 py-3 flex items-center gap-1">
+                  <Star className="w-3 h-3 fill-gold text-gold" />
+                  <span className="text-gold-dark font-medium">{property.rating}</span>
+                </td>
+                <td className="px-4 py-3 text-earth text-xs">{property.priceRange}</td>
                 <td className="px-4 py-3 text-right">
-                  <button className="text-xs text-indigo-600 hover:text-indigo-800 mr-3">Edit</button>
-                  <button className="text-xs text-red-600 hover:text-red-800">Delete</button>
+                  <button
+                    onClick={() => { setEditingProperty(property); setFormData({ name: property.name, destination: property.destination, location: property.location, priceRange: property.priceRange, rating: property.rating.toString() }); setShowModal(true); }}
+                    className="text-xs text-gold hover:text-gold-dark mr-4 font-medium"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => setDeleteConfirm(property.id)}
+                    className="text-xs text-red-500 hover:text-red-700 font-medium"
+                  >
+                    Delete
+                  </button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+        {filtered.length === 0 && (
+          <div className="p-12 text-center text-earth">No properties found matching your search.</div>
+        )}
       </div>
+
+      {/* Modal */}
+      <AnimatePresence>
+        {showModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-40 p-4"
+            onClick={() => setShowModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-cream border border-sand-light p-6 w-full max-w-md"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-soft-black">{editingProperty ? "Edit Property" : "Add New Property"}</h2>
+                <button onClick={() => setShowModal(false)} className="text-earth hover:text-soft-black">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Property Name</label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white"
+                    placeholder="Kaya Mawa"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Destination</label>
+                  <select
+                    value={formData.destination}
+                    onChange={(e) => setFormData({ ...formData, destination: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white"
+                  >
+                    <option value="lake-malawi">Lake Malawi</option>
+                    <option value="south-luangwa">South Luangwa</option>
+                    <option value="zanzibar">Zanzibar</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Location</label>
+                  <input
+                    type="text"
+                    value={formData.location}
+                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white"
+                    placeholder="Likoma Island, Lake Malawi"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Price Range</label>
+                  <input
+                    type="text"
+                    value={formData.priceRange}
+                    onChange={(e) => setFormData({ ...formData, priceRange: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white"
+                    placeholder="$650 to $1,200 per night"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Rating</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    max="5"
+                    value={formData.rating}
+                    onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="flex-1 px-5 py-2.5 border border-sand-light text-earth text-sm hover:bg-warm-white transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={editingProperty ? handleEdit : handleAdd}
+                  className="flex-1 px-5 py-2.5 bg-gold text-soft-black text-sm font-medium hover:bg-gold-dark transition-colors"
+                >
+                  {editingProperty ? "Save Changes" : "Add Property"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Confirmation */}
+      <AnimatePresence>
+        {deleteConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setDeleteConfirm(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
+              className="bg-cream border border-sand-light p-6 w-full max-w-sm"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-lg font-bold text-soft-black mb-2">Confirm Delete</h3>
+              <p className="text-sm text-earth mb-6">Are you sure you want to delete this property? This action cannot be undone.</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setDeleteConfirm(null)}
+                  className="flex-1 px-4 py-2.5 border border-sand-light text-earth text-sm hover:bg-warm-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleDelete(deleteConfirm)}
+                  className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm font-medium hover:bg-red-600"
+                >
+                  Delete
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

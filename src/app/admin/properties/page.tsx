@@ -13,6 +13,9 @@ interface Property {
   location: string;
   priceRange: string;
   rating: number;
+  heroImage?: string;
+  description?: string;
+  tagline?: string;
 }
 
 export default function AdminProperties() {
@@ -24,7 +27,7 @@ export default function AdminProperties() {
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
-  const [formData, setFormData] = useState({ name: "", destination: "lake-malawi", location: "", priceRange: "", rating: "4.5" });
+  const [formData, setFormData] = useState({ name: "", destination: "lake-malawi", location: "", priceRange: "", rating: "4.5", heroImage: "", description: "", tagline: "" });
 
   const showToast = (message: string, type: "success" | "error") => {
     setToast({ message, type });
@@ -47,7 +50,7 @@ export default function AdminProperties() {
     };
     setProperties([...properties, newProperty]);
     setShowModal(false);
-    setFormData({ name: "", destination: "lake-malawi", location: "", priceRange: "", rating: "4.5" });
+setFormData({ name: "", destination: "lake-malawi", location: "", priceRange: "", rating: "4.5", heroImage: "", description: "", tagline: "" });
     showToast("Property added successfully", "success");
   };
 
@@ -90,7 +93,7 @@ export default function AdminProperties() {
           <p className="text-sm text-earth mt-1">Manage your luxury property collection.</p>
         </div>
         <button
-          onClick={() => { setEditingProperty(null); setFormData({ name: "", destination: "lake-malawi", location: "", priceRange: "", rating: "4.5" }); setShowModal(true); }}
+          onClick={() => { setEditingProperty(null); setFormData({ name: "", destination: "lake-malawi", location: "", priceRange: "", rating: "4.5", heroImage: "", description: "", tagline: "" }); setShowModal(true); }}
           className="inline-flex items-center gap-2 px-5 py-2.5 bg-gold text-soft-black text-sm font-medium tracking-widest uppercase hover:bg-gold-dark transition-all"
         >
           <Plus className="w-4 h-4" />
@@ -140,7 +143,7 @@ export default function AdminProperties() {
                 <td className="px-4 py-3 text-earth text-xs">{property.priceRange}</td>
                 <td className="px-4 py-3 text-right">
                   <button
-                    onClick={() => { setEditingProperty(property); setFormData({ name: property.name, destination: property.destination, location: property.location, priceRange: property.priceRange, rating: property.rating.toString() }); setShowModal(true); }}
+                    onClick={() => { setEditingProperty(property); setFormData({ name: property.name, destination: property.destination, location: property.location, priceRange: property.priceRange, rating: property.rating.toString(), heroImage: property.heroImage || "", description: property.description || "", tagline: property.tagline || "" }); setShowModal(true); }}
                     className="text-xs text-gold hover:text-gold-dark mr-4 font-medium"
                   >
                     Edit

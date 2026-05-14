@@ -3,10 +3,11 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight, Waves, Sun, Ship, Camera } from "lucide-react";
+import Image from "next/image";
 import { Container } from "@/components/ui/container";
 import { PropertyCard } from "@/components/ui/property-card";
 import { Button } from "@/components/ui/button";
-import { DESTINATIONS, PROPERTIES, PACKAGES } from "@/lib/constants";
+import { DESTINATIONS, PROPERTIES, PACKAGES, IMAGES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 const destination = DESTINATIONS[0];
@@ -14,13 +15,22 @@ const properties = PROPERTIES.filter((p) => p.destination === "lake-malawi");
 const packages = PACKAGES.filter((p) => p.destinations.includes("lake-malawi"));
 
 const galleryItems = [
-  { label: "Lake views at golden hour", gradient: "from-sand-light to-sand" },
-  { label: "Private beach access", gradient: "from-gold-light to-sand-light" },
-  { label: "Luxury lakeside suites", gradient: "from-earth-light to-sand" },
-  { label: "Water activities & dhow cruises", gradient: "from-warm-white-dark to-sand-light" },
-  { label: "Island exploration", gradient: "from-sand to-earth-light" },
-  { label: "Sunset over the lake", gradient: "from-gold/30 to-sand-dark" },
+  { label: "Lake views at golden hour", image: IMAGES.lakeMalawiSunset },
+  { label: "Private beach access", image: IMAGES.lakeMalawiBeach },
+  { label: "Luxury lakeside suites", image: IMAGES.kayaMawa },
+  { label: "Water activities & dhow cruises", image: IMAGES.lakeMalawiDhow },
+  { label: "Island exploration", image: IMAGES.lakeMalawiIsland },
+  { label: "Sunset over the lake", image: IMAGES.lakeMalawiSunset },
 ];
+
+const experienceImages: Record<string, string> = {
+  "Private beach dining beneath a canopy of stars": IMAGES.lakeMalawiBeach,
+  "Sunset dhow cruises across the Lake of Stars": IMAGES.lakeMalawiDhow,
+  "Snorkeling in crystalline freshwater coves": IMAGES.lakeMalawiIsland,
+  "Private picnics on deserted islands": IMAGES.lakeMalawiIsland,
+  "Kayaking through golden hour light": IMAGES.lakeMalawiSunset,
+  "Intimate cultural encounters with lakeside villages": IMAGES.lakeMalawiBeach,
+};
 
 export default function LakeMalawiPage() {
   return (
@@ -205,12 +215,13 @@ export default function LakeMalawiPage() {
                 transition={{ duration: 0.5, delay: index * 0.08 }}
                 className="group relative overflow-hidden aspect-[4/3]"
               >
-                <div className={cn(
-                  "absolute inset-0 bg-gradient-to-br transition-transform duration-700 group-hover:scale-105",
-                  index % 3 === 0 && "from-sand-light to-sand-dark",
-                  index % 3 === 1 && "from-earth-light to-earth",
-                  index % 3 === 2 && "from-gold-light to-sand"
-                )} />
+                <Image
+                  src={experienceImages[exp] || IMAGES.lakeMalawiBeach}
+                  alt={exp}
+                  fill
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-soft-black/50 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-6">
                   <p className="text-cream font-heading text-lg">{exp}</p>
@@ -254,7 +265,13 @@ export default function LakeMalawiPage() {
                   index === 0 && "md:col-span-2 md:row-span-2"
                 )}
               >
-                <div className={cn("absolute inset-0 bg-gradient-to-br", item.gradient)} />
+                <Image
+                  src={item.image}
+                  alt={item.label}
+                  fill
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-soft-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <Camera className="absolute top-4 right-4 w-5 h-5 text-cream/30 group-hover:text-cream/60 transition-colors" />
                 <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500">

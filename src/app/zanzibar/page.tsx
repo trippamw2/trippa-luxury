@@ -3,10 +3,11 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight, Heart, Sparkles, Sun, Camera } from "lucide-react";
+import Image from "next/image";
 import { Container } from "@/components/ui/container";
 import { PropertyCard } from "@/components/ui/property-card";
 import { Button } from "@/components/ui/button";
-import { DESTINATIONS, PROPERTIES, PACKAGES } from "@/lib/constants";
+import { DESTINATIONS, PROPERTIES, PACKAGES, IMAGES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 const destination = DESTINATIONS[2];
@@ -14,13 +15,22 @@ const properties = PROPERTIES.filter((p) => p.destination === "zanzibar");
 const packages = PACKAGES.filter((p) => p.destinations.includes("zanzibar"));
 
 const galleryItems = [
-  { label: "Turquoise waters and white sands", gradient: "from-gold-light to-sand" },
-  { label: "Luxury beachfront villas", gradient: "from-sand-light to-cream" },
-  { label: "Spice Island heritage", gradient: "from-earth-light to-sand" },
-  { label: "Romantic sunset dhow cruises", gradient: "from-gold/40 to-sand-dark" },
-  { label: "Couples spa by the ocean", gradient: "from-warm-white-dark to-sand-light" },
-  { label: "Stone Town's ancient charm", gradient: "from-sand to-earth-light" },
+  { label: "Turquoise waters and white sands", image: IMAGES.zanzibarBeach },
+  { label: "Luxury beachfront villas", image: IMAGES.residence },
+  { label: "Spice Island heritage", image: IMAGES.zanzibarStoneTown },
+  { label: "Romantic sunset dhow cruises", image: IMAGES.zanzibarDhow },
+  { label: "Couples spa by the ocean", image: IMAGES.zanzibarSpa },
+  { label: "Stone Town's ancient charm", image: IMAGES.zanzibarStoneTown },
 ];
+
+const experienceImages: Record<string, string> = {
+  "Spice plantation tours through ancient aromatic gardens": IMAGES.zanzibarStoneTown,
+  "Stone Town heritage walks through living history": IMAGES.zanzibarStoneTown,
+  "Private sandbank dining surrounded by the Indian Ocean": IMAGES.zanzibarBeach,
+  "Sunset dhow cruises with champagne and Swahili canapes": IMAGES.zanzibarDhow,
+  "Couples spa rituals using indigenous Zanzibari ingredients": IMAGES.zanzibarSpa,
+  "Deep sea fishing expeditions into the Indian Ocean": IMAGES.zanzibarAerial,
+};
 
 export default function ZanzibarPage() {
   return (
@@ -203,12 +213,13 @@ export default function ZanzibarPage() {
                 transition={{ duration: 0.5, delay: index * 0.08 }}
                 className="group relative overflow-hidden aspect-[4/3]"
               >
-                <div className={cn(
-                  "absolute inset-0 bg-gradient-to-br transition-transform duration-700 group-hover:scale-105",
-                  index % 3 === 0 && "from-sand-light to-cream",
-                  index % 3 === 1 && "from-gold-light to-sand",
-                  index % 3 === 2 && "from-sand to-sand-dark"
-                )} />
+                <Image
+                  src={experienceImages[exp] || IMAGES.zanzibarBeach}
+                  alt={exp}
+                  fill
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-soft-black/50 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-6">
                   <p className="text-cream font-heading text-lg">{exp}</p>
@@ -252,7 +263,13 @@ export default function ZanzibarPage() {
                   index === 0 && "md:col-span-2 md:row-span-2"
                 )}
               >
-                <div className={cn("absolute inset-0 bg-gradient-to-br", item.gradient)} />
+                <Image
+                  src={item.image}
+                  alt={item.label}
+                  fill
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-soft-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <Camera className="absolute top-4 right-4 w-5 h-5 text-cream/30 group-hover:text-cream/60 transition-colors" />
                 <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500">

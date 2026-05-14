@@ -3,10 +3,11 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight, TreePine, Moon, Compass, Camera } from "lucide-react";
+import Image from "next/image";
 import { Container } from "@/components/ui/container";
 import { PropertyCard } from "@/components/ui/property-card";
 import { Button } from "@/components/ui/button";
-import { DESTINATIONS, PROPERTIES, PACKAGES } from "@/lib/constants";
+import { DESTINATIONS, PROPERTIES, PACKAGES, IMAGES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 const destination = DESTINATIONS[1];
@@ -14,13 +15,22 @@ const properties = PROPERTIES.filter((p) => p.destination === "south-luangwa");
 const packages = PACKAGES.filter((p) => p.destinations.includes("south-luangwa"));
 
 const galleryItems = [
-  { label: "Golden hour on the floodplain", gradient: "from-sand-dark to-earth" },
-  { label: "Intimate wildlife encounters", gradient: "from-earth to-soft-black-light" },
-  { label: "Luxury bush camps", gradient: "from-sand to-sand-dark" },
-  { label: "Walking safaris at dawn", gradient: "from-warm-white-dark to-sand-dark" },
-  { label: "Stargazing in the wilderness", gradient: "from-soft-black-light to-soft-black" },
-  { label: "Riverfront sundowners", gradient: "from-gold/40 to-sand-dark" },
+  { label: "Golden hour on the floodplain", image: IMAGES.southLuangwaSunset },
+  { label: "Intimate wildlife encounters", image: IMAGES.southLuangwaElephant },
+  { label: "Luxury bush camps", image: IMAGES.southLuangwaCamp },
+  { label: "Walking safaris at dawn", image: IMAGES.southLuangwaSafari },
+  { label: "Stargazing in the wilderness", image: IMAGES.southLuangwaSafari },
+  { label: "Riverfront sundowners", image: IMAGES.southLuangwaSunset },
 ];
+
+const experienceImages: Record<string, string> = {
+  "Guided walking safaris following ancient elephant paths": IMAGES.southLuangwaSafari,
+  "Night drives revealing the bush after dark": IMAGES.southLuangwaLeopard,
+  "Sundowners on the riverbank as Africa paints the sky": IMAGES.southLuangwaSunset,
+  "Bush breakfasts where zebras are your dining companions": IMAGES.southLuangwaSafari,
+  "Exclusive photography hides for intimate wildlife encounters": IMAGES.southLuangwaElephant,
+  "Stargazing from raised platforms above the floodplain": IMAGES.southLuangwaCamp,
+};
 
 export default function SouthLuangwaPage() {
   return (
@@ -203,12 +213,13 @@ export default function SouthLuangwaPage() {
                 transition={{ duration: 0.5, delay: index * 0.08 }}
                 className="group relative overflow-hidden aspect-[4/3]"
               >
-                <div className={cn(
-                  "absolute inset-0 bg-gradient-to-br transition-transform duration-700 group-hover:scale-105",
-                  index % 3 === 0 && "from-earth/60 to-soft-black-light",
-                  index % 3 === 1 && "from-sand-dark to-earth",
-                  index % 3 === 2 && "from-soft-black-light to-soft-black"
-                )} />
+                <Image
+                  src={experienceImages[exp] || IMAGES.southLuangwaSafari}
+                  alt={exp}
+                  fill
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-soft-black/60 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-6">
                   <p className="text-cream font-heading text-lg">{exp}</p>
@@ -252,7 +263,13 @@ export default function SouthLuangwaPage() {
                   index === 0 && "md:col-span-2 md:row-span-2"
                 )}
               >
-                <div className={cn("absolute inset-0 bg-gradient-to-br", item.gradient)} />
+                <Image
+                  src={item.image}
+                  alt={item.label}
+                  fill
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-soft-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <Camera className="absolute top-4 right-4 w-5 h-5 text-cream/30 group-hover:text-cream/60 transition-colors" />
                 <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500">

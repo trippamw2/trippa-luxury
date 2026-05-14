@@ -230,6 +230,73 @@ export default function ZanzibarPage() {
         </Container>
       </section>
 
+      {/* Seasons Section */}
+      {destination.seasons && (
+        <section className="py-24 md:py-32 bg-warm-white">
+          <Container>
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              className="max-w-3xl mx-auto text-center mb-16"
+            >
+              <span className="inline-block text-xs font-medium tracking-[0.2em] uppercase text-gold mb-4">
+                Best Time to Visit
+              </span>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-medium text-soft-black leading-tight">
+                When to Experience
+                <br />
+                <span className="italic text-earth">Zanzibar</span>
+              </h2>
+            </motion.div>
+
+            <div className="max-w-4xl mx-auto mb-12">
+              <div className="bg-cream border border-sand-light rounded-lg p-6 md:p-8">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div>
+                    <p className="text-sm text-earth uppercase tracking-wider mb-1">Best Time</p>
+                    <p className="text-xl font-heading text-soft-black">{destination.seasons.bestTime}</p>
+                  </div>
+                  <div className="h-px md:h-12 md:w-px bg-sand-light" />
+                  <div className="flex-1">
+                    <p className="text-sm text-earth uppercase tracking-wider mb-1">Seasonal Note</p>
+                    <p className="text-soft-black">{destination.seasons.closed}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+              {destination.seasons.months.map((month, index) => (
+                <motion.div
+                  key={month.name}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: index * 0.03 }}
+                  className={cn(
+                    "text-center p-3 rounded-lg border transition-all",
+                    month.open === true
+                      ? "bg-soft-black border-soft-black text-cream"
+                      : month.open === "partial"
+                      ? "bg-sand-light border-sand-light text-soft-black"
+                      : "bg-red-50 border-red-100 text-red-800 opacity-60"
+                  )}
+                >
+                  <p className="text-xs font-medium uppercase tracking-wider mb-1">{month.name}</p>
+                  <p className="text-sm font-heading">{month.temp}</p>
+                  <p className="text-[10px] mt-1 opacity-70">{month.weather}</p>
+                  {month.open === false && (
+                    <p className="text-[10px] mt-1 font-medium text-red-600">Closed</p>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          </Container>
+        </section>
+      )}
+
       {/* Gallery Section */}
       <section className="py-24 md:py-32 bg-soft-black">
         <Container>

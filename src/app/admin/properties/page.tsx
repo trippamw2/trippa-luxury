@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { PROPERTIES } from "@/lib/constants";
+import { formatDestination } from "@/lib/utils";
 
 export default function AdminProperties() {
   return (
@@ -30,7 +31,7 @@ export default function AdminProperties() {
             {PROPERTIES.map((property) => (
               <tr key={property.id} className="hover:bg-gray-50 transition-colors">
                 <td className="px-4 py-3 font-medium text-gray-900">{property.name}</td>
-                <td className="px-4 py-3 text-gray-500 capitalize">{property.destination.replace("-", " ")}</td>
+                <td className="px-4 py-3 text-gray-500 capitalize">{formatDestination(property.destination)}</td>
                 <td className="px-4 py-3 text-gray-500">{property.location}</td>
                 <td className="px-4 py-3">{property.rating}</td>
                 <td className="px-4 py-3 text-gray-500 text-xs">{property.priceRange}</td>

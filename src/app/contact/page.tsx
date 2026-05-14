@@ -1,11 +1,48 @@
 "use client";
 
+import { useState, FormEvent } from "react";
 import { motion } from "framer-motion";
-import { Mail, Phone, MapPin, MessageCircle, Clock, Send } from "lucide-react";
+import { Mail, Phone, MapPin, MessageCircle, Clock, Send, CheckCircle, Loader2 } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { SITE_CONFIG } from "@/lib/constants";
+import { createClient } from "@/lib/supabase/client";
 
 export default function ContactPage() {
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setSubmitting(true);
+    setError(null);
+
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+
+    try {
+      const supabase = createClient();
+      const { error: submitError } = await supabase.from("inquiries").insert({
+        full_name: formData.get("name") as string,
+        email: formData.get("email") as string,
+        phone: formData.get("phone") as string || null,
+        destination: formData.get("destination") as string || null,
+        preferred_dates: formData.get("dates") as string || null,
+        guests: parseInt(formData.get("guests") as string) || 2,
+        message: formData.get("message") as string,
+        status: "new",
+        source: "website",
+      });
+
+      if (submitError) throw submitError;
+      setSubmitted(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to send inquiry. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   return (
     <>
       {/* Hero */}
@@ -145,62 +182,82 @@ export default function ContactPage() {
                   Tell us about your dream escape and we&apos;ll craft a personalized itinerary.
                 </p>
 
-                <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div>
-                      <label className="block text-xs font-medium tracking-widest uppercase text-earth mb-1.5">Full Name *</label>
-                      <input type="text" required className="w-full px-4 py-3 bg-cream border border-sand-light/50 text-soft-black text-sm focus:outline-none focus:border-gold transition-colors" placeholder="Your full name" />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium tracking-widest uppercase text-earth mb-1.5">Email Address *</label>
-                      <input type="email" required className="w-full px-4 py-3 bg-cream border border-sand-light/50 text-soft-black text-sm focus:outline-none focus:border-gold transition-colors" placeholder="your@email.com" />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium tracking-widest uppercase text-earth mb-1.5">Phone Number</label>
-                      <input type="tel" className="w-full px-4 py-3 bg-cream border border-sand-light/50 text-soft-black text-sm focus:outline-none focus:border-gold transition-colors" placeholder="+1 234 567 890" />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium tracking-widest uppercase text-earth mb-1.5">Preferred Destination</label>
-                      <select className="w-full px-4 py-3 bg-cream border border-sand-light/50 text-soft-black text-sm focus:outline-none focus:border-gold transition-colors">
-                        <option value="">Select destination</option>
-                        <option value="lake-malawi">Lake Malawi</option>
-                        <option value="south-luangwa">South Luangwa</option>
-                        <option value="zanzibar">Zanzibar</option>
-                        <option value="multi">Multi-destination</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium tracking-widest uppercase text-earth mb-1.5">Preferred Dates</label>
-                      <input type="text" className="w-full px-4 py-3 bg-cream border border-sand-light/50 text-soft-black text-sm focus:outline-none focus:border-gold transition-colors" placeholder="e.g. October 2026" />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium tracking-widest uppercase text-earth mb-1.5">Number of Guests</label>
-                      <select className="w-full px-4 py-3 bg-cream border border-sand-light/50 text-soft-black text-sm focus:outline-none focus:border-gold transition-colors">
-                        <option value="2">2 (Couple)</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="5">5+</option>
-                      </select>
-                    </div>
+                {submitted ? (
+                  <div className="bg-warm-white p-10 border border-sand-light/30 text-center">
+                    <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-4" />
+                    <h3 className="text-xl font-heading font-medium text-soft-black mb-2">Thank You</h3>
+                    <p className="text-sm text-earth leading-relaxed max-w-sm mx-auto">
+                      Your inquiry has been received. Our concierge team will reach out within 24 hours to craft your perfect escape.
+                    </p>
                   </div>
+                ) : (
+                  <form className="space-y-5" onSubmit={handleSubmit}>
+                    {error && (
+                      <div className="p-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded">
+                        {error}
+                      </div>
+                    )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div>
+                        <label className="block text-xs font-medium tracking-widest uppercase text-earth mb-1.5">Full Name *</label>
+                        <input type="text" name="name" required className="w-full px-4 py-3 bg-cream border border-sand-light/50 text-soft-black text-sm focus:outline-none focus:border-gold transition-colors" placeholder="Your full name" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium tracking-widest uppercase text-earth mb-1.5">Email Address *</label>
+                        <input type="email" name="email" required className="w-full px-4 py-3 bg-cream border border-sand-light/50 text-soft-black text-sm focus:outline-none focus:border-gold transition-colors" placeholder="your@email.com" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium tracking-widest uppercase text-earth mb-1.5">Phone Number</label>
+                        <input type="tel" name="phone" className="w-full px-4 py-3 bg-cream border border-sand-light/50 text-soft-black text-sm focus:outline-none focus:border-gold transition-colors" placeholder="+1 234 567 890" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium tracking-widest uppercase text-earth mb-1.5">Preferred Destination</label>
+                        <select name="destination" className="w-full px-4 py-3 bg-cream border border-sand-light/50 text-soft-black text-sm focus:outline-none focus:border-gold transition-colors">
+                          <option value="">Select destination</option>
+                          <option value="lake-malawi">Lake Malawi</option>
+                          <option value="south-luangwa">South Luangwa</option>
+                          <option value="zanzibar">Zanzibar</option>
+                          <option value="multi">Multi-destination</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium tracking-widest uppercase text-earth mb-1.5">Preferred Dates</label>
+                        <input type="text" name="dates" className="w-full px-4 py-3 bg-cream border border-sand-light/50 text-soft-black text-sm focus:outline-none focus:border-gold transition-colors" placeholder="e.g. October 2026" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium tracking-widest uppercase text-earth mb-1.5">Number of Guests</label>
+                        <select name="guests" className="w-full px-4 py-3 bg-cream border border-sand-light/50 text-soft-black text-sm focus:outline-none focus:border-gold transition-colors">
+                          <option value="2">2 (Couple)</option>
+                          <option value="3">3</option>
+                          <option value="4">4</option>
+                          <option value="5">5+</option>
+                        </select>
+                      </div>
+                    </div>
 
-                  <div>
-                    <label className="block text-xs font-medium tracking-widest uppercase text-earth mb-1.5">Your Message *</label>
-                    <textarea rows={5} required className="w-full px-4 py-3 bg-cream border border-sand-light/50 text-soft-black text-sm focus:outline-none focus:border-gold transition-colors resize-none" placeholder="Tell us about your dream escape — what experiences, properties, and style of travel appeal to you..." />
-                  </div>
+                    <div>
+                      <label className="block text-xs font-medium tracking-widest uppercase text-earth mb-1.5">Your Message *</label>
+                      <textarea name="message" rows={5} required className="w-full px-4 py-3 bg-cream border border-sand-light/50 text-soft-black text-sm focus:outline-none focus:border-gold transition-colors resize-none" placeholder="Tell us about your dream escape — what experiences, properties, and style of travel appeal to you..." />
+                    </div>
 
-                  <button
-                    type="submit"
-                    className="w-full px-8 py-4 bg-soft-black text-cream text-sm font-medium tracking-[0.15em] uppercase hover:bg-soft-black-light transition-all duration-500 flex items-center justify-center gap-2"
-                  >
-                    <Send className="w-4 h-4" />
-                    Send Inquiry
-                  </button>
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="w-full px-8 py-4 bg-soft-black text-cream text-sm font-medium tracking-[0.15em] uppercase hover:bg-soft-black-light transition-all duration-500 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {submitting ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Send className="w-4 h-4" />
+                      )}
+                      {submitting ? "Sending..." : "Send Inquiry"}
+                    </button>
 
-                  <p className="text-xs text-earth/50 text-center">
-                    By submitting, you agree to our Privacy Policy. We&apos;ll never share your information.
-                  </p>
-                </form>
+                    <p className="text-xs text-earth/50 text-center">
+                      By submitting, you agree to our Privacy Policy. We&apos;ll never share your information.
+                    </p>
+                  </form>
+                )}
               </div>
             </motion.div>
           </div>

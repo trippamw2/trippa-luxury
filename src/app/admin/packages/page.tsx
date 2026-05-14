@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { PACKAGES } from "@/lib/constants";
+import { formatDestination } from "@/lib/utils";
 
 export default function AdminPackages() {
   return (
@@ -30,7 +31,7 @@ export default function AdminPackages() {
               <tr key={pkg.id} className="hover:bg-gray-50 transition-colors">
                 <td className="px-4 py-3 font-medium text-gray-900">{pkg.title}</td>
                 <td className="px-4 py-3 text-gray-500">{pkg.duration}</td>
-                <td className="px-4 py-3 text-gray-500 capitalize">{pkg.destinations.join(", ").replace(/-/g, " ")}</td>
+                <td className="px-4 py-3 text-gray-500 capitalize">{pkg.destinations.map(formatDestination).join(", ")}</td>
                 <td className="px-4 py-3 text-gray-500 text-xs">{pkg.price}</td>
                 <td className="px-4 py-3 text-right">
                   <button className="text-xs text-indigo-600 hover:text-indigo-800 mr-3">Edit</button>

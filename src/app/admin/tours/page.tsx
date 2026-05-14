@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Plus, Search, Edit3, Copy, Eye, Clock, MapPin, DollarSign, Users, Calendar, CheckCircle, XCircle, Star } from "lucide-react";
+import { formatDestination } from "@/lib/utils";
 
 interface Tour {
   id: string;
@@ -134,7 +135,7 @@ export default function AdminTours() {
                 <h3 className="text-base font-semibold text-gray-900 mb-1">{tour.title}</h3>
                 <p className="text-xs text-gray-400 capitalize flex items-center gap-1">
                   <MapPin className="w-3 h-3" />
-                  {tour.destination.replace("-", " ")}
+                  {formatDestination(tour.destination)}
                 </p>
               </div>
 

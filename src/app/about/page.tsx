@@ -9,25 +9,25 @@ const values = [
     icon: Heart,
     title: "Curated for Romance",
     description:
-      "Every journey is designed for connection. We believe the most profound travel experiences are those shared with the one you love.",
+      "Every journey is designed for connection. The most profound travel experiences are those shared with the one you love — and every detail is chosen with you in mind.",
   },
   {
     icon: Globe,
     title: "Modern African Luxury",
     description:
-      "We honor Africa through a contemporary lens. Our luxury is authentic, sustainable, and deeply rooted in the places we serve.",
+      "African luxury reimagined through a contemporary lens. Authentic, sustainable, and deeply rooted in the places you'll discover.",
   },
   {
     icon: Leaf,
     title: "Sustainable Tourism",
     description:
-      "We partner with lodges and communities that protect Africa's wilderness and uplift local economies. Travel that gives back.",
+      "You travel with purpose. Every lodge and community partnership protects Africa's wilderness and uplifts local economies.",
   },
   {
     icon: Sparkles,
     title: "Emotional Storytelling",
     description:
-      "Our escapes are stories waiting to unfold. Every destination, every experience, every moment becomes part of your narrative.",
+      "Your escapes are stories waiting to unfold. Every destination, every experience, every moment becomes part of your narrative.",
   },
 ];
 
@@ -77,9 +77,9 @@ export default function AboutPage() {
                 <span className="italic text-earth">Curated with Soul</span>
               </h2>
               <p className="text-base md:text-lg text-earth leading-relaxed max-w-3xl mx-auto">
-                Trippa was founded on a simple belief: that the most luxurious travel experiences 
-                are those that touch your heart. We are not a booking platform — we are architects 
-                of romance, curators of moments, and storytellers of Africa&apos;s most beautiful places.
+                The most luxurious travel experiences are those that touch your heart. 
+                You deserve not a booking platform but architects of romance, curators of moments, 
+                and storytellers of Africa&apos;s most beautiful places — dedicated to crafting your perfect escape.
               </p>
             </motion.div>
 
@@ -104,12 +104,12 @@ export default function AboutPage() {
                   on earth that makes you feel so alive.
                 </p>
                 <p className="text-base text-earth leading-relaxed mb-4">
-                  We created Trippa to share this feeling with couples seeking something more than 
-                  a vacation. Something deeper. A journey that becomes part of who you are.
+                  Trippa exists for couples seeking something more than a vacation. Something deeper. 
+                  A journey that becomes part of who you are. That changes how you see the world — and each other.
                 </p>
                 <p className="text-base text-earth leading-relaxed">
-                  Every itinerary we craft, every property we select, every experience we design 
-                  is guided by one question: will this move them?
+                  Every itinerary, every property, every experience is chosen with one guiding question: 
+                  will this move you? Because you deserve a journey that stirs your soul.
                 </p>
               </div>
             </motion.div>

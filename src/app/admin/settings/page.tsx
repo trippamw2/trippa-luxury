@@ -1,6 +1,23 @@
 "use client";
 
+import { useState } from "react";
+import { CheckCircle } from "lucide-react";
+
 export default function AdminSettings() {
+  const [saved, setSaved] = useState(false);
+  const [form, setForm] = useState({
+    siteName: "Trippa",
+    whatsapp: "+27871234567",
+    email: "concierge@trippa.luxury",
+    currency: "USD",
+  });
+
+  function handleSave() {
+    localStorage.setItem("trippa_settings", JSON.stringify(form));
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
+  }
+
   return (
     <div>
       <div className="mb-8">
@@ -8,32 +25,61 @@ export default function AdminSettings() {
         <p className="text-sm text-gray-500 mt-1">Configure platform settings.</p>
       </div>
 
-      <div className="bg-white border border-gray-100 p-6 max-w-2xl">
+      <div className="bg-white border border-sand-light/50 p-6 max-w-2xl">
         <div className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Site Name</label>
-            <input type="text" defaultValue="Trippa" className="w-full px-3 py-2 border border-gray-200 text-sm focus:outline-none focus:border-gray-400" />
+            <input
+              type="text"
+              value={form.siteName}
+              onChange={(e) => setForm({ ...form, siteName: e.target.value })}
+              className="w-full px-3 py-2 border border-sand-light/50 text-sm focus:outline-none focus:border-gold transition-colors"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">WhatsApp Number</label>
-            <input type="text" defaultValue="+27871234567" className="w-full px-3 py-2 border border-gray-200 text-sm focus:outline-none focus:border-gray-400" />
+            <input
+              type="text"
+              value={form.whatsapp}
+              onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
+              className="w-full px-3 py-2 border border-sand-light/50 text-sm focus:outline-none focus:border-gold transition-colors"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Contact Email</label>
-            <input type="email" defaultValue="concierge@trippa.luxury" className="w-full px-3 py-2 border border-gray-200 text-sm focus:outline-none focus:border-gray-400" />
+            <input
+              type="email"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              className="w-full px-3 py-2 border border-sand-light/50 text-sm focus:outline-none focus:border-gold transition-colors"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Default Currency</label>
-            <select className="w-full px-3 py-2 border border-gray-200 text-sm focus:outline-none focus:border-gray-400">
-              <option>USD ($)</option>
-              <option>EUR (€)</option>
-              <option>GBP (£)</option>
-              <option>ZAR (R)</option>
+            <select
+              value={form.currency}
+              onChange={(e) => setForm({ ...form, currency: e.target.value })}
+              className="w-full px-3 py-2 border border-sand-light/50 text-sm focus:outline-none focus:border-gold transition-colors"
+            >
+              <option value="USD">USD ($)</option>
+              <option value="EUR">EUR (€)</option>
+              <option value="GBP">GBP (£)</option>
+              <option value="ZAR">ZAR (R)</option>
             </select>
           </div>
-          <button className="px-6 py-2.5 bg-soft-black text-cream text-sm tracking-widest uppercase hover:bg-soft-black-light transition-colors">
-            Save Settings
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={handleSave}
+              className="px-6 py-2.5 bg-soft-black text-cream text-sm tracking-widest uppercase hover:bg-soft-black-light transition-colors"
+            >
+              Save Settings
+            </button>
+            {saved && (
+              <span className="inline-flex items-center gap-1.5 text-sm text-emerald-600">
+                <CheckCircle className="w-4 h-4" /> Settings saved
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </div>

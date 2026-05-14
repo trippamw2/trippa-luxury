@@ -2,38 +2,32 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight } from "lucide-react";
+import { IMAGES } from "@/lib/constants";
 
 export function HeroSection() {
   return (
     <section className="relative h-screen w-full overflow-hidden bg-soft-black">
-      {/* Video background placeholder - cinematic gradient animation */}
+      {/* Hero background image */}
       <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-soft-black via-soft-black-light to-earth/40" />
+        <Image
+          src={IMAGES.heroPoster}
+          alt="African safari landscape at golden hour"
+          fill
+          className="object-cover"
+          priority
+          sizes="100vw"
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-soft-black/60 via-soft-black/30 to-soft-black/70" />
         {/* Animated gradient overlay for cinematic feel */}
         <div
-          className="absolute inset-0 opacity-30"
+          className="absolute inset-0 opacity-20"
           style={{
             background:
               "radial-gradient(ellipse at 50% 50%, rgba(201, 169, 110, 0.15) 0%, transparent 70%)",
           }}
         />
-        {/* Animated light particles */}
-        <div className="absolute inset-0 overflow-hidden">
-          {[...Array(3)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-[800px] h-[800px] rounded-full opacity-[0.03]"
-              style={{
-                background: `radial-gradient(circle, rgba(201,169,110,0.3) 0%, transparent 70%)`,
-                top: `${20 + i * 30}%`,
-                left: `${10 + i * 25}%`,
-                animation: `pulse ${8 + i * 3}s ease-in-out infinite`,
-                animationDelay: `${i * 2}s`,
-              }}
-            />
-          ))}
-        </div>
       </div>
 
       {/* Overlay */}
@@ -64,11 +58,11 @@ export function HeroSection() {
             transition={{ duration: 1, delay: 0.7, ease: [0.22, 1, 0.36, 1] }}
             className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-heading font-medium text-cream leading-tight text-balance"
           >
-            Luxury Beach & Bush
+            Africa&apos;s Most Coveted
             <br />
-            <span className="text-gold-light">Escapes Across Africa</span>
+            <span className="text-gold-light">Romance Sanctuaries</span>
             <br />
-            Most Unforgettable Destinations
+            Beach. Bush. Beyond.
           </motion.h1>
 
           {/* Subtitle */}
@@ -97,7 +91,7 @@ export function HeroSection() {
               <ArrowRight className="w-4 h-4 transition-transform duration-500 group-hover:translate-x-1" />
             </Link>
             <Link
-              href="/destinations"
+              href="/lake-malawi"
               className="inline-flex items-center gap-2 px-8 py-4 border border-cream/30 text-cream text-sm font-medium tracking-[0.15em] uppercase hover:bg-cream/10 transition-all duration-500"
             >
               Explore Destinations

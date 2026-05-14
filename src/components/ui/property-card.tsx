@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { Star, MapPin, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -38,12 +39,13 @@ export function PropertyCard({
     >
       <Link href={`/properties/${slug}`}>
         <div className="relative overflow-hidden bg-warm-white-dark aspect-[4/5]">
-          {/* Image placeholder with gradient overlay */}
-          <div
-            className="absolute inset-0 bg-soft-black/10 group-hover:bg-soft-black/20 transition-all duration-700"
-          />
-          <div
-            className="w-full h-full bg-gradient-to-br from-sand-light to-earth-light"
+          {/* Property image */}
+          <Image
+            src={image}
+            alt={name}
+            fill
+            className="object-cover group-hover:scale-105 transition-all duration-700"
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
           {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-soft-black/60 via-transparent to-transparent" />

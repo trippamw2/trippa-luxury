@@ -2,7 +2,9 @@
 
 import { motion } from "framer-motion";
 import { Container } from "@/components/ui/container";
-import { Heart, Globe, Moon } from "lucide-react";
+import { Heart, Globe, Moon, ArrowRight } from "lucide-react";
+import Link from "next/link";
+import { BRAND_POSITIONING } from "@/lib/constants";
 
 const values = [
   {
@@ -15,20 +17,23 @@ const values = [
     icon: Globe,
     title: "Modern African Luxury",
     description:
-      "We redefine African luxury through a contemporary lens — where authentic experiences meet world-class sophistication.",
+      "African luxury reimagined through a contemporary lens — where authentic experiences meet world-class sophistication. For those who seek the extraordinary.",
   },
   {
     icon: Moon,
     title: "Emotional Storytelling",
     description:
-      "Our escapes are stories waiting to be lived. Each destination, each experience, each moment becomes part of your love story.",
+      "Your escapes are stories waiting to be lived. Each destination, each experience, each moment becomes part of your love story.",
   },
 ];
 
 export function BrandStatement() {
+  const { storyBrand, betweenAmanAndBeyond } = BRAND_POSITIONING;
+
   return (
     <section className="py-24 md:py-32 bg-cream">
       <Container>
+        {/* StoryBrand: Hero introduction */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -40,18 +45,20 @@ export function BrandStatement() {
             The Trippa Philosophy
           </span>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-medium text-soft-black leading-tight">
-            Africa&apos;s Most Romantic Escapes,
+            {storyBrand.hero.split(". ")[0]}.
             <br />
-            <span className="italic text-earth">Curated With Soul</span>
+            <span className="italic text-earth">A Partnership That Deserves Celebrating</span>
           </h2>
           <p className="mt-6 text-base md:text-lg text-earth leading-relaxed max-w-3xl mx-auto">
-            Trippa is born from a belief that the most profound travel experiences are those 
-            shared with the one you love. We hand-select every property, design every itinerary, 
-            and curate every moment to create journeys that linger in your heart forever.
+            {storyBrand.problem}
+          </p>
+          <p className="mt-4 text-base md:text-lg text-soft-black/80 leading-relaxed max-w-3xl mx-auto font-heading italic">
+            &ldquo;{storyBrand.guide}&rdquo;
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8">
+        {/* Three pillars */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8 mb-20">
           {values.map((value, index) => (
             <motion.div
               key={value.title}
@@ -73,6 +80,30 @@ export function BrandStatement() {
             </motion.div>
           ))}
         </div>
+
+        {/* Between Aman and &Beyond positioning */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-50px" }}
+          transition={{ duration: 0.8 }}
+          className="max-w-3xl mx-auto text-center p-10 md:p-14 bg-warm-white border border-gold/20"
+        >
+          <span className="inline-block text-[10px] font-medium tracking-[0.3em] uppercase text-gold mb-4">
+            Our Place in the World
+          </span>
+          <p className="text-base md:text-lg text-earth leading-relaxed italic">
+            &ldquo;{betweenAmanAndBeyond}&rdquo;
+          </p>
+          <div className="mt-8">
+            <Link
+              href="/about"
+              className="inline-flex items-center gap-2 text-xs tracking-widest uppercase text-soft-black border-b border-soft-black/30 pb-1 hover:border-soft-black transition-all duration-500"
+            >
+              Discover Your Journey <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+        </motion.div>
       </Container>
     </section>
   );

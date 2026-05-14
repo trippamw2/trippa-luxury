@@ -1,4 +1,5 @@
 import { BrevoClient } from "@getbrevo/brevo";
+import { formatDestination } from "@/lib/utils";
 
 let client: BrevoClient | null = null;
 
@@ -74,7 +75,7 @@ export function newInquiryEmail(data: {
             <tr><td style="padding: 10px 0; color: #8B7D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; width: 120px;">Name</td><td style="padding: 10px 0; font-size: 14px;">${data.fullName}</td></tr>
             <tr><td style="padding: 10px 0; color: #8B7D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Email</td><td style="padding: 10px 0; font-size: 14px;"><a href="mailto:${data.email}" style="color: #C9A96E;">${data.email}</a></td></tr>
             ${data.phone ? `<tr><td style="padding: 10px 0; color: #8B7D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Phone</td><td style="padding: 10px 0; font-size: 14px;">${data.phone}</td></tr>` : ""}
-            ${data.destination ? `<tr><td style="padding: 10px 0; color: #8B7D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Destination</td><td style="padding: 10px 0; font-size: 14px; text-transform: capitalize;">${data.destination.replace("-", " ")}</td></tr>` : ""}
+            ${data.destination ? `<tr><td style="padding: 10px 0; color: #8B7D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Destination</td><td style="padding: 10px 0; font-size: 14px; text-transform: capitalize;">${formatDestination(data.destination)}</td></tr>` : ""}
             ${data.preferredDates ? `<tr><td style="padding: 10px 0; color: #8B7D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Preferred Dates</td><td style="padding: 10px 0; font-size: 14px;">${data.preferredDates}</td></tr>` : ""}
             ${data.guests ? `<tr><td style="padding: 10px 0; color: #8B7D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Guests</td><td style="padding: 10px 0; font-size: 14px;">${data.guests}</td></tr>` : ""}
           </table>
@@ -109,7 +110,7 @@ export function inquiryConfirmationEmail(data: {
         <div style="padding: 40px;">
           <h2 style="font-family: 'Playfair Display', serif; font-size: 20px; color: #1A1A1A; margin: 0 0 16px;">Dear ${data.fullName},</h2>
           <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 16px;">Thank you for reaching out to Trippa. Your inquiry has been received with care, and our concierge team is already reviewing the details to craft the perfect escape for you.</p>
-          ${data.destination ? `<p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 16px;">We are thrilled that you are considering <strong style="color: #C9A96E;">${data.destination.replace("-", " ")}</strong> for your romantic journey. It is a choice you will treasure forever.</p>` : ""}
+          ${data.destination ? `<p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 16px;">We are thrilled that you are considering <strong style="color: #C9A96E;">${formatDestination(data.destination)}</strong> for your romantic journey. It is a choice you will treasure forever.</p>` : ""}
           <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 24px;">A member of our team will respond within <strong>24 hours</strong> with a personalized itinerary and availability.</p>
           <div style="background: #F5F0EB; padding: 24px; border-left: 3px solid #C9A96E; margin-bottom: 24px;">
             <p style="font-size: 11px; color: #8B7D6B; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 8px;">In the meantime</p>

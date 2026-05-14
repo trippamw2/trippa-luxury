@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -30,22 +31,15 @@ export function DestinationCard({
       transition={{ duration: 0.8, delay: index * 0.2, ease: [0.22, 1, 0.36, 1] }}
       className="group relative overflow-hidden bg-warm-white-dark aspect-[3/4] md:aspect-[4/5]"
     >
-      {/* Background gradient placeholder */}
-      <div className={cn(
-        "absolute inset-0 bg-gradient-to-br transition-transform duration-1000 group-hover:scale-105",
-        index === 0 && "from-sand to-sand-dark",
-        index === 1 && "from-earth to-earth-light",
-        index === 2 && "from-gold-light to-sand"
-      )} />
+      {/* Background image */}
+      <Image
+        src={image}
+        alt={title}
+        fill
+        className="object-cover transition-transform duration-1000 group-hover:scale-105"
+        sizes="(max-width: 768px) 100vw, 33vw"
+      />
       
-      {/* Pattern overlay */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="w-full h-full" style={{
-          backgroundImage: `radial-gradient(circle at 25% 25%, rgba(255,255,255,0.2) 1px, transparent 1px)`,
-          backgroundSize: '40px 40px'
-        }} />
-      </div>
-
       {/* Gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-soft-black/70 via-soft-black/20 to-transparent" />
 

@@ -345,6 +345,22 @@ CREATE POLICY "Public can view active tours"
 CREATE POLICY "Public can view tour availability"
   ON tour_availability FOR SELECT USING (is_available = true);
 
+-- Fix: Add missing RLS policies for supplier_services
+CREATE POLICY "Admin full access to supplier services"
+  ON supplier_services FOR ALL USING (
+    EXISTS (SELECT 1 FROM admin_profiles WHERE id = auth.uid() AND role IN ('admin', 'editor'))
+  );
+
+-- Fix: Add missing RLS policies for booking_suppliers
+CREATE POLICY "Admin full access to booking suppliers"
+  ON booking_suppliers FOR ALL USING (
+    EXISTS (SELECT 1 FROM admin_profiles WHERE id = auth.uid() AND role IN ('admin', 'editor', 'agent'))
+  );
+
+-- Public can view active services
+CREATE POLICY "Public can view supplier services"
+  ON supplier_services FOR SELECT USING (is_active = true);
+
 -- ─── INDEXES ────────────────────────────────────────────────────────────
 
 CREATE INDEX idx_bookings_status ON bookings(status);

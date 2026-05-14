@@ -11,10 +11,42 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="flex">
-        {/* Sidebar */}
-        <aside className="w-64 min-h-screen bg-soft-black text-cream hidden lg:block">
+    <>
+      {/* Fix admin CSS bleeding: brand-aligned admin background, hide frontend Navbar/Footer */}
+      <style>{`
+        body {
+          background-color: #FAF7F2 !important;
+        }
+        body > nav,
+        body > footer {
+          display: none !important;
+        }
+        /* Admin brand-aligned card styles */
+        .admin-card {
+          background-color: #ffffff;
+          border-color: #E8DCC8;
+        }
+        .admin-card-header {
+          background-color: #F5F0EB;
+        }
+        .admin-stat {
+          background-color: #F5F0EB;
+          border-color: #E8DCC8;
+        }
+        .admin-table thead {
+          background-color: #F5F0EB;
+        }
+        .admin-input {
+          border-color: #E8DCC8;
+        }
+        .admin-input:focus {
+          border-color: #C9A96E;
+        }
+      `}</style>
+      <div className="min-h-screen bg-cream">
+        <div className="flex">
+          {/* Sidebar */}
+          <aside className="w-64 min-h-screen bg-soft-black text-cream hidden lg:block">
           <div className="p-6 border-b border-white/5">
             <span className="text-xl font-heading font-bold tracking-wider">Trippa</span>
             <span className="block text-[10px] text-earth-light tracking-widest uppercase mt-1">Admin Panel</span>
@@ -59,5 +91,6 @@ export default function AdminLayout({
         </main>
       </div>
     </div>
+    </>
   );
 }

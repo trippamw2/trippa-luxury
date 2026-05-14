@@ -22,9 +22,13 @@ export default function AdminLayout({
           <nav className="p-4 space-y-1">
             {[
               { label: "Dashboard", href: "/admin" },
+              { label: "Bookings", href: "/admin/bookings" },
+              { label: "Tours & Experiences", href: "/admin/tours" },
               { label: "Properties", href: "/admin/properties" },
               { label: "Packages", href: "/admin/packages" },
               { label: "Inquiries", href: "/admin/inquiries" },
+              { label: "Finance", href: "/admin/finance" },
+              { label: "Suppliers", href: "/admin/suppliers" },
               { label: "Blog", href: "/admin/blog" },
               { label: "Media Library", href: "/admin/media" },
               { label: "Users", href: "/admin/users" },

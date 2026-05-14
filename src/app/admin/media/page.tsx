@@ -21,8 +21,8 @@ export default function AdminMedia() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Media Library</h1>
-          <p className="text-sm text-gray-500 mt-1">Upload and manage images and videos.</p>
+          <h1 className="text-2xl font-bold text-soft-black">Media Library</h1>
+          <p className="text-sm text-earth mt-1">Upload and manage images and videos.</p>
         </div>
         <Button variant="primary" size="sm">
           <Upload className="w-4 h-4" />
@@ -33,11 +33,11 @@ export default function AdminMedia() {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         {[
-          { label: "Total Files", value: "24", color: "text-gray-900" },
-          { label: "Images", value: "22", color: "text-blue-600" },
-          { label: "Videos", value: "2", color: "text-purple-600" },
+          { label: "Total Files", value: "24", color: "text-soft-black" },
+          { label: "Images", value: "22", color: "text-gold-700" },
+          { label: "Videos", value: "2", color: "text-indigo-700" },
         ].map((stat) => (
-          <div key={stat.label} className="bg-white p-4 border border-gray-100">
+          <div key={stat.label} className="bg-white p-4 border border-sand-light">
             <p className="text-xl font-bold">{stat.value}</p>
             <p className="text-xs text-gray-500 mt-0.5">{stat.label}</p>
           </div>

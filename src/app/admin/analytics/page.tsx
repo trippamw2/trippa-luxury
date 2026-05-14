@@ -22,8 +22,8 @@ export default function AdminAnalytics() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
-        <p className="text-sm text-gray-500 mt-1">Track traffic, bookings, and conversions.</p>
+        <h1 className="text-2xl font-bold text-soft-black">Analytics</h1>
+        <p className="text-sm text-earth mt-1">Track traffic, bookings, and conversions.</p>
       </div>
 
       {/* Key stats */}
@@ -44,8 +44,8 @@ export default function AdminAnalytics() {
                   {stat.change}
                 </span>
               </div>
-              <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-              <p className="text-xs text-gray-500 mt-0.5">{stat.label}</p>
+              <p className="text-2xl font-bold text-soft-black">{stat.value}</p>
+              <p className="text-xs text-earth mt-0.5">{stat.label}</p>
             </motion.div>
           );
         })}
@@ -54,7 +54,7 @@ export default function AdminAnalytics() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Monthly trend (chart placeholder) */}
         <div className="bg-white border border-gray-100 p-6">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4">Revenue Trend (Last 6 Months)</h3>
+          <h3 className="text-sm font-semibold text-soft-black mb-4">Revenue Trend (Last 6 Months)</h3>
           <div className="flex items-end gap-3 h-40">
             {[
               { label: "Dec", value: 45 },
@@ -69,11 +69,11 @@ export default function AdminAnalytics() {
                   className="w-full bg-gold/70 rounded-t"
                   style={{ height: `${month.value}%` }}
                 />
-                <span className="text-xs text-gray-400">{month.label}</span>
+                <span className="text-xs text-earth-light">{month.label}</span>
               </div>
             ))}
           </div>
-          <div className="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between text-xs text-gray-400">
+          <div className="mt-4 pt-4 border-t border-sand-light flex items-center justify-between text-xs text-earth-light">
             <span>Connect Google Analytics for detailed insights</span>
             <span className="text-indigo-600 cursor-pointer hover:text-indigo-800">Set up &rarr;</span>
           </div>
@@ -81,7 +81,7 @@ export default function AdminAnalytics() {
 
         {/* Recent activity */}
         <div className="bg-white border border-gray-100 p-6">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4">Recent Activity</h3>
+          <h3 className="text-sm font-semibold text-soft-black mb-4">Recent Activity</h3>
           <div className="space-y-4">
             {RECENT_ACTIVITY.map((item, i) => (
               <motion.div
@@ -93,8 +93,8 @@ export default function AdminAnalytics() {
               >
                 <div className="w-2 h-2 mt-1.5 rounded-full bg-gold shrink-0" />
                 <div>
-                  <p className="text-sm text-gray-900">{item.action}</p>
-                  <p className="text-xs text-gray-400">{item.detail}</p>
+                  <p className="text-sm text-soft-black">{item.action}</p>
+                  <p className="text-xs text-earth-light">{item.detail}</p>
                   <p className="text-[10px] text-gray-300 mt-0.5">{item.time}</p>
                 </div>
               </motion.div>

@@ -21,14 +21,14 @@ export default function AdminSettings() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-        <p className="text-sm text-gray-500 mt-1">Configure platform settings.</p>
+        <h1 className="text-2xl font-bold text-soft-black">Settings</h1>
+        <p className="text-sm text-earth mt-1">Configure platform settings.</p>
       </div>
 
       <div className="bg-white border border-sand-light/50 p-6 max-w-2xl">
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Site Name</label>
+            <label className="block text-sm font-medium text-soft-black mb-1">Site Name</label>
             <input
               type="text"
               value={form.siteName}
@@ -37,7 +37,7 @@ export default function AdminSettings() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">WhatsApp Number</label>
+            <label className="block text-sm font-medium text-soft-black mb-1">WhatsApp Number</label>
             <input
               type="text"
               value={form.whatsapp}
@@ -46,7 +46,7 @@ export default function AdminSettings() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Contact Email</label>
+            <label className="block text-sm font-medium text-soft-black mb-1">Contact Email</label>
             <input
               type="email"
               value={form.email}
@@ -55,7 +55,7 @@ export default function AdminSettings() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Default Currency</label>
+            <label className="block text-sm font-medium text-soft-black mb-1">Default Currency</label>
             <select
               value={form.currency}
               onChange={(e) => setForm({ ...form, currency: e.target.value })}

@@ -4,6 +4,7 @@ import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { WhatsAppWidget } from "@/components/ui/whatsapp-widget";
+import { cookies } from "next/headers";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -53,6 +54,9 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Check if we're in admin route via cookie (set by admin layout)
+  // This is a workaround since headers() is async
+  
   return (
     <html lang="en" className={`${inter.variable}`}>
       <body className="min-h-screen flex flex-col bg-cream text-soft-black font-body antialiased">

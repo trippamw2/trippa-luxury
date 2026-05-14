@@ -141,3 +141,9 @@ img,
     rgba(26, 26, 26, 0.4) 100%
   );
 }
+
+/* Hide header and footer on admin pages */
+body:has([data-admin-layout]) nav,
+body:has([data-admin-layout]) footer {
+  display: none !important;
+}

@@ -23,6 +23,11 @@ const footerLinks = {
 };
 
 export function Footer() {
+  // Hide footer on admin pages
+  if (typeof window !== "undefined" && window.location.pathname.startsWith("/admin")) {
+    return null;
+  }
+
   return (
     <footer className="bg-soft-black text-cream">
       {/* Main Footer */}

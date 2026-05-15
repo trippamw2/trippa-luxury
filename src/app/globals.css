@@ -144,6 +144,103 @@ img,
 
 /* Hide header and footer on admin pages */
 body:has([data-admin-layout]) nav,
-body:has([data-admin-layout]) footer {
+body:has([data-admin-layout]) footer,
+[data-admin-layout] ~ nav,
+[data-admin-layout] ~ footer {
   display: none !important;
+}
+
+/* Luxury typography enhancements */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+/* Refined button styles for luxury feel */
+button, .btn {
+  font-family: var(--font-body);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Elegant form inputs */
+input, textarea, select {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  letter-spacing: 0.01em;
+}
+
+/* Refined card styles */
+.card-luxury {
+  background: white;
+  border: 1px solid var(--color-sand-light);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-luxury:hover {
+  border-color: var(--color-gold);
+  box-shadow: 0 20px 40px -10px rgba(26, 26, 26, 0.1);
+}
+
+/* Luxury section spacing */
+.section-luxury {
+  padding: 8rem 0;
+}
+
+@media (max-width: 768px) {
+  .section-luxury {
+    padding: 4rem 0;
+  }
+}
+
+/* Elegant image overlays */
+.luxury-overlay {
+  background: linear-gradient(
+    180deg,
+    rgba(26, 26, 26, 0) 0%,
+    rgba(26, 26, 26, 0.3) 50%,
+    rgba(26, 26, 26, 0.7) 100%
+  );
+}
+
+/* Refined gold accents */
+.gold-accent {
+  color: var(--color-gold);
+}
+
+.gold-border {
+  border-color: var(--color-gold);
+}
+
+/* Smooth transitions */
+.transition-luxury {
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Elegant focus states */
+input:focus, textarea:focus, select:focus {
+  border-color: var(--color-gold) !important;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.1);
+}
+
+/* Luxury scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-cream);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-sand);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gold);
 }

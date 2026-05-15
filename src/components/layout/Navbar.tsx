@@ -45,6 +45,11 @@ export function Navbar() {
     return () => { document.body.style.overflow = ""; };
   }, [isMobileOpen]);
 
+  // Hide navbar on admin pages
+  if (typeof window !== "undefined" && window.location.pathname.startsWith("/admin")) {
+    return null;
+  }
+
   return (
     <header
       className={cn(

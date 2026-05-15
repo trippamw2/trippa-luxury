@@ -19,7 +19,7 @@ export function NewsletterSection() {
   };
 
   return (
-    <section className="py-24 md:py-32 bg-soft-black relative overflow-hidden">
+    <section className="texture-noise py-24 md:py-32 bg-soft-black relative overflow-hidden">
       {/* Decorative background */}
       <div className="absolute inset-0 opacity-[0.04]">
         <div

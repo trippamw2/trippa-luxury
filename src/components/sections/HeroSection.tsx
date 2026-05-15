@@ -1,26 +1,44 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { IMAGES } from "@/lib/constants";
 
 export function HeroSection() {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end start"],
+  });
+
+  const videoScale = useTransform(scrollYProgress, [0, 1], [1, 1.15]);
+  const videoOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0.3]);
+  const contentY = useTransform(scrollYProgress, [0, 1], [0, 120]);
+
   return (
-    <section className="relative h-screen w-full overflow-hidden bg-soft-black">
-      {/* Hero background image */}
-      <div className="absolute inset-0">
-        <Image
-          src={IMAGES.heroPoster}
-          alt="African safari landscape at golden hour"
-          fill
-          className="object-cover"
-          priority
-          sizes="100vw"
-        />
+    <section ref={sectionRef} className="relative h-screen w-full overflow-hidden bg-soft-black">
+      {/* Hero video background */}
+      <motion.div
+        className="absolute inset-0"
+        style={{ scale: videoScale, opacity: videoOpacity }}
+      >
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          poster={IMAGES.heroPoster}
+          className="absolute inset-0 w-full h-full object-cover"
+          preload="auto"
+        >
+          <source src="/videos/kivara-hero.mp4" type="video/mp4" />
+        </video>
+        {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-soft-black/60 via-soft-black/30 to-soft-black/70" />
-        {/* Animated gradient overlay for cinematic feel */}
+        {/* Cinematic gold glow */}
         <div
           className="absolute inset-0 opacity-20"
           style={{
@@ -28,13 +46,28 @@ export function HeroSection() {
               "radial-gradient(ellipse at 50% 50%, rgba(201, 169, 110, 0.15) 0%, transparent 70%)",
           }}
         />
+      </motion.div>
+
+      {/* Parallax still image fallback (shows while video loads or if video fails) */}
+      <div className="absolute inset-0 opacity-0 pointer-events-none">
+        <Image
+          src={IMAGES.heroPoster}
+          alt=""
+          fill
+          className="object-cover"
+          priority
+          sizes="100vw"
+        />
       </div>
 
       {/* Overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-soft-black/40 via-transparent to-soft-black/60" />
 
       {/* Content */}
-      <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6">
+      <motion.div
+        className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6"
+        style={{ y: contentY }}
+      >
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -72,7 +105,7 @@ export function HeroSection() {
             transition={{ duration: 0.8, delay: 1 }}
             className="mt-6 md:mt-8 text-base md:text-lg text-cream/70 max-w-2xl mx-auto leading-relaxed"
           >
-            Three iconic destinations. One singular vision — to create the world&apos;s most 
+            Three iconic destinations. One singular vision — to create the world&apos;s most
             romantic African escapes for couples who seek the extraordinary.
           </motion.p>
 
@@ -85,20 +118,20 @@ export function HeroSection() {
           >
             <Link
               href="/packages"
-              className="group inline-flex items-center gap-3 px-8 py-4 bg-gold text-soft-black text-sm font-medium tracking-[0.15em] uppercase hover:bg-gold-dark transition-all duration-500"
+              className="cta-luxury group inline-flex items-center gap-3 px-8 py-4 bg-gold text-soft-black text-sm font-medium tracking-[0.15em] uppercase hover:bg-gold-dark transition-all duration-500"
             >
               Begin Your Journey
               <ArrowRight className="w-4 h-4 transition-transform duration-500 group-hover:translate-x-1" />
             </Link>
             <Link
               href="/lake-malawi"
-              className="inline-flex items-center gap-2 px-8 py-4 border border-cream/30 text-cream text-sm font-medium tracking-[0.15em] uppercase hover:bg-cream/10 transition-all duration-500"
+              className="cta-luxury inline-flex items-center gap-2 px-8 py-4 border border-cream/30 text-cream text-sm font-medium tracking-[0.15em] uppercase hover:bg-cream/10 transition-all duration-500"
             >
               Explore Destinations
             </Link>
           </motion.div>
         </motion.div>
-      </div>
+      </motion.div>
 
       {/* Scroll indicator */}
       <motion.div

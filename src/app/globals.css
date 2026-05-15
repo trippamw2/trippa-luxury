@@ -271,3 +271,68 @@ input:focus, textarea:focus, select:focus {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-sunset-gold);
 }
+
+/* ─── Kivara Micro-interactions ───────────────────────────────────── */
+
+/* Gold shimmer on CTA hover */
+.cta-luxury {
+  position: relative;
+  overflow: hidden;
+}
+.cta-luxury::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.15) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.cta-luxury:hover::after {
+  transform: translateX(100%);
+}
+
+/* Card hover lift with refined shadow */
+.card-hover-luxury {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card-hover-luxury:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 24px 48px -16px rgba(28, 26, 23, 0.15);
+}
+
+/* Kivara signature decorative diamond */
+.diamond-accent {
+  width: 6px;
+  height: 6px;
+  background-color: var(--color-sunset-gold);
+  transform: rotate(45deg);
+  display: inline-block;
+}
+
+/* Subtle noise texture for depth */
+.texture-noise {
+  position: relative;
+}
+.texture-noise::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.02;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Kivara accent: deep ochre signature glow */
+.glow-ochre {
+  box-shadow: 0 0 40px rgba(194, 164, 109, 0.08);
+}
+.glow-ochre:hover {
+  box-shadow: 0 0 60px rgba(194, 164, 109, 0.15);
+}

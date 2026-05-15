@@ -29,7 +29,7 @@ export function DestinationCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-50px" }}
       transition={{ duration: 0.8, delay: index * 0.2, ease: [0.22, 1, 0.36, 1] }}
-      className="group relative overflow-hidden bg-warm-white-dark aspect-[3/4] md:aspect-[4/5]"
+      className="card-hover-luxury group relative overflow-hidden bg-warm-white-dark aspect-[3/4] md:aspect-[4/5]"
     >
       {/* Background image */}
       <Image

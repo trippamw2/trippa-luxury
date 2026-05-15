@@ -1,6 +1,6 @@
 // ─── Kivara Luxury Travel ──────────────────────────────────────────────
-// Brand positioned between Aman and &Beyond for discerning couples
-// StoryBrand framework: couples are the hero, Africa is the setting, Kivara is the guide
+// Africa's most coveted romance sanctuary.
+// We occupy the space between Aman's serenity and &Beyond's wilderness.
 // ──────────────────────────────────────────────────────────────────────
 
 // ─── UNSplash Image Library ───────────────────────────────────────────
@@ -8,56 +8,56 @@
 
 export const IMAGES = {
   // Lake Malawi
-  lakeMalawiHero: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1920",
-  lakeMalawiAerial: "https://images.unsplash.com/photo-1580974852861-c3810a2f8f9f?q=80&w=1920",
-  lakeMalawiSunset: "https://images.unsplash.com/photo-1613771406114-0f1237f4e14f?q=80&w=1920",
-  lakeMalawiBeach: "https://images.unsplash.com/photo-1506953823976-92e7a2e3dbb6?q=80&w=1920",
-  lakeMalawiDhow: "https://images.unsplash.com/photo-1569949381669-ecf31ae8f613?q=80&w=1920",
-  lakeMalawiIsland: "https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?q=80&w=1920",
+  lakeMalawiHero: "/images/lake-malawi-hero.jpg",
+  lakeMalawiAerial: "/images/lake-malawi-aerial.jpg",
+  lakeMalawiSunset: "/images/lake-malawi-sunset.jpg",
+  lakeMalawiBeach: "/images/lake-malawi-beach.jpg",
+  lakeMalawiDhow: "/images/lake-malawi-dhow.jpg",
+  lakeMalawiIsland: "/images/lake-malawi-island.jpg",
 
   // South Luangwa
-  southLuangwaHero: "https://images.unsplash.com/photo-1516426122078-c23e76319801?q=80&w=1920",
-  southLuangwaElephant: "https://images.unsplash.com/photo-1547970824-ee225ed72a2e?q=80&w=1920",
-  southLuangwaLeopard: "https://images.unsplash.com/photo-1569949381669-ecf31ae8f613?q=80&w=1920",
-  southLuangwaSunset: "https://images.unsplash.com/photo-1510414849017-6f6351b2ce7d?q=80&w=1920",
-  southLuangwaSafari: "https://images.unsplash.com/photo-1536240478700-b869070f3f97?q=80&w=1920",
-  southLuangwaCamp: "https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?q=80&w=1920",
+  southLuangwaHero: "/images/south-luangwa-hero.jpg",
+  southLuangwaElephant: "/images/south-luangwa-elephant.jpg",
+  southLuangwaLeopard: "/images/south-luangwa-leopard.jpg",
+  southLuangwaSunset: "/images/south-luangwa-sunset.jpg",
+  southLuangwaSafari: "/images/south-luangwa-safari.jpg",
+  southLuangwaCamp: "/images/south-luangwa-camp.jpg",
 
   // Zanzibar
-  zanzibarHero: "https://images.unsplash.com/photo-1605810230484-471653706b9f?q=80&w=1920",
-  zanzibarBeach: "https://images.unsplash.com/photo-1452421822248-d4c2b47f0c81?q=80&w=1920",
-  zanzibarAerial: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=1920",
-  zanzibarDhow: "https://images.unsplash.com/photo-1506953823976-92e7a2e3dbb6?q=80&w=1920",
-  zanzibarSpa: "https://images.unsplash.com/photo-1540555700478-4be289fbec6d?q=80&w=1920",
-  zanzibarStoneTown: "https://images.unsplash.com/photo-1547970824-ee225ed72a2e?q=80&w=1920",
+  zanzibarHero: "/images/zanzibar-hero.jpg",
+  zanzibarBeach: "/images/zanzibar-beach.jpg",
+  zanzibarAerial: "/images/zanzibar-aerial.jpg",
+  zanzibarDhow: "/images/zanzibar-dhow.jpg",
+  zanzibarSpa: "/images/zanzibar-spa.jpg",
+  zanzibarStoneTown: "/images/zanzibar-stonetown.jpg",
 
   // Properties
-  kayaMawa: "https://images.unsplash.com/photo-1585403784267-f7614d24f2c2?q=80&w=1920",
-  pumulani: "https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?q=80&w=1920",
-  blueZebra: "https://images.unsplash.com/photo-1506953823976-92e7a2e3dbb6?q=80&w=1920",
-  pukuRidge: "https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?q=80&w=1920",
-  luangwaHouse: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?q=80&w=1920",
-  luangwaRiver: "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?q=80&w=1920",
-  xanadu: "https://images.unsplash.com/photo-1600240644455-3edc55c375fe?q=80&w=1920",
-  whiteSand: "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?q=80&w=1920",
-  residence: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=1920",
+  kayaMawa: "/images/kaya-mawa.jpg",
+  pumulani: "/images/pumulani.jpg",
+  blueZebra: "/images/blue-zebra.jpg",
+  pukuRidge: "/images/puku-ridge.jpg",
+  luangwaHouse: "/images/luangwa-house.jpg",
+  luangwaRiver: "/images/luangwa-river.jpg",
+  xanadu: "/images/xanadu.jpg",
+  whiteSand: "/images/white-sand.jpg",
+  residence: "/images/residence.jpg",
 
   // Experiences
-  dining: "https://images.unsplash.com/photo-1470337458703-46ad1756a187?q=80&w=1920",
-  walking: "https://images.unsplash.com/photo-1510414849017-6f6351b2ce7d?q=80&w=1920",
-  dhow: "https://images.unsplash.com/photo-1506953823976-92e7a2e3dbb6?q=80&w=1920",
-  spa: "https://images.unsplash.com/photo-1540555700478-4be289fbec6d?q=80&w=1920",
-  starbed: "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?q=80&w=1920",
-  bushDining: "https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?q=80&w=1920",
+  dining: "/images/dining.jpg",
+  walking: "/images/walking.jpg",
+  dhow: "/images/dhow.jpg",
+  spa: "/images/spa.jpg",
+  starbed: "/images/starbed.jpg",
+  bushDining: "/images/bush-dining.jpg",
 
   // Journal
-  journalHoneymoon: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=1920",
-  journalMalawi: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1920",
-  journalWalking: "https://images.unsplash.com/photo-1536240478700-b070869f3f97?q=80&w=1920",
-  journalZanzibar: "https://images.unsplash.com/photo-1452421822248-d4c2b47f0c81?q=80&w=1920",
+  journalHoneymoon: "/images/journal-honeymoon.jpg",
+  journalMalawi: "/images/journal-malawi.jpg",
+  journalWalking: "/images/journal-walking.jpg",
+  journalZanzibar: "/images/journal-zanzibar.jpg",
 
   // Hero video poster frames
-  heroPoster: "https://images.unsplash.com/photo-1516426122078-c23e76319801?q=80&w=1920",
+  heroPoster: "/images/hero-poster.jpg",
 } as const;
 
 export const BRAND_POSITIONING = {
@@ -65,15 +65,15 @@ export const BRAND_POSITIONING = {
   description:
     "A handcrafted collection of Africa's most exquisite beach and bush escapes. Curated exclusively for couples who refuse to compromise on beauty, intimacy, or refinement.",
   betweenAmanAndBeyond:
-    "We occupy the sacred territory between Aman's architectural serenity and &Beyond's untamed wilderness. Like Aman, we worship space, silence, and design. Like &Beyond, we honor the raw, the authentic, the profoundly wild. We are Kivara: the world's most romantic gateway to Africa's soul.",
+    "We occupy the space between Aman's serenity and &Beyond's wilderness. Like Aman, we worship space and silence. Like &Beyond, we honor the raw and the wild. We are Kivara: Africa's most romantic gateway.",
   storyBrand: {
     hero: "You. A couple in love. A partnership that deserves celebrating.",
-    problem: "Most vacations deliver distraction. You deserve transcendence. You crave a journey that deepens your connection, not another manufactured resort experience.",
-    guide: "Kivara. Your personal curators of romance. We know Africa's most secret gardens, its most intimate camps, its most soul stirring shorelines.",
-    plan: "A bespoke journey designed around your love story. Three iconic destinations. Nine extraordinary properties. Infinite moments of wonder.",
-    callToAction: "Begin Your Journey. Your table beneath the African stars is waiting.",
-    success: "You return not just tanned and rested. You return transformed. Closer. More in love than when you left. You carry Africa in your hearts forever.",
-    stakes: "Settle for ordinary, and Africa's magic will remain someone else's story. The golden light over the Luangwa floodplain. The silence of a Lake Malawi sunrise. The scent of cloves in a Zanzibar twilight. These are yours for the taking.",
+    problem: "Most vacations distract. You deserve a journey that deepens your connection.",
+    guide: "Kivara. Your personal curators of romance. We know Africa's most secret gardens, its most intimate camps, its most soul-stirring shorelines.",
+    plan: "A bespoke journey around your love story. Three destinations. Nine extraordinary properties. Infinite moments of wonder.",
+    callToAction: "Begin Your Journey.",
+    success: "You return transformed. Closer. More in love. Africa stays with you forever.",
+    stakes: "Settle for ordinary, and Africa's magic stays someone else's story. The golden light over Luangwa. The silence of a Lake Malawi sunrise. The scent of cloves in Zanzibar's twilight. These are yours for the taking.",
   },
 };
 
@@ -122,10 +122,9 @@ export const DESTINATIONS = [
     subtitle: "Africa's Best Kept Secret. Your Private Freshwater Paradise.",
     tagline: "Where the lake becomes an ocean of tranquility",
     description:
-      "Lake Malawi is not merely a destination. It is a benediction. Africa's third largest lake holds crystal waters that shimmer like liquid sapphire, shores so pristine they feel untouched by time, and an atmosphere of such profound serenity that couples find themselves speaking in whispers.",
+      "Lake Malawi. Africa's third largest lake holds crystal waters, shores untouched by time, and an atmosphere of such profound serenity that couples find themselves speaking in whispers.",
     positioning:
-      "Imagine a place where the horizon is nothing but water and sky. Where the only decisions are whether to kayak at dawn or dine beneath constellations on a private beach. Kaya Mawa, Pumulani, Blue Zebra Island Lodge each offers its own chapter of this love story. This is Africa's hidden luxury beach escape. Reserved for those who know where to look.",
-    heroVideo: "/videos/lake-malawi-hero.mp4",
+      "Horizon of water and sky. Kayak at dawn. Dine beneath constellations on a private beach. Kaya Mawa, Pumulani, and Blue Zebra Island Lodge each write their own chapter of this love story. Africa's hidden luxury beach escape. Reserved for those who know where to look.",
     heroImage: IMAGES.lakeMalawiHero,
     slug: "lake-malawi",
     properties: ["kaya-mawa", "pumulani-lodge", "blue-zebra-island-lodge"],
@@ -162,10 +161,9 @@ export const DESTINATIONS = [
     subtitle: "The Birthplace of the Walking Safari. The Soul of African Wilderness.",
     tagline: "Where intimacy with the wild transforms you",
     description:
-      "South Luangwa is not a national park. It is a living cathedral of wilderness. The birthplace of the walking safari offers something increasingly precious: an unfiltered, unscripted communion with the natural world that strips away everything unnecessary and leaves only what matters.",
+      "South Luangwa. The birthplace of the walking safari. An unfiltered communion with the natural world that strips away everything unnecessary and leaves only what matters.",
     positioning:
-      "This is Africa as it was before fences, before crowds, before compromise. South Luangwa offers an intimacy with the wild that few places on earth can match. Here, luxury means falling asleep to the rumble of lions and waking to the call of fish eagles. Puku Ridge Camp, Luangwa Safari House, Luangwa River Camp each offers a different window into this ancient world. This is raw intimate safari luxury for those who seek not just to see Africa but to feel it.",
-    heroVideo: "/videos/south-luangwa-hero.mp4",
+      "Africa as it was before fences, before crowds, before compromise. Here, luxury means falling asleep to the rumble of lions and waking to the call of fish eagles. Puku Ridge Camp, Luangwa Safari House, Luangwa River Camp each offers a different window into this ancient world. Safari luxury for those who seek not just to see Africa but to feel it.",
     heroImage: IMAGES.southLuangwaHero,
     slug: "south-luangwa",
     properties: ["puku-ridge-camp", "luangwa-safari-house", "luangwa-river-camp"],
@@ -202,10 +200,9 @@ export const DESTINATIONS = [
     subtitle: "The Spice Island. The Apex of Tropical Romance.",
     tagline: "Where history, spice, and turquoise waters converge",
     description:
-      "Zanzibar is a love letter written in cinnamon and clove. An archipelago where ancient Stone Town alleyways lead to beaches of such impossible beauty they seem invented. Where the Indian Ocean trades in shades of turquoise no artist could replicate.",
+      "Zanzibar. A love letter written in cinnamon and clove. Stone Town alleyways lead to beaches of impossible beauty. The Indian Ocean trades in shades of turquoise no artist could replicate.",
     positioning:
-      "Zanzibar exists at the intersection of culture and paradise. The scent of spices drifts through centuries old corridors. Dhows sail into sunsets that set the sky ablaze. And along the coast, three extraordinary properties Xanadu Villas, Zanzibar White Sand Villas, The Residence Zanzibar offer sanctuaries of romance. This is tropical romantic elegance, refined to perfection.",
-    heroVideo: "/videos/zanzibar-hero.mp4",
+      "Culture and paradise intertwined. Spice-scented corridors, dhows sailing into fiery sunsets, and three extraordinary properties — Xanadu Villas, Zanzibar White Sand Villas, The Residence Zanzibar — each a sanctuary of romance. Tropical elegance, refined to perfection.",
     heroImage: IMAGES.zanzibarHero,
     slug: "zanzibar",
     properties: ["xanadu-villas", "zanzibar-white-sand-villas", "the-residence-zanzibar"],

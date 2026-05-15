@@ -48,6 +48,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="/images/kivara-icon.svg" type="image/svg+xml" />
+        <link rel="alternate icon" href="/images/kivara-icon.svg" type="image/svg+xml" />
+      </head>
       <body className="min-h-screen flex flex-col bg-cream text-soft-black font-body antialiased">
         <Navbar />
         <main className="flex-1">{children}</main>

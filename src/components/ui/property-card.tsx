@@ -35,7 +35,7 @@ export function PropertyCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-50px" }}
       transition={{ duration: 0.7, delay: index * 0.15, ease: [0.22, 1, 0.36, 1] }}
-      className="group cursor-pointer"
+      className="card-hover-luxury group cursor-pointer"
     >
       <Link href={`/properties/${slug}`}>
         <div className="relative overflow-hidden bg-warm-white-dark aspect-[4/5]">

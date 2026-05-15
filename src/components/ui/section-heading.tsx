@@ -28,13 +28,14 @@ export function SectionHeading({
       {label && (
         <span
           className={cn(
-            "inline-block text-xs font-medium tracking-[0.2em] uppercase mb-4",
+            "inline-block text-xs font-medium tracking-[0.2em] uppercase mb-3",
             light ? "text-gold-light" : "text-gold"
           )}
         >
           {label}
         </span>
       )}
+      {label && <span className="diamond-accent mb-6" />}
       <h2
         className={cn(
           "text-3xl md:text-4xl lg:text-5xl font-heading font-medium leading-tight",

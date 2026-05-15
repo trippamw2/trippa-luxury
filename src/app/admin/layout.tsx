@@ -15,7 +15,7 @@ export default function AdminLayout({
       {/* Left Sidebar - always visible */}
       <aside className="w-64 min-h-screen bg-soft-black text-cream fixed left-0 top-0 bottom-0 overflow-y-auto">
         <div className="p-6 border-b border-white/5">
-          <img src="/images/kivara-logo.png" alt="Kivara" className="h-7 w-auto brightness-0 invert" />
+          <img src="/images/kivara-logo.png" alt="Kivara" className="h-10 w-auto max-w-[200px] object-contain brightness-0 invert" />
           <span className="block text-[10px] text-earth-light tracking-widest uppercase mt-2">Admin Panel</span>
         </div>
         <nav className="p-4 space-y-1">

@@ -62,12 +62,12 @@ export function Navbar() {
       <nav className="container-luxury">
         <div className="flex items-center justify-between h-20 md:h-24">
           {/* Logo */}
-          <Link href="/" className="relative z-10 block">
+          <Link href="/" className="relative z-10 block shrink-0">
             <img
               src="/images/kivara-logo.png"
               alt="Kivara"
               className={cn(
-                "h-8 md:h-10 w-auto transition-opacity duration-500",
+                "h-10 sm:h-12 md:h-14 w-auto max-w-[220px] sm:max-w-[260px] md:max-w-[300px] object-contain transition-all duration-500",
                 isScrolled ? "opacity-100" : "opacity-90 brightness-0 invert"
               )}
             />

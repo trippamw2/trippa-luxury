@@ -35,11 +35,11 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 lg:gap-8">
           {/* Brand Column */}
           <div className="lg:col-span-2">
-            <Link href="/">
+            <Link href="/" className="inline-block">
               <img
                 src="/images/kivara-logo.png"
                 alt="Kivara"
-                className="h-10 w-auto brightness-0 invert opacity-90"
+                className="h-12 md:h-14 w-auto max-w-[240px] md:max-w-[300px] object-contain brightness-0 invert opacity-90"
               />
             </Link>
             <p className="mt-4 text-earth-light text-sm leading-relaxed max-w-sm">

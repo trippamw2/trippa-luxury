@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Edit2, Trash2, X, Search, MapPin, Star, Check, AlertCircle } from "lucide-react";
-import { PROPERTIES } from "@/lib/constants";
 import { formatDestination } from "@/lib/utils";
+import { useApiData } from "@/lib/use-api-data";
 
 interface Property {
   id: string;
@@ -19,9 +19,29 @@ interface Property {
 }
 
 export default function AdminProperties() {
-  const [properties, setProperties] = useState<Property[]>(
-    PROPERTIES.map(p => ({ id: p.id, name: p.name, destination: p.destination, location: p.location, priceRange: p.priceRange, rating: p.rating }))
-  );
+  const { data: properties, loading, create, update, remove } = useApiData<Property>("properties", {
+    mapFromApi: (item: any) => ({
+      id: item.id,
+      name: item.name,
+      destination: item.destination || "lake-malawi",
+      location: item.location || "",
+      priceRange: item.priceRange || "",
+      rating: item.rating || 0,
+      heroImage: item.heroImage || "",
+      description: item.description || "",
+      tagline: item.tagline || "",
+    }),
+    mapToApi: (item: any) => ({
+      name: item.name,
+      destination: item.destination,
+      location: item.location,
+      price_range: item.priceRange,
+      rating: item.rating ? parseFloat(item.rating) : 0,
+      hero_image: item.heroImage,
+      description: item.description,
+      tagline: item.tagline,
+    }),
+  });
   const [searchQuery, setSearchQuery] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
@@ -39,37 +59,40 @@ export default function AdminProperties() {
     p.location.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleAdd = () => {
-    const newProperty: Property = {
-      id: `prop-${Date.now()}`,
-      name: formData.name,
-      destination: formData.destination,
-      location: formData.location,
-      priceRange: formData.priceRange || "$500 to $1,000 per night",
-      rating: parseFloat(formData.rating) || 4.5,
-    };
-    setProperties([...properties, newProperty]);
-    setShowModal(false);
-setFormData({ name: "", destination: "lake-malawi", location: "", priceRange: "", rating: "4.5", heroImage: "", description: "", tagline: "" });
-    showToast("Property added successfully", "success");
+  const handleAdd = async () => {
+    const result = await create(formData);
+    if (result) {
+      setShowModal(false);
+      setFormData({ name: "", destination: "lake-malawi", location: "", priceRange: "", rating: "4.5", heroImage: "", description: "", tagline: "" });
+      showToast("Property added successfully", "success");
+    } else {
+      showToast("Failed to add property", "error");
+    }
   };
 
-  const handleEdit = () => {
+  const handleEdit = async () => {
     if (!editingProperty) return;
-    setProperties(properties.map(p => p.id === editingProperty.id ? editingProperty : p));
-    setEditingProperty(null);
-    showToast("Property updated successfully", "success");
+    const result = await update(editingProperty.id, formData);
+    if (result) {
+      setEditingProperty(null);
+      showToast("Property updated successfully", "success");
+    } else {
+      showToast("Failed to update property", "error");
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setProperties(properties.filter(p => p.id !== id));
-    setDeleteConfirm(null);
-    showToast("Property deleted successfully", "success");
+  const handleDelete = async (id: string) => {
+    const ok = await remove(id);
+    if (ok) {
+      setDeleteConfirm(null);
+      showToast("Property deleted successfully", "success");
+    } else {
+      showToast("Failed to delete property", "error");
+    }
   };
 
   return (
     <div className="min-h-screen">
-      {/* Toast */}
       <AnimatePresence>
         {toast && (
           <motion.div
@@ -86,7 +109,6 @@ setFormData({ name: "", destination: "lake-malawi", location: "", priceRange: ""
         )}
       </AnimatePresence>
 
-      {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-soft-black">Properties</h1>
@@ -101,7 +123,6 @@ setFormData({ name: "", destination: "lake-malawi", location: "", priceRange: ""
         </button>
       </div>
 
-      {/* Search */}
       <div className="bg-white border border-sand-light p-4 mb-6">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-earth" />
@@ -115,7 +136,9 @@ setFormData({ name: "", destination: "lake-malawi", location: "", priceRange: ""
         </div>
       </div>
 
-      {/* Table */}
+      {loading ? (
+        <div className="flex items-center justify-center py-20"><div className="text-earth text-sm">Loading properties...</div></div>
+      ) : (
       <div className="bg-white border border-sand-light overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-warm-white border-b border-sand-light">
@@ -145,15 +168,8 @@ setFormData({ name: "", destination: "lake-malawi", location: "", priceRange: ""
                   <button
                     onClick={() => { setEditingProperty(property); setFormData({ name: property.name, destination: property.destination, location: property.location, priceRange: property.priceRange, rating: property.rating.toString(), heroImage: property.heroImage || "", description: property.description || "", tagline: property.tagline || "" }); setShowModal(true); }}
                     className="text-xs text-gold hover:text-gold-dark mr-4 font-medium"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => setDeleteConfirm(property.id)}
-                    className="text-xs text-red-500 hover:text-red-700 font-medium"
-                  >
-                    Delete
-                  </button>
+                  >Edit</button>
+                  <button onClick={() => setDeleteConfirm(property.id)} className="text-xs text-red-500 hover:text-red-700 font-medium">Delete</button>
                 </td>
               </tr>
             ))}
@@ -163,138 +179,41 @@ setFormData({ name: "", destination: "lake-malawi", location: "", priceRange: ""
           <div className="p-12 text-center text-earth">No properties found matching your search.</div>
         )}
       </div>
+      )}
 
-      {/* Modal */}
       <AnimatePresence>
         {showModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-40 p-4"
-            onClick={() => setShowModal(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-cream border border-sand-light p-6 w-full max-w-md"
-              onClick={(e) => e.stopPropagation()}
-            >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-40 p-4" onClick={() => setShowModal(false)}>
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-cream border border-sand-light p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-soft-black">{editingProperty ? "Edit Property" : "Add New Property"}</h2>
-                <button onClick={() => setShowModal(false)} className="text-earth hover:text-soft-black">
-                  <X className="w-5 h-5" />
-                </button>
+                <button onClick={() => setShowModal(false)} className="text-earth hover:text-soft-black"><X className="w-5 h-5" /></button>
               </div>
-
               <div className="space-y-4">
-                <div>
-                  <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Property Name</label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white"
-                    placeholder="Kaya Mawa"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Destination</label>
-                  <select
-                    value={formData.destination}
-                    onChange={(e) => setFormData({ ...formData, destination: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white"
-                  >
-                    <option value="lake-malawi">Lake Malawi</option>
-                    <option value="south-luangwa">South Luangwa</option>
-                    <option value="zanzibar">Zanzibar</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Location</label>
-                  <input
-                    type="text"
-                    value={formData.location}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white"
-                    placeholder="Likoma Island, Lake Malawi"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Price Range</label>
-                  <input
-                    type="text"
-                    value={formData.priceRange}
-                    onChange={(e) => setFormData({ ...formData, priceRange: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white"
-                    placeholder="$650 to $1,200 per night"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Rating</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    max="5"
-                    value={formData.rating}
-                    onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white"
-                  />
-                </div>
+                <div><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Property Name</label><input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" placeholder="Kaya Mawa" /></div>
+                <div><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Destination</label><select value={formData.destination} onChange={(e) => setFormData({ ...formData, destination: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white"><option value="lake-malawi">Lake Malawi</option><option value="south-luangwa">South Luangwa</option><option value="zanzibar">Zanzibar</option></select></div>
+                <div><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Location</label><input type="text" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" placeholder="Likoma Island, Lake Malawi" /></div>
+                <div><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Price Range</label><input type="text" value={formData.priceRange} onChange={(e) => setFormData({ ...formData, priceRange: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" placeholder="$650 to $1,200 per night" /></div>
+                <div><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Rating</label><input type="number" step="0.1" min="0" max="5" value={formData.rating} onChange={(e) => setFormData({ ...formData, rating: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" /></div>
               </div>
-
               <div className="flex gap-3 mt-6">
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="flex-1 px-5 py-2.5 border border-sand-light text-earth text-sm hover:bg-warm-white transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={editingProperty ? handleEdit : handleAdd}
-                  className="flex-1 px-5 py-2.5 bg-gold text-soft-black text-sm font-medium hover:bg-gold-dark transition-colors"
-                >
-                  {editingProperty ? "Save Changes" : "Add Property"}
-                </button>
+                <button onClick={() => setShowModal(false)} className="flex-1 px-5 py-2.5 border border-sand-light text-earth text-sm hover:bg-warm-white">Cancel</button>
+                <button onClick={editingProperty ? handleEdit : handleAdd} className="flex-1 px-5 py-2.5 bg-gold text-soft-black text-sm font-medium hover:bg-gold-dark">{editingProperty ? "Save Changes" : "Add Property"}</button>
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Delete Confirmation */}
       <AnimatePresence>
         {deleteConfirm && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-50 p-4"
-            onClick={() => setDeleteConfirm(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.95 }}
-              animate={{ scale: 1 }}
-              className="bg-cream border border-sand-light p-6 w-full max-w-sm"
-              onClick={(e) => e.stopPropagation()}
-            >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-50 p-4" onClick={() => setDeleteConfirm(null)}>
+            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} className="bg-cream border border-sand-light p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
               <h3 className="text-lg font-bold text-soft-black mb-2">Confirm Delete</h3>
-              <p className="text-sm text-earth mb-6">Are you sure you want to delete this property? This action cannot be undone.</p>
+              <p className="text-sm text-earth mb-6">Are you sure you want to delete this property?</p>
               <div className="flex gap-3">
-                <button
-                  onClick={() => setDeleteConfirm(null)}
-                  className="flex-1 px-4 py-2.5 border border-sand-light text-earth text-sm hover:bg-warm-white"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => handleDelete(deleteConfirm)}
-                  className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm font-medium hover:bg-red-600"
-                >
-                  Delete
-                </button>
+                <button onClick={() => setDeleteConfirm(null)} className="flex-1 px-4 py-2.5 border border-sand-light text-earth text-sm">Cancel</button>
+                <button onClick={() => handleDelete(deleteConfirm)} className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm font-medium">Delete</button>
               </div>
             </motion.div>
           </motion.div>

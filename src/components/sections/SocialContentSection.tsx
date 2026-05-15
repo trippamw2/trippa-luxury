@@ -7,10 +7,10 @@ import { SITE_CONFIG } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 const socialItems = [
-  { type: "video", label: "@trippa", icon: Play, description: "Cinematic moments from our latest journey" },
-  { type: "photo", label: "@trippa", icon: Camera, description: "Golden hour on the shores of Lake Malawi" },
-  { type: "video", label: "@trippa", icon: Play, description: "Walking with wildlife in South Luangwa" },
-  { type: "photo", label: "@trippa", icon: Camera, description: "Sunset cocktails in Zanzibar" },
+  { type: "video", label: "@kivara", icon: Play, description: "Cinematic moments from our latest journey" },
+  { type: "photo", label: "@kivara", icon: Camera, description: "Golden hour on the shores of Lake Malawi" },
+  { type: "video", label: "@kivara", icon: Play, description: "Walking with wildlife in South Luangwa" },
+  { type: "photo", label: "@kivara", icon: Camera, description: "Sunset cocktails in Zanzibar" },
 ];
 
 export function SocialContentSection() {

@@ -76,7 +76,7 @@ export default function JournalPostPage() {
                   beautiful destinations.
                 </p>
                 <p className="text-base text-earth leading-relaxed mb-4">
-                  Trippa&apos;s Journal is a space for inspiration — where we share destination guides, 
+                  Kivara&apos;s Journal is a space for inspiration — where we share destination guides, 
                   honeymoon stories, safari tales, and the kind of travel content that stirs the soul.
                 </p>
                 <p className="text-base text-earth leading-relaxed">

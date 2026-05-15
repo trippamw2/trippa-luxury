@@ -62,15 +62,15 @@ export function Navbar() {
       <nav className="container-luxury">
         <div className="flex items-center justify-between h-20 md:h-24">
           {/* Logo */}
-          <Link href="/" className="relative z-10">
-            <span
+          <Link href="/" className="relative z-10 block">
+            <img
+              src="/images/kivara-logo.png"
+              alt="Kivara"
               className={cn(
-                "text-2xl md:text-3xl font-heading font-bold tracking-wider transition-colors duration-500",
-                isScrolled ? "text-soft-black" : "text-white"
+                "h-8 md:h-10 w-auto transition-opacity duration-500",
+                isScrolled ? "opacity-100" : "opacity-90 brightness-0 invert"
               )}
-            >
-              {SITE_CONFIG.name}
-            </span>
+            />
           </Link>
 
           {/* Desktop Navigation */}

@@ -1,29 +1,47 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/* KIVARA — Brand Typography */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
 
 @import "tailwindcss";
 
 @theme inline {
-  --color-sand: #D4C5A9;
-  --color-sand-light: #E8DCC8;
-  --color-sand-dark: #B8A88A;
-  --color-warm-white: #F5F0EB;
-  --color-warm-white-dark: #EDE5DA;
-  --color-soft-black: #1A1A1A;
-  --color-soft-black-light: #2C2C2C;
-  --color-earth: #8B7D6B;
-  --color-earth-light: #A89880;
-  --color-gold: #C9A96E;
-  --color-gold-light: #D4BC8A;
-  --color-gold-dark: #B8944A;
-  --color-cream: #FAF7F2;
+  /* KIVARA Color Palette */
+  --color-deep-earth: #1C1A17;
+  --color-deep-earth-light: #2C2A27;
+  --color-warm-ivory: #F4F0E8;
+  --color-warm-ivory-dark: #EBE5DA;
+  --color-sand-beige: #D8CBB8;
+  --color-sand-beige-light: #E4DACB;
+  --color-sand-beige-dark: #C2B39C;
+  --color-ocean-black: #0E1B1A;
+  --color-sunset-gold: #C2A46D;
+  --color-sunset-gold-light: #D4BC8A;
+  --color-sunset-gold-dark: #B08A4D;
 
-  --font-heading: "Playfair Display", serif;
-  --font-body: "Inter", sans-serif;
+  /* Legacy aliases for backward compatibility */
+  --color-cream: var(--color-warm-ivory);
+  --color-soft-black: var(--color-deep-earth);
+  --color-soft-black-light: var(--color-deep-earth-light);
+  --color-sand: var(--color-sand-beige);
+  --color-sand-light: var(--color-sand-beige-light);
+  --color-sand-dark: var(--color-sand-beige-dark);
+  --color-earth: var(--color-sand-beige-dark);
+  --color-earth-light: var(--color-sand-beige);
+  --color-gold: var(--color-sunset-gold);
+  --color-gold-light: var(--color-sunset-gold-light);
+  --color-gold-dark: var(--color-sunset-gold-dark);
+  --color-warm-white: var(--color-warm-ivory);
+  --color-warm-white-dark: var(--color-warm-ivory-dark);
 
-  --color-background: var(--color-cream);
-  --color-foreground: var(--color-soft-black);
+  /* KIVARA Fonts */
+  --font-heading: "Trajan Pro", "Cinzel", "Cormorant Garamond", "Playfair Display", serif;
+  --font-body: "Montserrat", "Inter", "Helvetica Neue", Arial, sans-serif;
+
+  --color-background: var(--color-warm-ivory);
+  --color-foreground: var(--color-deep-earth);
 }
+
+/* Montserrat loaded via Google Fonts */
+/* Trajan Pro — system/Adobe font with luxury serif fallbacks */
 
 /* Smooth scrolling */
 html {
@@ -31,8 +49,8 @@ html {
 }
 
 body {
-  background-color: var(--color-cream);
-  color: var(--color-soft-black);
+  background-color: var(--color-warm-ivory);
+  color: var(--color-deep-earth);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -73,8 +91,8 @@ img {
 
 /* Luxury selection color */
 ::selection {
-  background-color: var(--color-gold);
-  color: var(--color-soft-black);
+  background-color: var(--color-sunset-gold);
+  color: var(--color-deep-earth);
 }
 
 /* Video background overlay utility */
@@ -83,9 +101,9 @@ img {
   inset: 0;
   background: linear-gradient(
     to bottom,
-    rgba(26, 26, 26, 0.3) 0%,
-    rgba(26, 26, 26, 0.1) 40%,
-    rgba(26, 26, 26, 0.4) 100%
+    rgba(28, 26, 23, 0.3) 0%,
+    rgba(28, 26, 23, 0.1) 40%,
+    rgba(28, 26, 23, 0.4) 100%
   );
 }
 
@@ -105,11 +123,11 @@ img {
   100% { background-position: 200% center; }
 }
 
-/* Elegant image aesthetics - darker, more muted for luxury feel */
+/* Elegant image aesthetics — KIVARA: muted, cinematic, atmospheric */
 img, 
 .next-image,
 [class*="object-cover"] {
-  filter: saturate(0.95) brightness(0.92);
+  filter: saturate(0.9) brightness(0.9);
   transition: filter 0.5s ease;
 }
 
@@ -118,27 +136,27 @@ img,
 .featured-image,
 .landscape-card img,
 .property-card img {
-  filter: saturate(0.85) brightness(0.85) contrast(1.05);
+  filter: saturate(0.8) brightness(0.82) contrast(1.08);
 }
 
 /* Hover effect - slightly brighten but keep elegant */
 .group:hover img,
 .hover-lift:hover img {
-  filter: saturate(0.95) brightness(0.95);
+  filter: saturate(0.92) brightness(0.92);
 }
 
 /* Gallery images - slightly lighter for visual interest */
 .gallery-image {
-  filter: saturate(0.9) brightness(0.95);
+  filter: saturate(0.85) brightness(0.92);
 }
 
 /* Gradient overlays for more elegance */
 .gradient-overlay {
   background: linear-gradient(
     180deg, 
-    rgba(26, 26, 26, 0.3) 0%, 
-    rgba(26, 26, 26, 0.1) 40%, 
-    rgba(26, 26, 26, 0.4) 100%
+    rgba(28, 26, 23, 0.3) 0%, 
+    rgba(28, 26, 23, 0.1) 40%, 
+    rgba(28, 26, 23, 0.4) 100%
   );
 }
 
@@ -150,17 +168,26 @@ body:has([data-admin-layout]) footer,
   display: none !important;
 }
 
-/* Luxury typography enhancements */
+/* KIVARA: Luxury typography enhancements */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
   font-weight: 400;
   letter-spacing: -0.02em;
 }
 
+/* Caption / micro text: uppercase, spaced */
+.text-label {
+  font-family: var(--font-body);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-size: 0.7rem;
+}
+
 /* Refined button styles for luxury feel */
 button, .btn {
   font-family: var(--font-body);
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   font-size: 0.75rem;
   font-weight: 500;
@@ -176,13 +203,13 @@ input, textarea, select {
 /* Refined card styles */
 .card-luxury {
   background: white;
-  border: 1px solid var(--color-sand-light);
+  border: 1px solid var(--color-sand-beige);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card-luxury:hover {
-  border-color: var(--color-gold);
-  box-shadow: 0 20px 40px -10px rgba(26, 26, 26, 0.1);
+  border-color: var(--color-sunset-gold);
+  box-shadow: 0 20px 40px -10px rgba(28, 26, 23, 0.1);
 }
 
 /* Luxury section spacing */
@@ -200,19 +227,19 @@ input, textarea, select {
 .luxury-overlay {
   background: linear-gradient(
     180deg,
-    rgba(26, 26, 26, 0) 0%,
-    rgba(26, 26, 26, 0.3) 50%,
-    rgba(26, 26, 26, 0.7) 100%
+    rgba(28, 26, 23, 0) 0%,
+    rgba(28, 26, 23, 0.3) 50%,
+    rgba(28, 26, 23, 0.7) 100%
   );
 }
 
 /* Refined gold accents */
 .gold-accent {
-  color: var(--color-gold);
+  color: var(--color-sunset-gold);
 }
 
 .gold-border {
-  border-color: var(--color-gold);
+  border-color: var(--color-sunset-gold);
 }
 
 /* Smooth transitions */
@@ -222,9 +249,9 @@ input, textarea, select {
 
 /* Elegant focus states */
 input:focus, textarea:focus, select:focus {
-  border-color: var(--color-gold) !important;
+  border-color: var(--color-sunset-gold) !important;
   outline: none;
-  box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.1);
+  box-shadow: 0 0 0 3px rgba(194, 164, 109, 0.1);
 }
 
 /* Luxury scrollbar */
@@ -233,14 +260,14 @@ input:focus, textarea:focus, select:focus {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-cream);
+  background: var(--color-warm-ivory);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-sand);
+  background: var(--color-sand-beige);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-gold);
+  background: var(--color-sunset-gold);
 }

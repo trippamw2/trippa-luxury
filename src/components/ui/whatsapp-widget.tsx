@@ -13,7 +13,7 @@ export function WhatsAppWidget() {
   const [open, setOpen] = useState(false);
 
   const message = encodeURIComponent(
-    "Hi Trippa! I'm dreaming of an African romance escape and would love some personalized guidance."
+    "Hi Kivara! I'm dreaming of an African romance escape and would love some personalized guidance."
   );
 
   return (

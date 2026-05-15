@@ -61,7 +61,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "Welcome to Trippa! Check your inbox for a confirmation.",
+      message: "Welcome to Kivara! Check your inbox for a confirmation.",
     });
   } catch (error) {
     console.error("Newsletter error:", error);

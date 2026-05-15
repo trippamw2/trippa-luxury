@@ -48,7 +48,7 @@ export default function AboutPage() {
               Our Story
             </span>
             <h1 className="text-4xl md:text-5xl lg:text-7xl font-heading font-medium text-cream leading-tight">
-              The Trippa Story
+              The Kivara Story
             </h1>
             <p className="mt-4 text-base md:text-lg text-cream/60 max-w-2xl mx-auto">
               Born from a love for Africa and a belief that travel should move the soul.
@@ -104,7 +104,7 @@ export default function AboutPage() {
                   on earth that makes you feel so alive.
                 </p>
                 <p className="text-base text-earth leading-relaxed mb-4">
-                  Trippa exists for couples seeking something more than a vacation. Something deeper. 
+                  Kivara exists for couples seeking something more than a vacation. Something deeper. 
                   A journey that becomes part of who you are. That changes how you see the world — and each other.
                 </p>
                 <p className="text-base text-earth leading-relaxed">

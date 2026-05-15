@@ -42,7 +42,7 @@ export function BrandStatement() {
           className="max-w-4xl mx-auto text-center mb-20"
         >
           <span className="inline-block text-xs font-medium tracking-[0.2em] uppercase text-gold mb-4">
-            The Trippa Philosophy
+            The Kivara Philosophy
           </span>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-medium text-soft-black leading-tight">
             {storyBrand.hero.split(". ")[0]}.

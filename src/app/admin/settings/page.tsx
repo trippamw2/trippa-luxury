@@ -6,14 +6,14 @@ import { CheckCircle } from "lucide-react";
 export default function AdminSettings() {
   const [saved, setSaved] = useState(false);
   const [form, setForm] = useState({
-    siteName: "Trippa",
+    siteName: "Kivara",
     whatsapp: "+27871234567",
-    email: "concierge@trippa.luxury",
+    email: "concierge@kivara.luxury",
     currency: "USD",
   });
 
   function handleSave() {
-    localStorage.setItem("trippa_settings", JSON.stringify(form));
+    localStorage.setItem("kivara_settings", JSON.stringify(form));
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   }

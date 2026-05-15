@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     try {
       await sendEmail({
         ...newInquiryEmail({ fullName, email, phone, destination, preferredDates, guests, message }),
-        to: [{ email: "concierge@trippa.luxury", name: "Trippa Concierge" }],
+        to: [{ email: "concierge@kivara.luxury", name: "Kivara Concierge" }],
         replyTo: { email, name: fullName },
       });
     } catch (emailError) {

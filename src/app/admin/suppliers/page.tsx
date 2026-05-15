@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Search, Building2, Plane, Car, Ship, MapPin, Phone, Mail, Star, Shield, Hotel, Users, Edit2, Trash2, X, AlertCircle, Check } from "lucide-react";
 import Image from "next/image";
+import { useApiData } from "@/lib/use-api-data";
 
 type SupplierCategory = "lodge" | "airline" | "car-rental" | "transfer" | "activity" | "spa" | "catering";
 
@@ -27,13 +28,47 @@ interface Supplier {
   notes?: string;
 }
 
-const INITIAL_SUPPLIERS: Supplier[] = [
-  { id: "1", name: "Kaya Mawa", category: "lodge", location: "Likoma Island", country: "Malawi", contactPerson: "John Chibwana", email: "reservations@kayamawa.com", phone: "+265 888 123 456", commissionRate: 15, rating: 4.9, status: "active", contractOnFile: true, bookingsCount: 12, totalRevenue: 84000, image: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=80", website: "https://kayamawa.com" },
-  { id: "2", name: "Puku Ridge Camp", category: "lodge", location: "South Luangwa", country: "Zambia", contactPerson: "Grace Banda", email: "grace@pukuridge.com", phone: "+260 977 123 456", commissionRate: 18, rating: 4.9, status: "active", contractOnFile: true, bookingsCount: 18, totalRevenue: 126000, image: "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=400&q=80", website: "https://pukuridge.com" },
-  { id: "3", name: "ProFlight Zambia", category: "airline", location: "Lusaka", country: "Zambia", contactPerson: "Michael Zulu", email: "charter@proflight.zm", phone: "+260 211 123 456", commissionRate: 8, rating: 4.5, status: "active", contractOnFile: true, bookingsCount: 32, totalRevenue: 48000, website: "https://proflight.zm" },
-  { id: "4", name: "Zanzibar Luxury Transfers", category: "transfer", location: "Zanzibar", country: "Tanzania", contactPerson: "Ali Hassan", email: "ali@zlt.co.tz", phone: "+255 777 123 456", commissionRate: 10, rating: 4.3, status: "active", contractOnFile: false, bookingsCount: 24, totalRevenue: 14400, website: "https://zlt.co.tz" },
-  { id: "5", name: "Xanadu Villas", category: "lodge", location: "Kendwa", country: "Tanzania", contactPerson: "Sophie Laurent", email: "concierge@xanadu.com", phone: "+255 776 789 012", commissionRate: 15, rating: 4.9, status: "active", contractOnFile: true, bookingsCount: 15, totalRevenue: 105000, image: "https://images.unsplash.com/photo-1582719508461-905c673771fd?w=400&q=80", website: "https://xanadu.com" },
-];
+function mapSupplier(item: any): Supplier {
+  return {
+    id: item.id,
+    name: item.name || "",
+    category: item.category || "lodge",
+    location: item.city || item.address || "",
+    country: item.country || "",
+    contactPerson: item.contactPerson || "",
+    email: item.email || "",
+    phone: item.phone || "",
+    commissionRate: item.commissionRate ?? 0,
+    rating: item.rating ?? 0,
+    status: item.status || "active",
+    contractOnFile: item.contractOnFile ?? false,
+    bookingsCount: item.bookingsCount ?? 0,
+    totalRevenue: item.totalRevenue ?? 0,
+    image: item.logo || "",
+    website: item.website || "",
+    notes: item.notes || "",
+  };
+}
+
+function mapSupplierToApi(item: Partial<Supplier>): any {
+  const result: any = {
+    name: item.name,
+    contact_person: item.contactPerson,
+    email: item.email,
+    phone: item.phone,
+    website: item.website,
+    country: item.country,
+    city: item.location,
+    commission_rate: item.commissionRate,
+    contract_on_file: item.contractOnFile,
+    notes: item.notes,
+    status: item.status,
+    rating: item.rating,
+    logo: item.image,
+    slug: item.name?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || `supplier-${Date.now()}`,
+  };
+  return result;
+}
 
 const categoryConfig: Record<SupplierCategory, { label: string; icon: React.ElementType; color: string; bg: string }> = {
   lodge: { label: "Lodges & Camps", icon: Hotel, color: "text-amber-600", bg: "bg-amber-50" },
@@ -47,8 +82,15 @@ const categoryConfig: Record<SupplierCategory, { label: string; icon: React.Elem
 
 const CATEGORIES: SupplierCategory[] = ["lodge", "airline", "car-rental", "transfer", "activity", "spa", "catering"];
 
+const SUPPLIER_IDS: Record<string, SupplierCategory> = {
+  "1": "lodge", "2": "lodge", "3": "airline", "4": "transfer", "5": "lodge",
+};
+
 export default function AdminSuppliers() {
-  const [suppliers, setSuppliers] = useState<Supplier[]>(INITIAL_SUPPLIERS);
+  const { data: suppliers, loading, create, update, remove } = useApiData<Supplier>("suppliers", {
+    mapFromApi: mapSupplier,
+    mapToApi: mapSupplierToApi,
+  });
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<SupplierCategory | "all">("all");
   const [showModal, setShowModal] = useState(false);
@@ -73,34 +115,47 @@ export default function AdminSuppliers() {
     return matchesSearch && matchesCategory;
   });
 
-  const handleAdd = () => {
-    const newSupplier: Supplier = {
-      id: `sup-${Date.now()}`,
+  const handleAdd = async () => {
+    const result = await create({
       name: formData.name, category: formData.category, location: formData.location,
       country: formData.country, contactPerson: formData.contactPerson, email: formData.email,
       phone: formData.phone, commissionRate: parseFloat(formData.commissionRate) || 10,
       rating: parseFloat(formData.rating) || 4.0, status: formData.status,
-      contractOnFile: formData.contractOnFile, bookingsCount: 0, totalRevenue: 0,
-      image: formData.image || undefined, website: formData.website || undefined, notes: formData.notes || undefined
-    };
-    setSuppliers([...suppliers, newSupplier]);
-    setShowModal(false);
-    resetForm();
-    showToast("Supplier created successfully", "success");
+      contractOnFile: formData.contractOnFile, image: formData.image || undefined,
+      website: formData.website || undefined, notes: formData.notes || undefined,
+    });
+    if (result) {
+      setShowModal(false);
+      resetForm();
+      showToast("Supplier created", "success");
+    } else {
+      showToast("Failed to create supplier", "error");
+    }
   };
 
-  const handleEdit = () => {
+  const handleEdit = async () => {
     if (!editingSupplier) return;
-    setSuppliers(suppliers.map(s => s.id === editingSupplier.id ? { ...s, ...formData, commissionRate: parseFloat(formData.commissionRate) || 10, rating: parseFloat(formData.rating) || 4.0 } : s));
-    setEditingSupplier(null);
-    setShowModal(false);
-    showToast("Supplier updated successfully", "success");
+    const result = await update(editingSupplier.id, {
+      ...formData, commissionRate: parseFloat(formData.commissionRate) || 10,
+      rating: parseFloat(formData.rating) || 4.0,
+    });
+    if (result) {
+      setEditingSupplier(null);
+      setShowModal(false);
+      showToast("Supplier updated", "success");
+    } else {
+      showToast("Failed to update supplier", "error");
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setSuppliers(suppliers.filter(s => s.id !== id));
-    setDeleteConfirm(null);
-    showToast("Supplier deleted", "success");
+  const handleDelete = async (id: string) => {
+    const ok = await remove(id);
+    if (ok) {
+      setDeleteConfirm(null);
+      showToast("Supplier deleted", "success");
+    } else {
+      showToast("Failed to delete supplier", "error");
+    }
   };
 
   const resetForm = () => setFormData({ name: "", category: "lodge", location: "", country: "", contactPerson: "", email: "", phone: "", commissionRate: "", rating: "", status: "active", contractOnFile: false, image: "", website: "", notes: "" });
@@ -119,8 +174,12 @@ export default function AdminSuppliers() {
         <button onClick={openAddModal} className="flex items-center gap-2 px-4 py-2 bg-gold text-soft-black font-medium rounded hover:bg-gold/90"><Plus className="w-4 h-4" />Add Supplier</button>
       </div>
 
+      {loading ? (
+        <div className="flex items-center justify-center py-20"><div className="text-earth text-sm">Loading suppliers...</div></div>
+      ) : (
+      <>
       <div className="grid grid-cols-4 gap-4 mb-6">
-        {[{ label: "Total", value: suppliers.length }, { label: "Active", value: suppliers.filter(s => s.status === "active").length }, { label: "Lodges", value: suppliers.filter(s => s.category === "lodge").length }, { label: "Revenue", value: `$${(suppliers.reduce((a, s) => a + s.totalRevenue, 0) / 1000).toFixed(0)}k` }].map(s => (<div key={s.label} className="bg-white p-4 border border-sand-light"><p className="text-2xl font-bold text-soft-black">{s.value}</p><p className="text-xs text-earth">{s.label}</p></div>))}
+        {[{ label: "Total", value: suppliers.length }, { label: "Active", value: suppliers.filter(s => s.status === "active").length }, { label: "Lodges", value: suppliers.filter(s => s.category === "lodge").length }, { label: "Revenue", value: `$${(suppliers.reduce((a, s) => a + (s.totalRevenue || 0), 0) / 1000).toFixed(0)}k` }].map(s => (<div key={s.label} className="bg-white p-4 border border-sand-light"><p className="text-2xl font-bold text-soft-black">{s.value}</p><p className="text-xs text-earth">{s.label}</p></div>))}
       </div>
 
       <div className="flex gap-4 mb-6">
@@ -137,10 +196,10 @@ export default function AdminSuppliers() {
             {supplier.image && (<div className="relative h-32 bg-cream"><Image src={supplier.image} alt={supplier.name} fill className="object-cover" /></div>)}
             <div className="p-4">
               <div className="flex items-start justify-between mb-2">
-                <div><h3 className="font-bold text-soft-black">{supplier.name}</h3><p className="text-xs text-earth flex items-center gap-1"><MapPin className="w-3 h-3" />{supplier.location}, {supplier.country}</p></div>
+                <div><h3 className="font-bold text-soft-black">{supplier.name}</h3><p className="text-xs text-earth flex items-center gap-1"><MapPin className="w-3 h-3" />{supplier.location}{supplier.country ? `, ${supplier.country}` : ""}</p></div>
                 <span className={`px-2 py-1 text-xs font-medium rounded ${supplier.status === "active" ? "bg-emerald-50 text-emerald-700" : supplier.status === "inactive" ? "bg-gray-100 text-gray-600" : "bg-red-50 text-red-700"}`}>{supplier.status}</span>
               </div>
-              <div className="flex items-center gap-2 mb-3"><span className={`px-2 py-0.5 text-xs rounded ${categoryConfig[supplier.category].bg} ${categoryConfig[supplier.category].color}`}>{categoryConfig[supplier.category].label}</span><span className="text-xs text-gold flex items-center gap-1"><Star className="w-3 h-3 fill-gold text-gold" />{supplier.rating}</span></div>
+              <div className="flex items-center gap-2 mb-3"><span className={`px-2 py-0.5 text-xs rounded ${categoryConfig[supplier.category]?.bg || "bg-gray-50"} ${categoryConfig[supplier.category]?.color || "text-gray-600"}`}>{categoryConfig[supplier.category]?.label || supplier.category}</span><span className="text-xs text-gold flex items-center gap-1"><Star className="w-3 h-3 fill-gold text-gold" />{supplier.rating}</span></div>
               <div className="text-xs text-earth space-y-1 mb-4"><p className="flex items-center gap-1"><Mail className="w-3 h-3" />{supplier.email}</p><p className="flex items-center gap-1"><Phone className="w-3 h-3" />{supplier.phone}</p></div>
               <div className="flex items-center justify-between pt-3 border-t border-sand-light">
                 <span className="text-xs text-earth">{supplier.bookingsCount} bookings</span>
@@ -150,8 +209,9 @@ export default function AdminSuppliers() {
           </motion.div>
         ))}
       </div>
+      </>
+      )}
 
-      {/* Modal */}
       <AnimatePresence>
         {showModal && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-40 p-4 overflow-y-auto" onClick={() => setShowModal(false)}>
@@ -189,7 +249,6 @@ export default function AdminSuppliers() {
         )}
       </AnimatePresence>
 
-      {/* Delete */}
       <AnimatePresence>
         {deleteConfirm && (<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-50 p-4" onClick={() => setDeleteConfirm(null)}><motion.div initial={{ scale: 0.95 }} className="bg-cream border border-sand-light p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}><h3 className="text-lg font-bold text-soft-black mb-2">Confirm Delete</h3><p className="text-sm text-earth mb-6">Delete this supplier?</p><div className="flex gap-3"><button onClick={() => setDeleteConfirm(null)} className="flex-1 px-4 py-2.5 border border-sand-light text-earth text-sm">Cancel</button><button onClick={() => handleDelete(deleteConfirm)} className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm font-medium">Delete</button></div></motion.div></motion.div>)}
       </AnimatePresence>

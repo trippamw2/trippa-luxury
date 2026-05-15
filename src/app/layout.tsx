@@ -1,24 +1,16 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { WhatsAppWidget } from "@/components/ui/whatsapp-widget";
-import { cookies } from "next/headers";
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: {
-    default: "Trippa — Luxury African Beach & Bush Escapes",
-    template: "%s | Trippa",
+    default: "Kivara — Africa's Most Coveted Romance Sanctuary",
+    template: "%s | Kivara",
   },
   description:
-    "Curated luxury African romance travel. Exquisite beach and bush escapes for couples seeking exclusivity, emotion, and modern African luxury across Lake Malawi, South Luangwa, and Zanzibar.",
+    "A handcrafted collection of Africa's most exquisite beach and bush escapes. Curated exclusively for couples who refuse to compromise on beauty, intimacy, or refinement.",
   keywords: [
     "luxury African travel",
     "romantic safari",
@@ -27,21 +19,21 @@ export const metadata: Metadata = {
     "South Luangwa safari",
     "African honeymoon",
     "luxury beach and bush",
-    "Trippa",
+    "Kivara",
   ],
   openGraph: {
     type: "website",
     locale: "en_US",
-    siteName: "Trippa",
-    title: "Trippa — Luxury African Beach & Bush Escapes",
+    siteName: "Kivara",
+    title: "Kivara — Africa's Most Coveted Romance Sanctuary",
     description:
-      "Curated luxury African romance travel. Exquisite beach and bush escapes for couples.",
+      "A handcrafted collection of Africa's most exquisite beach and bush escapes for couples.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Trippa — Luxury African Beach & Bush Escapes",
+    title: "Kivara — Africa's Most Coveted Romance Sanctuary",
     description:
-      "Curated luxury African romance travel for couples.",
+      "A handcrafted collection of Africa's most exquisite escapes for couples.",
   },
   robots: {
     index: true,
@@ -54,11 +46,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Check if we're in admin route via cookie (set by admin layout)
-  // This is a workaround since headers() is async
-  
   return (
-    <html lang="en" className={`${inter.variable}`}>
+    <html lang="en">
       <body className="min-h-screen flex flex-col bg-cream text-soft-black font-body antialiased">
         <Navbar />
         <main className="flex-1">{children}</main>

@@ -16,7 +16,7 @@ const footerLinks = {
     { label: "Luxury Island Retreat", href: "/packages#luxury-island-retreat" },
   ],
   explore: [
-    { label: "About Trippa", href: "/about" },
+    { label: "About Kivara", href: "/about" },
     { label: "Journal", href: "/journal" },
     { label: "Contact", href: "/contact" },
   ],
@@ -36,9 +36,11 @@ export function Footer() {
           {/* Brand Column */}
           <div className="lg:col-span-2">
             <Link href="/">
-              <span className="text-3xl font-heading font-bold tracking-wider text-cream">
-                {SITE_CONFIG.name}
-              </span>
+              <img
+                src="/images/kivara-logo.png"
+                alt="Kivara"
+                className="h-10 w-auto brightness-0 invert opacity-90"
+              />
             </Link>
             <p className="mt-4 text-earth-light text-sm leading-relaxed max-w-sm">
               Curating the world&apos;s most exquisite African romance escapes. 

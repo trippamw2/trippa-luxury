@@ -1,6 +1,6 @@
-// ─── Trippa Luxury Travel ──────────────────────────────────────────────
+// ─── Kivara Luxury Travel ──────────────────────────────────────────────
 // Brand positioned between Aman and &Beyond for discerning couples
-// StoryBrand framework: couples are the hero, Africa is the setting, Trippa is the guide
+// StoryBrand framework: couples are the hero, Africa is the setting, Kivara is the guide
 // ──────────────────────────────────────────────────────────────────────
 
 // ─── UNSplash Image Library ───────────────────────────────────────────
@@ -65,11 +65,11 @@ export const BRAND_POSITIONING = {
   description:
     "A handcrafted collection of Africa's most exquisite beach and bush escapes. Curated exclusively for couples who refuse to compromise on beauty, intimacy, or refinement.",
   betweenAmanAndBeyond:
-    "We occupy the sacred territory between Aman's architectural serenity and &Beyond's untamed wilderness. Like Aman, we worship space, silence, and design. Like &Beyond, we honor the raw, the authentic, the profoundly wild. We are Trippa: the world's most romantic gateway to Africa's soul.",
+    "We occupy the sacred territory between Aman's architectural serenity and &Beyond's untamed wilderness. Like Aman, we worship space, silence, and design. Like &Beyond, we honor the raw, the authentic, the profoundly wild. We are Kivara: the world's most romantic gateway to Africa's soul.",
   storyBrand: {
     hero: "You. A couple in love. A partnership that deserves celebrating.",
     problem: "Most vacations deliver distraction. You deserve transcendence. You crave a journey that deepens your connection, not another manufactured resort experience.",
-    guide: "Trippa. Your personal curators of romance. We know Africa's most secret gardens, its most intimate camps, its most soul stirring shorelines.",
+    guide: "Kivara. Your personal curators of romance. We know Africa's most secret gardens, its most intimate camps, its most soul stirring shorelines.",
     plan: "A bespoke journey designed around your love story. Three iconic destinations. Nine extraordinary properties. Infinite moments of wonder.",
     callToAction: "Begin Your Journey. Your table beneath the African stars is waiting.",
     success: "You return not just tanned and rested. You return transformed. Closer. More in love than when you left. You carry Africa in your hearts forever.",
@@ -78,18 +78,18 @@ export const BRAND_POSITIONING = {
 };
 
 export const SITE_CONFIG = {
-  name: "Trippa",
+  name: "Kivara",
   tagline: BRAND_POSITIONING.tagline,
   description: BRAND_POSITIONING.description,
-  url: "https://trippa.luxury",
-  email: "concierge@trippa.luxury",
+  url: "https://kivara.luxury",
+  email: "concierge@kivara.luxury",
   phone: "+27 87 123 4567",
   whatsapp: "+27871234567",
   social: {
-    instagram: "https://instagram.com/trippa",
-    tiktok: "https://tiktok.com/@trippa",
-    facebook: "https://facebook.com/trippa",
-    pinterest: "https://pinterest.com/trippa",
+    instagram: "https://instagram.com/kivara",
+    tiktok: "https://tiktok.com/@kivara",
+    facebook: "https://facebook.com/kivara",
+    pinterest: "https://pinterest.com/kivara",
   },
 };
 
@@ -110,8 +110,8 @@ export const BRAND = {
     cream: "#FAF7F2",
   },
   fonts: {
-    heading: "'Playfair Display', serif",
-    body: "'Inter', sans-serif",
+    heading: "'Trajan Pro', 'Cinzel', 'Cormorant Garamond', serif",
+    body: "'Montserrat', 'Inter', 'Helvetica Neue', Arial, sans-serif",
   },
 };
 
@@ -718,28 +718,28 @@ export const TESTIMONIALS = [
   {
     name: "Sarah and James Mitchell",
     location: "London, United Kingdom",
-    text: "Trippa curated a honeymoon that exceeded every dream we held. From the moment we landed in Malawi to our final sunset in Zanzibar, every detail was flawless. This was not a trip. It was the beginning of our love story. We have never felt so seen, so cared for, so completely transported.",
+    text: "Kivara curated a honeymoon that exceeded every dream we held. From the moment we landed in Malawi to our final sunset in Zanzibar, every detail was flawless. This was not a trip. It was the beginning of our love story. We have never felt so seen, so cared for, so completely transported.",
     destination: "Lake Malawi and Zanzibar",
     rating: 5,
   },
   {
     name: "Emma and Thomas Chen",
     location: "Sydney, Australia",
-    text: "We have traveled the world, but nothing compares to the raw beauty of South Luangwa experienced through Trippa's lens. Walking safaris at dawn. Sundowners on the riverbank. It was deeply moving in ways we struggle to articulate. This is Africa at its most beautiful.",
+    text: "We have traveled the world, but nothing compares to the raw beauty of South Luangwa experienced through Kivara's lens. Walking safaris at dawn. Sundowners on the riverbank. It was deeply moving in ways we struggle to articulate. This is Africa at its most beautiful.",
     destination: "South Luangwa",
     rating: 5,
   },
   {
     name: "Alexander and Natalia Petrov",
     location: "Oslo, Norway",
-    text: "Trippa understood what we wanted before we knew it ourselves. The Zanzibar villa was breathtaking. The service impeccable. We felt like the only two people in the world. We are already planning our return.",
+    text: "Kivara understood what we wanted before we knew it ourselves. The Zanzibar villa was breathtaking. The service impeccable. We felt like the only two people in the world. We are already planning our return.",
     destination: "Zanzibar",
     rating: 5,
   },
   {
     name: "Michael and Olivia Barnes",
     location: "New York, USA",
-    text: "The Beach and Bush Escape was the perfect balance of adventure and romance. Swimming in Lake Malawi one day, tracking lions the next. Trippa's curation is nothing short of art. They do not plan trips. They compose journeys.",
+    text: "The Beach and Bush Escape was the perfect balance of adventure and romance. Swimming in Lake Malawi one day, tracking lions the next. Kivara's curation is nothing short of art. They do not plan trips. They compose journeys.",
     destination: "Lake Malawi and South Luangwa",
     rating: 5,
   },
@@ -798,7 +798,7 @@ export const JOURNAL_POSTS = [
     image: IMAGES.journalHoneymoon,
     category: "Honeymoon Guide",
     date: "May 10, 2026",
-    author: "Trippa Concierge",
+    author: "Kivara Concierge",
     readTime: "8 min read",
   },
   {
@@ -808,7 +808,7 @@ export const JOURNAL_POSTS = [
     image: IMAGES.journalMalawi,
     category: "Destination Feature",
     date: "April 28, 2026",
-    author: "Trippa Concierge",
+    author: "Kivara Concierge",
     readTime: "6 min read",
   },
   {
@@ -818,7 +818,7 @@ export const JOURNAL_POSTS = [
     image: IMAGES.journalWalking,
     category: "Safari Stories",
     date: "April 15, 2026",
-    author: "Trippa Concierge",
+    author: "Kivara Concierge",
     readTime: "10 min read",
   },
   {
@@ -828,7 +828,7 @@ export const JOURNAL_POSTS = [
     image: IMAGES.journalZanzibar,
     category: "Destination Feature",
     date: "March 30, 2026",
-    author: "Trippa Concierge",
+    author: "Kivara Concierge",
     readTime: "7 min read",
   },
 ];

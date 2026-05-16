@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SITE_CONFIG } from "@/lib/constants";
 import { Camera, Play, Globe, Image as ImageIcon, Heart, Mail, Phone, MapPin } from "lucide-react";
+import { KivaraLogo } from "@/components/ui/KivaraLogo";
 
 const footerLinks = {
   destinations: [
@@ -36,10 +37,9 @@ export function Footer() {
           {/* Brand Column */}
           <div className="lg:col-span-2">
             <Link href="/" className="inline-block">
-              <img
-                src="/images/kivara-logo-light.svg"
-                alt="Kivara"
-                className="h-12 md:h-14 w-auto max-w-[240px] md:max-w-[320px] object-contain opacity-90"
+              <KivaraLogo
+                variant="light"
+                className="h-12 md:h-14 w-auto max-w-[240px] md:max-w-[320px] opacity-90"
               />
             </Link>
             <p className="mt-4 text-earth-light text-sm leading-relaxed max-w-sm">

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { KivaraLogo } from "@/components/ui/KivaraLogo";
 
 export const metadata: Metadata = {
   title: "Admin Dashboard | Kivara",
@@ -15,7 +16,7 @@ export default function AdminLayout({
       {/* Left Sidebar - always visible */}
       <aside className="w-64 min-h-screen bg-soft-black text-cream fixed left-0 top-0 bottom-0 overflow-y-auto">
         <div className="p-6 border-b border-white/5">
-          <img src="/images/kivara-logo-light.svg" alt="Kivara" className="h-10 w-auto max-w-[200px] object-contain" />
+          <KivaraLogo variant="light" className="h-10 w-auto max-w-[200px]" />
           <span className="block text-[10px] text-earth-light tracking-widest uppercase mt-2">Admin Panel</span>
         </div>
         <nav className="p-4 space-y-1">

@@ -220,29 +220,37 @@ export default function PropertyDetailPage() {
           </motion.div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-            {property.gallery.slice(0, 6).map((img, item) => (
-              <motion.div
-                key={img}
-                initial={{ opacity: 0, scale: 0.95 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: item * 0.05 }}
-                className={cn(
-                  "relative overflow-hidden aspect-square bg-gradient-to-br from-sand-light to-sand group cursor-pointer",
-                  item === 0 && "md:col-span-2 md:row-span-2",
-                  item === 3 && "md:col-span-2"
-                )}
-              >
-                <Image
-                  src={img}
-                  alt={`${property.name} gallery ${item + 1}`}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-700"
-                  sizes="(max-width: 768px) 50vw, 25vw"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-soft-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              </motion.div>
-            ))}
+            {(property.rooms ? property.rooms.flatMap((r) => r.images) : property.gallery).slice(0, 7).map((img, item) => {
+              const imgPath = typeof img === "string" ? img : img.path;
+              const imgLabel = typeof img === "string" ? null : img.label;
+              return (
+                <motion.div
+                  key={`${imgPath}-${item}`}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: item * 0.05 }}
+                  className={cn(
+                    "relative overflow-hidden bg-gradient-to-br from-sand-light to-sand group",
+                    item === 0 ? "aspect-square md:col-span-2 md:row-span-2" : "aspect-square"
+                  )}
+                >
+                  <Image
+                    src={imgPath}
+                    alt={`${property.name} — ${imgLabel || `gallery ${item + 1}`}`}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-700"
+                    sizes="(max-width: 768px) 50vw, 25vw"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-soft-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  {imgLabel && (
+                    <span className="absolute bottom-3 left-3 text-xs font-medium tracking-wider uppercase text-cream/90 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {imgLabel}
+                    </span>
+                  )}
+                </motion.div>
+              );
+            })}
           </div>
         </Container>
       </section>
@@ -269,7 +277,7 @@ export default function PropertyDetailPage() {
               </p>
             </motion.div>
 
-            <div className="max-w-5xl mx-auto space-y-8">
+            <div className="max-w-5xl mx-auto space-y-16">
               {property.rooms.map((room, index) => (
                 <motion.div
                   key={room.name}
@@ -277,26 +285,30 @@ export default function PropertyDetailPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 items-center"
                 >
-                  <div className={cn("relative aspect-[4/3] overflow-hidden", index % 2 === 1 && "md:order-1")}>
-                    <Image
-                      src={room.image}
-                      alt={room.name}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-soft-black/20 to-transparent" />
+                  <div className="flex items-center gap-3 mb-4">
+                    <h3 className="text-xl font-heading font-medium text-soft-black">{room.name}</h3>
+                    <span className="text-xs text-earth/60 border border-sand-light/50 px-2 py-0.5">
+                      Sleeps {room.sleeps}
+                    </span>
                   </div>
-                  <div className={index % 2 === 1 ? "md:order-0" : ""}>
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-xl font-heading font-medium text-soft-black">{room.name}</h3>
-                      <span className="text-xs text-earth/60 border border-sand-light/50 px-2 py-0.5">
-                        Sleeps {room.sleeps}
-                      </span>
-                    </div>
-                    <p className="text-sm text-earth leading-relaxed">{room.description}</p>
+                  <p className="text-sm text-earth leading-relaxed mb-6 max-w-3xl">{room.description}</p>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {room.images.map((img) => (
+                      <div key={img.label} className="relative aspect-[4/3] overflow-hidden group">
+                        <Image
+                          src={img.path}
+                          alt={`${room.name} — ${img.label}`}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-700"
+                          sizes="(max-width: 768px) 50vw, 25vw"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-soft-black/40 via-transparent to-transparent" />
+                        <span className="absolute bottom-2 left-2 text-[10px] font-medium tracking-wider uppercase text-cream/80">
+                          {img.label}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </motion.div>
               ))}

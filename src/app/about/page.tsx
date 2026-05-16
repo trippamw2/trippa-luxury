@@ -160,7 +160,7 @@ export default function AboutPage() {
               </div>
               <div className="relative aspect-[4/5] overflow-hidden order-1 md:order-2">
                 <Image
-                  src="/images/kaya-mawa.jpg"
+                  src="/images/kaya-mawa-beach-swing.jpg"
                   alt="Kivara founders"
                   fill
                   className="object-cover"

@@ -36,7 +36,7 @@ export const IMAGES = {
   kayaMawaSnorkel: "/images/kaya-mawa-snorkel.jpg",
   kayaMawaPicnic: "/images/kaya-mawa-picnic.jpg",
   kayaMawaSailing: "/images/kaya-mawa-sailing.jpg",
-  pumulani: "/images/pumulani.jpg",
+  pumulani: "/images/pl-camporlodge-pumulani-lodge-84.jpg",
   blueZebra: "/images/blue-zebra.jpg",
   makokolaRetreat: "/images/makokola-retreat.jpg",
   chinzombo: "/images/chinzombo.jpg",
@@ -393,6 +393,41 @@ export const PROPERTIES = [
       "Sunset dhow cruises with champagne on the Lake of Stars",
       "Secluded beach picnics on private coves",
       "Stargazing from your private plunge pool",
+    ],
+    rooms: [
+      {
+        name: "Standard Villa",
+        description: "A light-filled villa with floor-to-ceiling windows overlooking the lake, a private plunge pool, and an outdoor shower. Contemporary African design meets barefoot luxury.",
+        images: [
+          { label: "Bedroom", path: "/images/pl-camporlodge-pumulani-lodge-9.jpg" },
+          { label: "View", path: "/images/pl-camporlodge-pumulani-lodge-30.jpg" },
+          { label: "Pool & Terrace", path: "/images/pl-camporlodge-pumulani-lodge-1.png" },
+          { label: "Bath", path: "/images/pl-camporlodge-pumulani-lodge-43.jpg" },
+        ],
+        sleeps: 2,
+      },
+      {
+        name: "Superior Villa",
+        description: "A more spacious villa with premium lake views, a larger private plunge pool, and an extended sun deck. The indoor-outdoor bathroom features a freestanding bath.",
+        images: [
+          { label: "Bedroom", path: "/images/pl-camporlodge-pumulani-lodge-21.jpg" },
+          { label: "View", path: "/images/pl-camporlodge-pumulani-lodge-32.jpg" },
+          { label: "Pool & Terrace", path: "/images/pl-camporlodge-pumulani-lodge-2.png" },
+          { label: "Bath", path: "/images/pl-camporlodge-pumulani-lodge-47.jpg" },
+        ],
+        sleeps: 2,
+      },
+      {
+        name: "Honeymoon Villa",
+        description: "The pinnacle of romance — positioned at the tip of the peninsula for uninterrupted panoramic views. Features include an infinity-edge plunge pool, outdoor shower, and a private sala.",
+        images: [
+          { label: "Bedroom", path: "/images/pl-camporlodge-pumulani-lodge-26.jpg" },
+          { label: "View", path: "/images/pl-camporlodge-pumulani-lodge-35.jpg" },
+          { label: "Pool & Terrace", path: "/images/pl-camporlodge-pumulani-lodge-3.png" },
+          { label: "Bath", path: "/images/pl-camporlodge-pumulani-lodge-50.jpg" },
+        ],
+        sleeps: 2,
+      },
     ],
   },
   {

@@ -37,11 +37,13 @@ export function KivaraLogo({
       aria-label="Kivara"
       role="img"
     >
-      {/* ─── Horizon Symbol (intersecting) ─────────────────────── */}
-      {/* Upper curve — sky / ocean — Ocean Black-Blue */}
-      {/* Sweeps down through the lower curve, creating an interlaced crossing */}
+      {/* ─── Horizon Symbol — centred, facing ─────────────────── */}
+      {/* Upper curve — sky / ocean — arches downward (looks down) */}
+      {/* Lower curve — land / earth — arches upward (looks up)      */}
+      {/* They face each other, creating negative-space horizon.     */}
+      {/* Centered above the wordmark, do NOT reach the edges.       */}
       <path
-        d="M 70,26 C 140,44 240,18 330,28"
+        d="M 145,20 Q 200,32 255,20"
         stroke={c.upperCurve}
         strokeWidth="1.2"
         fill="none"
@@ -49,10 +51,8 @@ export function KivaraLogo({
         opacity={variant === "light" ? 0.7 : 1}
       />
 
-      {/* Lower curve — land / beach / earth — Sunset Gold */}
-      {/* Sweeps up through the upper curve, crossing twice for a braided horizon */}
       <path
-        d="M 60,42 C 130,22 230,46 340,36"
+        d="M 135,38 Q 200,28 265,38"
         stroke={c.lowerCurve}
         strokeWidth="0.8"
         fill="none"

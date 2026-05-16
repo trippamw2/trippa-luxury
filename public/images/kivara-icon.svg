@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
   <!-- Favicon — minimal K monogram, quiet luxury aesthetic -->
   <rect width="100" height="100" rx="0" fill="#1C1A17"/>
-  <!-- Two delicate intersecting horizon lines (matching the logo symbol) -->
-  <path d="M 16,36 C 35,44 65,32 84,36" stroke="#C2A46D" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.6"/>
-  <path d="M 12,44 C 32,34 62,46 88,44" stroke="#C2A46D" stroke-width="0.6" fill="none" stroke-linecap="round" opacity="0.4"/>
+  <!-- Two delicate facing horizon curves (matching the logo symbol) -->
+  <path d="M 34,32 Q 50,38 66,32" stroke="#C2A46D" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.6"/>
+  <path d="M 30,42 Q 50,36 70,42" stroke="#C2A46D" stroke-width="0.6" fill="none" stroke-linecap="round" opacity="0.4"/>
   <!-- Minimal K letterform -->
   <text x="50" y="68" text-anchor="middle" font-family="'Trajan Pro','Times New Roman',Georgia,serif" font-size="48" font-weight="400" fill="#F4F0E8">K</text>
 </svg>

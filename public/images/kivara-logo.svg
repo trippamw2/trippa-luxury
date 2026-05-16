@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 145" fill="none">
   <!-- Dark variant — for light backgrounds -->
-  <!-- Horizon Symbol (intersecting) -->
-  <!-- Upper curve — Ocean Black-Blue — sweeps down through the lower -->
-  <path d="M 70,26 C 140,44 240,18 330,28" stroke="#0E1B1A" stroke-width="1.2" fill="none" stroke-linecap="round"/>
-  <!-- Lower curve — Sunset Gold — sweeps up through the upper, crossing twice -->
-  <path d="M 60,42 C 130,22 230,46 340,36" stroke="#C2A46D" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+  <!-- Horizon Symbol — centred, facing -->
+  <!-- Upper curve — Ocean Black-Blue — arches downward (looks down) -->
+  <path d="M 145,20 Q 200,32 255,20" stroke="#0E1B1A" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <!-- Lower curve — Sunset Gold — arches upward (looks up) -->
+  <path d="M 135,38 Q 200,28 265,38" stroke="#C2A46D" stroke-width="0.8" fill="none" stroke-linecap="round"/>
   <!-- KIVARA wordmark — Deep Earth Brown — extreme wide tracking for luxury -->
   <text x="200" y="88" text-anchor="middle" font-family="'Trajan Pro','Times New Roman',Georgia,serif" font-size="44" font-weight="400" fill="#1C1A17" style="letter-spacing:28px">KIVARA</text>
   <!-- Tagline -->

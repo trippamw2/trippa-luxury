@@ -7,13 +7,13 @@
 // Cinematic imagery sourced for each destination and property
 
 export const IMAGES = {
-  // Lake Malawi
-  lakeMalawiHero: "/images/lake-malawi-hero.jpg",
-  lakeMalawiAerial: "/images/lake-malawi-aerial.jpg",
-  lakeMalawiSunset: "/images/lake-malawi-sunset.jpg",
-  lakeMalawiBeach: "/images/lake-malawi-beach.jpg",
-  lakeMalawiDhow: "/images/lake-malawi-dhow.jpg",
-  lakeMalawiIsland: "/images/lake-malawi-island.jpg",
+  // Lake Malawi (updated with images from Green Safaris)
+  lakeMalawiHero: "/images/likoma-lake-of-stars.jpg",
+  lakeMalawiAerial: "/images/likoma-scuba.jpg",
+  lakeMalawiSunset: "/images/likoma-paddleboard-view.jpg",
+  lakeMalawiBeach: "/images/likoma-snorkelling.jpg",
+  lakeMalawiDhow: "/images/likoma-kayaking.jpg",
+  lakeMalawiIsland: "/images/likoma-paddleboard.jpg",
 
   // South Luangwa
   southLuangwaHero: "/images/south-luangwa-hero.jpg",
@@ -32,7 +32,10 @@ export const IMAGES = {
   zanzibarStoneTown: "/images/zanzibar-stonetown.jpg",
 
   // Properties
-  kayaMawa: "/images/kaya-mawa.jpg",
+  kayaMawa: "/images/kaya-mawa-beach-swing.jpg",
+  kayaMawaSnorkel: "/images/kaya-mawa-snorkel.jpg",
+  kayaMawaPicnic: "/images/kaya-mawa-picnic.jpg",
+  kayaMawaSailing: "/images/kaya-mawa-sailing.jpg",
   pumulani: "/images/pumulani.jpg",
   blueZebra: "/images/blue-zebra.jpg",
   makokolaRetreat: "/images/makokola-retreat.jpg",
@@ -252,7 +255,7 @@ export const PROPERTIES = [
     longDescription:
       "Kaya Mawa is not a lodge. It is a sanctuary on one of Africa's most beautiful islands, built into the rocky shoreline with such reverence that the landscape remains the protagonist. Each of the eleven houses and rooms offers complete privacy with sweeping lake views, designed in a philosophy of minimal intervention: local stone, handwoven textiles, and an architecture that lets the water take center stage. Some suites feature their own private plunge pools carved from the granite shoreline. Days unfold at nature's pace. Swim in the infinity-edge pool that merges with the lake — Africa's fourth-largest. Explore hidden coves by kayak or stand-up paddleboard. Dive into the crystalline depths with the on-site PADI dive centre. Lose yourself in a novel on your private deck while the lake whispers below. The restaurant serves farm-to-table cuisine with a Malawian soul. The over-water Sunset Bar perches above the lake for sundowners that linger into starlit evenings. Kaya Mawa is operated by Green Safaris, running entirely on 100% renewable solar energy, and its Kaya Mawa Foundation champions education and enterprise on the island. Open annually from mid-March to mid-January.",
     heroImage: IMAGES.kayaMawa,
-    gallery: [IMAGES.lakeMalawiHero, IMAGES.lakeMalawiSunset, IMAGES.lakeMalawiBeach, IMAGES.lakeMalawiIsland],
+    gallery: [IMAGES.kayaMawa, IMAGES.kayaMawaSnorkel, IMAGES.kayaMawaPicnic, IMAGES.kayaMawaSailing],
     priceRange: "$450 to $735 per person per night",
     roomTypes: ["Standard Room", "Nkhwazi Suite", "Mbamba Suite", "Madimba House", "Mainja House", "Ndomo Private House"],
     amenities: [

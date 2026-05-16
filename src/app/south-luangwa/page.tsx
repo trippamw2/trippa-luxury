@@ -114,6 +114,15 @@ export default function SouthLuangwaPage() {
                 walking safaris that bring you face-to-face with the wild, South Luangwa offers 
                 a safari experience unlike any other.
               </p>
+              <p className="text-base text-earth leading-relaxed">
+                Our collection of four hand-selected properties spans the full spectrum of South 
+                Luangwa luxury. From the award-winning architectural marvel of Time+Tide Chinzombo 
+                with its private plunge pools overlooking the river, to the hilltop grandeur of 
+                Puku Ridge Camp with its star bed towers; from the eco-conscious intimacy of 
+                Shawa Luangwa Camp and its silent solar-powered safaris, to the timeless romance 
+                of Luangwa River Camp's five-suite riverside sanctuary. Each offers a distinct 
+                window into the Valley of the Leopard.
+              </p>
               <div className="mt-8 flex flex-wrap gap-6">
                 {[
                   { icon: TreePine, label: "Birthplace of walking safaris" },
@@ -164,7 +173,7 @@ export default function SouthLuangwaPage() {
             </h2>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-5">
             {properties.map((property, index) => (
               <PropertyCard
                 key={property.id}

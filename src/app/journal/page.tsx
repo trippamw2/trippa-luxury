@@ -1,13 +1,15 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight, Clock, BookOpen } from "lucide-react";
 import { Container } from "@/components/ui/container";
-import { JOURNAL_POSTS } from "@/lib/constants";
+import { useBlogPosts } from "@/lib/use-public-data";
 import { cn } from "@/lib/utils";
 
 export default function JournalPage() {
+  const posts = useBlogPosts();
   return (
     <>
       {/* Hero */}
@@ -37,7 +39,7 @@ export default function JournalPage() {
       <section className="py-24 md:py-32 bg-cream">
         <Container>
           <div className="max-w-5xl mx-auto space-y-16">
-            {JOURNAL_POSTS.map((post, index) => (
+            {posts.map((post, index) => (
               <motion.article
                 key={post.id}
                 initial={{ opacity: 0, y: 40 }}
@@ -47,17 +49,23 @@ export default function JournalPage() {
               >
                 <Link href={`/journal/${post.id}`} className="group grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-12 items-center">
                   {/* Image */}
-                  <div className={cn(
-                    "md:col-span-2 relative overflow-hidden aspect-[4/3]",
-                    index % 2 === 1 && "md:order-2"
-                  )}>
-                    <div className="absolute inset-0 bg-gradient-to-br from-sand-light to-earth/20 group-hover:scale-105 transition-transform duration-700" />
-                    <div className="absolute top-4 left-4">
-                      <span className="text-[10px] font-medium tracking-widest uppercase text-cream/80 bg-soft-black/30 px-3 py-1.5">
-                        {post.category}
-                      </span>
+                    <div className={cn(
+                      "md:col-span-2 relative overflow-hidden aspect-[4/3]",
+                      index % 2 === 1 && "md:order-2"
+                    )}>
+                      <Image
+                        src={post.image}
+                        alt={post.title}
+                        fill
+                        className="object-cover transition-transform duration-700 group-hover:scale-105"
+                        sizes="(max-width: 768px) 100vw, 40vw"
+                      />
+                      <div className="absolute top-4 left-4">
+                        <span className="text-[10px] font-medium tracking-widest uppercase text-cream/80 bg-soft-black/30 px-3 py-1.5">
+                          {post.category}
+                        </span>
+                      </div>
                     </div>
-                  </div>
 
                   {/* Content */}
                   <div className={cn("md:col-span-3", index % 2 === 1 && "md:order-1")}>

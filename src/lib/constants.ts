@@ -18,7 +18,7 @@ export const IMAGES = {
   // South Luangwa
   southLuangwaHero: "/images/south-luangwa-hero.jpg",
   southLuangwaElephant: "/images/south-luangwa-elephant.jpg",
-  southLuangwaLeopard: "/images/south-luangwa-leopard.jpg",
+  southLuangwaLeopard: "/images/south-luangwa-camp.jpg",
   southLuangwaSunset: "/images/south-luangwa-sunset.jpg",
   southLuangwaSafari: "/images/south-luangwa-safari.jpg",
   southLuangwaCamp: "/images/south-luangwa-camp.jpg",
@@ -26,7 +26,7 @@ export const IMAGES = {
   // Zanzibar
   zanzibarHero: "/images/zanzibar-hero.jpg",
   zanzibarBeach: "/images/zanzibar-beach.jpg",
-  zanzibarAerial: "/images/zanzibar-aerial.jpg",
+  zanzibarAerial: "/images/zanzibar-stonetown.jpg",
   zanzibarDhow: "/images/zanzibar-dhow.jpg",
   zanzibarSpa: "/images/zanzibar-spa.jpg",
   zanzibarStoneTown: "/images/zanzibar-stonetown.jpg",
@@ -35,11 +35,15 @@ export const IMAGES = {
   kayaMawa: "/images/kaya-mawa.jpg",
   pumulani: "/images/pumulani.jpg",
   blueZebra: "/images/blue-zebra.jpg",
+  makokolaRetreat: "/images/makokola-retreat.jpg",
   chinzombo: "/images/chinzombo.jpg",
   pukuRidge: "/images/puku-ridge.jpg",
   shawaLuangwa: "/images/shawa-luangwa.jpg",
   luangwaRiver: "/images/luangwa-river.jpg",
   xanadu: "/images/xanadu.jpg",
+  kilindi: "/images/kilindi.jpg",
+  baraza: "/images/baraza.jpg",
+  palms: "/images/the-palms.jpg",
   whiteSand: "/images/white-sand.jpg",
   residence: "/images/residence.jpg",
 
@@ -125,10 +129,10 @@ export const DESTINATIONS = [
     description:
       "Lake Malawi. Africa's third largest lake holds crystal waters, shores untouched by time, and an atmosphere of such profound serenity that couples find themselves speaking in whispers.",
     positioning:
-      "Horizon of water and sky. Kayak at dawn. Dine beneath constellations on a private beach. Kaya Mawa, Pumulani, and Blue Zebra Island Lodge each write their own chapter of this love story. Africa's hidden luxury beach escape. Reserved for those who know where to look.",
+      "Horizon of water and sky. Kayak at dawn. Dine beneath constellations on a private beach. Kaya Mawa, Pumulani, Blue Zebra Island Lodge, and The Makokola Retreat each write their own chapter of this love story. Africa's hidden luxury beach escape. Reserved for those who know where to look.",
     heroImage: IMAGES.lakeMalawiHero,
     slug: "lake-malawi",
-    properties: ["kaya-mawa", "pumulani-lodge", "blue-zebra-island-lodge"],
+    properties: ["kaya-mawa", "pumulani-lodge", "blue-zebra-island-lodge", "makokola-retreat"],
     experiences: [
       "Private beach dining beneath a canopy of stars",
       "Sunset dhow cruises across the Lake of Stars",
@@ -203,10 +207,10 @@ export const DESTINATIONS = [
     description:
       "Zanzibar. A love letter written in cinnamon and clove. Stone Town alleyways lead to beaches of impossible beauty. The Indian Ocean trades in shades of turquoise no artist could replicate.",
     positioning:
-      "Culture and paradise intertwined. Spice-scented corridors, dhows sailing into fiery sunsets, and three extraordinary properties — Xanadu Villas, Zanzibar White Sand Villas, The Residence Zanzibar — each a sanctuary of romance. Tropical elegance, refined to perfection.",
+      "Culture and paradise intertwined. Spice-scented corridors, dhows sailing into fiery sunsets, and four extraordinary properties — Xanadu Luxury Villas & Retreat, Kilindi Zanzibar, Baraza Resort & Spa, and The Palms Zanzibar — each a sanctuary of romance. From the white-domed pavilions of Kilindi to the all-inclusive Swahili elegance of Baraza, from the intimate six-villa exclusivity of The Palms to the artistic design of Xanadu. Tropical elegance, refined to perfection.",
     heroImage: IMAGES.zanzibarHero,
     slug: "zanzibar",
-    properties: ["xanadu-villas", "zanzibar-white-sand-villas", "the-residence-zanzibar"],
+    properties: ["xanadu-villas", "kilindi-zanzibar", "baraza-resort-spa", "the-palms-zanzibar"],
     experiences: [
       "Spice plantation tours through ancient aromatic gardens",
       "Stone Town heritage walks through living history",
@@ -246,18 +250,22 @@ export const PROPERTIES = [
     description:
       "Perched on the shores of Likoma Island, Kaya Mawa is the apotheosis of barefoot luxury. Each suite handcrafted from local stone and thatch, opening to panoramic views of Lake Malawi's crystalline waters. A place where time suspends and love deepens.",
     longDescription:
-      "Kaya Mawa is not a lodge. It is a sanctuary on one of Africa's most beautiful islands, built into the rocky shoreline with such reverence that the landscape remains the protagonist. Each of the ten suites and villas offers complete privacy with sweeping lake views, designed in a philosophy of minimal intervention: local stone, handwoven textiles, and an architecture that lets the water take center stage. Days unfold at nature's pace. Swim in the infinity pool that merges with the lake. Explore hidden coves by kayak. Lose yourself in a novel on your private deck while the lake whispers below. The restaurant serves farm to table cuisine with a Malawian soul. The bar perches over the water for sundowners that linger into starlit evenings. This is not a stay. This is a homecoming.",
+      "Kaya Mawa is not a lodge. It is a sanctuary on one of Africa's most beautiful islands, built into the rocky shoreline with such reverence that the landscape remains the protagonist. Each of the eleven houses and rooms offers complete privacy with sweeping lake views, designed in a philosophy of minimal intervention: local stone, handwoven textiles, and an architecture that lets the water take center stage. Some suites feature their own private plunge pools carved from the granite shoreline. Days unfold at nature's pace. Swim in the infinity-edge pool that merges with the lake — Africa's fourth-largest. Explore hidden coves by kayak or stand-up paddleboard. Dive into the crystalline depths with the on-site PADI dive centre. Lose yourself in a novel on your private deck while the lake whispers below. The restaurant serves farm-to-table cuisine with a Malawian soul. The over-water Sunset Bar perches above the lake for sundowners that linger into starlit evenings. Kaya Mawa is operated by Green Safaris, running entirely on 100% renewable solar energy, and its Kaya Mawa Foundation champions education and enterprise on the island. Open annually from mid-March to mid-January.",
     heroImage: IMAGES.kayaMawa,
     gallery: [IMAGES.lakeMalawiHero, IMAGES.lakeMalawiSunset, IMAGES.lakeMalawiBeach, IMAGES.lakeMalawiIsland],
-    priceRange: "$650 to $1,200 per night",
-    roomTypes: ["Lake View Suite", "Beach Villa", "Island House"],
+    priceRange: "$450 to $735 per person per night",
+    roomTypes: ["Standard Room", "Nkhwazi Suite", "Mbamba Suite", "Madimba House", "Mainja House", "Ndomo Private House"],
     amenities: [
-      "Private infinity pool",
-      "Overwater bar",
-      "Farm to table restaurant",
-      "Private beach",
-      "Kayaking and water sports",
+      "Infinity-edge swimming pool",
+      "Over-water Sunset Bar",
+      "Farm-to-table restaurant",
+      "Private beach coves",
+      "PADI dive centre",
+      "Kayaking and stand-up paddleboarding",
+      "Sailing and wakeboarding",
+      "Quad biking and e-biking",
       "Spa treatments",
+      "100% solar-powered",
       "Helicopter pad",
       "Complimentary WiFi",
     ],
@@ -271,31 +279,38 @@ export const PROPERTIES = [
       "Sunset dhow cruises across the Lake of Stars",
       "Couples massage on your private deck overlooking the lake",
       "Stargazing from your suite with nothing but the sound of water",
+      "Private island picnics on deserted coves",
     ],
   },
   {
     id: "pumulani-lodge",
     name: "Pumulani Lodge",
     destination: "lake-malawi",
-    location: "Nankoma Peninsula, Lake Malawi",
+    location: "Nankumba Peninsula, Lake Malawi",
     tagline: "Where the lake meets the sky in perfect stillness",
     description:
-      "Set on a private peninsula, Pumulani Lodge offers ten secluded villas with breathtaking views across Lake Malawi. A place of serene beauty and understated elegance where couples rediscover each other.",
+      "Set on a private peninsula on the Nankumba Peninsula, Pumulani Lodge offers ten secluded villas with breathtaking views across Lake Malawi. A place of serene beauty and understated elegance where couples rediscover each other.",
     longDescription:
-      "Pumulani Lodge occupies a pristine peninsula, offering a level of seclusion that feels like your own private world. The ten villas embody a contemporary African aesthetic: clean architectural lines, natural materials, and floor to ceiling windows that frame the lake as living art. Each villa features its own plunge pool and outdoor shower, creating an indoor outdoor living experience that dissolves the boundary between luxury and nature. The main lodge houses a stunning infinity pool, a curated library, and a dining room where the seasonal menu celebrates the flavors of Malawi with a sophistication that rivals the world's finest restaurants.",
+      "Pumulani Lodge occupies a pristine stretch of the Nankumba Peninsula, offering a level of seclusion that feels like your own private world. The ten villas embody a contemporary African aesthetic: clean architectural lines, natural materials, and floor-to-ceiling windows that frame the lake as living art. Each villa features its own plunge pool and outdoor shower, creating an indoor-outdoor living experience that dissolves the boundary between luxury and nature. The main lodge houses a stunning infinity pool, a curated library, and a dining room where the seasonal menu celebrates the flavours of Malawi with a sophistication that rivals the world's finest restaurants. Operated by the award-winning Robin Pope Safaris, Pumulani operates on a Fully Inclusive Plus basis: all meals, select premium drinks, laundry, and a wide range of activities are included. From water-skiing and sailing to guided nature walks, mountain biking, and visits to local villages, every day offers a new adventure or perfect stillness — entirely on your terms.",
     heroImage: IMAGES.pumulani,
     gallery: [IMAGES.lakeMalawiSunset, IMAGES.lakeMalawiBeach, IMAGES.lakeMalawiAerial],
-    priceRange: "$550 to $1,000 per night",
-    roomTypes: ["Lake View Villa", "Premium Villa", "Family Villa"],
+    priceRange: "$370 to $505 per person per night",
+    roomTypes: ["Standard Villa", "Superior Villa", "Honeymoon Villa"],
     amenities: [
-      "Private plunge pool",
+      "Private plunge pool per villa",
       "Infinity pool overlooking the lake",
       "Outdoor shower",
       "Restaurant and bar",
-      "Water sports equipment",
+      "Water-skiing and sailing",
+      "Kayaking and paddleboarding",
+      "Snorkelling and scuba diving",
+      "Guided nature walks and mountain biking",
+      "Dhow sunset cruises",
+      "Village and cultural visits",
       "Spa sanctuary",
       "Curated library",
       "Complimentary WiFi",
+      "Fully Inclusive Plus basis",
     ],
     rating: 4.8,
     reviews: [
@@ -304,42 +319,91 @@ export const PROPERTIES = [
     romanticHighlights: [
       "Private villa dining with your personal chef",
       "Couples spa journeys using indigenous ingredients",
-      "Sunset cruises on the lake",
+      "Sunset dhow cruises with champagne on the Lake of Stars",
       "Secluded beach picnics on private coves",
+      "Stargazing from your private plunge pool",
     ],
   },
   {
     id: "blue-zebra-island-lodge",
     name: "Blue Zebra Island Lodge",
     destination: "lake-malawi",
-    location: "Mumbo Island, Lake Malawi",
+    location: "Nankoma Island, Lake Malawi National Park",
     tagline: "An island of your own in the Lake of Stars",
     description:
-      "Exclusively set on a private island, Blue Zebra Island Lodge offers an intimate escape with pristine beaches and some of the finest freshwater snorkeling in Africa.",
+      "Exclusively set on Nankoma Island within the UNESCO-listed Lake Malawi National Park, Blue Zebra Island Lodge offers an intimate island escape with pristine beaches and the finest freshwater snorkelling in Africa.",
     longDescription:
-      "Blue Zebra Island Lodge occupies its own private island in the crystalline waters of Lake Malawi. With just ten rooms, the lodge offers an intimacy increasingly rare in travel. The island is a sanctuary for birdlife; the surrounding waters are a haven for snorkelers and divers exploring one of the world's most biodiverse freshwater ecosystems. Accommodation is understated, comfortable, and sustainable. Days are spent exploring the island's coves, swimming in the impossibly clear lake, or simply swaying in a hammock with the sound of lapping water as your only companion.",
+      "Blue Zebra Island Lodge occupies its own private island in the crystalline waters of Lake Malawi National Park, a UNESCO World Heritage site renowned for its extraordinary biodiversity. With just twelve rooms ranging from Executive Chalets to Lake Safari Tents, the lodge offers an intimacy increasingly rare in travel. The island is a sanctuary for birdlife; the surrounding waters are a haven for snorkellers and divers exploring the most biodiverse freshwater ecosystem on earth, home to over a thousand species of colourful cichlids found nowhere else. The infinity pool gazes across the lake to the mountains of Mozambique. The Island Spa offers treatments on a deck suspended above the water. Days are spent exploring the island's coves by kayak, snorkelling in the crystal-clear shallows, meandering the nature trails, or simply swaying in a hammock with the sound of lapping water as your only companion.",
     heroImage: IMAGES.blueZebra,
     gallery: [IMAGES.lakeMalawiIsland, IMAGES.lakeMalawiBeach, IMAGES.lakeMalawiAerial],
-    priceRange: "$400 to $750 per night",
-    roomTypes: ["Island Room", "Lake Front Suite", "Private House"],
+    priceRange: "$300 to $600 per night",
+    roomTypes: ["Executive Chalet", "Executive Family Chalet", "Superior Family Cottage", "Lake Safari Tent"],
     amenities: [
-      "Private island experience",
-      "Snorkeling gear and dive equipment",
+      "Private island within UNESCO National Park",
+      "Infinity pool with views across to Mozambique",
+      "Island Spa with over-water treatment deck",
+      "Snorkelling gear with cichlid-rich reefs",
+      "PADI dive centre",
+      "Kayaking and paddleboarding",
+      "Sunset cruises and tubing",
+      "Nature trails and birdwatching",
+      "Yoga deck",
       "Restaurant and bar",
       "Beach loungers and hammocks",
-      "Bird watching guides",
-      "Kayaking and paddleboarding",
-      "Sundeck with panoramic views",
+      "Complimentary WiFi",
     ],
     rating: 4.7,
     reviews: [
-      { name: "David and Claire Mueller", text: "An island paradise. The snorkeling was world class and the staff made us feel like the only people on earth.", location: "Berlin, Germany" },
+      { name: "David and Claire Mueller", text: "An island paradise. The snorkelling was world class and the staff made us feel like the only people on earth.", location: "Berlin, Germany" },
     ],
     romanticHighlights: [
       "Exclusive island exploration for two",
-      "Snorkeling in crystal clear coves hand in hand",
+      "Snorkelling hand in hand through crystal-clear coves filled with rainbow cichlids",
       "Private beachfront dining under the stars",
       "Sunset walks around your private island",
+      "Couples treatments at the over-water spa",
+    ],
+  },
+  {
+    id: "makokola-retreat",
+    name: "The Makokola Retreat",
+    destination: "lake-malawi",
+    location: "Southern Shore, Lake Malawi",
+    tagline: "A lakeside estate where elegance meets the wild beauty of Malawi",
+    description:
+      "Set along the palm-fringed southern shore of Lake Malawi, The Makokola Retreat is a gracious resort estate blending African design, culture, and tradition. From the adult-only Lake Suites with private infinity pool to the championship golf course, every detail captures the essence of lakeside luxury.",
+    longDescription:
+      "The Makokola Retreat is a destination unto itself, set on the brilliant white sands of Lake Malawi's southern shore. With a total of 70 rooms across multiple categories, the Retreat offers a diversity of experiences within one stunning property. The crown jewel is the Lake Suite section — an adult-only enclave of 22 luxury suites and the Sunset Villa, each with air conditioning, flat-screen TV, mini-fridge, and a private terrace or balcony with spectacular lake views. Guests in this section enjoy their own private infinity pool, dedicated bar, and access to the state-of-the-art TechnoGym. The Superior Beach Rooms, completely redesigned in 2021, offer thatch-roofed charm with modern amenities. Dining is an eclectic journey: Il Lago serves Italian and Mediterranean cuisine in an al fresco setting overlooking the lake, while Harry's Bar offers casual lakeside fare and sundowners. The Coffee Lounge provides a quiet retreat with unlimited WiFi. Beyond the rooms, the Retreat boasts a nine-hole par-three golf course at Mlambe, a flood-lit bowling green, and lush botanical gardens. The Tropex Nursery at the entrance invites guests to explore indigenous flora and take a piece of Malawi home.",
+    heroImage: IMAGES.makokolaRetreat,
+    gallery: [IMAGES.lakeMalawiBeach, IMAGES.lakeMalawiSunset, IMAGES.lakeMalawiAerial, IMAGES.lakeMalawiDhow],
+    priceRange: "$250 to $550 per night",
+    roomTypes: ["Lake Suite", "Sunset Villa", "Superior Beach Room", "Standard Beach Room", "Garden Room"],
+    amenities: [
+      "Adult-only Lake Suite infinity pool",
+      "Nine-hole par-three golf course (Mlambe)",
+      "Flood-lit bowling green",
+      "Il Lago Italian restaurant",
+      "Harry's Bar lakeside bar",
+      "Coffee Lounge with complimentary WiFi",
+      "State-of-the-art TechnoGym",
+      "Multiple swimming pools",
+      "Water sports and boat excursions",
+      "Conference and wedding facilities",
+      "Tropex botanical nursery",
+      "Complimentary WiFi in public areas",
+      "Air conditioning in Lake Suites",
+      "Electronic safe and mini-fridge in all rooms",
+    ],
+    rating: 4.5,
+    reviews: [
+      { name: "Robert and Catherine Thompson", text: "A wonderful resort with stunning lake views. The Lake Suite was beautifully appointed and the golf course was a delightful surprise.", location: "Toronto, Canada" },
+    ],
+    romanticHighlights: [
+      "Adult-only Lake Suites with private infinity pool for two",
+      "Sundowners at Harry's Bar as the sun sets over Lake Malawi",
+      "Couples golf on the nine-hole Mlambe course",
+      "Stargazing from your Lake Suite terrace with a Malawian gin and tonic",
+      "Candlelit dinner at Il Lago with the lake as your backdrop",
     ],
   },
   {
@@ -351,7 +415,7 @@ export const PROPERTIES = [
     description:
       "Set on a sweeping curve of the Luangwa River within 60 acres of private land, Time+Tide Chinzombo brings award-winning style and sophistication to the Luangwa Valley. Six luxurious villas, each with a private plunge pool, redefine the boundaries of bush luxury.",
     longDescription:
-      "Named after a type of tree which grows near camp, Time+Tide Chinzombo's natural building materials and vintage accents blend modern style with the best of a traditional bush safari camp. Designed by award-winning architects Silvio Rech and Lesley Carstens, the camp won Best New Property in Africa in 2014 and again in 2015. Its six spacious luxury safari villas (including a two-bedroom, two-bathroom family villa) rest beneath ancient msikizi trees. Each has a private plunge pool, a soaking tub with panoramic views over the river, and an open-plan design featuring canvas, timber, and reed accented with leather and raw linen. Each stretches out onto a shaded verandah where you can while away the afternoon or unwind with an in-villa spa treatment. Down a winding path, the main lodge beckons with a riverfront sun deck, an open-air library, a bar rich with old books and photographs, and a fire pit suspended high atop the river bank. Here, dining is a celebration of Zambian flavours enriched by produce grown in the camp's own garden.",
+      "Named after a species of acacia that grows near camp, Time+Tide Chinzombo's natural building materials and vintage accents blend modern style with the best of a traditional bush safari camp. Designed by award-winning architects Silvio Rech and Lesley Carstens, the camp won Best New Property in Africa in 2014 and again in 2015. Its six spacious luxury safari villas (including a two-bedroom, two-bathroom family villa) rest beneath ancient msikizi trees. Each has a private plunge pool, a soaking tub with panoramic views over the river, and an open-plan design featuring canvas, timber, and reed accented with leather and raw linen. Each stretches out onto a shaded verandah where you can while away the afternoon or unwind with an in-villa spa treatment. Down a winding path, the main lodge beckons with a riverfront sun deck, an open-air library, a bar rich with old books and photographs, and a fire pit suspended high atop the river bank. Here, dining is a celebration of Zambian flavours enriched by produce grown in the camp's own garden.",
     heroImage: IMAGES.chinzombo,
     gallery: [IMAGES.southLuangwaSafari, IMAGES.southLuangwaElephant, IMAGES.southLuangwaLeopard],
     priceRange: "From $1,330 per person per night",
@@ -436,7 +500,7 @@ export const PROPERTIES = [
     description:
       "A small, eco-friendly bush camp overlooking the Luangwa River in the Nsefu Sector. Named after legendary Zambian guide Jacob Shawa, this intimate camp offers silent safaris in solar-powered electric vehicles and an immersion into one of the park's most untouched areas.",
     longDescription:
-      "Shawa Luangwa Camp rests on the eastern bank of the Luangwa River, overlooking the sweeping landscape of the Nsefu Sector — one of the park's most pristine and wildlife-rich areas. Named in honour of Jacob Shawa, one of Zambia's most celebrated guides, the camp is a labour of love and a deep respect for the Luangwa Valley. The camp features just five raised A-line canvas tents on wooden platforms: three Luxury Couples Tents and one Family Tent (two tents connected by a deck). Each tent opens entirely on three sides to offer uninterrupted 270-degree views over the river and its pods of snorting hippo. Interiors feature a choice of twin or double beds, soft linen, a sunken bathtub, a private verandah, and a plunge pool. A starbed on the rooftop offers a place to sleep beneath the African sky. Shawa is a pioneer of silent safaris in South Luangwa, using solar-powered electric Land Cruisers that traverse the wilderness quietly with minimal carbon footprint. The main camp features an infinity pool, a fire pit at the edge of the wilderness, and a fully stocked bar where you can enjoy an armchair safari.",
+      "Shawa Luangwa Camp rests on the eastern bank of the Luangwa River, overlooking the sweeping landscape of the Nsefu Sector — one of the park's most pristine and wildlife-rich areas. Named in honour of Jacob Shawa, one of Zambia's most celebrated guides, the camp is a labour of love and a deep respect for the Luangwa Valley. The camp features just five raised A-frame canvas tents on wooden platforms: three Luxury Couples Tents and one Family Tent (two tents connected by a deck). Each tent opens entirely on three sides to offer uninterrupted 270-degree views over the river and its pods of snorting hippo. Interiors feature a choice of twin or double beds, soft linen, a sunken bathtub, a private verandah, and a plunge pool. A starbed on the rooftop offers a place to sleep beneath the African sky. Shawa is a pioneer of silent safaris in South Luangwa, using solar-powered electric Land Cruisers that traverse the wilderness quietly with minimal carbon footprint. The main camp features an infinity pool, a fire pit at the edge of the wilderness, and a fully stocked bar where you can enjoy an armchair safari.",
     heroImage: IMAGES.shawaLuangwa,
     gallery: [IMAGES.southLuangwaSunset, IMAGES.southLuangwaSafari, IMAGES.southLuangwaElephant],
     priceRange: "From $500 per person per night",
@@ -479,7 +543,7 @@ export const PROPERTIES = [
     longDescription:
       "Luangwa River Camp sits nestled under an ancient ebony grove on the banks of the Luangwa River in a game-rich area known as the Luangwa Wafwa. Operated by the renowned Robin Pope Safaris, this small and intimate camp offers just five thatched bush suites, ensuring a maximum of ten guests at any one time. Each suite is individually named (Mwala, Mazi, Merzi, Moto, and Ziko) and features a thatch-and-brick design with large sliding doors that open onto a private river-facing deck. The en-suite bathrooms boast double basins and a large sunken stone bathtub that gazes out onto your own private corner of Africa. A multi-level plunge pool with a cascading waterfall sits on the elevated river deck. The central guest area features an open-plan bar, lounge, and dining area surrounded by Balinese-inspired columns and a courtyard planted with banana trees. Cuisine is fresh and hearty, celebrating local Zambian produce, served by the river or in the communal boma. Activities include morning and afternoon game drives, guided walking safaris, night drives, and seasonal boat safaris on the Luangwa River.",
     heroImage: IMAGES.luangwaRiver,
-    gallery: [IMAGES.southLuangwaSunset, IMAGES.southLuangwaLeopard, IMAGES.southLuangwaCamp],
+    gallery: [IMAGES.southLuangwaSunset, IMAGES.southLuangwaSafari, IMAGES.southLuangwaCamp],
     priceRange: "$520 to $950 per person per night",
     roomTypes: ["Bush Suite", "Premium River Suite"],
     amenities: [
@@ -513,27 +577,33 @@ export const PROPERTIES = [
   },
   {
     id: "xanadu-villas",
-    name: "Xanadu Villas",
+    name: "Xanadu Luxury Villas & Retreat",
     destination: "zanzibar",
-    location: "Kendwa, Zanzibar",
+    location: "Michamvi, East Coast, Zanzibar",
     tagline: "Where dreams meet the Indian Ocean",
     description:
-      "Exquisite private villas on Zanzibar's northern coast, where turquoise waters kiss powder soft sand and every moment is designed for romance.",
+      "Nine uncompromising villas on a stretch of pristine white sand beach on Zanzibar's east coast. Each villa a private sanctuary with plunge pool, butler service, and all-inclusive indulgence crafted for the discerning couple.",
     longDescription:
-      "Xanadu Villas redefines barefoot luxury on the Spice Island. Set along the pristine coastline of Kendwa, these seven private villas are sanctuaries of space and light. Each villa features a private pool, an expansive terrace, and interiors that blend Swahili craftsmanship with contemporary elegance. Architecture is open and airy: sliding glass walls dissolve the boundary between inside and out, allowing the ocean breeze and the sound of waves to permeate every space. The resort's restaurant is one of Zanzibar's finest, serving seafood that arrives daily from local fishermen, paired with the island's abundant spices.",
+      "Xanadu Luxury Villas & Retreat is an experience, a lifestyle, an awakening of what life can be. Nine individually designed villas — each with a Swahili name meaning clouds, waves, stars, or dew — are scattered along a pristine white sand beach on Zanzibar's sun-drenched east coast. Each villa features its own private plunge pool, indoor and outdoor living spaces, and a private butler who anticipates your every need. The all-inclusive experience is uncompromising: world-class cuisine prepared by an international chef, premium beverages, laundry service, and a range of water sports including sea kayaking, snorkelling, and stand-up paddleboarding directly from the beach. The Kiota Spa nestles on the sand, offering treatments with the sound of the Indian Ocean as your soundtrack. A member of Small Luxury Hotels of the World and featured in the National Geographic Traveller UK Collection 2024, Xanadu has been crafted out of a desire to breathe — to celebrate life in its purest, most luxurious form.",
     heroImage: IMAGES.xanadu,
     gallery: [IMAGES.zanzibarBeach, IMAGES.zanzibarAerial, IMAGES.zanzibarDhow],
-    priceRange: "$700 to $1,400 per night",
-    roomTypes: ["One Bedroom Villa", "Two Bedroom Villa", "Presidential Villa"],
+    priceRange: "$895 to $4,400 per villa per night",
+    roomTypes: ["Umande (1BR Garden)", "Alfajiri (1BR Honeymoon)", "Mawingu/Mawimbi (1BR Ocean)", "Kimwondo (1BR Rooftop Pool)", "Mlima/Korongo (2BR)", "Nyota/Mbingu (Presidential 2BR)"],
     amenities: [
-      "Private pool",
-      "Direct beach access",
-      "Restaurant and bar",
-      "Spa and wellness center",
-      "Water sports",
-      "Butler service",
-      "Private chef option",
+      "Private plunge pool per villa",
+      "Personal butler throughout your stay",
+      "All-inclusive cuisine by international chef",
+      "Kiota Spa on the beach",
+      "Private beach access",
+      "Sea kayaking, snorkelling and SUP",
+      "Private return airport transfers",
+      "Laundry service up to 5kg per guest per day",
+      "In-villa dining and bar",
+      "Yoga and wellness",
+      "Sunset dhow cruises on Free Spirit",
       "Complimentary WiFi",
+      "Air conditioning and ceiling fans",
+      "Bluetooth music speakers",
     ],
     rating: 4.9,
     reviews: [
@@ -541,9 +611,141 @@ export const PROPERTIES = [
     ],
     romanticHighlights: [
       "Private poolside dining under the stars",
-      "Sunset dhow cruises with Champagne",
-      "Couples spa rituals using Zanzibari spices",
-      "Beachfront dinners with your toes in the sand",
+      "Sunset dhow cruises on the traditional dhow Free Spirit",
+      "Couples spa rituals at Kiota Spa overlooking the ocean",
+      "Signature rooftop pool dinner at Kimwondo Villa",
+      "Private beachfront breakfast with your butler",
+    ],
+  },
+  {
+    id: "kilindi-zanzibar",
+    name: "Kilindi Zanzibar",
+    destination: "zanzibar",
+    location: "Kendwa, North-West Coast, Zanzibar",
+    tagline: "Scandinavian minimalism meets Zanzibari romance",
+    description:
+      "A collection of fifteen white-domed Pavilion villas set within 50 acres of lush tropical garden on Zanzibar's secluded north-west coast. Each villa features its own private plunge pool, rainfall shower, and dedicated butler. All-inclusive rates cover accommodation, meals, drinks, sundowners, kayaking, paddleboarding, and laundry.",
+    longDescription:
+      "Kilindi Zanzibar is a rarity in the world of luxury boutique hotels. Originally designed for Benny Andersson of the 1970s pop group ABBA, Kilindi achieves the perfect marriage between Scandinavian minimalism and the dramatic architectural overtones of Middle Eastern heritage. Fifteen eastern-styled domed Pavilions nestle amongst 50 acres of tropical garden, each with its own private plunge pool and a separate rainfall shower room with spectacular ocean views. The open-to-nature design allows the gentle ocean breeze and the soundtrack of colourful birdlife to waft through each room. A dedicated butler is assigned to every villa, offering a choice of breakfast, lunch, and dinner locations — your private terrace, the alfresco dining terrace, along the pristine white beach, or even in the privacy of your villa. The main Pavilion features a waterfall bar overlooking a 25-metre infinity pool. The Kilindi Spa offers rejuvenating treatments in a serene garden setting. All-inclusive rates include three meals daily, drinks, sundowners, paddleboarding, kayaking, and laundry services.",
+    heroImage: IMAGES.kilindi,
+    gallery: [IMAGES.zanzibarBeach, IMAGES.zanzibarDhow, IMAGES.zanzibarAerial],
+    priceRange: "$600 to $1,200 per night",
+    roomTypes: ["Luxury Garden View Villa", "Luxury Ocean View Villa", "Two-Bedroom Garden View Villa"],
+    amenities: [
+      "Private plunge pool per villa",
+      "Personal butler service",
+      "25-metre infinity pool",
+      "Waterfall bar",
+      "Kilindi Spa",
+      "All-inclusive dining (3 meals + drinks + sundowners)",
+      "Private beach",
+      "Kayaking and paddleboarding",
+      "Rainfall shower with ocean views",
+      "Private terrace with sun loungers",
+      "Laundry service included",
+      "Complimentary WiFi",
+      "Air conditioning",
+      "Airport shuttle",
+    ],
+    rating: 4.8,
+    reviews: [
+      { name: "Sarah and James Mitchell", text: "Kilindi is a breathtaking property. The views and beautiful grounds are amazing. The villas are stunning and truly exceptional.", location: "London, United Kingdom" },
+    ],
+    romanticHighlights: [
+      "Private beach dinners with your butler under the stars",
+      "Sundowners at the waterfall bar overlooking the infinity pool",
+      "Couples spa treatments in the tropical garden spa",
+      "Open-to-nature rainfall showers with ocean views",
+      "Private breakfast on your villa terrace with birdsong",
+    ],
+  },
+  {
+    id: "baraza-resort-spa",
+    name: "Baraza Resort & Spa",
+    destination: "zanzibar",
+    location: "Bwejuu, South-East Coast, Zanzibar",
+    tagline: "Where Swahili heritage meets all-inclusive luxury",
+    description:
+      "A stunning 30-villa all-inclusive boutique resort on Zanzibar's award-winning Bwejuu Beach, recognised by Condé Nast Traveller as one of the top 30 beaches in the world. Every villa features a private plunge pool and Swahili-inspired architecture with hand-carved details.",
+    longDescription:
+      "Baraza Resort & Spa is Zanzibar's most exclusive all-inclusive boutique resort, set along a beach named one of the top 30 in the world by Condé Nast Traveller. The resort evokes the heritage of Zanzibar dating back to the era of the Sultans, designed in a fusion of Arabic, Swahili, and Indian architectural styles with dramatic Swahili arches, intricate hand-carved cement decorations, beautiful antiques, handmade furniture, and brass lanterns. All 30 villas — 14 one-bedroom and 15 two-bedroom, plus one Royal Sultan two-bedroom villa — feature luxury interiors, hand-carved furniture, spacious terraces, and private plunge pools. The resort offers four restaurants and two bars including Livingstone Terrace, Dhahabu Bar & Lounge, Chai Lounge, Ocean Lounge, and The Sultans Dining Room. The Frangipani Spa offers a wide array of massage techniques and treatments. On-site activities include a PADI dive centre, kite surfing, sailing, snorkelling, kayaking, dhow excursions, Swahili cooking classes, spice farm visits, Jozani Forest excursions, and tennis.",
+    heroImage: IMAGES.baraza,
+    gallery: [IMAGES.zanzibarBeach, IMAGES.zanzibarSpa, IMAGES.zanzibarAerial],
+    priceRange: "$500 to $1,200 per night",
+    roomTypes: ["One-Bedroom Villa", "Ocean Front One-Bedroom Villa", "Two-Bedroom Garden Villa", "Royal Sultan Two-Bedroom Villa"],
+    amenities: [
+      "Private plunge pool per villa",
+      "All-inclusive dining and premium beverages",
+      "4 restaurants and 2 bars",
+      "Frangipani Spa",
+      "PADI dive centre",
+      "Fitness centre",
+      "Floodlit tennis court",
+      "Kite surfing and windsurfing",
+      "Snorkelling and scuba diving",
+      "Dhow excursions",
+      "Swahili cooking classes",
+      "Spice farm and Stone Town tours",
+      "Kids club",
+      "Concierge service",
+      "Complimentary WiFi",
+      "Air conditioning",
+      "Room service",
+      "Airport shuttle",
+    ],
+    rating: 4.8,
+    reviews: [
+      { name: "Robert and Catherine Thompson", text: "The most luxurious all-inclusive resort we have ever experienced. The villa, the food, the service — all world class.", location: "Toronto, Canada" },
+    ],
+    romanticHighlights: [
+      "Private beach dinners for two with your toes in the sand",
+      "Couples spa rituals at the Frangipani Spa",
+      "Sunset cocktails at Dhahabu Bar & Lounge",
+      "Private dhow cruise along the Bwejuu coast",
+      "Swahili cooking class for two with the resort chef",
+    ],
+  },
+  {
+    id: "the-palms-zanzibar",
+    name: "The Palms Zanzibar",
+    destination: "zanzibar",
+    location: "Bwejuu, South-East Coast, Zanzibar",
+    tagline: "Your private island sanctuary — just six villas, infinite luxury",
+    description:
+      "An adults-only ultra-luxury boutique resort of just seven villas on Zanzibar's pristine Bwejuu Beach. Each villa features a private plunge pool, personal butler, and all-inclusive gourmet dining. The ultimate romantic hideaway for couples seeking absolute privacy.",
+    longDescription:
+      "The Palms Zanzibar is the island's most exclusive and intimate luxury resort, with just seven villas on the award-winning Bwejuu Beach — recognised by Condé Nast Traveller as one of the top 30 beaches in the world. With a maximum of 14 guests at any one time, The Palms offers a level of privacy and personalised service unmatched on the island. Each villa spans over 140 square metres with a bedroom, separate living room, full en-suite bathroom, walk-in dressing room, bar area, and a large furnished terrace with views of the Indian Ocean. Every villa has its own private plunge pool and a private thatched beach banda on the sand. The all-inclusive experience covers gourmet dining, premium drinks, and a personal butler. The beachfront Sanctuary Spa offers world-class treatments. Guests also enjoy complimentary access to the facilities of sister properties Baraza Resort & Spa and Breezes Beach Club — including a gym, tennis court, PADI dive centre, and the Frangipani Spa. The Palms is strictly adults-only, welcoming guests aged 16 and above.",
+    heroImage: IMAGES.palms,
+    gallery: [IMAGES.zanzibarBeach, IMAGES.zanzibarAerial, IMAGES.zanzibarSpa],
+    priceRange: "$1,200 to $2,500 per night",
+    roomTypes: ["One-Bedroom Villa", "Two-Bedroom Villa", "Entire Resort Buyout (7 villas)"],
+    amenities: [
+      "Private plunge pool per villa",
+      "Personal butler service",
+      "Private thatched beach banda",
+      "All-inclusive gourmet dining and premium drinks",
+      "Sanctuary Spa on the beachfront",
+      "Access to sister resort facilities (Baraza + Breezes)",
+      "PADI dive centre access",
+      "Gym and floodlit tennis court",
+      "Snorkelling, kayaking, paddleboarding",
+      "Dhow cruises and sunset sails",
+      "Stone Town and spice farm tours",
+      "Complimentary WiFi",
+      "Air conditioning and ceiling fans",
+      "Satellite TV and DVD player",
+      "Airport transfers",
+    ],
+    rating: 4.9,
+    reviews: [
+      { name: "Emma and Thomas Chen", text: "The most exclusive resort we have ever stayed at. Seven villas, total privacy, impeccable service. This is how luxury should feel.", location: "Sydney, Australia" },
+    ],
+    romanticHighlights: [
+      "Private dinner on your beach banda with butler service",
+      "Couples treatments at the Sanctuary Spa",
+      "Sunset dhow cruise just for two",
+      "Private beach picnics on Bwejuu's powder-white sand",
+      "Stargazing from your private plunge pool",
     ],
   },
   {
@@ -590,7 +792,7 @@ export const PROPERTIES = [
     description:
       "A stunning beachfront resort on Zanzibar's tranquil southern coast, where spacious villas, tropical gardens, and world class service create an unforgettable romantic escape.",
     longDescription:
-      "The Residence Zanzibar is a haven of understated luxury on the island's tranquil southern coast. Set within 32 hectares of lush tropical gardens, the resort's 66 villas are among the most spacious in Zanzibar, each with a private pool, outdoor shower, and a terrace that opens onto the beach. The resort embodies quiet elegance: whitewashed walls, Swahili inspired architecture, and interiors that blend African textiles with contemporary design. The spa, set over water, offers treatments inspired by Zanzibar's spice heritage, while the resort's restaurants celebrate the island's culinary traditions with a modern, sophisticated twist.",
+      "The Residence Zanzibar is a haven of understated luxury on the island's tranquil southern coast. Set within 32 hectares of lush tropical gardens, the resort's 66 villas are among the most spacious in Zanzibar, each with a private pool, outdoor shower, and a terrace that opens onto the beach. The resort embodies quiet elegance: whitewashed walls, Swahili-inspired architecture, and interiors that blend African textiles with contemporary design. The spa, set over water, offers treatments inspired by Zanzibar's spice heritage, while the resort's restaurants celebrate the island's culinary traditions with a modern, sophisticated twist.",
     heroImage: IMAGES.residence,
     gallery: [IMAGES.zanzibarSpa, IMAGES.zanzibarBeach, IMAGES.zanzibarAerial],
     priceRange: "$600 to $1,300 per night",
@@ -623,6 +825,7 @@ export const PACKAGES = [
     id: "honeymoon-escape",
     title: "Honeymoon Escape",
     subtitle: "Begin your forever in African paradise",
+    image: IMAGES.chinzombo,
     description:
       "The ultimate romantic honeymoon weaving together the award-winning luxury of Time+Tide Chinzombo in South Luangwa with the pure relaxation of Zanzibar's pristine shores. A journey that celebrates your new beginning across Africa's most extraordinary landscapes.",
     duration: "10 nights",
@@ -657,6 +860,7 @@ export const PACKAGES = [
     id: "beach-bush-escape",
     title: "Beach and Bush Escape",
     subtitle: "The best of both African worlds",
+    image: IMAGES.kayaMawa,
     description:
       "Experience the contrasting wonders of Lake Malawi and South Luangwa. From the freshwater paradise of Africa's hidden beach escape to the raw wilderness of Zambia's premier safari destination, where silent electric vehicles glide through an untouched ecosystem. Two worlds. One extraordinary journey.",
     duration: "12 nights",
@@ -672,7 +876,7 @@ export const PACKAGES = [
       "All water sports equipment at Lake Malawi",
       "Private bush dinner",
       "Couples spa treatment",
-      "24 hour concierge service",
+      "24-hour concierge service",
     ],
     itinerary: [
       { day: 1, title: "Arrival in Lilongwe", description: "Welcome. Overnight in Lilongwe." },
@@ -690,6 +894,7 @@ export const PACKAGES = [
     id: "romantic-safari-journey",
     title: "Romantic Safari Journey",
     subtitle: "Intimate encounters with the wild",
+    image: IMAGES.pukuRidge,
     description:
       "An immersive safari experience designed exclusively for couples. Walk with wildlife on ancient paths, dine beneath the African sky, and sleep to the soundtrack of the bush. This is intimacy redefined.",
     duration: "7 nights",
@@ -720,6 +925,7 @@ export const PACKAGES = [
     id: "anniversary-escape",
     title: "Anniversary Escape",
     subtitle: "Celebrate your love story on the Spice Island",
+    image: IMAGES.residence,
     description:
       "A celebration of enduring love on the pristine shores of Zanzibar. From private dining on the sand to couples spa rituals, every moment honors your journey together.",
     duration: "7 nights",
@@ -750,6 +956,7 @@ export const PACKAGES = [
     id: "luxury-island-retreat",
     title: "Luxury Island Retreat",
     subtitle: "Your private island paradise on Lake Malawi",
+    image: IMAGES.kayaMawa,
     description:
       "An escape to the secluded shores of Lake Malawi. Stay at the iconic Kaya Mawa on Likoma Island and experience true barefoot luxury where the only schedule is the rhythm of the lake.",
     duration: "7 nights",
@@ -859,6 +1066,20 @@ export const JOURNAL_POSTS = [
     id: "honeymoon-guide-2026",
     title: "The Ultimate African Honeymoon Guide for Discerning Couples",
     excerpt: "From the shores of Lake Malawi to the wilds of Zambia and the spice scented breezes of Zanzibar. Discover the most romantic escapes Africa has to offer for those who refuse to compromise on beauty.",
+    content: `Planning a honeymoon is about more than choosing a destination. It is about curating the opening chapter of your shared history — a journey that sets the tone for a lifetime of adventure together.
+
+Africa offers something no other continent can: the chance to begin your marriage in absolute privacy, surrounded by beauty that has remained unchanged for millennia. At Kivara, we have spent years identifying the properties and experiences that make for an unforgettable honeymoon.
+
+<h3>Lake Malawi: The Lake of Stars</h3>
+David Livingstone called it the Lake of Stars, and one night on Likoma Island will show you why. Kaya Mawa, our flagship property, offers honeymoon suites carved into the granite shoreline, with private sundecks that plunge directly into crystalline waters. Mornings begin with coffee brought to your terrace as the sun rises over the lake. Evenings bring dhow cruises, champagne in hand, as the sky ignites in shades of amber and rose.
+
+<h3>South Luangwa: The Wild Heart</h3>
+For couples who crave intimacy with the wild, South Luangwa delivers an intensity of experience unmatched anywhere in Africa. Walking safaris at dawn reveal tracks you would miss from a vehicle. Night drives unveil a world of predators and glowing eyes. And at Puku Ridge Camp, honeymoon suites sit high on a ridge with panoramic views over the floodplain. The bed faces the bush, so you fall asleep to the sound of hyenas calling across the valley.
+
+<h3>Zanzibar: The Spice Island</h3>
+Zanzibar is where the Indian Ocean paints in impossible blues. The Residence Zanzibar offers villas with private pools and outdoor showers hidden within tropical gardens. The Palms, with just seven villas, offers the ultimate in privacy — your own stretch of beach, your own butler, your own rhythm.
+
+Whether you choose one destination or combine all three, the key is this: travel slowly, stay long, and let Africa work its magic on your love story.`,
     image: IMAGES.journalHoneymoon,
     category: "Honeymoon Guide",
     date: "May 10, 2026",
@@ -869,6 +1090,18 @@ export const JOURNAL_POSTS = [
     id: "why-lake-malawi",
     title: "Why Lake Malawi is Africa's Most Coveted Luxury Secret",
     excerpt: "While the world flocks to the Mediterranean, a hidden paradise awaits on the shores of Lake Malawi. A place where luxury meets authenticity and romance finds its natural habitat.",
+    content: `Every traveler knows the Seychelles. Everyone has seen photographs of the Maldives. But Lake Malawi remains something rarer: a secret. Ask most luxury travelers about Africa and they will mention the Serengeti, the Okavango, the Cape. Very few know about the ninth-largest lake in the world, cradled between Malawi, Mozambique, and Tanzania, with waters so clear you can see thirty feet down.
+
+<h3>Why Now?</h3>
+Lake Malawi is having a moment. Kaya Mawa, on Likoma Island, has been quietly perfecting barefoot luxury for two decades. But recently, new flights and improved infrastructure have made this corner of Africa more accessible than ever, without sacrificing its sense of isolation.
+
+<h3>The Lake of Stars Experience</h3>
+What makes Lake Malawi extraordinary for romance is the sheer variety of experiences condensed into one destination. You can wake up to a lake so calm it looks like glass, spend the morning kayaking along deserted shores, snorkel among colorful cichlid fish that exist nowhere else on earth, and end the day on a sunset dhow cruise with a gin and tonic in hand.
+
+<h3>The Properties</h3>
+Kaya Mawa is the crown jewel — seventeen rooms and suites scattered across a private peninsula, each designed to feel like your own island hideaway. The rooms are built from local stone and thatch, with four-poster beds draped in mosquito nets and outdoor bathrooms where you can shower under the stars. The spa perches on a rocky outcrop above the lake, treatment rooms open to the breeze and the sound of lapping water.
+
+For those who want even more privacy, the entire island can feel like your own — there are no crowds, no queues, no schedules. Just you, your love, and the Lake of Stars.`,
     image: IMAGES.journalMalawi,
     category: "Destination Feature",
     date: "April 28, 2026",
@@ -879,6 +1112,21 @@ export const JOURNAL_POSTS = [
     id: "walking-safari-guide",
     title: "The Art of the Walking Safari: Intimacy with the Wild in South Luangwa",
     excerpt: "There is no more intimate way to experience Africa than on foot. Here is why South Luangwa is the world's premier walking safari destination for couples seeking transcendence.",
+    content: `The vehicle turns off its engine, and suddenly the world is silent. Not the silence of absence, but the silence of presence — the rustle of a leaf, the call of a hornbill, the distant thud of a baboon dropping from a branch. You step out onto the earth, and for the first time, you are not observing Africa. You are in it.
+
+<h3>The Birthplace of the Walking Safari</h3>
+South Luangwa National Park in Zambia is the birthplace of the walking safari, and it remains the finest place on earth to experience it. Norman Carr pioneered the concept in the 1950s, believing that the true spirit of Africa could only be felt on foot. Nearly seventy years later, his legacy lives on in every guided walk through this extraordinary valley.
+
+<h3>What to Expect</h3>
+A walking safari is not about covering distance. It is about immersion. Your guide reads the bush like a book: here, the imprint of a leopard's paw in the damp sand. There, the musky scent of a buffalo herd bedded down in the thicket. Every step reveals something new.
+
+Walks typically begin at dawn, when the air is cool and the animals are most active. You might walk for two hours or four, stopping frequently to examine tracks, to listen, to simply stand in silence and feel the weight of being in a place where humans are not the dominant species.
+
+<h3>Where to Stay</h3>
+Puku Ridge Camp sits on a ridge above the Luangwa floodplain, offering panoramic views that stretch for miles. The rooms are luxury tents on raised decks, each with a private plunge pool and an outdoor shower. The star bed experience — a four-poster rollaway that the staff sets up under the open sky — is the ultimate way to sleep in the wilderness.
+
+<h3>Why It Matters for Couples</h3>
+There is something profoundly bonding about experiencing the wild together, without barriers. No windows. No engine. No separation from the world around you. Walking safaris create a shared vulnerability and wonder that strengthens connection. You hold hands a little tighter. You speak in whispers. You see each other react to the raw beauty of the natural world.`,
     image: IMAGES.journalWalking,
     category: "Safari Stories",
     date: "April 15, 2026",
@@ -889,6 +1137,21 @@ export const JOURNAL_POSTS = [
     id: "zanzibar-spice-island",
     title: "Zanzibar: Love Letters from the Spice Island",
     excerpt: "Beyond the beaches lies an island woven with history, spice, and romance. Our guide to the most enchanting experiences in Zanzibar for couples who seek the extraordinary.",
+    content: `Zanzibar has a way of slowing time. The island operates on what locals call "Zanzibar time" — a gentle rhythm that resists hurry. Within days of arriving, you will find yourself calibrated to its pace: breakfasts that stretch into mid-morning, afternoons lost to books and hammocks, dinners that begin at sunset and end when the last candle flickers out.
+
+<h3>Stone Town: The Soul of the Island</h3>
+Before you lose yourself to beach life, spend a night in Stone Town. This UNESCO World Heritage site is a labyrinth of narrow alleys, carved wooden doors, and bustling markets. The history here is layered — Arab, Persian, Indian, African, European — woven into the architecture, the food, the very air. Stay at Emerson on Hurumzi or the Zanzibar Serena Inn, and let the winding streets guide your exploration.
+
+<h3>The Beach Life</h3>
+Zanzibar's east coast is where the postcard images come to life. Bwejuu, Paje, and Jambiani offer endless white sand beaches lapped by turquoise water. The Palms Zanzibar is the ultimate romantic retreat — just seven villas on the beachfront, each with a private plunge pool and personal butler. For a slightly different energy, Zanzibar White Sand Villas in Paje offers direct access to the best kite surfing on the island.
+
+<h3>Beyond the Beach</h3>
+A spice tour is essential — Zanzibar is the Spice Island, after all, and the scent of cloves, nutmeg, and cinnamon hangs in the air. Visit a working spice farm, taste fresh vanilla pods, and learn how the spice trade shaped the island's history.
+
+The Jozani Forest, home to the endemic red colobus monkey, offers a completely different side of Zanzibar. And for the ultimate romantic experience, book a private sunset dhow cruise along the coast — just you, your love, and the Indian Ocean painted in gold.
+
+<h3>When to Go</h3>
+Zanzibar is lovely year-round, but the sweet spot is June to October and December to February, when the weather is dry and the seas are calm. The long rains (March to May) bring lush vegetation and lower rates, while the short rains (November) are typically brief and refreshing.`,
     image: IMAGES.journalZanzibar,
     category: "Destination Feature",
     date: "March 30, 2026",

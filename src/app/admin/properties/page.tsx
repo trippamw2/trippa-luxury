@@ -184,7 +184,7 @@ export default function AdminProperties() {
       <AnimatePresence>
         {showModal && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-40 p-4" onClick={() => setShowModal(false)}>
-            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-cream border border-sand-light p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-cream border border-sand-light p-6 w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-soft-black">{editingProperty ? "Edit Property" : "Add New Property"}</h2>
                 <button onClick={() => setShowModal(false)} className="text-earth hover:text-soft-black"><X className="w-5 h-5" /></button>
@@ -195,6 +195,9 @@ export default function AdminProperties() {
                 <div><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Location</label><input type="text" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" placeholder="Likoma Island, Lake Malawi" /></div>
                 <div><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Price Range</label><input type="text" value={formData.priceRange} onChange={(e) => setFormData({ ...formData, priceRange: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" placeholder="$650 to $1,200 per night" /></div>
                 <div><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Rating</label><input type="number" step="0.1" min="0" max="5" value={formData.rating} onChange={(e) => setFormData({ ...formData, rating: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" /></div>
+                <div><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Tagline</label><input type="text" value={formData.tagline} onChange={(e) => setFormData({ ...formData, tagline: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" placeholder="A brief, evocative tagline" /></div>
+                <div><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Description</label><textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" rows={3} placeholder="Short description for cards and previews" /></div>
+                <div><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Hero Image URL</label><input type="url" value={formData.heroImage} onChange={(e) => setFormData({ ...formData, heroImage: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" placeholder="/images/kaya-mawa.jpg or https://..." /></div>
               </div>
               <div className="flex gap-3 mt-6">
                 <button onClick={() => setShowModal(false)} className="flex-1 px-5 py-2.5 border border-sand-light text-earth text-sm hover:bg-warm-white">Cancel</button>

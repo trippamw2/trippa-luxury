@@ -3,11 +3,10 @@
 import { motion } from "framer-motion";
 import { Container } from "@/components/ui/container";
 import { PropertyCard } from "@/components/ui/property-card";
-import { PROPERTIES } from "@/lib/constants";
-
-const featured = PROPERTIES.slice(0, 3);
+import { useProperties } from "@/lib/use-public-data";
 
 export function FeaturedProperties() {
+  const featured = useProperties().slice(0, 3);
   return (
     <section className="py-24 md:py-32 bg-warm-white">
       <Container>

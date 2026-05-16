@@ -1,17 +1,21 @@
 "use client";
 
+import Image from "next/image";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight, Check, Clock, MapPin, Heart, MessageCircle, ChevronLeft, Star } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
-import { PACKAGES, PROPERTIES, SITE_CONFIG } from "@/lib/constants";
+import { PROPERTIES, SITE_CONFIG } from "@/lib/constants";
+import { usePackages, useProperties } from "@/lib/use-public-data";
 import { cn } from "@/lib/utils";
 
 export default function PackageDetailPage() {
   const params = useParams();
-  const pkg = PACKAGES.find((p) => p.id === params.slug);
+  const packages = usePackages();
+  const properties = useProperties();
+  const pkg = packages.find((p) => p.id === params.slug);
 
   if (!pkg) {
     return (
@@ -24,13 +28,23 @@ export default function PackageDetailPage() {
     );
   }
 
-  const packageProperties = PROPERTIES.filter((p) => pkg.properties.includes(p.id));
+  const packageProperties = properties.filter((p) => pkg.properties.includes(p.id));
 
   return (
     <>
       {/* Hero */}
       <section className="relative h-[70vh] min-h-[500px] w-full overflow-hidden bg-soft-black">
-        <div className="absolute inset-0 bg-gradient-to-br from-soft-black via-soft-black-light to-gold/15" />
+        {pkg.image && (
+          <Image
+            src={pkg.image}
+            alt={pkg.title}
+            fill
+            className="object-cover"
+            priority
+            sizes="100vw"
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-br from-soft-black/80 via-soft-black/60 to-gold/15" />
         <div className="absolute inset-0 bg-gradient-to-t from-soft-black/70 via-soft-black/20 to-transparent" />
 
         <Link

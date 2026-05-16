@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { Container } from "@/components/ui/container";
 import { Heart, Globe, Leaf, Sparkles } from "lucide-react";
@@ -36,7 +37,15 @@ export default function AboutPage() {
     <>
       {/* Hero */}
       <section className="relative h-[60vh] min-h-[500px] w-full overflow-hidden bg-soft-black">
-        <div className="absolute inset-0 bg-gradient-to-br from-soft-black via-soft-black-light to-gold/15" />
+        <Image
+          src="/images/lake-malawi-hero.jpg"
+          alt="About Kivara"
+          fill
+          className="object-cover"
+          priority
+          sizes="100vw"
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-soft-black/80 via-soft-black/60 to-gold/15" />
         <div className="absolute inset-0 bg-gradient-to-t from-soft-black/60 via-transparent to-soft-black/30" />
         <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6">
           <motion.div
@@ -92,7 +101,14 @@ export default function AboutPage() {
               className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-24"
             >
               <div className="relative aspect-[4/5] overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-gold/20 via-sand-light to-cream" />
+                <Image
+                  src="/images/south-luangwa-hero.jpg"
+                  alt="African landscape"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                />
+                <div className="absolute inset-0 bg-gradient-to-br from-gold/20 via-sand-light/20 to-cream/10" />
               </div>
               <div>
                 <h3 className="text-2xl md:text-3xl font-heading font-medium text-soft-black mb-4">
@@ -143,7 +159,14 @@ export default function AboutPage() {
                 </p>
               </div>
               <div className="relative aspect-[4/5] overflow-hidden order-1 md:order-2">
-                <div className="absolute inset-0 bg-gradient-to-br from-gold/20 via-sand-light to-cream" />
+                <Image
+                  src="/images/kaya-mawa.jpg"
+                  alt="Kivara founders"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                />
+                <div className="absolute inset-0 bg-gradient-to-br from-gold/20 via-sand-light/20 to-cream/10" />
               </div>
             </motion.div>
 

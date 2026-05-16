@@ -4,11 +4,10 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight, Clock, MapPin } from "lucide-react";
 import { Container } from "@/components/ui/container";
-import { PACKAGES } from "@/lib/constants";
-
-const highlights = PACKAGES.slice(0, 3);
+import { usePackages } from "@/lib/use-public-data";
 
 export function CuratedJourneys() {
+  const highlights = usePackages().slice(0, 3);
   return (
     <section className="py-24 md:py-32 bg-cream">
       <Container>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight, Heart, Sparkles, Sun, Camera } from "lucide-react";
@@ -7,12 +8,11 @@ import Image from "next/image";
 import { Container } from "@/components/ui/container";
 import { PropertyCard } from "@/components/ui/property-card";
 import { Button } from "@/components/ui/button";
-import { DESTINATIONS, PROPERTIES, PACKAGES, IMAGES } from "@/lib/constants";
+import { DESTINATIONS, IMAGES } from "@/lib/constants";
+import { useProperties, usePackages } from "@/lib/use-public-data";
 import { cn } from "@/lib/utils";
 
 const destination = DESTINATIONS[2];
-const properties = PROPERTIES.filter((p) => p.destination === "zanzibar");
-const packages = PACKAGES.filter((p) => p.destinations.includes("zanzibar"));
 
 const galleryItems = [
   { label: "Turquoise waters and white sands", image: IMAGES.zanzibarBeach },
@@ -33,11 +33,53 @@ const experienceImages: Record<string, string> = {
 };
 
 export default function ZanzibarPage() {
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setError("");
+    const form = new FormData(e.currentTarget);
+    try {
+      const res = await fetch("/api/inquiry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName: form.get("name") as string,
+          email: form.get("email") as string,
+          phone: form.get("phone") as string || null,
+          destination: "zanzibar",
+          preferredDates: form.get("dates") as string || null,
+          guests: 2,
+          message: form.get("message") as string,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to send inquiry");
+      setSubmitted(true);
+    } catch {
+      setError("Failed to send inquiry. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const properties = useProperties().filter((p) => p.destination === "zanzibar");
+  const packages = usePackages().filter((p) => p.destinations.includes("zanzibar"));
   return (
     <>
       {/* Hero Section */}
       <section className="relative h-screen w-full overflow-hidden bg-soft-black">
-        <div className="absolute inset-0 bg-gradient-to-br from-soft-black via-sand-dark/20 to-gold/20" />
+        <Image
+          src={IMAGES.zanzibarHero}
+          alt="Zanzibar"
+          fill
+          className="object-cover"
+          priority
+          sizes="100vw"
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-soft-black/80 via-sand-dark/40 to-gold/20" />
         <div className="absolute inset-0 bg-gradient-to-t from-soft-black/50 via-transparent to-soft-black/30" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full opacity-[0.06]"
           style={{ background: "radial-gradient(circle, rgba(201,169,110,0.3) 0%, transparent 70%)" }} />
@@ -423,30 +465,38 @@ export default function ZanzibarPage() {
               </p>
             </motion.div>
 
+            {submitted ? (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-lg mx-auto text-center p-8 bg-warm-white border border-sand-light/30">
+                <p className="text-soft-black font-heading text-lg mb-2">Thank You</p>
+                <p className="text-sm text-earth">Your inquiry has been received. Our concierge team will respond within 24 hours.</p>
+              </motion.div>
+            ) : (
             <motion.form
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
               className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto"
-              onSubmit={(e) => e.preventDefault()}
+              onSubmit={handleSubmit}
             >
-              <input type="text" placeholder="Full Name" className="w-full px-5 py-3.5 bg-warm-white border border-sand-light/50 text-soft-black text-sm placeholder:text-earth/50 focus:outline-none focus:border-gold transition-colors" />
-              <input type="email" placeholder="Email Address" className="w-full px-5 py-3.5 bg-warm-white border border-sand-light/50 text-soft-black text-sm placeholder:text-earth/50 focus:outline-none focus:border-gold transition-colors" />
-              <input type="tel" placeholder="Phone Number" className="w-full px-5 py-3.5 bg-warm-white border border-sand-light/50 text-soft-black text-sm placeholder:text-earth/50 focus:outline-none focus:border-gold transition-colors" />
-              <input type="text" placeholder="Preferred Dates" className="w-full px-5 py-3.5 bg-warm-white border border-sand-light/50 text-soft-black text-sm placeholder:text-earth/50 focus:outline-none focus:border-gold transition-colors" />
+              <input type="text" name="name" placeholder="Full Name" required className="w-full px-5 py-3.5 bg-warm-white border border-sand-light/50 text-soft-black text-sm placeholder:text-earth/50 focus:outline-none focus:border-gold transition-colors" />
+              <input type="email" name="email" placeholder="Email Address" required className="w-full px-5 py-3.5 bg-warm-white border border-sand-light/50 text-soft-black text-sm placeholder:text-earth/50 focus:outline-none focus:border-gold transition-colors" />
+              <input type="tel" name="phone" placeholder="Phone Number" className="w-full px-5 py-3.5 bg-warm-white border border-sand-light/50 text-soft-black text-sm placeholder:text-earth/50 focus:outline-none focus:border-gold transition-colors" />
+              <input type="text" name="dates" placeholder="Preferred Dates" className="w-full px-5 py-3.5 bg-warm-white border border-sand-light/50 text-soft-black text-sm placeholder:text-earth/50 focus:outline-none focus:border-gold transition-colors" />
               <div className="md:col-span-2">
-                <textarea rows={4} placeholder="Tell us about your dream escape..." className="w-full px-5 py-3.5 bg-warm-white border border-sand-light/50 text-soft-black text-sm placeholder:text-earth/50 focus:outline-none focus:border-gold transition-colors resize-none" />
+                <textarea name="message" rows={4} placeholder="Tell us about your dream escape..." className="w-full px-5 py-3.5 bg-warm-white border border-sand-light/50 text-soft-black text-sm placeholder:text-earth/50 focus:outline-none focus:border-gold transition-colors resize-none" />
               </div>
+              {error && <p className="md:col-span-2 text-sm text-red-500 text-center">{error}</p>}
               <div className="md:col-span-2">
-                <button type="submit" className="w-full px-8 py-4 bg-soft-black text-cream text-sm font-medium tracking-[0.15em] uppercase hover:bg-soft-black-light transition-all duration-500">
-                  Send Enquiry
+                <button type="submit" disabled={submitting} className="w-full px-8 py-4 bg-soft-black text-cream text-sm font-medium tracking-[0.15em] uppercase hover:bg-soft-black-light transition-all duration-500 disabled:opacity-50">
+                  {submitting ? "Sending..." : "Send Enquiry"}
                 </button>
               </div>
               <p className="md:col-span-2 text-xs text-earth/50 text-center -mt-2">
                 We&apos;ll respond within 24 hours with a personalized itinerary.
               </p>
             </motion.form>
+            )}
           </div>
         </Container>
       </section>

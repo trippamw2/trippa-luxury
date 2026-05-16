@@ -1,17 +1,19 @@
 "use client";
 
+import Image from "next/image";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ChevronLeft, Clock, BookOpen, ArrowRight } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
-import { JOURNAL_POSTS } from "@/lib/constants";
+import { useBlogPosts } from "@/lib/use-public-data";
 
 export default function JournalPostPage() {
   const params = useParams();
-  const post = JOURNAL_POSTS.find((p) => p.id === params.slug);
-  const otherPosts = JOURNAL_POSTS.filter((p) => p.id !== params.slug).slice(0, 2);
+  const posts = useBlogPosts();
+  const post = posts.find((p) => p.id === params.slug);
+  const otherPosts = posts.filter((p) => p.id !== params.slug).slice(0, 2);
 
   if (!post) {
     return (
@@ -62,27 +64,26 @@ export default function JournalPostPage() {
                 <span>By {post.author}</span>
               </div>
 
-              {/* Hero image placeholder */}
-              <div className="aspect-[16/9] bg-gradient-to-br from-sand-light to-earth/20 mb-12" />
+              <div className="relative aspect-[16/9] overflow-hidden mb-12">
+                <Image
+                  src={post.image}
+                  alt={post.title}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 768px"
+                  priority
+                />
+              </div>
 
               {/* Content */}
               <div className="prose prose-sm max-w-none">
                 <p className="text-base md:text-lg text-earth leading-relaxed mb-6 first-letter:text-3xl first-letter:font-heading first-letter:text-gold">
                   {post.excerpt}
                 </p>
-                <p className="text-base text-earth leading-relaxed mb-4">
-                  This is a sample article. In production, this would be the full journal entry with rich 
-                  content, images, and storytelling elements that transport readers to Africa&apos;s most 
-                  beautiful destinations.
-                </p>
-                <p className="text-base text-earth leading-relaxed mb-4">
-                  Kivara&apos;s Journal is a space for inspiration — where we share destination guides, 
-                  honeymoon stories, safari tales, and the kind of travel content that stirs the soul.
-                </p>
-                <p className="text-base text-earth leading-relaxed">
-                  Whether you&apos;re planning your next escape or simply dreaming of Africa, we invite you 
-                  to explore, imagine, and fall in love with this extraordinary continent.
-                </p>
+                <div
+                  className="text-base text-earth leading-relaxed space-y-4 [&_h3]:text-lg [&_h3]:font-heading [&_h3]:font-medium [&_h3]:text-soft-black [&_h3]:mt-8 [&_h3]:mb-3"
+                  dangerouslySetInnerHTML={{ __html: post.content || "" }}
+                />
               </div>
 
               {/* Share */}
@@ -108,8 +109,14 @@ export default function JournalPostPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {otherPosts.map((other) => (
                   <Link key={other.id} href={`/journal/${other.id}`} className="group">
-                    <div className="aspect-[16/10] bg-gradient-to-br from-sand-light to-earth/20 mb-4 overflow-hidden">
-                      <div className="w-full h-full group-hover:scale-105 transition-transform duration-700" />
+                    <div className="relative aspect-[16/10] overflow-hidden mb-4">
+                      <Image
+                        src={other.image}
+                        alt={other.title}
+                        fill
+                        className="object-cover transition-transform duration-700 group-hover:scale-105"
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                      />
                     </div>
                     <div className="flex items-center gap-3 text-xs text-earth/60 mb-2">
                       <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{other.date}</span>

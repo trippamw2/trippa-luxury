@@ -1,14 +1,14 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight, Clock, BookOpen } from "lucide-react";
 import { Container } from "@/components/ui/container";
-import { JOURNAL_POSTS } from "@/lib/constants";
-
-const posts = JOURNAL_POSTS.slice(0, 3);
+import { useBlogPosts } from "@/lib/use-public-data";
 
 export function InspirationSection() {
+  const posts = useBlogPosts().slice(0, 3);
   return (
     <section className="py-24 md:py-32 bg-warm-white">
       <Container>
@@ -44,7 +44,13 @@ export function InspirationSection() {
             >
               <Link href={`/journal/${post.id}`}>
                 <div className="relative overflow-hidden aspect-[16/12] bg-sand-light/50 mb-5">
-                  <div className="absolute inset-0 bg-gradient-to-br from-sand/40 to-earth/20 group-hover:scale-105 transition-transform duration-700" />
+                  <Image
+                    src={post.image}
+                    alt={post.title}
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                  />
                   <div className="absolute inset-0 bg-gradient-to-t from-soft-black/30 via-transparent to-transparent" />
                   <div className="absolute top-4 left-4">
                     <span className="text-[10px] font-medium tracking-widest uppercase text-cream/80 bg-soft-black/30 px-3 py-1.5">

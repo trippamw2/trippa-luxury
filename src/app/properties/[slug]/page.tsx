@@ -7,7 +7,8 @@ import Image from "next/image";
 import { ArrowRight, Star, MapPin, Wifi, Waves, Car, Utensils, Sparkles, Heart, MessageCircle, Check, ChevronLeft } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
-import { PROPERTIES, SITE_CONFIG } from "@/lib/constants";
+import { SITE_CONFIG } from "@/lib/constants";
+import { useProperties } from "@/lib/use-public-data";
 import { cn } from "@/lib/utils";
 
 const amenityIcons: Record<string, React.ReactNode> = {
@@ -22,7 +23,8 @@ const amenityIcons: Record<string, React.ReactNode> = {
 
 export default function PropertyDetailPage() {
   const params = useParams();
-  const property = PROPERTIES.find((p) => p.id === params.slug);
+  const properties = useProperties();
+  const property = properties.find((p) => p.id === params.slug);
 
   if (!property) {
     return (
@@ -39,6 +41,16 @@ export default function PropertyDetailPage() {
     <>
       {/* Hero */}
       <section className="relative h-screen w-full overflow-hidden bg-soft-black">
+        {property.heroImage && (
+          <Image
+            src={property.heroImage}
+            alt={property.name}
+            fill
+            className="object-cover"
+            priority
+            sizes="100vw"
+          />
+        )}
         <div className={cn(
           "absolute inset-0 bg-gradient-to-br",
           property.destination === "lake-malawi" && "from-soft-black via-soft-black-light to-sand-dark/30",

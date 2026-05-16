@@ -55,6 +55,24 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/images/kivara-icon.svg" type="image/svg+xml" />
         <link rel="alternate icon" href="/images/kivara-icon.svg" type="image/svg+xml" />
+        <link rel="canonical" href="https://kivara.com" />
+        <Script id="jsonld-structured-data" type="application/ld+json" strategy="afterInteractive">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "TravelAgency",
+            name: "Kivara Luxury Travel",
+            url: "https://kivara.com",
+            image: "https://kivara.com/images/kivara-icon.svg",
+            description: "A handcrafted collection of Africa's most exquisite beach and bush escapes. Curated exclusively for couples who refuse to compromise on beauty, intimacy, or refinement.",
+            address: { "@type": "PostalAddress", addressLocality: "Cape Town", addressCountry: "ZA" },
+            sameAs: [
+              "https://instagram.com/kivara",
+              "https://facebook.com/kivara",
+              "https://pinterest.com/kivara",
+              "https://tiktok.com/@kivara",
+            ],
+          })}
+        </Script>
         {gaId && (
           <>
             <Script src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} strategy="afterInteractive" />

@@ -1,20 +1,30 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight, Clock, MapPin, Check, Heart, MessageCircle } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
-import { PACKAGES } from "@/lib/constants";
 import { SITE_CONFIG } from "@/lib/constants";
+import { usePackages } from "@/lib/use-public-data";
 import { cn } from "@/lib/utils";
 
 export default function PackagesPage() {
+  const packages = usePackages();
   return (
     <>
       {/* Hero */}
       <section className="relative h-[60vh] min-h-[500px] w-full overflow-hidden bg-soft-black">
-        <div className="absolute inset-0 bg-gradient-to-br from-soft-black via-soft-black-light to-gold/20" />
+        <Image
+          src={packages[0]?.image}
+          alt="Romantic Journeys"
+          fill
+          className="object-cover"
+          priority
+          sizes="100vw"
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-soft-black/80 via-soft-black/60 to-gold/20" />
         <div className="absolute inset-0 bg-gradient-to-t from-soft-black/60 via-transparent to-soft-black/30" />
         <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6">
           <motion.div
@@ -39,7 +49,7 @@ export default function PackagesPage() {
       <section className="py-24 md:py-32 bg-cream">
         <Container>
           <div className="space-y-20">
-            {PACKAGES.map((pkg, index) => (
+            {packages.map((pkg, index) => (
               <motion.div
                 key={pkg.id}
                 id={pkg.id}
@@ -49,6 +59,17 @@ export default function PackagesPage() {
                 transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
                 className="scroll-mt-28"
               >
+                {/* Package image */}
+                <div className="relative aspect-[21/9] overflow-hidden mb-10">
+                  <Image
+                    src={pkg.image}
+                    alt={pkg.title}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 80vw"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-soft-black/20 to-transparent" />
+                </div>
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 lg:gap-16">
                   {/* Left: Info */}
                   <div className="lg:col-span-3">

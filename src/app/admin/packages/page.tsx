@@ -14,6 +14,8 @@ interface Package {
   duration: string;
   destinations: string[];
   price: string;
+  image?: string;
+  properties?: string[];
   inclusions: string[];
   itinerary: { day: number; title: string; description: string }[];
 }
@@ -27,6 +29,8 @@ function mapPkg(item: any): Package {
     duration: item.duration || "",
     destinations: item.destinations || [],
     price: item.price || "",
+    image: item.image || "",
+    properties: item.properties || [],
     inclusions: item.inclusions || [],
     itinerary: item.itinerary || [],
   };
@@ -40,6 +44,8 @@ function mapPkgToApi(item: Partial<Package>): any {
     duration: item.duration,
     destinations: item.destinations,
     price: item.price,
+    image: item.image,
+    properties: item.properties,
     inclusions: item.inclusions,
     itinerary: item.itinerary,
     slug: item.title?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || `pkg-${Date.now()}`,
@@ -57,7 +63,7 @@ export default function AdminPackages() {
   const [editingPackage, setEditingPackage] = useState<Package | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
-  const [formData, setFormData] = useState({ title: "", subtitle: "", description: "", duration: "", destinations: "", price: "" });
+  const [formData, setFormData] = useState({ title: "", subtitle: "", description: "", duration: "", destinations: "", price: "", image: "", properties: "", inclusions: "", itinerary: "" });
 
   const showToast = (message: string, type: "success" | "error") => {
     setToast({ message, type });
@@ -75,14 +81,16 @@ export default function AdminPackages() {
       subtitle: formData.subtitle,
       description: formData.description,
       duration: formData.duration || "7 days",
-      destinations: formData.destinations.split(",").map(d => d.trim()),
+      destinations: formData.destinations.split(",").map(d => d.trim()).filter(Boolean),
       price: formData.price || "$5,000",
-      inclusions: ["Luxury accommodation", "All meals", "Private transfers"],
-      itinerary: [{ day: 1, title: "Arrival", description: "Welcome and transfer to property" }],
+      image: formData.image || "",
+      properties: formData.properties.split(",").map(p => p.trim()).filter(Boolean),
+      inclusions: formData.inclusions.split("\n").map(i => i.trim()).filter(Boolean),
+      itinerary: formData.itinerary ? [{ day: 1, title: "Arrival", description: formData.itinerary }] : [{ day: 1, title: "Arrival", description: "Welcome and transfer to property" }],
     });
     if (result) {
       setShowModal(false);
-      setFormData({ title: "", subtitle: "", description: "", duration: "", destinations: "", price: "" });
+      setFormData({ title: "", subtitle: "", description: "", duration: "", destinations: "", price: "", image: "", properties: "", inclusions: "", itinerary: "" });
       showToast("Package created successfully", "success");
     } else {
       showToast("Failed to create package", "error");
@@ -96,8 +104,12 @@ export default function AdminPackages() {
       subtitle: formData.subtitle,
       description: formData.description,
       duration: formData.duration,
-      destinations: formData.destinations.split(",").map(d => d.trim()),
+      destinations: formData.destinations.split(",").map(d => d.trim()).filter(Boolean),
       price: formData.price,
+      image: formData.image,
+      properties: formData.properties.split(",").map(p => p.trim()).filter(Boolean),
+      inclusions: formData.inclusions ? formData.inclusions.split("\n").map(i => i.trim()).filter(Boolean) : [],
+      itinerary: formData.itinerary ? formData.itinerary.split("\n").map((line, idx) => ({ day: idx + 1, title: `Day ${idx + 1}`, description: line })) : [],
     });
     if (result) {
       setEditingPackage(null);
@@ -127,6 +139,10 @@ export default function AdminPackages() {
       duration: pkg.duration,
       destinations: pkg.destinations.join(", "),
       price: pkg.price,
+      image: pkg.image || "",
+      properties: (pkg.properties || []).join(", "),
+      inclusions: (pkg.inclusions || []).join("\n"),
+      itinerary: (pkg.itinerary || []).map(i => i.description).join("\n"),
     });
     setShowModal(true);
   };
@@ -136,7 +152,7 @@ export default function AdminPackages() {
       <AnimatePresence>{toast && (<motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className={`fixed top-6 right-6 px-5 py-3 rounded-lg shadow-lg z-50 flex items-center gap-3 ${toast.type === "success" ? "bg-emerald-50 text-emerald-800 border border-emerald-200" : "bg-red-50 text-red-800 border border-red-200"}`}>{toast.type === "success" ? <Check className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}<span className="text-sm font-medium">{toast.message}</span></motion.div>)}</AnimatePresence>
       <div className="flex items-center justify-between mb-6">
         <div><h1 className="text-2xl font-heading font-bold text-soft-black">Packages</h1><p className="text-earth mt-1">Create and manage holiday packages</p></div>
-        <button onClick={() => { setEditingPackage(null); setFormData({ title: "", subtitle: "", description: "", duration: "", destinations: "", price: "" }); setShowModal(true); }} className="flex items-center gap-2 px-4 py-2 bg-gold text-soft-black font-medium rounded hover:bg-gold/90"><Plus className="w-4 h-4" />Add Package</button>
+        <button onClick={() => { setEditingPackage(null); setFormData({ title: "", subtitle: "", description: "", duration: "", destinations: "", price: "", image: "", properties: "", inclusions: "", itinerary: "" }); setShowModal(true); }} className="flex items-center gap-2 px-4 py-2 bg-gold text-soft-black font-medium rounded hover:bg-gold/90"><Plus className="w-4 h-4" />Add Package</button>
       </div>
       {loading ? (
         <div className="flex items-center justify-center py-20"><div className="text-earth text-sm">Loading packages...</div></div>
@@ -175,6 +191,10 @@ export default function AdminPackages() {
                   <div><label className="block text-xs font-medium text-earth uppercase mb-2">Price</label><input type="text" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full px-4 py-2.5 border border-sand-light text-sm" placeholder="$5,000" /></div>
                 </div>
                 <div><label className="block text-xs font-medium text-earth uppercase mb-2">Destinations (comma separated)</label><input type="text" value={formData.destinations} onChange={e => setFormData({...formData, destinations: e.target.value})} className="w-full px-4 py-2.5 border border-sand-light text-sm" placeholder="lake-malawi, south-luangwa" /></div>
+                <div><label className="block text-xs font-medium text-earth uppercase mb-2">Image URL</label><input type="url" value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})} className="w-full px-4 py-2.5 border border-sand-light text-sm" placeholder="/images/kaya-mawa.jpg or https://..." /></div>
+                <div><label className="block text-xs font-medium text-earth uppercase mb-2">Properties (comma separated)</label><input type="text" value={formData.properties} onChange={e => setFormData({...formData, properties: e.target.value})} className="w-full px-4 py-2.5 border border-sand-light text-sm" placeholder="kaya-mawa, chinzombo" /></div>
+                <div><label className="block text-xs font-medium text-earth uppercase mb-2">Inclusions (one per line)</label><textarea value={formData.inclusions} onChange={e => setFormData({...formData, inclusions: e.target.value})} className="w-full px-4 py-2.5 border border-sand-light text-sm" rows={3} placeholder="Luxury accommodation&#10;All meals&#10;Private transfers" /></div>
+                <div><label className="block text-xs font-medium text-earth uppercase mb-2">Itinerary (one description per line)</label><textarea value={formData.itinerary} onChange={e => setFormData({...formData, itinerary: e.target.value})} className="w-full px-4 py-2.5 border border-sand-light text-sm" rows={3} placeholder="Welcome and transfer to property&#10;Sunset cruise on the lake" /></div>
               </div>
               <div className="flex gap-3 mt-6 pt-4 border-t border-sand-light">
                 <button onClick={() => setShowModal(false)} className="flex-1 px-4 py-2.5 border border-sand-light text-earth text-sm">Cancel</button>

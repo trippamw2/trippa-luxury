@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SITE_CONFIG } from "@/lib/constants";
+import { KivaraLogo } from "@/components/ui/KivaraLogo";
 
 const NAV_ITEMS = [
   { label: "Home", href: "/" },
@@ -63,21 +64,19 @@ export function Navbar() {
         <div className="flex items-center justify-between h-20 md:h-24">
           {/* Logo */}
           <Link href="/" className="relative z-10 block shrink-0">
-            {/* Dark logo (light bg) — shown when scrolled */}
-            <img
-              src="/images/kivara-logo.svg"
-              alt="Kivara"
+            {/* Dark logo — shown when scrolled (light background) */}
+            <KivaraLogo
+              variant="dark"
               className={cn(
-                "h-10 sm:h-12 md:h-14 w-auto max-w-[200px] sm:max-w-[260px] md:max-w-[320px] object-contain transition-all duration-500",
+                "h-10 sm:h-12 md:h-14 w-auto max-w-[200px] sm:max-w-[260px] md:max-w-[320px] transition-all duration-500",
                 isScrolled ? "opacity-100" : "opacity-0 absolute"
               )}
             />
-            {/* Light logo (dark bg) — shown on hero */}
-            <img
-              src="/images/kivara-logo-light.svg"
-              alt="Kivara"
+            {/* Light logo — shown on hero (dark background) */}
+            <KivaraLogo
+              variant="light"
               className={cn(
-                "h-10 sm:h-12 md:h-14 w-auto max-w-[200px] sm:max-w-[260px] md:max-w-[320px] object-contain transition-all duration-500",
+                "h-10 sm:h-12 md:h-14 w-auto max-w-[200px] sm:max-w-[260px] md:max-w-[320px] transition-all duration-500",
                 isScrolled ? "opacity-0 absolute" : "opacity-100"
               )}
             />

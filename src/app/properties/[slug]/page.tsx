@@ -220,37 +220,28 @@ export default function PropertyDetailPage() {
           </motion.div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-            {(property.rooms ? property.rooms.flatMap((r) => r.images) : property.gallery).slice(0, 7).map((img, item) => {
-              const imgPath = typeof img === "string" ? img : img.path;
-              const imgLabel = typeof img === "string" ? null : img.label;
-              return (
-                <motion.div
-                  key={`${imgPath}-${item}`}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: item * 0.05 }}
-                  className={cn(
-                    "relative overflow-hidden bg-gradient-to-br from-sand-light to-sand group",
-                    item === 0 ? "aspect-square md:col-span-2 md:row-span-2" : "aspect-square"
-                  )}
-                >
-                  <Image
-                    src={imgPath}
-                    alt={`${property.name} — ${imgLabel || `gallery ${item + 1}`}`}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-700"
-                    sizes="(max-width: 768px) 50vw, 25vw"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-soft-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                  {imgLabel && (
-                    <span className="absolute bottom-3 left-3 text-xs font-medium tracking-wider uppercase text-cream/90 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {imgLabel}
-                    </span>
-                  )}
-                </motion.div>
-              );
-            })}
+            {(property.rooms ? property.rooms.flatMap((r) => r.images) : property.gallery).slice(0, 7).map((imgPath, item) => (
+              <motion.div
+                key={`${imgPath}-${item}`}
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: item * 0.05 }}
+                className={cn(
+                  "relative overflow-hidden bg-gradient-to-br from-sand-light to-sand group",
+                  item === 0 ? "aspect-square md:col-span-2 md:row-span-2" : "aspect-square"
+                )}
+              >
+                <Image
+                  src={imgPath}
+                  alt={`${property.name} — gallery ${item + 1}`}
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-700"
+                  sizes="(max-width: 768px) 50vw, 25vw"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-soft-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              </motion.div>
+            ))}
           </div>
         </Container>
       </section>
@@ -294,19 +285,16 @@ export default function PropertyDetailPage() {
                   </div>
                   <p className="text-sm text-earth leading-relaxed mb-6 max-w-3xl">{room.description}</p>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {room.images.map((img) => (
-                      <div key={img.label} className="relative aspect-[4/3] overflow-hidden group">
+                    {room.images.map((imgPath, idx) => (
+                      <div key={`${imgPath}-${idx}`} className="relative aspect-[4/3] overflow-hidden group">
                         <Image
-                          src={img.path}
-                          alt={`${room.name} — ${img.label}`}
+                          src={imgPath}
+                          alt={`${room.name} — image ${idx + 1}`}
                           fill
                           className="object-cover group-hover:scale-105 transition-transform duration-700"
                           sizes="(max-width: 768px) 50vw, 25vw"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-soft-black/40 via-transparent to-transparent" />
-                        <span className="absolute bottom-2 left-2 text-[10px] font-medium tracking-wider uppercase text-cream/80">
-                          {img.label}
-                        </span>
                       </div>
                     ))}
                   </div>

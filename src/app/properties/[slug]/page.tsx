@@ -247,6 +247,64 @@ export default function PropertyDetailPage() {
         </Container>
       </section>
 
+      {/* Rooms & Houses */}
+      {"rooms" in property && property.rooms && (
+        <section className="py-24 bg-cream">
+          <Container>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="max-w-3xl mx-auto text-center mb-12"
+            >
+              <span className="text-xs font-medium tracking-[0.2em] uppercase text-gold mb-3 block">
+                Accommodation
+              </span>
+              <h2 className="text-3xl md:text-4xl font-heading font-medium text-soft-black">
+                Houses & Rooms
+              </h2>
+              <p className="text-sm text-earth mt-3 max-w-xl mx-auto">
+                Each sanctuary handcrafted from local stone and thatch, designed to bring you closer to the lake.
+              </p>
+            </motion.div>
+
+            <div className="max-w-5xl mx-auto space-y-8">
+              {property.rooms.map((room, index) => (
+                <motion.div
+                  key={room.name}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 items-center"
+                >
+                  <div className={cn("relative aspect-[4/3] overflow-hidden", index % 2 === 1 && "md:order-1")}>
+                    <Image
+                      src={room.image}
+                      alt={room.name}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-soft-black/20 to-transparent" />
+                  </div>
+                  <div className={index % 2 === 1 ? "md:order-0" : ""}>
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="text-xl font-heading font-medium text-soft-black">{room.name}</h3>
+                      <span className="text-xs text-earth/60 border border-sand-light/50 px-2 py-0.5">
+                        Sleeps {room.sleeps}
+                      </span>
+                    </div>
+                    <p className="text-sm text-earth leading-relaxed">{room.description}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </Container>
+        </section>
+      )}
+
       {/* Amenities */}
       <section className="py-24 bg-cream">
         <Container>

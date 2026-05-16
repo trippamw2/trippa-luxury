@@ -284,6 +284,44 @@ export const PROPERTIES = [
       "Stargazing from your suite with nothing but the sound of water",
       "Private island picnics on deserted coves",
     ],
+    rooms: [
+      {
+        name: "Standard Room",
+        description: "Intimate rooms nestled into the granite shoreline, each with sweeping lake views and a private veranda. The perfect romantic retreat for two.",
+        image: "/images/km-standard-room.jpg",
+        sleeps: 2,
+      },
+      {
+        name: "Nkhwazi Suite",
+        description: "A spacious suite with a separate sitting area, indoor-outdoor bathroom with a freestanding bathtub, and a wide terrace overlooking the lake.",
+        image: "/images/km-nkhwazi-terrace.jpg",
+        sleeps: 3,
+      },
+      {
+        name: "Mbamba Suite",
+        description: "A generous suite with a private plunge pool carved into the granite, outdoor lounge area, and panoramic lake views from every angle.",
+        image: "/images/km-mbamba-room.jpg",
+        sleeps: 3,
+      },
+      {
+        name: "Madimba House",
+        description: "Our most coveted accommodation — a private house with its own infinity pool, expansive deck, and uninterrupted views across the Lake of Stars.",
+        image: "/images/km-madimba-pool.jpg",
+        sleeps: 3,
+      },
+      {
+        name: "Mainja House",
+        description: "A sprawling two-bedroom house ideal for small groups or families, with a private pool, outdoor dining pavilion, and direct beach access.",
+        image: "/images/km-mainja-terrace.jpg",
+        sleeps: 5,
+      },
+      {
+        name: "Ndomo Private House",
+        description: "The ultimate exclusive-use experience — a completely private house with dedicated staff, private beach access, and an outdoor living area perched above the lake.",
+        image: "/images/km-ndomo-beach.jpg",
+        sleeps: 6,
+      },
+    ],
   },
   {
     id: "pumulani-lodge",

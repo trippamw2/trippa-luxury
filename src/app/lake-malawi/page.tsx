@@ -20,16 +20,16 @@ const galleryItems = [
   { label: "Luxury lakeside suites", image: IMAGES.kayaMawa },
   { label: "Water activities & dhow cruises", image: IMAGES.lakeMalawiDhow },
   { label: "Island exploration", image: IMAGES.lakeMalawiIsland },
-  { label: "Sunset over the lake", image: IMAGES.lakeMalawiSunset },
+  { label: "Sailing on the Lake of Stars", image: IMAGES.kayaMawaSailing },
 ];
 
 const experienceImages: Record<string, string> = {
   "Private beach dining beneath a canopy of stars": IMAGES.lakeMalawiBeach,
   "Sunset dhow cruises across the Lake of Stars": IMAGES.lakeMalawiDhow,
   "Snorkeling in crystalline freshwater coves": IMAGES.lakeMalawiIsland,
-  "Private picnics on deserted islands": IMAGES.lakeMalawiIsland,
+  "Private picnics on deserted islands": IMAGES.kayaMawaPicnic,
   "Kayaking through golden hour light": IMAGES.lakeMalawiSunset,
-  "Intimate cultural encounters with lakeside villages": IMAGES.lakeMalawiBeach,
+  "Intimate cultural encounters with lakeside villages": IMAGES.kayaMawa,
 };
 
 export default function LakeMalawiPage() {

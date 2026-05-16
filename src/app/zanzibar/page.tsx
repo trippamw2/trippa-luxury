@@ -20,16 +20,16 @@ const galleryItems = [
   { label: "Spice Island heritage", image: IMAGES.zanzibarStoneTown },
   { label: "Romantic sunset dhow cruises", image: IMAGES.zanzibarDhow },
   { label: "Couples spa by the ocean", image: IMAGES.zanzibarSpa },
-  { label: "Stone Town's ancient charm", image: IMAGES.zanzibarStoneTown },
+  { label: "Stone Town's ancient charm", image: IMAGES.zanzibarHero },
 ];
 
 const experienceImages: Record<string, string> = {
   "Spice plantation tours through ancient aromatic gardens": IMAGES.zanzibarStoneTown,
-  "Stone Town heritage walks through living history": IMAGES.zanzibarStoneTown,
+  "Stone Town heritage walks through living history": IMAGES.zanzibarHero,
   "Private sandbank dining surrounded by the Indian Ocean": IMAGES.zanzibarBeach,
   "Sunset dhow cruises with champagne and Swahili canapes": IMAGES.zanzibarDhow,
   "Couples spa rituals using indigenous Zanzibari ingredients": IMAGES.zanzibarSpa,
-  "Deep sea fishing expeditions into the Indian Ocean": IMAGES.zanzibarAerial,
+  "Deep sea fishing expeditions into the Indian Ocean": IMAGES.xanadu,
 };
 
 export default function ZanzibarPage() {

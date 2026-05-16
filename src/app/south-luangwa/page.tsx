@@ -19,15 +19,15 @@ const galleryItems = [
   { label: "Intimate wildlife encounters", image: IMAGES.southLuangwaElephant },
   { label: "Luxury bush camps", image: IMAGES.southLuangwaCamp },
   { label: "Walking safaris at dawn", image: IMAGES.southLuangwaSafari },
-  { label: "Stargazing in the wilderness", image: IMAGES.southLuangwaSafari },
-  { label: "Riverfront sundowners", image: IMAGES.southLuangwaSunset },
+  { label: "Stargazing in the wilderness", image: IMAGES.chinzombo },
+  { label: "Riverfront sundowners", image: IMAGES.luangwaRiver },
 ];
 
 const experienceImages: Record<string, string> = {
   "Guided walking safaris following ancient elephant paths": IMAGES.southLuangwaSafari,
-  "Night drives revealing the bush after dark": IMAGES.southLuangwaLeopard,
+  "Night drives revealing the bush after dark": IMAGES.pukuRidge,
   "Sundowners on the riverbank as Africa paints the sky": IMAGES.southLuangwaSunset,
-  "Bush breakfasts where zebras are your dining companions": IMAGES.southLuangwaSafari,
+  "Bush breakfasts where zebras are your dining companions": IMAGES.shawaLuangwa,
   "Exclusive photography hides for intimate wildlife encounters": IMAGES.southLuangwaElephant,
   "Stargazing from raised platforms above the floodplain": IMAGES.southLuangwaCamp,
 };

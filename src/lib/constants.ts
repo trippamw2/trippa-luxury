@@ -437,14 +437,14 @@ export const PROPERTIES = [
     longDescription:
       "Blue Zebra Island Lodge occupies its own private island in the crystalline waters of Lake Malawi National Park, a UNESCO World Heritage site renowned for its extraordinary biodiversity. With just twelve rooms ranging from Executive Chalets to Lake Safari Tents, the lodge offers an intimacy increasingly rare in travel. The island is a sanctuary for birdlife; the surrounding waters are a haven for snorkellers and divers exploring the most biodiverse freshwater ecosystem on earth, home to over a thousand species of colourful cichlids found nowhere else. The infinity pool gazes across the lake to the mountains of Mozambique. The Island Spa offers treatments on a deck suspended above the water. Days are spent exploring the island's coves by kayak, snorkelling in the crystal-clear shallows, meandering the nature trails, or simply swaying in a hammock with the sound of lapping water as your only companion.",
     heroImage: IMAGES.blueZebra,
-    gallery: ["/images/bz-pool.jpg", "/images/bz-beach-dining.jpg", "/images/bz-cottage-exterior.jpg", "/images/bz-aerial-stunning.jpg"],
+    gallery: ["/images/bz-lounge.jpg", "/images/bz-beach-dining.jpg", "/images/bz-cottage-exterior.jpg", "/images/bz-cormorant-chalet.jpg"],
     priceRange: "$300 to $600 per night",
     roomTypes: ["Executive Chalet", "Executive Family Chalet", "Superior Family Cottage", "Lake Safari Tent"],
     rooms: [
       {
         name: "Executive Chalet",
         description: "Secluded chalets immersed in nature — Sandpiper and Cormorant — with stunning views across Lake Malawi. Perfect for honeymooners, couples and solo travellers.",
-        images: ["/images/bz-executive-chalet.jpg", "/images/bz-cormorant-chalet.jpg", "/images/bz-bedroom.jpg"],
+        images: ["/images/bz-cottage-exterior.jpg", "/images/bz-cormorant-chalet.jpg", "/images/bz-bedroom.jpg"],
         sleeps: 2,
       },
       {

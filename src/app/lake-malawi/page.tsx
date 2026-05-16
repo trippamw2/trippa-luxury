@@ -15,21 +15,21 @@ import { cn } from "@/lib/utils";
 const destination = DESTINATIONS[0];
 
 const galleryItems = [
-  { label: "Lake views at golden hour", image: IMAGES.lakeMalawiSunset },
-  { label: "Private beach access", image: IMAGES.lakeMalawiBeach },
+  { label: "Lake views at golden hour", image: IMAGES.lakeMalawiAerial },
+  { label: "Private beach access", image: IMAGES.pumulani },
   { label: "Luxury lakeside suites", image: IMAGES.kayaMawa },
-  { label: "Water activities & dhow cruises", image: IMAGES.lakeMalawiDhow },
+  { label: "Water activities & dhow cruises", image: IMAGES.kayaMawaSnorkel },
   { label: "Island exploration", image: IMAGES.lakeMalawiIsland },
-  { label: "Sailing on the Lake of Stars", image: IMAGES.kayaMawaSailing },
+  { label: "Sailing on the Lake of Stars", image: IMAGES.makokolaRetreat },
 ];
 
 const experienceImages: Record<string, string> = {
-  "Private beach dining beneath a canopy of stars": IMAGES.lakeMalawiBeach,
-  "Sunset dhow cruises across the Lake of Stars": IMAGES.lakeMalawiDhow,
+  "Private beach dining beneath a canopy of stars": IMAGES.blueZebra,
+  "Sunset dhow cruises across the Lake of Stars": IMAGES.pumulani,
   "Snorkeling in crystalline freshwater coves": IMAGES.lakeMalawiIsland,
-  "Private picnics on deserted islands": IMAGES.kayaMawaPicnic,
-  "Kayaking through golden hour light": IMAGES.lakeMalawiSunset,
-  "Intimate cultural encounters with lakeside villages": IMAGES.kayaMawa,
+  "Private picnics on deserted islands": IMAGES.kayaMawa,
+  "Kayaking through golden hour light": IMAGES.lakeMalawiAerial,
+  "Intimate cultural encounters with lakeside villages": IMAGES.makokolaRetreat,
 };
 
 export default function LakeMalawiPage() {

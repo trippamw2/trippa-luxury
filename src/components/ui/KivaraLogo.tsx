@@ -37,25 +37,19 @@ export function KivaraLogo({
       aria-label="Kivara"
       role="img"
     >
-      {/* ─── Horizon Symbol — facing arcs, same size ──────────── */}
-      {/* Both curves share identical width & amplitude. Upper      */}
-      {/* arches downward, lower arches upward. They span from      */}
-      {/* above the I to above the R in KIVARA.                     */}
+      {/* ─── Horizon Symbol — tapered calligraphic arcs ───────── */}
+      {/* Each curve is a filled shape: thickest in the middle,     */}
+      {/* tapering to sharp points at ends. Upper arches down,      */}
+      {/* lower arches up. Span from above I to above R.            */}
       <path
-        d="M 118,16 Q 200,34 282,16"
-        stroke={c.upperCurve}
-        strokeWidth="1.6"
-        fill="none"
-        strokeLinecap="round"
+        d="M 105,12 Q 200,24 295,12 Q 200,40 105,12 Z"
+        fill={c.upperCurve}
         opacity={variant === "light" ? 0.7 : 1}
       />
 
       <path
-        d="M 118,40 Q 200,22 282,40"
-        stroke={c.lowerCurve}
-        strokeWidth="1.6"
-        fill="none"
-        strokeLinecap="round"
+        d="M 105,46 Q 200,36 295,46 Q 200,22 105,46 Z"
+        fill={c.lowerCurve}
         opacity={variant === "light" ? 0.8 : 1}
       />
 

@@ -7,15 +7,27 @@ import { Heart, Send, Check } from "lucide-react";
 
 export function NewsletterSection() {
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
-    // Simulate subscription - in production, this would call an API
-    setStatus("success");
-    setEmail("");
-    setTimeout(() => setStatus("idle"), 3000);
+    setStatus("loading");
+    try {
+      const res = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Subscription failed");
+      setStatus("success");
+      setEmail("");
+      setTimeout(() => setStatus("idle"), 3000);
+    } catch {
+      setStatus("error");
+      setTimeout(() => setStatus("idle"), 4000);
+    }
   };
 
   return (
@@ -64,13 +76,20 @@ export function NewsletterSection() {
               </div>
               <button
                 type="submit"
-                disabled={status === "success"}
+                disabled={status === "success" || status === "loading"}
                 className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-gold text-soft-black text-sm font-medium tracking-[0.15em] uppercase hover:bg-gold-dark transition-all duration-500 disabled:opacity-70"
               >
-                {status === "success" ? (
+                {status === "loading" ? (
+                  <span className="w-4 h-4 border-2 border-soft-black border-t-transparent rounded-full animate-spin" />
+                ) : status === "success" ? (
                   <>
                     <Check className="w-4 h-4" />
                     Subscribed
+                  </>
+                ) : status === "error" ? (
+                  <>
+                    <span className="w-4 h-4">!</span>
+                    Error
                   </>
                 ) : (
                   <>

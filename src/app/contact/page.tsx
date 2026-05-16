@@ -5,8 +5,6 @@ import { motion } from "framer-motion";
 import { Mail, Phone, MapPin, MessageCircle, Clock, Send, CheckCircle, Loader2 } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { SITE_CONFIG } from "@/lib/constants";
-import { createClient } from "@/lib/supabase/client";
-
 export default function ContactPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -21,20 +19,24 @@ export default function ContactPage() {
     const formData = new FormData(form);
 
     try {
-      const supabase = createClient();
-      const { error: submitError } = await supabase.from("inquiries").insert({
-        full_name: formData.get("name") as string,
+      const payload = {
+        fullName: formData.get("name") as string,
         email: formData.get("email") as string,
         phone: formData.get("phone") as string || null,
         destination: formData.get("destination") as string || null,
-        preferred_dates: formData.get("dates") as string || null,
+        preferredDates: formData.get("dates") as string || null,
         guests: parseInt(formData.get("guests") as string) || 2,
         message: formData.get("message") as string,
-        status: "new",
-        source: "website",
+      };
+
+      const res = await fetch("/api/inquiry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
 
-      if (submitError) throw submitError;
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to send inquiry");
       setSubmitted(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to send inquiry. Please try again.");

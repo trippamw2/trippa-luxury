@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, Star, MapPin, Wifi, Waves, Car, Utensils, Sparkles, Heart, MessageCircle, Check, ChevronLeft } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
@@ -207,9 +208,9 @@ export default function PropertyDetailPage() {
           </motion.div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-            {[1, 2, 3, 4, 5, 6].map((item) => (
+            {property.gallery.slice(0, 6).map((img, item) => (
               <motion.div
-                key={item}
+                key={img}
                 initial={{ opacity: 0, scale: 0.95 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
@@ -220,6 +221,13 @@ export default function PropertyDetailPage() {
                   item === 3 && "md:col-span-2"
                 )}
               >
+                <Image
+                  src={img}
+                  alt={`${property.name} gallery ${item + 1}`}
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-700"
+                  sizes="(max-width: 768px) 50vw, 25vw"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-soft-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               </motion.div>
             ))}

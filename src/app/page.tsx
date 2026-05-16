@@ -5,7 +5,6 @@ import { PhilosophySection } from "@/components/sections/PhilosophySection";
 import { CuratedJourneys } from "@/components/sections/CuratedJourneys";
 import { FeaturedProperties } from "@/components/sections/FeaturedProperties";
 import { TestimonialsSection } from "@/components/sections/TestimonialsSection";
-import { PressSection } from "@/components/sections/PressSection";
 import { ExperiencesSection } from "@/components/sections/ExperiencesSection";
 import { InspirationSection } from "@/components/sections/InspirationSection";
 import { SocialContentSection } from "@/components/sections/SocialContentSection";
@@ -21,7 +20,6 @@ export default function HomePage() {
       <CuratedJourneys />
       <FeaturedProperties />
       <TestimonialsSection />
-      <PressSection />
       <ExperiencesSection />
       <InspirationSection />
       <SocialContentSection />

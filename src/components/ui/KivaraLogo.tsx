@@ -37,24 +37,23 @@ export function KivaraLogo({
       aria-label="Kivara"
       role="img"
     >
-      {/* ─── Horizon Symbol — centred, facing ─────────────────── */}
-      {/* Upper curve — sky / ocean — arches downward (looks down) */}
-      {/* Lower curve — land / earth — arches upward (looks up)      */}
-      {/* They face each other, creating negative-space horizon.     */}
-      {/* Centered above the wordmark, do NOT reach the edges.       */}
+      {/* ─── Horizon Symbol — facing arcs, same size ──────────── */}
+      {/* Both curves share identical width & amplitude. Upper      */}
+      {/* arches downward, lower arches upward. They span from      */}
+      {/* above the I to above the R in KIVARA.                     */}
       <path
-        d="M 145,20 Q 200,32 255,20"
+        d="M 118,16 Q 200,34 282,16"
         stroke={c.upperCurve}
-        strokeWidth="1.2"
+        strokeWidth="1.6"
         fill="none"
         strokeLinecap="round"
         opacity={variant === "light" ? 0.7 : 1}
       />
 
       <path
-        d="M 135,38 Q 200,28 265,38"
+        d="M 118,40 Q 200,22 282,40"
         stroke={c.lowerCurve}
-        strokeWidth="0.8"
+        strokeWidth="1.6"
         fill="none"
         strokeLinecap="round"
         opacity={variant === "light" ? 0.8 : 1}

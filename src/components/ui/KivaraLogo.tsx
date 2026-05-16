@@ -37,10 +37,11 @@ export function KivaraLogo({
       aria-label="Kivara"
       role="img"
     >
-      {/* ─── Horizon Symbol ──────────────────────────────────── */}
-      {/* Upper curve — sky / ocean / horizon — Ocean Black-Blue */}
+      {/* ─── Horizon Symbol (intersecting) ─────────────────────── */}
+      {/* Upper curve — sky / ocean — Ocean Black-Blue */}
+      {/* Sweeps down through the lower curve, creating an interlaced crossing */}
       <path
-        d="M 80,32 C 140,22 260,22 320,32"
+        d="M 70,26 C 140,44 240,18 330,28"
         stroke={c.upperCurve}
         strokeWidth="1.2"
         fill="none"
@@ -49,8 +50,9 @@ export function KivaraLogo({
       />
 
       {/* Lower curve — land / beach / earth — Sunset Gold */}
+      {/* Sweeps up through the upper curve, crossing twice for a braided horizon */}
       <path
-        d="M 66,42 C 140,30 260,30 334,42"
+        d="M 60,42 C 130,22 230,46 340,36"
         stroke={c.lowerCurve}
         strokeWidth="0.8"
         fill="none"
@@ -67,7 +69,7 @@ export function KivaraLogo({
         fontSize="44"
         fontWeight="400"
         fill={c.wordmark}
-        style={{ letterSpacing: "16px" }}
+        style={{ letterSpacing: "28px" }}
       >
         KIVARA
       </text>

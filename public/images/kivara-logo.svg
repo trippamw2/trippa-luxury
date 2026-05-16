@@ -1,12 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 145" fill="none">
   <!-- Dark variant — for light backgrounds -->
-  <!-- Horizon Symbol -->
-  <!-- Upper curve — Ocean Black-Blue -->
-  <path d="M 80,32 C 140,22 260,22 320,32" stroke="#0E1B1A" stroke-width="1.2" fill="none" stroke-linecap="round"/>
-  <!-- Lower curve — Sunset Gold -->
-  <path d="M 66,42 C 140,30 260,30 334,42" stroke="#C2A46D" stroke-width="0.8" fill="none" stroke-linecap="round"/>
-  <!-- KIVARA wordmark — Deep Earth Brown -->
-  <text x="200" y="88" text-anchor="middle" font-family="'Trajan Pro','Times New Roman',Georgia,serif" font-size="44" font-weight="400" fill="#1C1A17" style="letter-spacing:16px">KIVARA</text>
+  <!-- Horizon Symbol (intersecting) -->
+  <!-- Upper curve — Ocean Black-Blue — sweeps down through the lower -->
+  <path d="M 70,26 C 140,44 240,18 330,28" stroke="#0E1B1A" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <!-- Lower curve — Sunset Gold — sweeps up through the upper, crossing twice -->
+  <path d="M 60,42 C 130,22 230,46 340,36" stroke="#C2A46D" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+  <!-- KIVARA wordmark — Deep Earth Brown — extreme wide tracking for luxury -->
+  <text x="200" y="88" text-anchor="middle" font-family="'Trajan Pro','Times New Roman',Georgia,serif" font-size="44" font-weight="400" fill="#1C1A17" style="letter-spacing:28px">KIVARA</text>
   <!-- Tagline -->
   <text x="200" y="120" text-anchor="middle" font-family="'Montserrat','Helvetica Neue',Arial,sans-serif" font-size="7" font-weight="300" fill="#C2B39C" style="letter-spacing:5px">BUSH ● BEACH ● ROMANCE</text>
 </svg>

@@ -183,6 +183,9 @@ export function Footer() {
             &copy; {new Date().getFullYear()} {SITE_CONFIG.name}. All rights reserved. Crafted with love for Africa.
           </p>
           <div className="flex items-center gap-6 text-xs text-earth/60">
+            <Link href="/privacy" className="hover:text-cream transition-colors">
+              Privacy Policy
+            </Link>
             <span className="flex items-center gap-1">
               Made with <Heart className="w-3 h-3 text-gold" /> in Africa
             </span>

@@ -51,7 +51,7 @@ export default function AboutPage() {
               The Kivara Story
             </h1>
             <p className="mt-4 text-base md:text-lg text-cream/60 max-w-2xl mx-auto">
-              Born from a love for Africa and a belief that travel should move the soul.
+              Founded by Liam &amp; Amara Kholo. A husband and wife team on a mission to deepen love through travel.
             </p>
           </motion.div>
         </div>
@@ -109,6 +109,101 @@ export default function AboutPage() {
                 <p className="text-base text-earth leading-relaxed">
                   Every itinerary, every property, every experience answers one question: will this move you?
                 </p>
+              </div>
+            </motion.div>
+
+            {/* Founder Story */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.8 }}
+              className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-24"
+            >
+              <div className="order-2 md:order-1">
+                <h3 className="text-2xl md:text-3xl font-heading font-medium text-soft-black mb-4">
+                  A Vision Born from Passion
+                </h3>
+                <p className="text-base text-earth leading-relaxed mb-4">
+                  Kivara was founded by Liam and Amara Kholo, a husband and wife team who fell in love 
+                  not only with each other but with Africa&apos;s ability to deepen human connection. 
+                  After a decade curating bespoke journeys for Africa&apos;s premier safari lodges and 
+                  boutique hotels, they recognized a gap in the market: there was no travel curator 
+                  exclusively devoted to the romance traveler.
+                </p>
+                <p className="text-base text-earth leading-relaxed mb-4">
+                  &ldquo;We found that couples weren&apos;t looking for another vacation. They were 
+                  seeking a container for their connection — a space where the noise of daily life 
+                  fell away and they could remember why they chose each other.&rdquo;
+                </p>
+                <p className="text-base text-earth leading-relaxed">
+                  Based in Cape Town, the Kivara team personally visits every property, walks every 
+                  trail, and tests every experience. Nothing is included in a Kivara itinerary that 
+                  hasn&apos;t first moved its curator.
+                </p>
+              </div>
+              <div className="relative aspect-[4/5] overflow-hidden order-1 md:order-2">
+                <div className="absolute inset-0 bg-gradient-to-br from-gold/20 via-sand-light to-cream" />
+              </div>
+            </motion.div>
+
+            {/* Conservation & Community */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.8 }}
+              className="mb-20"
+            >
+              <div className="text-center mb-12">
+                <span className="inline-block text-xs font-medium tracking-[0.2em] uppercase text-gold mb-3">
+                  Impact
+                </span>
+                <h3 className="text-2xl md:text-3xl font-heading font-medium text-soft-black leading-tight">
+                  Travel That Gives Back
+                  <br />
+                  <span className="italic text-earth">Conservation &amp; Community</span>
+                </h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="p-8 bg-warm-white border border-sand-light/30 group hover:border-gold/30 transition-all duration-500">
+                  <div className="w-10 h-10 flex items-center justify-center border border-gold/30 mb-4">
+                    <span className="text-lg text-gold font-heading">01</span>
+                  </div>
+                  <h4 className="text-lg font-heading font-medium text-soft-black mb-3">Wildlife Conservation</h4>
+                  <p className="text-sm text-earth leading-relaxed">
+                    Every Kivara booking contributes directly to anti-poaching patrols and wildlife 
+                    monitoring programs in South Luangwa National Park. We partner with Conservation 
+                    South Luangwa to fund ranger units, tracker dogs, and community education programs 
+                    that protect Zambia&apos;s wildlife for generations to come.
+                  </p>
+                </div>
+
+                <div className="p-8 bg-warm-white border border-sand-light/30 group hover:border-gold/30 transition-all duration-500">
+                  <div className="w-10 h-10 flex items-center justify-center border border-gold/30 mb-4">
+                    <span className="text-lg text-gold font-heading">02</span>
+                  </div>
+                  <h4 className="text-lg font-heading font-medium text-soft-black mb-3">Community Empowerment</h4>
+                  <p className="text-sm text-earth leading-relaxed">
+                    We champion lodges that employ locally, source regionally, and invest in their 
+                    communities. Kaya Mawa&apos;s foundation funds schools on Likoma Island. Puku Ridge 
+                    Camp trains guides from nearby villages. Each stay creates ripples that lift 
+                    entire communities across Malawi, Zambia, and Zanzibar.
+                  </p>
+                </div>
+
+                <div className="p-8 bg-warm-white border border-sand-light/30 group hover:border-gold/30 transition-all duration-500">
+                  <div className="w-10 h-10 flex items-center justify-center border border-gold/30 mb-4">
+                    <span className="text-lg text-gold font-heading">03</span>
+                  </div>
+                  <h4 className="text-lg font-heading font-medium text-soft-black mb-3">Sustainable Operations</h4>
+                  <p className="text-sm text-earth leading-relaxed">
+                    From solar-powered camps in Zambia to plastic-free initiatives on Lake Malawi and 
+                    reef-safe marine policies in Zanzibar, every property in the Kivara collection meets 
+                    our rigorous sustainability standards. We measure not just luxury, but legacy.
+                  </p>
+                </div>
               </div>
             </motion.div>
 

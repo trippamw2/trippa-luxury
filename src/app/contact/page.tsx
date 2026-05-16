@@ -254,7 +254,9 @@ export default function ContactPage() {
                     </button>
 
                     <p className="text-xs text-earth/50 text-center">
-                      By submitting, you agree to our Privacy Policy. We&apos;ll never share your information.
+                      By submitting, you agree to our{" "}
+                      <a href="/privacy" className="underline hover:text-gold-dark transition-colors">Privacy Policy</a>.
+                      We&apos;ll never share your information.
                     </p>
                   </form>
                 )}

@@ -61,7 +61,7 @@ export const IMAGES = {
 } as const;
 
 export const BRAND_POSITIONING = {
-  tagline: "Africa's Most Coveted Romance Sanctuary. Where the Soul of the Bush Meets the Serenity of the Shore.",
+  tagline: "Where the Soul of the Bush Meets the Serenity of the Shore.",
   description:
     "A handcrafted collection of Africa's most exquisite beach and bush escapes. Curated exclusively for couples who refuse to compromise on beauty, intimacy, or refinement.",
   betweenAmanAndBeyond:

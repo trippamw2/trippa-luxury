@@ -239,6 +239,9 @@ export default function PropertyDetailPage() {
                   className="object-cover group-hover:scale-105 transition-transform duration-700"
                   sizes="(max-width: 768px) 50vw, 25vw"
                 />
+                {/* Persistent cinematic darken */}
+                <div className="absolute inset-0 bg-gradient-to-t from-soft-black/15 to-transparent" />
+                {/* Hover reveal */}
                 <div className="absolute inset-0 bg-gradient-to-t from-soft-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               </motion.div>
             ))}

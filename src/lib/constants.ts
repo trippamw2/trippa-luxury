@@ -8,7 +8,7 @@
 
 export const IMAGES = {
   // Lake Malawi (updated with images from Green Safaris)
-  lakeMalawiHero: "/images/likoma-lake-of-stars.jpg",
+  lakeMalawiHero: "/images/kaya-mawa-beach-swing.jpg",
   lakeMalawiAerial: "/images/likoma-scuba.jpg",
   lakeMalawiSunset: "/images/likoma-paddleboard-view.jpg",
   lakeMalawiBeach: "/images/likoma-snorkelling.jpg",
@@ -16,7 +16,7 @@ export const IMAGES = {
   lakeMalawiIsland: "/images/likoma-paddleboard.jpg",
 
   // South Luangwa
-  southLuangwaHero: "/images/south-luangwa-hero.jpg",
+  southLuangwaHero: "/images/luangwa-river.jpg",
   southLuangwaElephant: "/images/south-luangwa-elephant.jpg",
   southLuangwaLeopard: "/images/south-luangwa-camp.jpg",
   southLuangwaSunset: "/images/south-luangwa-sunset.jpg",
@@ -39,20 +39,52 @@ export const IMAGES = {
   pumulani: "/images/pl-camporlodge-pumulani-lodge-58.jpg",
   blueZebra: "/images/bz-cormorant-chalet.jpg",
   makokolaRetreat: "/images/makokola-retreat.jpg",
-  chinzombo: "/images/chinzombo.jpg",
-  pukuRidge: "/images/puku-ridge.jpg",
-  shawaLuangwa: "/images/shawa-luangwa.jpg",
-  luangwaRiver: "/images/luangwa-river.jpg",
+  // South Luangwa — official camp images
+  chinzombo: "/images/chinzombo-sundowner.jpg",
+  chinzomboMain: "/images/chinzombo-main-area.jpg",
+  chinzomboCampfire: "/images/chinzombo-campfire.jpg",
+  chinzomboRoom: "/images/chinzombo-room-1.jpg",
+  chinzomboWildlife: "/images/chinzombo-wildlife.jpg",
+  pukuRidge: "/images/puku-ridge-1.jpg",
+  pukuRidgeCamp: "/images/puku-ridge-2.jpg",
+  pukuRidgeSunset: "/images/puku-ridge-3.jpg",
+  pukuRidgeStars: "/images/puku-ridge-4.jpg",
+  pukuRidgeView: "/images/puku-ridge-5.jpg",
+  shawaLuangwa: "/images/shawa-lodge.jpg",
+  shawaCampfire: "/images/shawa-campfire.jpg",
+  shawaWalking: "/images/shawa-walking.jpg",
+  shawaPlungePool: "/images/shawa-plunge-pool.jpg",
+  shawaDining: "/images/shawa-dining.jpg",
+  shawaTent: "/images/shawa-tent.webp",
+  shawaEcruiser: "/images/shawa-ecruiser.jpg",
+  luangwaRiver: "/images/lrc-hero.jpg",
+  lrcRiverView: "/images/lrc-river-view.jpg",
+  lrcPool: "/images/lrc-pool.jpg",
+  lrcDining: "/images/lrc-dining.jpg",
+  lrcRoom: "/images/lrc-room.jpg",
+  lrcLodge: "/images/lrc-lodge.jpg",
+  lrcWalking: "/images/lrc-walking.jpg",
   xanadu: "/images/xanadu.jpg",
-  kilindi: "/images/kilindi.jpg",
-  baraza: "/images/baraza.jpg",
+  kilindi: "/images/kilindi.webp",
+  baraza: "/images/baraza-villa-view.jpg",
+  barazaVillaView: "/images/baraza-villa-view.jpg",
+  barazaGarden: "/images/baraza-garden.jpg",
+  barazaPool: "/images/baraza-pool.jpg",
+  barazaBeach: "/images/baraza-beach.jpg",
+  barazaDining: "/images/baraza-dining.jpg",
+  barazaSpa: "/images/baraza-spa.jpg",
+  barazaSunset: "/images/baraza-sunset.jpg",
+  barazaRoyalVilla: "/images/baraza-royal-villa.jpg",
   palms: "/images/the-palms.jpg",
-  whiteSand: "/images/white-sand.jpg",
-  residence: "/images/residence.jpg",
+  residence: "/images/residence-hero.jpg",
+  residencePrestige: "/images/residence-prestige-villa.jpg",
+  residenceOcean: "/images/residence-ocean-villa.jpg",
+  residenceGarden: "/images/residence-garden-villa.jpg",
+  residencePresidential: "/images/residence-presidential.jpg",
 
   // Experiences
   dining: "/images/dining.jpg",
-  walking: "/images/walking.jpg",
+  walking: "/images/lrc-walking.jpg",
   dhow: "/images/dhow.jpg",
   spa: "/images/spa.jpg",
   starbed: "/images/starbed.jpg",
@@ -61,7 +93,7 @@ export const IMAGES = {
   // Journal
   journalHoneymoon: "/images/journal-honeymoon.jpg",
   journalMalawi: "/images/journal-malawi.jpg",
-  journalWalking: "/images/journal-walking.jpg",
+  journalWalking: "/images/lrc-walking.jpg",
   journalZanzibar: "/images/journal-zanzibar.jpg",
 
   // Hero video poster frames
@@ -210,10 +242,10 @@ export const DESTINATIONS = [
     description:
       "Zanzibar. A love letter written in cinnamon and clove. Stone Town alleyways lead to beaches of impossible beauty. The Indian Ocean trades in shades of turquoise no artist could replicate.",
     positioning:
-      "Culture and paradise intertwined. Spice-scented corridors, dhows sailing into fiery sunsets, and four extraordinary properties — Xanadu Luxury Villas & Retreat, Kilindi Zanzibar, Baraza Resort & Spa, and The Palms Zanzibar — each a sanctuary of romance. From the white-domed pavilions of Kilindi to the all-inclusive Swahili elegance of Baraza, from the intimate six-villa exclusivity of The Palms to the artistic design of Xanadu. Tropical elegance, refined to perfection.",
+      "Culture and paradise intertwined. Spice-scented corridors, dhows sailing into fiery sunsets, and five extraordinary properties — Xanadu Luxury Villas & Retreat, Kilindi Zanzibar, Baraza Resort & Spa, The Palms Zanzibar, and The Residence Zanzibar — each a sanctuary of romance. From the white-domed pavilions of Kilindi to the all-inclusive Swahili elegance of Baraza, from the artistic design of Xanadu to the sprawling beachfront estate of The Residence. Tropical elegance, refined to perfection.",
     heroImage: IMAGES.zanzibarHero,
     slug: "zanzibar",
-    properties: ["xanadu-villas", "kilindi-zanzibar", "baraza-resort-spa", "the-palms-zanzibar"],
+    properties: ["xanadu-villas", "kilindi-zanzibar", "baraza-resort-spa", "the-palms-zanzibar", "the-residence-zanzibar"],
     experiences: [
       "Spice plantation tours through ancient aromatic gardens",
       "Stone Town heritage walks through living history",
@@ -255,7 +287,20 @@ export const PROPERTIES = [
     longDescription:
       "Kaya Mawa is not a lodge. It is a sanctuary on one of Africa's most beautiful islands, built into the rocky shoreline with such reverence that the landscape remains the protagonist. Each of the eleven houses and rooms offers complete privacy with sweeping lake views, designed in a philosophy of minimal intervention: local stone, handwoven textiles, and an architecture that lets the water take center stage. Some suites feature their own private plunge pools carved from the granite shoreline. Days unfold at nature's pace. Swim in the infinity-edge pool that merges with the lake — Africa's fourth-largest. Explore hidden coves by kayak or stand-up paddleboard. Dive into the crystalline depths with the on-site PADI dive centre. Lose yourself in a novel on your private deck while the lake whispers below. The restaurant serves farm-to-table cuisine with a Malawian soul. The over-water Sunset Bar perches above the lake for sundowners that linger into starlit evenings. Kaya Mawa is operated by Green Safaris, running entirely on 100% renewable solar energy, and its Kaya Mawa Foundation champions education and enterprise on the island. Open annually from mid-March to mid-January.",
     heroImage: IMAGES.kayaMawa,
-    gallery: [IMAGES.kayaMawa, IMAGES.kayaMawaSnorkel, IMAGES.kayaMawaPicnic, IMAGES.kayaMawaSailing],
+    gallery: [
+      IMAGES.kayaMawa,
+      IMAGES.kayaMawaSnorkel,
+      IMAGES.kayaMawaPicnic,
+      IMAGES.kayaMawaSailing,
+      "/images/kaya-mawa-madimba-evening-pool-view.jpg",
+      "/images/kaya-mawa-mainja-dinner-on-terrace.jpg",
+      "/images/kaya-mawa-mbamba-room-view.jpg",
+      "/images/kaya-mawa-mbamba-room.jpg",
+      "/images/kaya-mawa-mbungo-room.jpg",
+      "/images/kaya-mawa-nkhwazi-bath-tub.jpg",
+      "/images/kaya-mawa-nkhwazi-terrace.jpg",
+      "/images/kaya-mawa-yofu-sofa-beach.jpg",
+    ],
     priceRange: "$450 to $735 per person per night",
     roomTypes: ["Standard Room", "Nkhwazi Suite", "Mbamba Suite", "Madimba House", "Mainja House", "Ndomo Private House"],
     amenities: [
@@ -360,7 +405,20 @@ export const PROPERTIES = [
     longDescription:
       "Pumulani Lodge occupies a pristine stretch of the Nankumba Peninsula, offering a level of seclusion that feels like your own private world. The ten villas embody a contemporary African aesthetic: clean architectural lines, natural materials, and floor-to-ceiling windows that frame the lake as living art. Each villa features its own plunge pool and outdoor shower, creating an indoor-outdoor living experience that dissolves the boundary between luxury and nature. The main lodge houses a stunning infinity pool, a curated library, and a dining room where the seasonal menu celebrates the flavours of Malawi with a sophistication that rivals the world's finest restaurants. Operated by the award-winning Robin Pope Safaris, Pumulani operates on a Fully Inclusive Plus basis: all meals, select premium drinks, laundry, and a wide range of activities are included. From water-skiing and sailing to guided nature walks, mountain biking, and visits to local villages, every day offers a new adventure or perfect stillness — entirely on your terms.",
     heroImage: IMAGES.pumulani,
-    gallery: [IMAGES.lakeMalawiSunset, IMAGES.lakeMalawiBeach, IMAGES.lakeMalawiAerial],
+    gallery: [
+      IMAGES.pumulani,
+      IMAGES.lakeMalawiSunset,
+      IMAGES.lakeMalawiBeach,
+      IMAGES.lakeMalawiAerial,
+      "/images/pl-camporlodge-pumulani-lodge-64.jpg",
+      "/images/pl-camporlodge-pumulani-lodge-65.jpg",
+      "/images/pl-camporlodge-pumulani-lodge-67.jpg",
+      "/images/pl-camporlodge-pumulani-lodge-68.jpg",
+      "/images/pl-camporlodge-pumulani-lodge-69.jpg",
+      "/images/pl-camporlodge-pumulani-lodge-78.jpg",
+      "/images/pl-camporlodge-pumulani-lodge-50.jpg",
+      "/images/pl-camporlodge-pumulani-lodge-58.jpg",
+    ],
     priceRange: "$370 to $505 per person per night",
     roomTypes: ["Standard Villa", "Superior Villa", "Honeymoon Villa"],
     amenities: [
@@ -437,7 +495,20 @@ export const PROPERTIES = [
     longDescription:
       "Blue Zebra Island Lodge occupies its own private island in the crystalline waters of Lake Malawi National Park, a UNESCO World Heritage site renowned for its extraordinary biodiversity. With just twelve rooms ranging from Executive Chalets to Lake Safari Tents, the lodge offers an intimacy increasingly rare in travel. The island is a sanctuary for birdlife; the surrounding waters are a haven for snorkellers and divers exploring the most biodiverse freshwater ecosystem on earth, home to over a thousand species of colourful cichlids found nowhere else. The infinity pool gazes across the lake to the mountains of Mozambique. The Island Spa offers treatments on a deck suspended above the water. Days are spent exploring the island's coves by kayak, snorkelling in the crystal-clear shallows, meandering the nature trails, or simply swaying in a hammock with the sound of lapping water as your only companion.",
     heroImage: IMAGES.blueZebra,
-    gallery: ["/images/bz-lounge.jpg", "/images/bz-beach-dining.jpg", "/images/bz-cottage-exterior.jpg", "/images/bz-cormorant-chalet.jpg"],
+    gallery: [
+      IMAGES.blueZebra,
+      "/images/bz-lounge.jpg",
+      "/images/bz-beach-dining.jpg",
+      "/images/bz-cottage-exterior.jpg",
+      "/images/bz-cormorant-chalet.jpg",
+      "/images/bz-bedroom.jpg",
+      "/images/bz-executive-family-chalet.jpg",
+      "/images/bz-lake-safari-tent.jpg",
+      "/images/bz-superior-cottage.jpg",
+      "/images/bz-tent-gallery.jpg",
+      IMAGES.lakeMalawiAerial,
+      IMAGES.lakeMalawiBeach,
+    ],
     priceRange: "$300 to $600 per night",
     roomTypes: ["Executive Chalet", "Executive Family Chalet", "Superior Family Cottage", "Lake Safari Tent"],
     rooms: [
@@ -503,7 +574,20 @@ export const PROPERTIES = [
     longDescription:
       "The Makokola Retreat is a destination unto itself, set on the brilliant white sands of Lake Malawi's southern shore. With a total of 70 rooms across multiple categories, the Retreat offers a diversity of experiences within one stunning property. The crown jewel is the Lake Suite section — an adult-only enclave of 22 luxury suites and the Sunset Villa, each with air conditioning, flat-screen TV, mini-fridge, and a private terrace or balcony with spectacular lake views. Guests in this section enjoy their own private infinity pool, dedicated bar, and access to the state-of-the-art TechnoGym. The Superior Beach Rooms, completely redesigned in 2021, offer thatch-roofed charm with modern amenities. Dining is an eclectic journey: Il Lago serves Italian and Mediterranean cuisine in an al fresco setting overlooking the lake, while Harry's Bar offers casual lakeside fare and sundowners. The Coffee Lounge provides a quiet retreat with unlimited WiFi. Beyond the rooms, the Retreat boasts a nine-hole par-three golf course at Mlambe, a flood-lit bowling green, and lush botanical gardens. The Tropex Nursery at the entrance invites guests to explore indigenous flora and take a piece of Malawi home.",
     heroImage: IMAGES.makokolaRetreat,
-    gallery: ["/images/mk-retreat-01.jpg", "/images/mk-retreat-04.jpg", "/images/mk-sunset-villa-02.jpg", "/images/mk-lake-suite-01.jpg"],
+    gallery: [
+      IMAGES.makokolaRetreat,
+      "/images/mk-lake-suite-01.jpg",
+      "/images/mk-lake-suite-02.jpg",
+      "/images/mk-lake-suite-03.jpg",
+      "/images/mk-retreat-01.jpg",
+      "/images/mk-retreat-04.jpg",
+      "/images/mk-sunset-villa-01.jpg",
+      "/images/mk-sunset-villa-02.jpg",
+      "/images/mk-sunset-villa-03.jpg",
+      "/images/mk-superior-room-01.jpg",
+      "/images/mk-superior-room-02.jpg",
+      "/images/mk-superior-room-03.jpg",
+    ],
     priceRange: "$250 to $550 per night",
     roomTypes: ["Sunset Villa", "Lake Suite", "Superior Beach Room", "Standard Beach Room", "Garden Room"],
     rooms: [
@@ -565,7 +649,20 @@ export const PROPERTIES = [
     longDescription:
       "Named after a species of acacia that grows near camp, Time+Tide Chinzombo's natural building materials and vintage accents blend modern style with the best of a traditional bush safari camp. Designed by award-winning architects Silvio Rech and Lesley Carstens, the camp won Best New Property in Africa in 2014 and again in 2015. Its six spacious luxury safari villas (including a two-bedroom, two-bathroom family villa) rest beneath ancient msikizi trees. Each has a private plunge pool, a soaking tub with panoramic views over the river, and an open-plan design featuring canvas, timber, and reed accented with leather and raw linen. Each stretches out onto a shaded verandah where you can while away the afternoon or unwind with an in-villa spa treatment. Down a winding path, the main lodge beckons with a riverfront sun deck, an open-air library, a bar rich with old books and photographs, and a fire pit suspended high atop the river bank. Here, dining is a celebration of Zambian flavours enriched by produce grown in the camp's own garden.",
     heroImage: IMAGES.chinzombo,
-    gallery: [IMAGES.southLuangwaSafari, IMAGES.southLuangwaElephant, IMAGES.southLuangwaLeopard],
+    gallery: [
+      IMAGES.chinzombo,
+      IMAGES.chinzomboMain,
+      IMAGES.chinzomboCampfire,
+      IMAGES.chinzomboRoom,
+      IMAGES.chinzomboWildlife,
+      "/images/chinzombo-room-2.jpg",
+      "/images/chinzombo.jpg",
+      IMAGES.southLuangwaSunset,
+      IMAGES.southLuangwaSafari,
+      IMAGES.southLuangwaElephant,
+      IMAGES.lrcRiverView,
+      IMAGES.pukuRidgeSunset,
+    ],
     priceRange: "From $1,330 per person per night",
     roomTypes: ["Luxury Safari Villa", "Family Safari Villa (2BR, 2BA)"],
     amenities: [
@@ -596,6 +693,20 @@ export const PROPERTIES = [
       "Sleepout under the stars on a private platform",
       "Candlelit dinners grown from the camp's own garden",
     ],
+    rooms: [
+      {
+        name: "Luxury Safari Villa",
+        description: "A spectacular open-plan villa with a private plunge pool, soaking tub with panoramic river views, and a shaded verandah. Canvas, timber, and reed interiors accented with leather and raw linen create the ultimate bush sanctuary.",
+        images: ["/images/chinzombo-room-1.jpg", "/images/chinzombo-room-2.jpg", "/images/chinzombo-main-area.jpg"],
+        sleeps: 2,
+      },
+      {
+        name: "Family Safari Villa",
+        description: "A two-bedroom, two-bathroom villa with the same award-winning design and river views. Perfect for couples traveling with children or sharing the safari experience with close friends.",
+        images: ["/images/chinzombo-sundowner.jpg", "/images/chinzombo-main-area.jpg", "/images/chinzombo-campfire.jpg"],
+        sleeps: 4,
+      },
+    ],
   },
   {
     id: "puku-ridge-camp",
@@ -608,7 +719,20 @@ export const PROPERTIES = [
     longDescription:
       "Puku Ridge Camp occupies a spectacular hilltop position in the South Luangwa National Park, commanding panoramic views of the sprawling Kakumbi Floodplain below. Rebuilt in 2019, the camp's eight luxury tented suites are ranged across the hillside, each featuring a super-king or twin bed configuration, air conditioning (a rare and welcome luxury in the Luangwa Valley), and en-suite facilities with his-and-hers washbasins and a large bathtub with a view. Outside, a multi-level verandah with a private plunge pool overlooks the plains, while a tower above the bathroom offers a star bed for a night under the vast African sky. The main area features indoor and open-air lounges, a bar, a campfire, and a photographic hide overlooking a waterhole that draws predators and prey alike. Zambia is renowned for its walking safaris, and Puku Ridge's award-winning guides lead both vehicle and foot explorations, including night drives using an award-winning red-light protocol that allows guests to observe nocturnal predators undisturbed.",
     heroImage: IMAGES.pukuRidge,
-    gallery: [IMAGES.southLuangwaSafari, IMAGES.southLuangwaElephant, IMAGES.southLuangwaLeopard],
+    gallery: [
+      IMAGES.pukuRidge,
+      IMAGES.pukuRidgeCamp,
+      IMAGES.pukuRidgeSunset,
+      IMAGES.pukuRidgeStars,
+      IMAGES.pukuRidgeView,
+      "/images/puku-ridge-1.jpg",
+      "/images/puku-ridge-2.jpg",
+      IMAGES.southLuangwaElephant,
+      IMAGES.southLuangwaSafari,
+      IMAGES.chinzomboWildlife,
+      IMAGES.lrcRiverView,
+      IMAGES.shawaWalking,
+    ],
     priceRange: "$800 to $1,500 per person per night",
     roomTypes: ["Luxury Safari Suite", "Premium Safari Suite"],
     amenities: [
@@ -638,6 +762,20 @@ export const PROPERTIES = [
       "Exclusive walking safaris for two with a private guide",
       "Wildlife viewing from your private plunge pool",
     ],
+    rooms: [
+      {
+        name: "Luxury Safari Suite",
+        description: "A spacious tented suite on a raised deck with a super-king bed, air conditioning, his-and-hers washbasins, and a large bathtub with floodplain views. Multi-level verandah with private plunge pool and star bed tower above the bathroom.",
+        images: ["/images/puku-ridge-2.jpg", "/images/puku-ridge-5.jpg", "/images/puku-ridge-3.jpg"],
+        sleeps: 2,
+      },
+      {
+        name: "Premium Safari Suite",
+        description: "Positioned for the most dramatic views across the Kakumbi Floodplain, this suite offers enhanced privacy, premium furnishings, and an expanded verandah with the best sightlines for wildlife viewing from your plunge pool.",
+        images: ["/images/puku-ridge-1.jpg", "/images/puku-ridge-4.jpg", "/images/puku-ridge-2.jpg"],
+        sleeps: 2,
+      },
+    ],
   },
   {
     id: "shawa-luangwa",
@@ -650,7 +788,20 @@ export const PROPERTIES = [
     longDescription:
       "Shawa Luangwa Camp rests on the eastern bank of the Luangwa River, overlooking the sweeping landscape of the Nsefu Sector — one of the park's most pristine and wildlife-rich areas. Named in honour of Jacob Shawa, one of Zambia's most celebrated guides, the camp is a labour of love and a deep respect for the Luangwa Valley. The camp features just five raised A-frame canvas tents on wooden platforms: three Luxury Couples Tents and one Family Tent (two tents connected by a deck). Each tent opens entirely on three sides to offer uninterrupted 270-degree views over the river and its pods of snorting hippo. Interiors feature a choice of twin or double beds, soft linen, a sunken bathtub, a private verandah, and a plunge pool. A starbed on the rooftop offers a place to sleep beneath the African sky. Shawa is a pioneer of silent safaris in South Luangwa, using solar-powered electric Land Cruisers that traverse the wilderness quietly with minimal carbon footprint. The main camp features an infinity pool, a fire pit at the edge of the wilderness, and a fully stocked bar where you can enjoy an armchair safari.",
     heroImage: IMAGES.shawaLuangwa,
-    gallery: [IMAGES.southLuangwaSunset, IMAGES.southLuangwaSafari, IMAGES.southLuangwaElephant],
+    gallery: [
+      IMAGES.shawaLuangwa,
+      IMAGES.shawaTent,
+      IMAGES.shawaWalking,
+      IMAGES.shawaPlungePool,
+      IMAGES.shawaDining,
+      IMAGES.shawaCampfire,
+      "/images/shawa-lion.jpg",
+      "/images/shawa-lodge.jpg",
+      "/images/shawa-ecruiser.jpg",
+      IMAGES.southLuangwaSunset,
+      IMAGES.southLuangwaElephant,
+      IMAGES.lrcRiverView,
+    ],
     priceRange: "From $500 per person per night",
     roomTypes: ["Luxury Couples Tent", "Family Tent (2 tents connected)"],
     amenities: [
@@ -679,6 +830,20 @@ export const PROPERTIES = [
       "Couples' bubble bath in a sunken tub with river views",
       "Lantern-lit dinners by the campfire at the water's edge",
     ],
+    rooms: [
+      {
+        name: "Luxury Couples Tent",
+        description: "A raised A-frame canvas tent opening on three sides to offer 270-degree views over the Luangwa River. Super-king or twin beds, soft linen, a sunken bathtub, private verandah, plunge pool, and a rooftop starbed for sleeping beneath the African sky.",
+        images: ["/images/shawa-tent.webp", "/images/shawa-plunge-pool.jpg", "/images/shawa-lodge.jpg"],
+        sleeps: 2,
+      },
+      {
+        name: "Family Tent",
+        description: "Two tents connected by a shared deck, offering flexible accommodation for couples with children. Each tent opens on three sides with river views, private verandah, and access to the main camp's infinity pool and dining.",
+        images: ["/images/shawa-dining.jpg", "/images/shawa-campfire.jpg", "/images/shawa-ecruiser.jpg"],
+        sleeps: 4,
+      },
+    ],
   },
   {
     id: "luangwa-river-camp",
@@ -691,7 +856,20 @@ export const PROPERTIES = [
     longDescription:
       "Luangwa River Camp sits nestled under an ancient ebony grove on the banks of the Luangwa River in a game-rich area known as the Luangwa Wafwa. Operated by the renowned Robin Pope Safaris, this small and intimate camp offers just five thatched bush suites, ensuring a maximum of ten guests at any one time. Each suite is individually named (Mwala, Mazi, Merzi, Moto, and Ziko) and features a thatch-and-brick design with large sliding doors that open onto a private river-facing deck. The en-suite bathrooms boast double basins and a large sunken stone bathtub that gazes out onto your own private corner of Africa. A multi-level plunge pool with a cascading waterfall sits on the elevated river deck. The central guest area features an open-plan bar, lounge, and dining area surrounded by Balinese-inspired columns and a courtyard planted with banana trees. Cuisine is fresh and hearty, celebrating local Zambian produce, served by the river or in the communal boma. Activities include morning and afternoon game drives, guided walking safaris, night drives, and seasonal boat safaris on the Luangwa River.",
     heroImage: IMAGES.luangwaRiver,
-    gallery: [IMAGES.southLuangwaSunset, IMAGES.southLuangwaSafari, IMAGES.southLuangwaCamp],
+    gallery: [
+      IMAGES.luangwaRiver,
+      IMAGES.lrcLodge,
+      IMAGES.lrcPool,
+      IMAGES.lrcDining,
+      IMAGES.lrcRiverView,
+      IMAGES.lrcWalking,
+      "/images/lrc-aerial.jpg",
+      "/images/lrc-bush-walk.jpg",
+      "/images/lrc-room.jpg",
+      IMAGES.southLuangwaSunset,
+      IMAGES.southLuangwaElephant,
+      IMAGES.chinzomboWildlife,
+    ],
     priceRange: "$520 to $950 per person per night",
     roomTypes: ["Bush Suite", "Premium River Suite"],
     amenities: [
@@ -722,6 +900,20 @@ export const PROPERTIES = [
       "Stargazing from the plunge pool deck",
       "Intimate camp of just ten guests — your private corner of Africa",
     ],
+    rooms: [
+      {
+        name: "Bush Suite",
+        description: "A thatch-and-brick suite with large sliding doors opening onto a private river-facing deck. En-suite bathroom with double basins and a sunken stone bathtub gazing out onto your own private corner of Africa.",
+        images: ["/images/lrc-room.jpg", "/images/lrc-river-view.jpg", "/images/lrc-lodge.jpg"],
+        sleeps: 2,
+      },
+      {
+        name: "Premium River Suite",
+        description: "The finest suite at Luangwa River Camp, positioned at the heart of the ebony grove with panoramic river views from every angle. Features an expanded deck, premium amenities, and the closest proximity to the multi-level plunge pool.",
+        images: ["/images/lrc-hero.jpg", "/images/lrc-aerial.jpg", "/images/lrc-pool.jpg"],
+        sleeps: 2,
+      },
+    ],
   },
   {
     id: "xanadu-villas",
@@ -734,7 +926,23 @@ export const PROPERTIES = [
     longDescription:
       "Xanadu Luxury Villas & Retreat is an experience, a lifestyle, an awakening of what life can be. Nine individually designed villas — each with a Swahili name meaning clouds, waves, stars, or dew — are scattered along a pristine white sand beach on Zanzibar's sun-drenched east coast. Each villa features its own private plunge pool, indoor and outdoor living spaces, and a private butler who anticipates your every need. The all-inclusive experience is uncompromising: world-class cuisine prepared by an international chef, premium beverages, laundry service, and a range of water sports including sea kayaking, snorkelling, and stand-up paddleboarding directly from the beach. The Kiota Spa nestles on the sand, offering treatments with the sound of the Indian Ocean as your soundtrack. A member of Small Luxury Hotels of the World and featured in the National Geographic Traveller UK Collection 2024, Xanadu has been crafted out of a desire to breathe — to celebrate life in its purest, most luxurious form.",
     heroImage: IMAGES.xanadu,
-    gallery: [IMAGES.zanzibarBeach, IMAGES.zanzibarAerial, IMAGES.zanzibarDhow],
+    gallery: [
+      "/images/xanadu.jpg",
+      "/images/xanadu-1.jpg",
+      "/images/xanadu-2.jpg",
+      "/images/xanadu-3.jpg",
+      "/images/xanadu-4.jpg",
+      "/images/xanadu-5.jpg",
+      "/images/xanadu-6.jpg",
+      "/images/xanadu-7.jpg",
+      "/images/xanadu-8.jpg",
+      "/images/xanadu-9.jpg",
+      "/images/xanadu-10.jpg",
+      "/images/xanadu-11.jpg",
+      "/images/xanadu-12.jpg",
+      "/images/xanadu-13.jpg",
+      "/images/xanadu-14.jpg",
+    ],
     priceRange: "$895 to $4,400 per villa per night",
     roomTypes: ["Umande (1BR Garden)", "Alfajiri (1BR Honeymoon)", "Mawingu/Mawimbi (1BR Ocean)", "Kimwondo (1BR Rooftop Pool)", "Mlima/Korongo (2BR)", "Nyota/Mbingu (Presidential 2BR)"],
     amenities: [
@@ -776,7 +984,23 @@ export const PROPERTIES = [
     longDescription:
       "Kilindi Zanzibar is a rarity in the world of luxury boutique hotels. Originally designed for Benny Andersson of the 1970s pop group ABBA, Kilindi achieves the perfect marriage between Scandinavian minimalism and the dramatic architectural overtones of Middle Eastern heritage. Fifteen eastern-styled domed Pavilions nestle amongst 50 acres of tropical garden, each with its own private plunge pool and a separate rainfall shower room with spectacular ocean views. The open-to-nature design allows the gentle ocean breeze and the soundtrack of colourful birdlife to waft through each room. A dedicated butler is assigned to every villa, offering a choice of breakfast, lunch, and dinner locations — your private terrace, the alfresco dining terrace, along the pristine white beach, or even in the privacy of your villa. The main Pavilion features a waterfall bar overlooking a 25-metre infinity pool. The Kilindi Spa offers rejuvenating treatments in a serene garden setting. All-inclusive rates include three meals daily, drinks, sundowners, paddleboarding, kayaking, and laundry services.",
     heroImage: IMAGES.kilindi,
-    gallery: [IMAGES.zanzibarBeach, IMAGES.zanzibarDhow, IMAGES.zanzibarAerial],
+    gallery: [
+      "/images/kilindi.webp",
+      "/images/kilindi-1.webp",
+      "/images/kilindi-2.webp",
+      "/images/kilindi-3.webp",
+      "/images/kilindi-4.webp",
+      "/images/kilindi-5.webp",
+      "/images/kilindi-6.webp",
+      "/images/kilindi-7.webp",
+      "/images/kilindi-8.webp",
+      "/images/kilindi-9.webp",
+      "/images/kilindi-10.webp",
+      "/images/kilindi-11.webp",
+      "/images/kilindi-12.webp",
+      "/images/kilindi-13.webp",
+      "/images/kilindi-14.webp",
+    ],
     priceRange: "$600 to $1,200 per night",
     roomTypes: ["Luxury Garden View Villa", "Luxury Ocean View Villa", "Two-Bedroom Garden View Villa"],
     amenities: [
@@ -818,7 +1042,20 @@ export const PROPERTIES = [
     longDescription:
       "Baraza Resort & Spa is Zanzibar's most exclusive all-inclusive boutique resort, set along a beach named one of the top 30 in the world by Condé Nast Traveller. The resort evokes the heritage of Zanzibar dating back to the era of the Sultans, designed in a fusion of Arabic, Swahili, and Indian architectural styles with dramatic Swahili arches, intricate hand-carved cement decorations, beautiful antiques, handmade furniture, and brass lanterns. All 30 villas — 14 one-bedroom and 15 two-bedroom, plus one Royal Sultan two-bedroom villa — feature luxury interiors, hand-carved furniture, spacious terraces, and private plunge pools. The resort offers four restaurants and two bars including Livingstone Terrace, Dhahabu Bar & Lounge, Chai Lounge, Ocean Lounge, and The Sultans Dining Room. The Frangipani Spa offers a wide array of massage techniques and treatments. On-site activities include a PADI dive centre, kite surfing, sailing, snorkelling, kayaking, dhow excursions, Swahili cooking classes, spice farm visits, Jozani Forest excursions, and tennis.",
     heroImage: IMAGES.baraza,
-    gallery: [IMAGES.zanzibarBeach, IMAGES.zanzibarSpa, IMAGES.zanzibarAerial],
+    gallery: [
+      IMAGES.barazaVillaView,
+      IMAGES.barazaPool,
+      IMAGES.barazaBeach,
+      IMAGES.barazaDining,
+      IMAGES.barazaSpa,
+      IMAGES.barazaSunset,
+      IMAGES.barazaGarden,
+      IMAGES.barazaRoyalVilla,
+      IMAGES.zanzibarDhow,
+      IMAGES.zanzibarStoneTown,
+      IMAGES.zanzibarHero,
+      IMAGES.residence,
+    ],
     priceRange: "$500 to $1,200 per night",
     roomTypes: ["One-Bedroom Villa", "Ocean Front One-Bedroom Villa", "Two-Bedroom Garden Villa", "Royal Sultan Two-Bedroom Villa"],
     amenities: [
@@ -852,6 +1089,29 @@ export const PROPERTIES = [
       "Private dhow cruise along the Bwejuu coast",
       "Swahili cooking class for two with the resort chef",
     ],
+    rooms: [
+      {
+        name: "One-Bedroom Villa",
+        description:
+          "A spacious 70m² villa with Swahili-inspired interiors, hand-carved furniture, king-size bed, en-suite bathroom with twin vanity and rainfall shower, a private terrace with plunge pool, and garden views.",
+        images: [IMAGES.barazaVillaView, IMAGES.barazaGarden, IMAGES.barazaPool],
+        sleeps: 2,
+      },
+      {
+        name: "Ocean Front One-Bedroom Villa",
+        description:
+          "Positioned closest to the ocean, these villas offer panoramic sea views from a larger private terrace and plunge pool. The interiors feature premium Swahili furnishings, a king-size bed, and an expansive bathroom with twin vanities.",
+        images: [IMAGES.barazaBeach, IMAGES.barazaPool, IMAGES.barazaDining],
+        sleeps: 2,
+      },
+      {
+        name: "Royal Sultan Two-Bedroom Villa",
+        description:
+          "The ultimate villa at Baraza spanning 140m² with two en-suite bedrooms, a grand living room, private dining area, expansive terrace, and a large private plunge pool. Designed with Sultan-inspired opulence throughout.",
+        images: [IMAGES.barazaRoyalVilla, IMAGES.barazaSpa, IMAGES.barazaSunset],
+        sleeps: 4,
+      },
+    ],
   },
   {
     id: "the-palms-zanzibar",
@@ -864,7 +1124,23 @@ export const PROPERTIES = [
     longDescription:
       "The Palms Zanzibar is the island's most exclusive and intimate luxury resort, with just seven villas on the award-winning Bwejuu Beach — recognised by Condé Nast Traveller as one of the top 30 beaches in the world. With a maximum of 14 guests at any one time, The Palms offers a level of privacy and personalised service unmatched on the island. Each villa spans over 140 square metres with a bedroom, separate living room, full en-suite bathroom, walk-in dressing room, bar area, and a large furnished terrace with views of the Indian Ocean. Every villa has its own private plunge pool and a private thatched beach banda on the sand. The all-inclusive experience covers gourmet dining, premium drinks, and a personal butler. The beachfront Sanctuary Spa offers world-class treatments. Guests also enjoy complimentary access to the facilities of sister properties Baraza Resort & Spa and Breezes Beach Club — including a gym, tennis court, PADI dive centre, and the Frangipani Spa. The Palms is strictly adults-only, welcoming guests aged 16 and above.",
     heroImage: IMAGES.palms,
-    gallery: [IMAGES.zanzibarBeach, IMAGES.zanzibarAerial, IMAGES.zanzibarSpa],
+    gallery: [
+      "/images/the-palms.jpg",
+      "/images/palms-1.jpg",
+      "/images/palms-2.jpg",
+      "/images/palms-3.jpg",
+      "/images/palms-4.jpg",
+      "/images/palms-5.jpg",
+      "/images/palms-6.jpg",
+      "/images/palms-7.jpg",
+      "/images/palms-8.jpg",
+      "/images/palms-9.jpg",
+      "/images/palms-10.jpg",
+      "/images/palms-11.jpg",
+      "/images/palms-12.jpg",
+      "/images/palms-13.jpg",
+      "/images/palms-14.jpg",
+    ],
     priceRange: "$1,200 to $2,500 per night",
     roomTypes: ["One-Bedroom Villa", "Two-Bedroom Villa", "Entire Resort Buyout (7 villas)"],
     amenities: [
@@ -897,41 +1173,6 @@ export const PROPERTIES = [
     ],
   },
   {
-    id: "zanzibar-white-sand-villas",
-    name: "Zanzibar White Sand Villas",
-    destination: "zanzibar",
-    location: "Paje, Zanzibar",
-    tagline: "White sand. Turquoise dreams. Endless romance.",
-    description:
-      "A collection of luxury villas on Zanzibar's breathtaking southeast coast, where the Indian Ocean lazes against endless white beaches beneath eternal sunshine.",
-    longDescription:
-      "Zanzibar White Sand Villas is an ode to the island's legendary coastline. Located on the powdery white sands of Paje, the resort offers 22 villas that blend Swahili architectural traditions with contemporary luxury. The villas are arranged around lush tropical gardens, each with a private pool and outdoor living area. The atmosphere is one of serene indulgence: yoga at sunrise, long walks on the beach, and long lunches at the ocean view restaurant. The beachfront infinity pool is the heart of the resort, a place where hours dissolve into golden days.",
-    heroImage: IMAGES.whiteSand,
-    gallery: [IMAGES.zanzibarAerial, IMAGES.zanzibarBeach, IMAGES.zanzibarDhow],
-    priceRange: "$500 to $950 per night",
-    roomTypes: ["Garden Villa", "Ocean View Villa", "Beachfront Villa"],
-    amenities: [
-      "Private pool",
-      "Beachfront infinity pool",
-      "Restaurant and bar",
-      "Spa and wellness center",
-      "Daily yoga pavilion",
-      "Water sports",
-      "Kite surfing school",
-      "Complimentary WiFi",
-    ],
-    rating: 4.7,
-    reviews: [
-      { name: "Alex and Rachel Green", text: "The most beautiful beach we have ever seen. The villas are stunning and the service is impeccable.", location: "Melbourne, Australia" },
-    ],
-    romanticHighlights: [
-      "Beachfront dinners as the sun sets over the Indian Ocean",
-      "Couples yoga at sunrise",
-      "Sunset beach walks on endless white sand",
-      "Couples spa journeys",
-    ],
-  },
-  {
     id: "the-residence-zanzibar",
     name: "The Residence Zanzibar",
     destination: "zanzibar",
@@ -942,7 +1183,20 @@ export const PROPERTIES = [
     longDescription:
       "The Residence Zanzibar is a haven of understated luxury on the island's tranquil southern coast. Set within 32 hectares of lush tropical gardens, the resort's 66 villas are among the most spacious in Zanzibar, each with a private pool, outdoor shower, and a terrace that opens onto the beach. The resort embodies quiet elegance: whitewashed walls, Swahili-inspired architecture, and interiors that blend African textiles with contemporary design. The spa, set over water, offers treatments inspired by Zanzibar's spice heritage, while the resort's restaurants celebrate the island's culinary traditions with a modern, sophisticated twist.",
     heroImage: IMAGES.residence,
-    gallery: [IMAGES.zanzibarSpa, IMAGES.zanzibarBeach, IMAGES.zanzibarAerial],
+    gallery: [
+      IMAGES.residence,
+      IMAGES.residencePrestige,
+      IMAGES.residenceOcean,
+      IMAGES.residenceGarden,
+      IMAGES.residencePresidential,
+      "/images/residence-frangipani.jpg",
+      IMAGES.zanzibarHero,
+      IMAGES.zanzibarBeach,
+      IMAGES.zanzibarStoneTown,
+      IMAGES.zanzibarDhow,
+      IMAGES.barazaBeach,
+      IMAGES.barazaSunset,
+    ],
     priceRange: "$600 to $1,300 per night",
     roomTypes: ["Villa", "Premium Villa", "Beach Villa", "Presidential Villa"],
     amenities: [
@@ -964,6 +1218,22 @@ export const PROPERTIES = [
       "Private beach dinners with personal butler",
       "Sunset cocktails at the beach bar",
       "Couples spice ritual at the spa",
+    ],
+    rooms: [
+      {
+        name: "Luxury Garden Pool Villa",
+        description:
+          "A spacious 100m² villa set within lush tropical gardens with a private pool, outdoor shower, and sun terrace. Interiors blend African textiles with contemporary design. King-size bed and en-suite bathroom.",
+        images: [IMAGES.residenceGarden, IMAGES.residenceOcean, IMAGES.residence],
+        sleeps: 2,
+      },
+      {
+        name: "Premium Ocean-Front Pool Villa",
+        description:
+          "The ultimate villa category with direct ocean views, a larger private pool, expanded deck, and premium amenities. The bedroom opens onto the terrace with the Indian Ocean as your backdrop.",
+        images: [IMAGES.residencePrestige, IMAGES.residenceOcean, IMAGES.residencePresidential],
+        sleeps: 2,
+      },
     ],
   },
 ];
@@ -1177,7 +1447,7 @@ export const EXPERIENCES = [
     title: "Walking Safaris",
     description: "Follow in the footsteps of explorers on a guided walking safari. Feel the earth beneath your feet and connect with Africa on its own terms. There is no more intimate way to experience the wild.",
     image: IMAGES.walking,
-    category: "Adventure",
+    category: "Safari",
   },
   {
     id: "sunset-dhow",
@@ -1307,7 +1577,7 @@ There is something profoundly bonding about experiencing the wild together, with
 Before you lose yourself to beach life, spend a night in Stone Town. This UNESCO World Heritage site is a labyrinth of narrow alleys, carved wooden doors, and bustling markets. The history here is layered — Arab, Persian, Indian, African, European — woven into the architecture, the food, the very air. Stay at Emerson on Hurumzi or the Zanzibar Serena Inn, and let the winding streets guide your exploration.
 
 <h3>The Beach Life</h3>
-Zanzibar's east coast is where the postcard images come to life. Bwejuu, Paje, and Jambiani offer endless white sand beaches lapped by turquoise water. The Palms Zanzibar is the ultimate romantic retreat — just seven villas on the beachfront, each with a private plunge pool and personal butler. For a slightly different energy, Zanzibar White Sand Villas in Paje offers direct access to the best kite surfing on the island.
+Zanzibar's east coast is where the postcard images come to life. Bwejuu, Paje, and Jambiani offer endless white sand beaches lapped by turquoise water. The Palms Zanzibar is the ultimate romantic retreat — just seven villas on the beachfront, each with a private plunge pool and personal butler. For those who prefer the tranquil southern coast, The Residence Zanzibar offers sprawling beachfront villas surrounded by lush tropical gardens — the pinnacle of barefoot elegance.
 
 <h3>Beyond the Beach</h3>
 A spice tour is essential — Zanzibar is the Spice Island, after all, and the scent of cloves, nutmeg, and cinnamon hangs in the air. Visit a working spice farm, taste fresh vanilla pods, and learn how the spice trade shaped the island's history.

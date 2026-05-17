@@ -123,31 +123,37 @@ img {
   100% { background-position: 200% center; }
 }
 
-/* Elegant image aesthetics — KIVARA: muted, cinematic, atmospheric */
+/* ─── CINEMATIC IMAGE AESTHETICS ──────────────────────────────────── */
+/* KIVARA: Muted, cinematic, atmospheric — Aman-inspired desaturation */
+
+/* Base: subtle moody desaturation for ALL images */
 img, 
 .next-image,
 [class*="object-cover"] {
-  filter: saturate(0.9) brightness(0.9);
-  transition: filter 0.5s ease;
+  filter: saturate(0.85) brightness(0.88);
+  transition: filter 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Make hero and featured images more dramatic */
-.hero-image,
-.featured-image,
-.landscape-card img,
-.property-card img {
-  filter: saturate(0.8) brightness(0.82) contrast(1.08);
+/* Hero full-screen images: dramatic cinema grade */
+section.h-screen img[data-nimg="fill"],
+section.min-h-screen img[data-nimg="fill"] {
+  filter: saturate(0.78) brightness(0.78) contrast(1.12) !important;
 }
 
-/* Hover effect - slightly brighten but keep elegant */
-.group:hover img,
-.hover-lift:hover img {
-  filter: saturate(0.92) brightness(0.92);
+/* Gallery/experience card images: moody */
+.grid .group img,
+[class*="grid"] .group img {
+  filter: saturate(0.82) brightness(0.85);
 }
 
-/* Gallery images - slightly lighter for visual interest */
-.gallery-image {
-  filter: saturate(0.85) brightness(0.92);
+/* Hover: lift toward natural — reveal the raw beauty */
+.group:hover img {
+  filter: saturate(0.95) brightness(0.95) !important;
+}
+
+/* Storytelling section images: warm, slightly lifted */
+.storytelling-image {
+  filter: saturate(0.8) brightness(0.9) contrast(1.05) !important;
 }
 
 /* Gradient overlays for more elegance */

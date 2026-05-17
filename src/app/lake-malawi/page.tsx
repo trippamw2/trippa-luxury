@@ -17,10 +17,12 @@ const destination = DESTINATIONS[0];
 const galleryItems = [
   { label: "Lake views at golden hour", image: IMAGES.lakeMalawiAerial },
   { label: "Private beach access", image: IMAGES.pumulani },
-  { label: "Luxury lakeside suites", image: IMAGES.kayaMawa },
+  { label: "Luxury lakeside suites at Kaya Mawa", image: IMAGES.kayaMawa },
   { label: "Water activities & dhow cruises", image: IMAGES.kayaMawaSnorkel },
   { label: "Island exploration", image: IMAGES.lakeMalawiIsland },
   { label: "Sailing on the Lake of Stars", image: IMAGES.makokolaRetreat },
+  { label: "Blue Zebra's private island escape", image: IMAGES.blueZebra },
+  { label: "Snorkelling crystal-clear coves", image: IMAGES.lakeMalawiBeach },
 ];
 
 const experienceImages: Record<string, string> = {
@@ -178,10 +180,20 @@ export default function LakeMalawiPage() {
               transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
               className="relative aspect-[4/5] overflow-hidden"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-sand via-sand-light to-earth/30" />
-              <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-soft-black/40 to-transparent">
-                <p className="text-cream/80 font-heading text-lg italic">&ldquo;The Lake of Stars&rdquo;</p>
-                <p className="text-cream/50 text-sm mt-1">— David Livingstone</p>
+              <Image
+                src={IMAGES.lakeMalawiAerial}
+                alt="Lake Malawi aerial shoreline"
+                fill
+                className="object-cover storytelling-image"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
+              {/* Cinematic dark vignette */}
+              <div className="absolute inset-0 bg-gradient-to-br from-soft-black/30 via-transparent to-soft-black/50" />
+              {/* Bottom fade for text readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-soft-black/50 via-transparent to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-8">
+                <p className="text-cream/90 font-heading text-lg italic">&ldquo;The Lake of Stars&rdquo;</p>
+                <p className="text-cream/60 text-sm mt-1">— David Livingstone</p>
               </div>
             </motion.div>
           </div>
@@ -381,6 +393,9 @@ export default function LakeMalawiPage() {
                   className="object-cover transition-transform duration-700 group-hover:scale-105"
                   sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                 />
+                {/* Persistent cinematic darken */}
+                <div className="absolute inset-0 bg-gradient-to-t from-soft-black/20 to-transparent" />
+                {/* Hover reveal */}
                 <div className="absolute inset-0 bg-gradient-to-t from-soft-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <Camera className="absolute top-4 right-4 w-5 h-5 text-cream/30 group-hover:text-cream/60 transition-colors" />
                 <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500">

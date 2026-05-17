@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ChevronDown } from "lucide-react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { SITE_CONFIG } from "@/lib/constants";
 import { KivaraLogo } from "@/components/ui/KivaraLogo";
@@ -14,9 +15,9 @@ const NAV_ITEMS = [
     label: "Destinations",
     href: "#",
     children: [
-      { label: "Lake Malawi", href: "/lake-malawi", description: "Africa's hidden luxury beach escape" },
-      { label: "South Luangwa", href: "/south-luangwa", description: "Raw intimate safari luxury" },
-      { label: "Zanzibar", href: "/zanzibar", description: "Tropical romantic elegance" },
+      { label: "Lake Malawi", href: "/lake-malawi", description: "Africa's hidden luxury beach escape", image: "/images/likoma-paddleboard-view.jpg" },
+      { label: "South Luangwa", href: "/south-luangwa", description: "Raw intimate safari luxury", image: "/images/puku-ridge-1.jpg" },
+      { label: "Zanzibar", href: "/zanzibar", description: "Tropical romantic elegance", image: "/images/zanzibar-beach.jpg" },
     ],
   },
   { label: "Journeys", href: "/packages" },
@@ -110,22 +111,36 @@ export function Navbar() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 10 }}
                         transition={{ duration: 0.3 }}
-                        className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 bg-cream shadow-xl border border-sand-light/30"
+                        className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[580px] bg-cream shadow-xl border border-sand-light/30 p-5"
                       >
-                        {item.children.map((child) => (
-                          <Link
-                            key={child.href}
-                            href={child.href}
-                            className="block px-6 py-4 hover:bg-warm-white-dark transition-colors duration-300 group"
-                          >
-                            <span className="block text-sm font-medium text-soft-black group-hover:text-gold-dark transition-colors">
-                              {child.label}
-                            </span>
-                            <span className="block text-xs text-earth mt-0.5">
-                              {child.description}
-                            </span>
-                          </Link>
-                        ))}
+                        <div className="grid grid-cols-3 gap-4">
+                          {item.children.map((child: { label: string; href: string; description: string; image?: string }) => (
+                            <Link
+                              key={child.href}
+                              href={child.href}
+                              className="group block"
+                            >
+                              <div className="relative aspect-[4/3] overflow-hidden mb-3">
+                                {child.image && (
+                                  <Image
+                                    src={child.image}
+                                    alt={child.label}
+                                    fill
+                                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                    sizes="180px"
+                                  />
+                                )}
+                                <div className="absolute inset-0 bg-gradient-to-t from-soft-black/40 to-transparent" />
+                              </div>
+                              <span className="block text-sm font-medium text-soft-black group-hover:text-gold-dark transition-colors">
+                                {child.label}
+                              </span>
+                              <span className="block text-xs text-earth mt-0.5 leading-relaxed">
+                                {child.description}
+                              </span>
+                            </Link>
+                          ))}
+                        </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -209,15 +224,28 @@ export function Navbar() {
                           className="overflow-hidden"
                         >
                           <div className="pb-4 space-y-3">
-                            {item.children.map((child) => (
+                            {item.children.map((child: { label: string; href: string; description: string; image?: string }) => (
                               <Link
                                 key={child.href}
                                 href={child.href}
                                 onClick={() => setIsMobileOpen(false)}
-                                className="block py-2 pl-4 text-earth hover:text-soft-black transition-colors"
+                                className="flex items-center gap-4 py-3 pl-4 pr-2 text-earth hover:text-soft-black transition-colors group"
                               >
-                                <span className="block text-lg font-medium">{child.label}</span>
-                                <span className="block text-sm text-earth/70">{child.description}</span>
+                                <div className="relative w-16 h-12 shrink-0 overflow-hidden">
+                                  {child.image && (
+                                    <Image
+                                      src={child.image}
+                                      alt={child.label}
+                                      fill
+                                      className="object-cover"
+                                      sizes="64px"
+                                    />
+                                  )}
+                                </div>
+                                <div>
+                                  <span className="block text-lg font-medium">{child.label}</span>
+                                  <span className="block text-sm text-earth/70">{child.description}</span>
+                                </div>
                               </Link>
                             ))}
                           </div>

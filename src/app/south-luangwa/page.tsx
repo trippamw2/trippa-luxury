@@ -15,21 +15,21 @@ import { cn } from "@/lib/utils";
 const destination = DESTINATIONS[1];
 
 const galleryItems = [
-  { label: "Golden hour on the floodplain", image: IMAGES.southLuangwaSunset },
-  { label: "Intimate wildlife encounters", image: IMAGES.southLuangwaElephant },
-  { label: "Luxury bush camps", image: IMAGES.southLuangwaCamp },
-  { label: "Walking safaris at dawn", image: IMAGES.southLuangwaSafari },
-  { label: "Stargazing in the wilderness", image: IMAGES.chinzombo },
-  { label: "Riverfront sundowners", image: IMAGES.luangwaRiver },
+  { label: "Golden hour on the floodplain", image: IMAGES.pukuRidgeSunset },
+  { label: "Intimate wildlife encounters", image: IMAGES.chinzomboWildlife },
+  { label: "Luxury bush camps", image: IMAGES.shawaTent },
+  { label: "Walking safaris at dawn", image: IMAGES.shawaWalking },
+  { label: "Stargazing in the wilderness", image: IMAGES.pukuRidgeStars },
+  { label: "Riverfront sundowners", image: IMAGES.lrcRiverView },
 ];
 
 const experienceImages: Record<string, string> = {
-  "Guided walking safaris following ancient elephant paths": IMAGES.southLuangwaSafari,
-  "Night drives revealing the bush after dark": IMAGES.pukuRidge,
-  "Sundowners on the riverbank as Africa paints the sky": IMAGES.southLuangwaSunset,
-  "Bush breakfasts where zebras are your dining companions": IMAGES.shawaLuangwa,
-  "Exclusive photography hides for intimate wildlife encounters": IMAGES.southLuangwaElephant,
-  "Stargazing from raised platforms above the floodplain": IMAGES.southLuangwaCamp,
+  "Guided walking safaris following ancient elephant paths": IMAGES.lrcWalking,
+  "Night drives revealing the bush after dark": IMAGES.chinzomboWildlife,
+  "Sundowners on the riverbank as Africa paints the sky": IMAGES.chinzombo,
+  "Bush breakfasts where zebras are your dining companions": IMAGES.shawaDining,
+  "Exclusive photography hides for intimate wildlife encounters": IMAGES.chinzomboMain,
+  "Stargazing from raised platforms above the floodplain": IMAGES.pukuRidgeStars,
 };
 
 export default function SouthLuangwaPage() {
@@ -186,9 +186,20 @@ export default function SouthLuangwaPage() {
               transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
               className="relative aspect-[4/5] overflow-hidden"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-earth/40 via-soft-black-light to-soft-black" />
-              <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-soft-black/50 to-transparent">
-                <p className="text-cream/80 font-heading text-lg italic">&ldquo;The wild is not a place — it&apos;s a feeling.&rdquo;</p>
+              <Image
+                src={IMAGES.southLuangwaSunset}
+                alt="Golden sunset over South Luangwa floodplain"
+                fill
+                className="object-cover storytelling-image"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
+              {/* Cinematic dark vignette */}
+              <div className="absolute inset-0 bg-gradient-to-br from-soft-black/40 via-transparent to-soft-black/60" />
+              {/* Bottom fade for text readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-soft-black/50 via-transparent to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-8">
+                <p className="text-cream/90 font-heading text-lg italic">&ldquo;The Valley of the Leopard&rdquo;</p>
+                <p className="text-cream/60 text-sm mt-1">— Norman Carr</p>
               </div>
             </motion.div>
           </div>
@@ -388,6 +399,9 @@ export default function SouthLuangwaPage() {
                   className="object-cover transition-transform duration-700 group-hover:scale-105"
                   sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                 />
+                {/* Persistent cinematic darken */}
+                <div className="absolute inset-0 bg-gradient-to-t from-soft-black/20 to-transparent" />
+                {/* Hover reveal */}
                 <div className="absolute inset-0 bg-gradient-to-t from-soft-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <Camera className="absolute top-4 right-4 w-5 h-5 text-cream/30 group-hover:text-cream/60 transition-colors" />
                 <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500">

@@ -102,8 +102,8 @@ export default function AboutPage() {
             >
               <div className="relative aspect-[4/5] overflow-hidden">
                 <Image
-                  src="/images/south-luangwa-hero.jpg"
-                  alt="African landscape"
+                  src="/images/luangwa-river.jpg"
+                  alt="South Luangwa river landscape"
                   fill
                   className="object-cover"
                   sizes="(max-width: 768px) 100vw, 50vw"

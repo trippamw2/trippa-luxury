@@ -15,21 +15,23 @@ import { cn } from "@/lib/utils";
 const destination = DESTINATIONS[2];
 
 const galleryItems = [
-  { label: "Turquoise waters and white sands", image: IMAGES.zanzibarBeach },
-  { label: "Luxury beachfront villas", image: IMAGES.residence },
+  { label: "Xanadu's white sand paradise", image: "/images/xanadu-1.jpg" },
+  { label: "Kilindi's iconic white-domed pavilions", image: "/images/kilindi-5.webp" },
   { label: "Spice Island heritage", image: IMAGES.zanzibarStoneTown },
   { label: "Romantic sunset dhow cruises", image: IMAGES.zanzibarDhow },
-  { label: "Couples spa by the ocean", image: IMAGES.zanzibarSpa },
+  { label: "The Palms intimate villa sanctuary", image: "/images/palms-7.jpg" },
+  { label: "Baraza Swahili elegance", image: IMAGES.barazaDining },
   { label: "Stone Town's ancient charm", image: IMAGES.zanzibarHero },
+  { label: "Couples spa by the ocean", image: IMAGES.barazaSpa },
 ];
 
 const experienceImages: Record<string, string> = {
   "Spice plantation tours through ancient aromatic gardens": IMAGES.zanzibarStoneTown,
   "Stone Town heritage walks through living history": IMAGES.zanzibarHero,
-  "Private sandbank dining surrounded by the Indian Ocean": IMAGES.zanzibarBeach,
+  "Private sandbank dining surrounded by the Indian Ocean": IMAGES.barazaBeach,
   "Sunset dhow cruises with champagne and Swahili canapes": IMAGES.zanzibarDhow,
-  "Couples spa rituals using indigenous Zanzibari ingredients": IMAGES.zanzibarSpa,
-  "Deep sea fishing expeditions into the Indian Ocean": IMAGES.xanadu,
+  "Couples spa rituals using indigenous Zanzibari ingredients": IMAGES.barazaSpa,
+  "Deep sea fishing expeditions into the Indian Ocean": IMAGES.residence,
 };
 
 export default function ZanzibarPage() {
@@ -177,9 +179,19 @@ export default function ZanzibarPage() {
               transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
               className="relative aspect-[4/5] overflow-hidden"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-gold/30 via-sand-light to-cream" />
-              <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-soft-black/30 to-transparent">
-                <p className="text-cream/80 font-heading text-lg italic">&ldquo;The Spice Island of dreams.&rdquo;</p>
+              <Image
+                src={IMAGES.zanzibarDhow}
+                alt="Traditional dhow sailing at sunset in Zanzibar"
+                fill
+                className="object-cover storytelling-image"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
+              {/* Cinematic dark vignette */}
+              <div className="absolute inset-0 bg-gradient-to-br from-soft-black/30 via-transparent to-soft-black/50" />
+              {/* Bottom fade for text readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-soft-black/40 via-transparent to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-8">
+                <p className="text-cream/90 font-heading text-lg italic">&ldquo;The Spice Island of dreams.&rdquo;</p>
               </div>
             </motion.div>
           </div>
@@ -379,6 +391,9 @@ export default function ZanzibarPage() {
                   className="object-cover transition-transform duration-700 group-hover:scale-105"
                   sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                 />
+                {/* Persistent cinematic darken */}
+                <div className="absolute inset-0 bg-gradient-to-t from-soft-black/20 to-transparent" />
+                {/* Hover reveal */}
                 <div className="absolute inset-0 bg-gradient-to-t from-soft-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <Camera className="absolute top-4 right-4 w-5 h-5 text-cream/30 group-hover:text-cream/60 transition-colors" />
                 <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500">

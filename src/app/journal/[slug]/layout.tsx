@@ -15,11 +15,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   return {
-    title: post.title,
+    title: `${post.title} | Kivara Journal`,
     description: post.excerpt,
     openGraph: {
       title: `${post.title} | Kivara`,
       description: post.excerpt,
+      images: [{ url: post.image, width: 1200, height: 630, alt: post.title }],
+      type: "article",
+      locale: "en_US",
+      siteName: "Kivara Luxury Travel",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${post.title} | Kivara`,
+      description: post.excerpt,
+      images: [post.image],
     },
   };
 }

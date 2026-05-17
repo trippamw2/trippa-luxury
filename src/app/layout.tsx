@@ -7,6 +7,7 @@ import { WhatsAppWidget } from "@/components/ui/whatsapp-widget";
 import { CookieConsent } from "@/components/ui/CookieConsent";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://kivara.luxury"),
   title: {
     default: "Kivara — Africa's Most Coveted Romance Sanctuary",
     template: "%s | Kivara",

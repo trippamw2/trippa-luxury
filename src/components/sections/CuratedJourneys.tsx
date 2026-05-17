@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Clock, MapPin } from "lucide-react";
 import { Container } from "@/components/ui/container";
@@ -44,8 +45,16 @@ export function CuratedJourneys() {
             >
               <Link href={`/packages#${pkg.id}`} className="block">
                 <div className="relative overflow-hidden bg-warm-white-dark aspect-[16/10]">
-                  <div className="absolute inset-0 bg-gradient-to-br from-sand-light to-earth/20" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-soft-black/50 via-transparent to-transparent" />
+                  <Image
+                    src={pkg.image}
+                    alt={pkg.title}
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                  />
+                  {/* Persistent cinematic darken */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-soft-black/60 via-soft-black/10 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-soft-black/20 to-transparent" />
                   
                   {/* Number */}
                   <div className="absolute top-4 left-4 text-5xl font-heading font-bold text-cream/10 select-none">

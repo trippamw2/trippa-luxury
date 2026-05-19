@@ -6,6 +6,8 @@ type Props = {
   children: React.ReactNode;
 };
 
+const baseUrl = "https://kivara.com";
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const property = PROPERTIES.find((p) => p.id === slug);
@@ -14,12 +16,25 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: "Property Not Found" };
   }
 
+  const ogImage = property.heroImage
+    ? { url: `${baseUrl}${property.heroImage}`, width: 1200, height: 800 }
+    : undefined;
+
   return {
     title: property.name,
     description: property.tagline,
+    alternates: { canonical: `${baseUrl}/properties/${property.id}` },
     openGraph: {
       title: `${property.name} | Kivara`,
       description: property.tagline,
+      url: `${baseUrl}/properties/${property.id}`,
+      images: ogImage ? [ogImage] : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${property.name} | Kivara`,
+      description: property.tagline,
+      images: ogImage ? [ogImage.url] : [],
     },
   };
 }

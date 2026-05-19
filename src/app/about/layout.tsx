@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "About — Our Story",
   description:
-    "Discover the story behind Kivara. We curate Africa's most coveted romance sanctuaries for couples who refuse to compromise on beauty, intimacy, or refinement.",
+    "Luxury journeys designed for connection. Discover Kivara — curators of Africa's most beautiful romantic escapes for couples who seek beauty, intimacy, and emotional immersion.",
 };
 
 export default function AboutLayout({ children }: { children: React.ReactNode }) {

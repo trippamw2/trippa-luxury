@@ -26,8 +26,25 @@ export default function JournalPostPage() {
     );
   }
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    description: post.excerpt,
+    image: post.image,
+    datePublished: post.date ? new Date(post.date).toISOString() : undefined,
+    author: {
+      "@type": "Organization",
+      name: "Kivara Luxury Travel",
+    },
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Article */}
       <section className="pt-32 pb-24 bg-cream">
         <Container>

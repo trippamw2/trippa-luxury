@@ -8,27 +8,27 @@ import { Heart, Globe, Leaf, Sparkles } from "lucide-react";
 const values = [
   {
     icon: Heart,
-    title: "Curated for Romance",
+    title: "Romance First",
     description:
-      "Every detail chosen with you in mind. Connection is the north star of every journey.",
+      "Romance is the heart of everything we do. Every journey is designed to deepen intimacy, create emotional moments, and elevate your shared love story.",
   },
   {
     icon: Globe,
-    title: "Modern African Luxury",
+    title: "African Nature",
     description:
-      "Contemporary, authentic, sustainable. Luxury rooted in the places you'll discover.",
-  },
-  {
-    icon: Leaf,
-    title: "Sustainable Tourism",
-    description:
-      "Travel with purpose. Every partnership protects wilderness and uplifts communities.",
+      "Nature is the setting for your romance. Pristine beaches, untamed wilderness, and soul-stirring landscapes that become the backdrop to your most treasured memories.",
   },
   {
     icon: Sparkles,
-    title: "Emotional Storytelling",
+    title: "Wellness & Restoration",
     description:
-      "Your escapes are stories waiting to unfold. Every moment becomes part of your narrative.",
+      "Wellness restores you so romance can flourish. Slow mornings, spa rituals, healing environments — space to surrender to stillness together.",
+  },
+  {
+    icon: Leaf,
+    title: "Emotional Curation",
+    description:
+      "We are your romantic travel concierge. Every detail — every transfer, every experience, every surprise — designed so you feel nothing but connection.",
   },
 ];
 

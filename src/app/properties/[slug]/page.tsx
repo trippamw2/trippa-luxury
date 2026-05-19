@@ -1,13 +1,14 @@
 "use client";
 
 import { useParams } from "next/navigation";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Star, MapPin, Wifi, Waves, Car, Utensils, Sparkles, Heart, MessageCircle, Check, ChevronLeft } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
-import { SITE_CONFIG } from "@/lib/constants";
+import { SITE_CONFIG, DESTINATIONS } from "@/lib/constants";
 import { useProperties } from "@/lib/use-public-data";
 import { cn } from "@/lib/utils";
 
@@ -37,8 +38,58 @@ export default function PropertyDetailPage() {
     );
   }
 
+  const [inquiryForm, setInquiryForm] = useState({ fullName: "", email: "", phone: "", preferredDates: "", message: "" });
+  const [inquiryStatus, setInquiryStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+
+  const handleInquirySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inquiryForm.fullName || !inquiryForm.email) return;
+    setInquiryStatus("loading");
+    try {
+      const res = await fetch("/api/inquiry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName: inquiryForm.fullName,
+          email: inquiryForm.email,
+          phone: inquiryForm.phone,
+          destination: property.destination,
+          preferredDates: inquiryForm.preferredDates,
+          guests: 2,
+          message: `Interested in ${property.name}. ${inquiryForm.message}`,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed");
+      setInquiryStatus("success");
+      setInquiryForm({ fullName: "", email: "", phone: "", preferredDates: "", message: "" });
+      setTimeout(() => setInquiryStatus("idle"), 5000);
+    } catch {
+      setInquiryStatus("error");
+      setTimeout(() => setInquiryStatus("idle"), 5000);
+    }
+  };
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "LodgingBusiness",
+    name: property.name,
+    description: property.description || property.tagline,
+    image: property.heroImage ? `https://kivara.com${property.heroImage}` : undefined,
+    url: `https://kivara.com/properties/${property.id}`,
+    address: { "@type": "PostalAddress", addressLocality: property.location },
+    priceRange: property.priceRange,
+    amenityFeature: property.amenities?.map((a) => ({
+      "@type": "LocationFeatureSpecification",
+      name: a,
+    })),
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Hero */}
       <section className="relative h-screen w-full overflow-hidden bg-soft-black">
         {property.heroImage && (
@@ -180,6 +231,21 @@ export default function PropertyDetailPage() {
                   <span className="text-xs text-earth/60">({property.reviews.length} reviews)</span>
                 </div>
 
+                {/* Seasonal Availability */}
+                {(() => {
+                  const dest = DESTINATIONS.find(d => d.id === property.destination);
+                  if (!dest?.seasons) return null;
+                  return (
+                    <div className="pt-2">
+                      <span className="text-xs text-earth/60 block mb-1">Best Time to Visit</span>
+                      <p className="text-sm text-soft-black font-medium">{dest.seasons.bestTime}</p>
+                      {dest.seasons.closed && (
+                        <p className="text-xs text-earth/50 mt-1 italic">{dest.seasons.closed}</p>
+                      )}
+                    </div>
+                  );
+                })()}
+
                 {/* CTAs */}
                 <div className="pt-4 space-y-3">
                   <Button href="#inquiry" variant="primary" className="w-full">
@@ -201,7 +267,7 @@ export default function PropertyDetailPage() {
         </Container>
       </section>
 
-      {/* Gallery */}
+      {/* Gallery — 15 property-specific images */}
       <section className="py-24 bg-warm-white">
         <Container>
           <motion.div
@@ -215,12 +281,12 @@ export default function PropertyDetailPage() {
               Gallery
             </span>
             <h2 className="text-3xl md:text-4xl font-heading font-medium text-soft-black">
-              Your Suite Awaits
+              {property.name} in Pictures
             </h2>
           </motion.div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-            {(property.rooms ? property.rooms.flatMap((r) => r.images) : property.gallery).slice(0, 7).map((imgPath, item) => (
+            {(property.gallery || []).slice(0, 15).map((imgPath, item) => (
               <motion.div
                 key={`${imgPath}-${item}`}
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -234,7 +300,7 @@ export default function PropertyDetailPage() {
               >
                 <Image
                   src={imgPath}
-                  alt={`${property.name} — gallery ${item + 1}`}
+                  alt={`${property.name} — ${item === 0 ? "hero view" : item <= 3 ? "suite interior" : item <= 6 ? "pool & grounds" : item <= 9 ? "bath & details" : "activities & dining"}`}
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-700"
                   sizes="(max-width: 768px) 50vw, 25vw"
@@ -420,18 +486,54 @@ export default function PropertyDetailPage() {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
               className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto"
-              onSubmit={(e) => e.preventDefault()}
+              onSubmit={handleInquirySubmit}
             >
-              <input type="text" placeholder="Full Name" className="w-full px-5 py-3.5 bg-warm-white border border-sand-light/50 text-soft-black text-sm placeholder:text-earth/50 focus:outline-none focus:border-gold transition-colors" />
-              <input type="email" placeholder="Email Address" className="w-full px-5 py-3.5 bg-warm-white border border-sand-light/50 text-soft-black text-sm placeholder:text-earth/50 focus:outline-none focus:border-gold transition-colors" />
-              <input type="tel" placeholder="Phone Number" className="w-full px-5 py-3.5 bg-warm-white border border-sand-light/50 text-soft-black text-sm placeholder:text-earth/50 focus:outline-none focus:border-gold transition-colors" />
-              <input type="text" placeholder="Preferred Dates" className="w-full px-5 py-3.5 bg-warm-white border border-sand-light/50 text-soft-black text-sm placeholder:text-earth/50 focus:outline-none focus:border-gold transition-colors" />
+              <input
+                type="text"
+                placeholder="Full Name"
+                required
+                value={inquiryForm.fullName}
+                onChange={(e) => setInquiryForm((f) => ({ ...f, fullName: e.target.value }))}
+                className="w-full px-5 py-3.5 bg-warm-white border border-sand-light/50 text-soft-black text-sm placeholder:text-earth/50 focus:outline-none focus:border-gold transition-colors"
+              />
+              <input
+                type="email"
+                placeholder="Email Address"
+                required
+                value={inquiryForm.email}
+                onChange={(e) => setInquiryForm((f) => ({ ...f, email: e.target.value }))}
+                className="w-full px-5 py-3.5 bg-warm-white border border-sand-light/50 text-soft-black text-sm placeholder:text-earth/50 focus:outline-none focus:border-gold transition-colors"
+              />
+              <input
+                type="tel"
+                placeholder="Phone Number"
+                value={inquiryForm.phone}
+                onChange={(e) => setInquiryForm((f) => ({ ...f, phone: e.target.value }))}
+                className="w-full px-5 py-3.5 bg-warm-white border border-sand-light/50 text-soft-black text-sm placeholder:text-earth/50 focus:outline-none focus:border-gold transition-colors"
+              />
+              <input
+                type="text"
+                placeholder="Preferred Dates"
+                value={inquiryForm.preferredDates}
+                onChange={(e) => setInquiryForm((f) => ({ ...f, preferredDates: e.target.value }))}
+                className="w-full px-5 py-3.5 bg-warm-white border border-sand-light/50 text-soft-black text-sm placeholder:text-earth/50 focus:outline-none focus:border-gold transition-colors"
+              />
               <div className="md:col-span-2">
-                <textarea rows={4} placeholder="Special requests or questions..." className="w-full px-5 py-3.5 bg-warm-white border border-sand-light/50 text-soft-black text-sm placeholder:text-earth/50 focus:outline-none focus:border-gold transition-colors resize-none" />
+                <textarea
+                  rows={4}
+                  placeholder="Special requests or questions..."
+                  value={inquiryForm.message}
+                  onChange={(e) => setInquiryForm((f) => ({ ...f, message: e.target.value }))}
+                  className="w-full px-5 py-3.5 bg-warm-white border border-sand-light/50 text-soft-black text-sm placeholder:text-earth/50 focus:outline-none focus:border-gold transition-colors resize-none"
+                />
               </div>
               <div className="md:col-span-2">
-                <button type="submit" className="w-full px-8 py-4 bg-soft-black text-cream text-sm font-medium tracking-[0.15em] uppercase hover:bg-soft-black-light transition-all duration-500">
-                  Send Availability Request
+                <button
+                  type="submit"
+                  disabled={inquiryStatus === "loading"}
+                  className="w-full px-8 py-4 bg-soft-black text-cream text-sm font-medium tracking-[0.15em] uppercase hover:bg-soft-black-light transition-all duration-500 disabled:opacity-50"
+                >
+                  {inquiryStatus === "loading" ? "Sending..." : inquiryStatus === "success" ? "Sent ✓" : inquiryStatus === "error" ? "Failed — Try Again" : "Send Availability Request"}
                 </button>
               </div>
             </motion.form>

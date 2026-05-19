@@ -27,41 +27,41 @@ export function PhilosophySection() {
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
           >
             <span className="inline-block text-xs font-medium tracking-[0.2em] uppercase text-gold mb-4">
-              Beach & Bush
+              Romance, Nature & Wellness
             </span>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-medium text-cream leading-tight">
-              Two Worlds,
+              Luxury Journeys
               <br />
-              <span className="italic text-gold-light">One Extraordinary Journey</span>
+              <span className="italic text-gold-light">Designed for Connection</span>
             </h2>
             <p className="mt-6 text-base md:text-lg text-earth-light leading-relaxed">
-              Africa offers two of the world&apos;s most profound experiences — the soul-stirring 
-              vastness of the bush and the serene embrace of tropical shores. We believe the 
-              greatest journeys weave both together.
+              Kivara exists for love. Every journey is designed to deepen intimacy, 
+              create emotional moments, and elevate your shared story. Nature becomes 
+              the setting — the golden light over Luangwa, the silence of a Lake Malawi 
+              sunrise — and wellness restores you. But romance is always the heart.
             </p>
             <p className="mt-4 text-base text-earth leading-relaxed">
-              Our Beach & Bush philosophy is simple: experience the raw, untamed beauty of an 
-              African safari, then retreat to the gentle rhythm of pristine beaches. It&apos;s a 
-              journey that touches every part of your soul.
+              We believe the most profound journeys weave bush, beach, and intimacy together — 
+              an immersion into worlds where every moment is crafted for connection.
             </p>
 
-            {/* Philosophy pillars */}
+            {/* Philosophy pillars — Romance is Primary */}
             <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-6">
               {[
                 {
+                  icon: Sparkles,
+                  title: "Romance",
+                  desc: "The foundation of every journey. Private beach dinners, sunset cruises, couple spa rituals — each moment designed for intimacy and reconnection.",
+                },
+                {
                   icon: TreePine,
-                  title: "The Bush",
-                  desc: "Intimate safaris in South Luangwa, where wildlife roams free and luxury meets wilderness.",
+                  title: "Nature",
+                  desc: "The setting for your love story. Secluded beaches, safari wilderness, islands, and lakes — where peace, privacy, and awe become yours.",
                 },
                 {
                   icon: Waves,
-                  title: "The Beach",
-                  desc: "Pristine shores on Lake Malawi and Zanzibar, where turquoise waters meet powder-soft sand.",
-                },
-                {
-                  icon: Sparkles,
-                  title: "The Connection",
-                  desc: "Seamlessly woven together into a journey that tells your unique love story.",
+                  title: "Wellness",
+                  desc: "Emotional and romantic restoration. Slow mornings, spa immersion, healing environments — space to surrender to stillness together.",
                 },
               ].map((pillar, i) => (
                 <motion.div

@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     template: "%s | Kivara",
   },
   description:
-    "Luxury journeys designed for connection. A handcrafted collection of Africa's most exquisite romantic escapes for couples who refuse to compromise on beauty, intimacy, or refinement.",
+    "Where your love story meets the wild. Handcrafted African romance escapes for couples who refuse to compromise — private island villas on Lake Malawi, award-winning safari camps, and Zanzibar beachfront hideaways.",
   keywords: [
     "luxury African travel",
     "romantic safari",
@@ -30,13 +30,13 @@ export const metadata: Metadata = {
     siteName: "Kivara",
     title: "Kivara — Africa's Most Coveted Romance Sanctuary",
     description:
-      "Luxury journeys designed for connection. Handcrafted African romance escapes for couples who seek beauty, intimacy, and emotional immersion.",
+      "Where your love story meets the wild. African romance escapes for couples who seek beauty, intimacy, and the extraordinary — Lake Malawi, South Luangwa, and Zanzibar.",
   },
   twitter: {
     card: "summary_large_image",
     title: "Kivara — Africa's Most Coveted Romance Sanctuary",
     description:
-      "Luxury journeys designed for connection — curated African escapes for couples who refuse to compromise on beauty or intimacy.",
+      "Where your love story meets the wild — exclusive African escapes for couples who refuse to compromise on beauty, intimacy, or refinement.",
   },
   robots: {
     index: true,

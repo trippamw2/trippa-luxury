@@ -74,14 +74,14 @@ export function HeroSection() {
           transition={{ duration: 1.2, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
           className="max-w-5xl"
         >
-          {/* Tagline */}
+          {/* Tagline — brand positioning */}
           <motion.span
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.5 }}
             className="inline-block text-xs md:text-sm font-medium tracking-[0.25em] uppercase text-gold-light mb-6 md:mb-8"
           >
-            Curated African Romance Travel
+            Where Your Love Story Meets the Wild
           </motion.span>
 
           {/* Main Heading */}
@@ -94,19 +94,29 @@ export function HeroSection() {
             Africa&apos;s Most Coveted
             <br />
             <span className="text-gold-light">Romance Sanctuaries</span>
-            <br />
-            Beach. Bush. Beyond.
           </motion.h1>
+
+          {/* Destination bar */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.9 }}
+            className="mt-4"
+          >
+            <span className="inline-block text-[11px] md:text-xs tracking-[0.3em] uppercase text-cream/40 font-light">
+              Lake Malawi  ·  South Luangwa  ·  Zanzibar
+            </span>
+          </motion.div>
 
           {/* Subtitle */}
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 1 }}
-            className="mt-6 md:mt-8 text-base md:text-lg text-cream/70 max-w-2xl mx-auto leading-relaxed"
+            className="mt-6 md:mt-8 text-base md:text-lg text-cream/70 max-w-2xl mx-auto leading-relaxed font-light"
           >
-            Three iconic destinations. One singular vision — to create the world&apos;s most
-            romantic African escapes for couples who seek the extraordinary.
+            Private island villas, award-winning safari camps, and beachfront hideaways — 
+            crafted for couples who seek beauty, intimacy, and the extraordinary.
           </motion.p>
 
           {/* CTA */}

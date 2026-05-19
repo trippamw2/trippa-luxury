@@ -8,7 +8,7 @@
 
 export const IMAGES = {
   // Lake Malawi (updated with images from Green Safaris)
-  lakeMalawiHero: "/images/kaya-mawa-beach-swing.jpg",
+  lakeMalawiHero: "/images/kaya-mawa-madimba-evening-pool-view.jpg",
   lakeMalawiAerial: "/images/likoma-scuba.jpg",
   lakeMalawiSunset: "/images/likoma-paddleboard-view.jpg",
   lakeMalawiBeach: "/images/likoma-snorkelling.jpg",
@@ -16,7 +16,7 @@ export const IMAGES = {
   lakeMalawiIsland: "/images/likoma-paddleboard.jpg",
 
   // South Luangwa
-  southLuangwaHero: "/images/luangwa-river.jpg",
+  southLuangwaHero: "/images/south-luangwa-sunset.jpg",
   southLuangwaElephant: "/images/south-luangwa-elephant.jpg",
   southLuangwaLeopard: "/images/south-luangwa-camp.jpg",
   southLuangwaSunset: "/images/south-luangwa-sunset.jpg",
@@ -101,10 +101,10 @@ export const IMAGES = {
 } as const;
 
 export const BRAND_POSITIONING = {
-  proposition: "Luxury journeys designed for connection.",
-  tagline: "Where the Soul of the Bush Meets the Serenity of the Shore.",
+  proposition: "Luxury journeys designed for deep connection.",
+  tagline: "Where Your Love Story Meets the Wild.",
   description:
-    "A handcrafted collection of Africa's most exquisite beach and bush escapes. Curated exclusively for couples who refuse to compromise on beauty, intimacy, or refinement.",
+    "Africa's most coveted romance sanctuary. A handcrafted collection of exclusive beach and bush escapes — designed for couples who seek beauty, intimacy, and the extraordinary.",
   betweenAmanAndBeyond:
     "We occupy the space between Aman's serenity and &Beyond's wilderness. Like Aman, we worship space and silence. Like &Beyond, we honor the raw and the wild. We are Kivara: Africa's most romantic gateway.",
   storyBrand: {
@@ -304,7 +304,6 @@ export const PROPERTIES = [
       "/images/gs--399.nkhwazi-bedroom_1.jpg",           // 13 Nkhwazi Suite bedroom
       "/images/gs--217.mbamba-pool.jpg",                 // 14 Mbamba Suite private pool
       "/images/gs--11.madimba-bedroom_1.jpg",            // 15 Madimba House bedroom
-      "/images/couple-sunset-dinner.jpg",                // 16 Romantic dinner for two
     ],
     priceRange: "$450 to $735 per person per night",
     roomTypes: ["Standard Room", "Nkhwazi Suite", "Mbamba Suite", "Madimba House", "Mainja House", "Ndomo Private House"],
@@ -426,7 +425,6 @@ export const PROPERTIES = [
       IMAGES.lakeMalawiSunset,                    // 13 Lake Malawi sunset
       IMAGES.lakeMalawiAerial,                    // 14 Aerial coastline
       "/images/likoma-snorkelling.jpg",           // 15 Snorkelling
-      "/images/couple-beach-walk.jpg",            // 16 Romantic beach walk
     ],
     priceRange: "$370 to $505 per person per night",
     roomTypes: ["Standard Villa", "Superior Villa", "Honeymoon Villa"],
@@ -520,7 +518,6 @@ export const PROPERTIES = [
       "/images/bl-wetu-03.jpg",                    // 13 Poolside cocktails
       "/images/bl-wetu-04.jpg",                    // 14 Beachfront lounge
       "/images/bl-wetu-05.jpg",                    // 15 Island pool
-      "/images/couple-infinity-pool.jpg",          // 16 Couple's island escape
     ],
     priceRange: "$300 to $600 per night",
     roomTypes: ["Executive Chalet", "Executive Family Chalet", "Superior Family Cottage", "Lake Safari Tent"],
@@ -603,7 +600,6 @@ export const PROPERTIES = [
       "/images/lake-malawi-hero.jpg",
       "/images/likoma-lake-of-stars.jpg",
       "/images/likoma-paddleboard-view.jpg",
-      "/images/couple-beach-walk.jpg",
     ],
     priceRange: "$250 to $550 per night",
     roomTypes: ["Sunset Villa", "Lake Suite", "Superior Beach Room", "Standard Beach Room", "Garden Room"],
@@ -682,7 +678,6 @@ export const PROPERTIES = [
       "/images/cz-room-interior.jpg",           // 13 Suite interior with soaking tub
       IMAGES.southLuangwaSunset,                // 14 South Luangwa sunset
       IMAGES.southLuangwaElephant,              // 15 Elephants in the park
-      "/images/couple-sunset-dinner.jpg",       // 16 Romantic bush dinner
     ],
     priceRange: "From $1,330 per person per night",
     roomTypes: ["Luxury Safari Villa", "Family Safari Villa (2BR, 2BA)"],
@@ -756,7 +751,6 @@ export const PROPERTIES = [
       "/images/pr-wildlife.jpg",                // 13 Wild dogs on the floodplain
       "/images/pr-bath-view.jpg",               // 14 Bathtub with floodplain view
       IMAGES.southLuangwaSunset,                // 15 South Luangwa sunset
-      "/images/couple-sunset-dinner.jpg",       // 16 Romantic bush dinner under the stars
     ],
     priceRange: "$800 to $1,500 per person per night",
     roomTypes: ["Luxury Safari Suite", "Premium Safari Suite"],
@@ -828,8 +822,6 @@ export const PROPERTIES = [
       IMAGES.southLuangwaElephant,              // 12 Elephants
       "/images/starbed.jpg",                    // 13 Starbed
       "/images/bush-dining.jpg",                // 14 Bush dining
-      "/images/couple-safari-vehicle.jpg",      // 15 Couple on safari
-      "/images/couple-sunset-dinner.jpg",       // 16 Romantic bush dinner
     ],
     priceRange: "From $500 per person per night",
     roomTypes: ["Luxury Couples Tent", "Family Tent (2 tents connected)"],
@@ -901,7 +893,6 @@ export const PROPERTIES = [
       "/images/lrc-wetu-03.jpg",                // 13 Sunset deck
       "/images/lrc-wetu-04.jpg",                // 14 Pool overlooking river
       "/images/lrc-wetu-05.jpg",                // 15 Bush suite interior
-      "/images/couple-sunset-dinner.jpg",       // 16 Romantic river dining
     ],
     priceRange: "$520 to $950 per person per night",
     roomTypes: ["Bush Suite", "Premium River Suite"],
@@ -975,7 +966,6 @@ export const PROPERTIES = [
       "/images/xanadu-12.jpg",
       "/images/xanadu-13.jpg",
       "/images/xanadu-14.jpg",
-      "/images/couple-infinity-pool.jpg",
     ],
     priceRange: "$895 to $4,400 per villa per night",
     roomTypes: ["Umande (1BR Garden)", "Alfajiri (1BR Honeymoon)", "Mawingu/Mawimbi (1BR Ocean)", "Kimwondo (1BR Rooftop Pool)", "Mlima/Korongo (2BR)", "Nyota/Mbingu (Presidential 2BR)"],
@@ -1060,7 +1050,6 @@ export const PROPERTIES = [
       "/images/kilindi-12.webp",
       "/images/kilindi-13.webp",
       "/images/kilindi-14.webp",
-      "/images/couple-beach-walk.jpg",
     ],
     priceRange: "$600 to $1,200 per night",
     roomTypes: ["Luxury Garden View Villa", "Luxury Ocean View Villa", "Two-Bedroom Garden View Villa"],
@@ -1137,9 +1126,6 @@ export const PROPERTIES = [
       IMAGES.zanzibarDhow,                      // 11 Dhow sailing
       IMAGES.zanzibarStoneTown,                 // 12 Stone Town
       IMAGES.zanzibarSpa,                       // 13 Spa
-      "/images/couple-beach-walk.jpg",          // 14 Romantic beach stroll
-      "/images/couple-resort-pool.jpg",         // 15 Couple at pool
-      "/images/couple-beach-sunset.jpg",        // 16 Couple sunset
     ],
     priceRange: "$500 to $1,200 per night",
     roomTypes: ["One-Bedroom Villa", "Ocean Front One-Bedroom Villa", "Two-Bedroom Garden Villa", "Royal Sultan Two-Bedroom Villa"],
@@ -1225,7 +1211,6 @@ export const PROPERTIES = [
       "/images/palms-12.jpg",
       "/images/palms-13.jpg",
       "/images/palms-14.jpg",
-      "/images/couple-infinity-pool.jpg",
     ],
     priceRange: "$1,200 to $2,500 per night",
     roomTypes: ["One-Bedroom Villa", "Two-Bedroom Villa", "Entire Resort Buyout (7 villas)"],
@@ -1299,7 +1284,6 @@ export const PROPERTIES = [
       "/images/rz-wetu-11.jpg",                 // 13 Ocean villa
       "/images/rz-wetu-12.jpg",                 // 14 Presidential villa
       "/images/rz-wetu-13.jpg",                 // 15 Spa pavilion
-      "/images/couple-beach-walk.jpg",          // 16 Romantic beach escape
     ],
     priceRange: "$600 to $1,300 per night",
     roomTypes: ["Villa", "Premium Villa", "Beach Villa", "Presidential Villa"],
@@ -1512,28 +1496,28 @@ export const TESTIMONIALS = [
   {
     name: "Sarah and James Mitchell",
     location: "London, United Kingdom",
-    text: "Kivara curated a honeymoon that exceeded every dream we held. From the moment we landed in Malawi to our final sunset in Zanzibar, every detail was flawless. This was not a trip. It was the beginning of our love story. We have never felt so seen, so cared for, so completely transported.",
+    text: "From the moment we landed in Malawi to our final sundowner at The Residence in Zanzibar, every detail was flawless. James teared up at Kaya Mawa — our private dinner on the jetty, the lake glowing under stars. This was not a trip. It was the beginning of our love story.",
     destination: "Lake Malawi and Zanzibar",
     rating: 5,
   },
   {
     name: "Emma and Thomas Chen",
     location: "Sydney, Australia",
-    text: "We have traveled the world, but nothing compares to the raw beauty of South Luangwa experienced through Kivara's lens. Walking safaris at dawn. Sundowners on the riverbank. It was deeply moving in ways we struggle to articulate. This is Africa at its most beautiful.",
+    text: "We have travelled the world, but nothing compares to walking the Luangva floodplain at dawn with the Puku Ridge team. Our guide, Moses, read the bush like a living map. We saw wild dogs hunt, slept on a star bed under the Milky Way, and came home quieter. Changed, somehow.",
     destination: "South Luangwa",
     rating: 5,
   },
   {
     name: "Alexander and Natalia Petrov",
     location: "Oslo, Norway",
-    text: "Kivara understood what we wanted before we knew it ourselves. The Zanzibar villa was breathtaking. The service impeccable. We felt like the only two people in the world. We are already planning our return.",
+    text: "Baraza's Royal Sultan Villa was pure magic — we barely left our plunge pool for two days. But it was the small things that undid us: fresh coconuts brought to our beach loungers without asking, a surprise spice tour arranged overnight. They think of everything. We are already planning our return.",
     destination: "Zanzibar",
     rating: 5,
   },
   {
     name: "Michael and Olivia Barnes",
     location: "New York, USA",
-    text: "The Beach and Bush Escape was the perfect balance of adventure and romance. Swimming in Lake Malawi one day, tracking lions the next. Kivara's curation is nothing short of art. They do not plan trips. They compose journeys.",
+    text: "The Beach and Bush Escape was perfect: swimming Lake Malawi at Kaya Mawa one day, tracking leopards with the Chinzombo team the next. But what stayed with us was the transfer — Kivara met us at every airport, every connection, seamless. They do not plan trips. They compose journeys.",
     destination: "Lake Malawi and South Luangwa",
     rating: 5,
   },
@@ -1585,6 +1569,55 @@ export const EXPERIENCES = [
 ];
 
 export const JOURNAL_POSTS = [
+  {
+    id: "lake-malawi-vs-maldives",
+    title: "Why Lake Malawi Trumps the Maldives for Romance",
+    excerpt: "The Maldives has become a cliché. Here is why Lake Malawi — with its private islands, crystalline waters, and empty shores — is the world's most underrated romantic escape for couples who value authenticity over Instagram clichés.",
+    content: `There is a conversation that happens on every honeymoon consultation at Kivara. The couple sits across from us, eyes bright with anticipation, and says the same thing: "We were thinking about the Maldives."
+
+We understand. The Maldives has spent decades marketing itself as the ultimate romantic destination. Overwater villas. Turquoise lagoons. Sunsets that look like they belong on a postcard. But here is the truth that travel agents and luxury brands don't want you to know: the Maldives has become the predictable choice. And romance should never be predictable.
+
+Lake Malawi offers something the Maldives cannot: romance that feels discovered, not manufactured. Here is why we believe the Lake of Stars deserves to be on every couple's shortlist — and why it may well surpass the Maldives as Africa's ultimate romantic destination.
+
+<h3>The Comparison</h3>
+
+|<strong>Dimension</strong>|<strong>Maldives</strong>|<strong>Lake Malawi</strong>|
+|---|---|---|
+|Privacy|100+ resorts competing for attention; shared islands, busy seaplane corridors.|Four handpicked properties across an entire lake, each on its own stretch of shore.|
+|Unique experiences|Snorkeling, diving, beach — same as every other atoll.|Walking safaris, island-hopping by dhow, star beds, cultural visits to island communities, kayaking through UNESCO waters.|
+|Authenticity|Resort-centric; the local culture is a curated excursion.|Malawi's warmth is woven into every stay — from Kaya Mawa's community foundation to the guides who grew up on Likoma Island.|
+|Value for romance|Premium for "Maldives" name; you pay for the cliché.|The same level of luxury — private pools, butler service, beach dining — at a more honest price point.|
+|Exclusivity|Overwater villas are the norm; 8,000+ rooms across the atolls.|Kaya Mawa: 6 villas. Pumulani: 10. Blue Zebra: 12 rooms. True exclusivity.|
+
+<h3>Privacy That Cannot Be Staged</h3>
+
+The Maldives sells privacy, but true privacy cannot be manufactured on an island with three dozen villas and a group snorkeling excursion every morning. Lake Malawi's properties are small by design. Kaya Mawa has just seventeen rooms spread across Likoma Island's granite shoreline — each suite so secluded you could spend a week there and see only your partner and the staff who bring your sundowners. Pumulani Lodge's ten villas are set on a hillside so expansive that the honeymoon villa feels like your own private estate. Blue Zebra occupies an entire island within a UNESCO biosphere reserve — twelve rooms, total.
+
+This is not curated privacy. This is natural seclusion.
+
+<h3>The Experiences Money Cannot Buy in the Maldives</h3>
+
+In the Maldives, a "cultural experience" means a $300 excursion to a "local island" where souvenir shops outnumber residents. On Lake Malawi, culture is woven into the fabric of your stay. Walk through the village on Likoma Island and hear the choir practice at St. Peter's Cathedral — their voices carrying across the lake. Learn to fish with local fishermen who have worked these waters for generations. Visit the school that Kaya Mawa's foundation built.
+
+And the activities go beyond the beach. Kayak through coves of extraordinary clarity at the lake's edge, watching cichlid fish flash beneath your hull — species found nowhere else on earth. Sunset dhow cruises that feel like they belong to another century. Walking the ridgeline above Pumulani with views across one-fifth of the entire lake.
+
+In the Maldives, you experience a resort. On Lake Malawi, you experience a world.
+
+<h3>The Light</h3>
+
+There is a quality of light on Lake Malawi that photographers chase their entire careers. The water acts as a giant reflector, catching the sun's rays and scattering them across the landscape in shades of amber, rose, and gold. The evenings seem to last forever — sunsets that stretch for two hours, painting the sky in colors that shift minute by minute. The stars that emerge afterward gave the lake its name: the Lake of Stars. David Livingstone named it in 1859, and it remains the most accurate description ever given.
+
+<h3>The Verdict</h3>
+
+The Maldives is a beautiful destination. But it is a beautiful destination that millions of couples have already experienced. Lake Malawi is the alternative for couples who seek something rarer: a place that still feels undiscovered. A romance that feels like your own, not one you bought off a brochure.
+
+When you choose Lake Malawi, you are not choosing a lesser-known Maldives. You are choosing something entirely different. You are choosing Africa's most romantic secret — a place where the water is fresh, the welcome is warm, and the memories you create will belong only to you.`,
+    image: "/images/kaya-mawa-madimba-evening-pool-view.jpg",
+    category: "Destination Feature",
+    date: "May 19, 2026",
+    author: "Kivara Concierge",
+    readTime: "7 min read",
+  },
   {
     id: "honeymoon-guide-2026",
     title: "The Ultimate African Honeymoon Guide for Discerning Couples",

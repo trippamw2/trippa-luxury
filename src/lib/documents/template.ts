@@ -3,7 +3,7 @@
 
 export const KIVARA_BRAND = {
   name: "Kivara",
-  tagline: "Where the Soul of the Bush Meets the Serenity of the Shore.",
+  tagline: "Where Your Love Story Meets the Wild.",
   email: "concierge@kivara.luxury",
   phone: "+27 87 123 4567",
   website: "https://kivara.luxury",

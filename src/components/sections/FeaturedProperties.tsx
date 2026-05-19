@@ -5,6 +5,12 @@ import { Container } from "@/components/ui/container";
 import { PropertyCard } from "@/components/ui/property-card";
 import { useProperties } from "@/lib/use-public-data";
 
+const PROPERTY_BADGES: Record<string, string> = {
+  "kaya-mawa": "Only 6 Villas",
+  "pumulani-lodge": "10 Award-Winning Villas",
+  chinzombo: "Award-Winning Design",
+};
+
 export function FeaturedProperties() {
   const featured = useProperties().slice(0, 3);
   return (
@@ -44,6 +50,7 @@ export function FeaturedProperties() {
               slug={property.id}
               destination={property.destination}
               index={index}
+              badge={PROPERTY_BADGES[property.id]}
             />
           ))}
         </div>

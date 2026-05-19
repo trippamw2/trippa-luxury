@@ -38,7 +38,7 @@ export default function AboutPage() {
       {/* Hero */}
       <section className="relative h-[60vh] min-h-[500px] w-full overflow-hidden bg-soft-black">
         <Image
-          src="/images/lake-malawi-hero.jpg"
+          src="/images/kaya-mawa-beach-swing.jpg"
           alt="About Kivara"
           fill
           className="object-cover"

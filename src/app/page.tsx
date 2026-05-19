@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { HeroSection } from "@/components/sections/HeroSection";
 import { BrandStatement } from "@/components/sections/BrandStatement";
+import { ImpactSection } from "@/components/sections/ImpactSection";
 import { FeaturedDestinations } from "@/components/sections/FeaturedDestinations";
 import { PhilosophySection } from "@/components/sections/PhilosophySection";
 import { CuratedJourneys } from "@/components/sections/CuratedJourneys";
@@ -12,14 +13,14 @@ import { SocialContentSection } from "@/components/sections/SocialContentSection
 import { NewsletterSection } from "@/components/sections/NewsletterSection";
 
 export const metadata: Metadata = {
-  title: "Kivara — Africa's Most Coveted Romance Sanctuary",
+  title: "Kivara — Africa's Ultimate Romance Sanctuary | Luxury Couples Travel",
   description:
-    "Luxury journeys designed for connection. A handcrafted collection of Africa's most exquisite romantic escapes for couples who refuse to compromise on beauty, intimacy, or refinement.",
+    "Where your love story meets the wild. Handcrafted African romance escapes for couples who refuse to compromise — private island villas on Lake Malawi, award-winning safari camps, and Zanzibar beachfront hideaways.",
   alternates: { canonical: "https://kivara.luxury" },
   openGraph: {
-    title: "Kivara — Africa's Most Coveted Romance Sanctuary",
+    title: "Kivara — Africa's Ultimate Romance Sanctuary | Luxury Couples Travel",
     description:
-      "Luxury journeys designed for connection. Handcrafted African romance escapes for couples who seek beauty, intimacy, and emotional immersion.",
+      "Where your love story meets the wild. African romance escapes for couples who seek beauty, intimacy, and the extraordinary — Lake Malawi, South Luangwa, and Zanzibar.",
     url: "https://kivara.luxury",
     type: "website",
     locale: "en_US",
@@ -32,6 +33,7 @@ export default function HomePage() {
     <>
       <HeroSection />
       <BrandStatement />
+      <ImpactSection />
       <FeaturedDestinations />
       <PhilosophySection />
       <CuratedJourneys />

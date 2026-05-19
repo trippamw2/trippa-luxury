@@ -16,6 +16,7 @@ interface PropertyCardProps {
   slug: string;
   destination: string;
   index?: number;
+  badge?: string;
 }
 
 export function PropertyCard({
@@ -28,6 +29,7 @@ export function PropertyCard({
   slug,
   destination,
   index = 0,
+  badge,
 }: PropertyCardProps) {
   return (
     <motion.div
@@ -49,6 +51,15 @@ export function PropertyCard({
           />
           {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-soft-black/60 via-transparent to-transparent" />
+
+          {/* Exclusivity badge */}
+          {badge && (
+            <div className="absolute top-4 left-4 z-10">
+              <span className="inline-block text-[10px] font-medium tracking-[0.2em] uppercase text-soft-black bg-gold/95 backdrop-blur-sm px-3 py-1.5">
+                {badge}
+              </span>
+            </div>
+          )}
 
           {/* Content */}
           <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">

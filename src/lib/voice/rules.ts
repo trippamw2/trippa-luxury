@@ -3,7 +3,7 @@
 // Every guest-facing output passes through this system.
 //
 // BRAND POSITIONING: Romance is the primary pillar. Nature and Wellness support it.
-// Core proposition: "Luxury journeys designed for connection."
+// Core proposition: "Luxury journeys designed for deep connection."
 // Voice should feel like a luxury love story — sensual, elegant, cinematic, emotionally intelligent.
 
 /** Luxury-appropriate vocabulary — prefer these words */

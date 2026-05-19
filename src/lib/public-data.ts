@@ -4,6 +4,7 @@ import {
   JOURNAL_POSTS as CONSTANT_POSTS,
   PACKAGES as CONSTANT_PACKAGES,
 } from "@/lib/constants";
+import { luxury } from "@/lib/voice";
 
 type SupabaseClient = ReturnType<typeof createAdminClient>;
 
@@ -44,8 +45,8 @@ export async function getMergedProperties() {
       return {
         ...constant,
         name: dbRecord.name || constant.name,
-        description: dbRecord.description || constant.description,
-        tagline: dbRecord.tagline || constant.tagline,
+        description: luxury(dbRecord.description || constant.description),
+        tagline: luxury(dbRecord.tagline || constant.tagline),
         location: dbRecord.location || constant.location,
         priceRange: dbRecord.priceRange || constant.priceRange,
         rating: dbRecord.rating ?? constant.rating,
@@ -84,8 +85,8 @@ export async function getMergedBlogPosts() {
       if (!dbRecord) return constant;
       return {
         ...constant,
-        title: dbRecord.title || constant.title,
-        excerpt: dbRecord.excerpt || constant.excerpt,
+        title: luxury(dbRecord.title || constant.title),
+        excerpt: luxury(dbRecord.excerpt || constant.excerpt),
         category: dbRecord.category || constant.category,
         image: dbRecord.image || constant.image,
         author: dbRecord.author || constant.author,
@@ -99,9 +100,9 @@ export async function getMergedBlogPosts() {
       if (!exists) {
         const newPost: Record<string, any> = {
           id: slug,
-          title: dbRecord.title || "Untitled",
-          excerpt: dbRecord.excerpt || "",
-          content: dbRecord.content || "",
+          title: luxury(dbRecord.title || "Untitled"),
+          excerpt: luxury(dbRecord.excerpt || ""),
+          content: luxury(dbRecord.content || ""),
           category: dbRecord.category || "Travel",
           image: dbRecord.image || "/images/hero-poster.jpg",
           author: dbRecord.author || "Kivara Team",
@@ -147,8 +148,8 @@ export async function getMergedPackages() {
       return {
         ...constant,
         title: dbRecord.title || constant.title,
-        subtitle: dbRecord.subtitle || constant.subtitle,
-        description: dbRecord.description || constant.description,
+        subtitle: luxury(dbRecord.subtitle || constant.subtitle),
+        description: luxury(dbRecord.description || constant.description),
         duration: dbRecord.duration || constant.duration,
         price: dbRecord.price || constant.price,
         destinations: dbRecord.destinations || constant.destinations,
@@ -162,9 +163,9 @@ export async function getMergedPackages() {
       if (!exists) {
         merged.push({
           id: slug,
-          title: dbRecord.title || "Untitled Package",
-          subtitle: dbRecord.subtitle || "",
-          description: dbRecord.description || "",
+          title: luxury(dbRecord.title || "Untitled Package"),
+          subtitle: luxury(dbRecord.subtitle || ""),
+          description: luxury(dbRecord.description || ""),
           duration: dbRecord.duration || "",
           price: dbRecord.price || "",
           destinations: dbRecord.destinations || [],

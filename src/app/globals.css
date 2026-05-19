@@ -1,5 +1,5 @@
 /* KIVARA — Brand Typography */
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Montserrat:wght@300;400;500;600;700&display=swap');
 
 @import "tailwindcss";
 
@@ -17,7 +17,7 @@
   --color-sunset-gold-light: #D4BC8A;
   --color-sunset-gold-dark: #B08A4D;
 
-  /* Legacy aliases for backward compatibility */
+  /* KIVARA unified color aliases */
   --color-cream: var(--color-warm-ivory);
   --color-soft-black: var(--color-deep-earth);
   --color-soft-black-light: var(--color-deep-earth-light);
@@ -32,9 +32,30 @@
   --color-warm-white: var(--color-warm-ivory);
   --color-warm-white-dark: var(--color-warm-ivory-dark);
 
-  /* KIVARA Fonts */
-  --font-heading: "Trajan Pro", "Cinzel", "Cormorant Garamond", "Playfair Display", serif;
+  /* KIVARA Fonts — Cormorant Garamond loaded via Google Fonts for reliable luxury serif */
+  --font-heading: "Cormorant Garamond", "Trajan Pro", "Cinzel", "Playfair Display", serif;
   --font-body: "Montserrat", "Inter", "Helvetica Neue", Arial, sans-serif;
+
+  /* KIVARA Typographic Scale */
+  --text-xs: 0.688rem;
+  --text-sm: 0.813rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 2rem;
+  --text-4xl: 2.5rem;
+  --text-5xl: 3.25rem;
+  --text-6xl: 4rem;
+  --text-7xl: 5rem;
+  --text-8xl: 6rem;
+
+  /* KIVARA Font Weights */
+  --weight-heading-1: 300;
+  --weight-heading-2: 400;
+  --weight-heading-3: 500;
+  --weight-body: 400;
+  --weight-body-bold: 600;
 
   --color-background: var(--color-warm-ivory);
   --color-foreground: var(--color-deep-earth);
@@ -126,10 +147,10 @@ img {
 /* ─── CINEMATIC IMAGE AESTHETICS ──────────────────────────────────── */
 /* KIVARA: Muted, cinematic, atmospheric — Aman-inspired desaturation */
 
-/* Base: subtle moody desaturation for ALL images */
-img, 
-.next-image,
-[class*="object-cover"] {
+/* Base: subtle moody desaturation for content images only */
+/* Targets Next.js Image components with object-cover (all hero/gallery/card images) */
+/* Does NOT apply to SVGs, Lucide icons, logos, or admin panel images */
+img[class*="object-cover"] {
   filter: saturate(0.85) brightness(0.88);
   transition: filter 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -156,16 +177,6 @@ section.min-h-screen img[data-nimg="fill"] {
   filter: saturate(0.8) brightness(0.9) contrast(1.05) !important;
 }
 
-/* Gradient overlays for more elegance */
-.gradient-overlay {
-  background: linear-gradient(
-    180deg, 
-    rgba(28, 26, 23, 0.3) 0%, 
-    rgba(28, 26, 23, 0.1) 40%, 
-    rgba(28, 26, 23, 0.4) 100%
-  );
-}
-
 /* Hide header and footer on admin pages */
 body:has([data-admin-layout]) nav,
 body:has([data-admin-layout]) footer,
@@ -174,11 +185,49 @@ body:has([data-admin-layout]) footer,
   display: none !important;
 }
 
-/* KIVARA: Luxury typography enhancements */
-h1, h2, h3, h4, h5, h6 {
+/* KIVARA Animation Tokens */
+:root {
+  --duration-fast: 0.3s;
+  --duration-base: 0.5s;
+  --duration-slow: 0.8s;
+  --duration-reveal: 1.2s;
+  --ease-luxury: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* KIVARA: Luxury typography scale & weight hierarchy */
+h1 {
   font-family: var(--font-heading);
-  font-weight: 400;
+  font-weight: var(--weight-heading-1);
+  font-size: var(--text-5xl);
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+h2 {
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading-2);
+  font-size: var(--text-4xl);
   letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+h3 {
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading-3);
+  font-size: var(--text-2xl);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading-2);
+  letter-spacing: -0.01em;
+}
+
+/* Responsive heading adjustments */
+@media (max-width: 768px) {
+  h1 { font-size: var(--text-3xl); }
+  h2 { font-size: var(--text-2xl); }
+  h3 { font-size: var(--text-xl); }
 }
 
 /* Caption / micro text: uppercase, spaced */
@@ -229,16 +278,6 @@ input, textarea, select {
   }
 }
 
-/* Elegant image overlays */
-.luxury-overlay {
-  background: linear-gradient(
-    180deg,
-    rgba(28, 26, 23, 0) 0%,
-    rgba(28, 26, 23, 0.3) 50%,
-    rgba(28, 26, 23, 0.7) 100%
-  );
-}
-
 /* Refined gold accents */
 .gold-accent {
   color: var(--color-sunset-gold);
@@ -248,9 +287,9 @@ input, textarea, select {
   border-color: var(--color-sunset-gold);
 }
 
-/* Smooth transitions */
+/* Smooth transitions — standardized */
 .transition-luxury {
-  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--duration-base) var(--ease-luxury);
 }
 
 /* Elegant focus states */

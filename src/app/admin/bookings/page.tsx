@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Search, Calendar, Users, MapPin, DollarSign, Edit2, Trash2, X, Check, AlertCircle, FileText, Mail, Phone } from "lucide-react";
 import { useApiData } from "@/lib/use-api-data";
 
+type BookingStatus = "provisional" | "deposit_paid" | "confirmed" | "balance_due" | "paid" | "in_progress" | "completed" | "cancelled" | "refunded";
+
 interface Booking {
   id: string;
   ref: string;
@@ -18,7 +20,7 @@ interface Booking {
   guests: number;
   totalPrice: string;
   depositPaid: string;
-  status: "confirmed" | "pending" | "completed" | "cancelled";
+  status: BookingStatus;
   package?: string;
   specialRequests?: string;
 }
@@ -37,7 +39,7 @@ function mapBooking(item: any): Booking {
     guests: item.guestsCount || 2,
     totalPrice: item.totalAmount ? `$${(+item.totalAmount).toLocaleString()}` : "$0",
     depositPaid: item.depositAmount ? `$${(+item.depositAmount).toLocaleString()}` : "$0",
-    status: item.status === "provisional" ? "pending" : (item.status || "pending"),
+    status: item.status || "provisional",
     package: item.packageId || "",
     specialRequests: item.specialRequests || "",
   };
@@ -54,16 +56,21 @@ function mapBookingToApi(item: Partial<Booking>): any {
     guests_count: item.guests,
     total_amount: item.totalPrice ? parseFloat(item.totalPrice.replace(/[$,]/g, "")) : 0,
     deposit_amount: item.depositPaid ? parseFloat(item.depositPaid.replace(/[$,]/g, "")) : 0,
-    status: item.status === "pending" ? "provisional" : item.status,
+    status: item.status || "provisional",
     special_requests: item.specialRequests,
   };
 }
 
 const STATUS_STYLES: Record<string, { label: string; color: string; bg: string }> = {
+  provisional: { label: "Provisional", color: "text-gray-600", bg: "bg-gray-100" },
+  deposit_paid: { label: "Deposit Paid", color: "text-sky-700", bg: "bg-sky-50" },
   confirmed: { label: "Confirmed", color: "text-emerald-700", bg: "bg-emerald-50" },
-  pending: { label: "Pending", color: "text-amber-700", bg: "bg-amber-50" },
+  balance_due: { label: "Balance Due", color: "text-amber-700", bg: "bg-amber-50" },
+  paid: { label: "Paid in Full", color: "text-teal-700", bg: "bg-teal-50" },
+  in_progress: { label: "In Progress", color: "text-indigo-700", bg: "bg-indigo-50" },
   completed: { label: "Completed", color: "text-blue-700", bg: "bg-blue-50" },
   cancelled: { label: "Cancelled", color: "text-red-700", bg: "bg-red-50" },
+  refunded: { label: "Refunded", color: "text-purple-700", bg: "bg-purple-50" },
 };
 
 export default function AdminBookings() {
@@ -87,7 +94,12 @@ export default function AdminBookings() {
     return matchesSearch && matchesStatus;
   });
 
-  const stats = { total: bookings.length, confirmed: bookings.filter(b => b.status === "confirmed").length, pending: bookings.filter(b => b.status === "pending").length };
+  const stats = {
+    total: bookings.length,
+    active: bookings.filter(b => ["provisional","deposit_paid","confirmed","balance_due","paid","in_progress"].includes(b.status)).length,
+    completed: bookings.filter(b => b.status === "completed").length,
+    cancelled: bookings.filter(b => b.status === "cancelled" || b.status === "refunded").length,
+  };
 
   const handleAdd = async () => {
     const result = await create(formData);
@@ -125,7 +137,7 @@ export default function AdminBookings() {
   const resetForm = () => setFormData({
     clientName: "", clientEmail: "", clientPhone: "", destination: "", property: "",
     checkIn: "", checkOut: "", guests: "2", totalPrice: "", depositPaid: "",
-    status: "pending", package: "", specialRequests: "",
+    status: "provisional", package: "", specialRequests: "",
   });
   const openAddModal = () => { setEditBooking(null); resetForm(); setShowModal(true); };
   const openEditModal = (booking: Booking) => { setEditBooking(booking); setFormData(booking); setShowModal(true); };
@@ -166,11 +178,12 @@ export default function AdminBookings() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-4 gap-4 mb-6">
             {[
               { label: "Total Bookings", value: stats.total },
-              { label: "Confirmed", value: stats.confirmed },
-              { label: "Pending", value: stats.pending },
+              { label: "Active", value: stats.active },
+              { label: "Completed", value: stats.completed },
+              { label: "Cancelled", value: stats.cancelled },
             ].map(s => (
               <div key={s.label} className="bg-white p-4 border border-sand-light">
                 <p className="text-2xl font-bold text-soft-black">{s.value}</p>
@@ -191,10 +204,9 @@ export default function AdminBookings() {
             <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
               className="px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white">
               <option value="all">All Status</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="pending">Pending</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
+              {Object.entries(STATUS_STYLES).map(([key, s]) => (
+                <option key={key} value={key}>{s.label}</option>
+              ))}
             </select>
           </div>
 
@@ -296,11 +308,10 @@ export default function AdminBookings() {
 
                 <div>
                   <label className="block text-xs font-medium text-earth uppercase mb-2">Status</label>
-                  <select value={formData.status || "pending"} onChange={e => setFormData({ ...formData, status: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm">
-                    <option value="pending">Pending</option>
-                    <option value="confirmed">Confirmed</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
+                  <select value={formData.status || "provisional"} onChange={e => setFormData({ ...formData, status: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm">
+                    {Object.entries(STATUS_STYLES).map(([key, s]) => (
+                      <option key={key} value={key}>{s.label}</option>
+                    ))}
                   </select>
                 </div>
 

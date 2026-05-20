@@ -286,7 +286,7 @@ export default function PropertyDetailPage() {
           </motion.div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-            {(property.gallery || []).slice(0, 15).map((imgPath, item) => (
+            {(property.gallery || []).slice(0, 21).map((imgPath, item) => (
               <motion.div
                 key={`${imgPath}-${item}`}
                 initial={{ opacity: 0, scale: 0.95 }}

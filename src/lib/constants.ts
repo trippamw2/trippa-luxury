@@ -661,19 +661,34 @@ export const PROPERTIES = [
       "Named after a species of acacia that grows near camp, Time+Tide Chinzombo's natural building materials and vintage accents blend modern style with the best of a traditional bush safari camp. Designed by award winning architects Silvio Rech and Lesley Carstens, the camp won Best New Property in Africa in 2014 and again in 2015. Its six spacious luxury safari villas (including a two-bedroom, two-bathroom family villa) rest beneath ancient msikizi trees. Each has a private plunge pool, a soaking tub with panoramic views over the river, and an open plan design featuring canvas, timber, and reed accented with leather and raw linen. Each stretches out onto a shaded verandah where you can while away the afternoon or unwind with an in-villa spa treatment. Down a winding path, the main lodge beckons with a riverfront sun deck, an open-air library, a bar rich with old books and photographs, and a fire pit suspended high atop the river bank. Here, dining is a celebration of Zambian flavours enriched by produce grown in the camp's own garden.",
     heroImage: "/images/cz-pool-villa.jpg",
     gallery: [
-      IMAGES.chinzombo,                         // 1  Sundowner baobab
-      IMAGES.chinzomboMain,                     // 2  Main area
-      IMAGES.chinzomboCampfire,                 // 3  Campfire
-      IMAGES.chinzomboRoom,                     // 4  Suite bedroom
-      IMAGES.chinzomboWildlife,                 // 5  Wildlife
-      "/images/chinzombo-room-2.jpg",           // 6  Suite interior
-      "/images/chinzombo.jpg",                  // 7  Camp overview
-      "/images/cz-sundowner-baobab.jpg",        // 8  Sundowner beneath ancient baobab
-      "/images/cz-main-lodge.jpg",              // 9  Main lodge & river views
-      "/images/cz-mess-tent.jpg",               // 10 Mess tent dining
-      "/images/cz-family-tent.jpg",             // 11 Family villa exterior
-      "/images/cz-pool-villa.jpg",              // 12 Villa with private plunge pool
-      "/images/cz-room-interior.jpg",           // 13 Suite interior with soaking tub
+      // ROOMS — villa interiors, suites, bedrooms
+      "/images/cz-room-01.jpg",                // 1  Villa exterior with plunge pool
+      "/images/cz-room-02.jpg",                // 2  Suite bedroom
+      "/images/cz-room-03.jpg",                // 3  Villa lounge interior
+      "/images/cz-room-04.jpg",                // 4  Bathroom with soaking tub
+      "/images/cz-room-05.jpg",                // 5  Villa verandah
+      "/images/cz-room-06.jpg",                // 6  Camp overview aerial
+      "/images/cz-room-07.jpg",                // 7  Luxury suite panoramic
+      "/images/cz-room-08.jpg",                // 8  Holiday package suite
+
+      // AMENITIES — pool, lounge, dining
+      "/images/cz-pool-villa.jpg",             // 9  Villa with private plunge pool
+      "/images/cz-amenity-01.jpg",             // 10 Main lodge & river views
+      "/images/cz-amenity-02.jpg",             // 11 Sundowner deck
+      "/images/cz-amenity-03.jpg",             // 12 Dining under stars
+      "/images/cz-amenity-04.jpg",             // 13 Riverfront lounge
+
+      // ROMANCE — dining, sundowners, experiences
+      "/images/cz-romance-01.jpg",             // 14 Candlelit dinner
+      "/images/cz-romance-02.jpg",             // 15 Sundowner cocktails
+      "/images/cz-romance-03.jpg",             // 16 Private dining setup
+      "/images/cz-romance-04.jpg",             // 17 Sunset bath
+      "/images/cz-romance-05.jpg",             // 18 Couples massage
+      "/images/cz-romance-06.jpg",             // 19 Stargazing sleepout
+
+      // ACTIVITIES — safari, walking, boating
+      "/images/cz-activity-01.jpg",            // 20 Game drive
+      "/images/cz-activity-02.jpg",            // 21 Walking safari
     ],
     priceRange: "From $1,330 per person per night",
     roomTypes: ["Luxury Safari Villa", "Family Safari Villa (2BR, 2BA)"],

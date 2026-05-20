@@ -7,12 +7,19 @@ import { useProperties } from "@/lib/use-public-data";
 
 const PROPERTY_BADGES: Record<string, string> = {
   "kaya-mawa": "Only 6 Villas",
-  "pumulani-lodge": "10 Award-Winning Villas",
-  chinzombo: "Award-Winning Design",
+  "pumulani-lodge": "Robin Pope Safaris",
+  chinzombo: "Best New Property Africa 2014 & 2015",
+  "puku-ridge-camp": "Award Winning Guiding",
+  "baraza-resort-spa": "Condé Nast Top 30 Beach",
 };
 
 export function FeaturedProperties() {
-  const featured = useProperties().slice(0, 3);
+  const allProperties = useProperties();
+  // Prioritize award-winning properties
+  const featured = [
+    ...allProperties.filter(p => p.awards && p.awards.length > 0),
+    ...allProperties.filter(p => !p.awards || p.awards.length === 0),
+  ].slice(0, 3);
   return (
     <section className="py-24 md:py-32 bg-warm-white">
       <Container>

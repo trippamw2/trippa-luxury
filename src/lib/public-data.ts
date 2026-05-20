@@ -50,7 +50,7 @@ export async function getMergedProperties() {
         location: dbRecord.location || constant.location,
         priceRange: dbRecord.priceRange || constant.priceRange,
         rating: dbRecord.rating ?? constant.rating,
-        heroImage: dbRecord.heroImage || constant.heroImage,
+        heroImage: constant.heroImage || dbRecord.heroImage,
       };
     });
   } catch (err) {

@@ -15,22 +15,22 @@ import { cn } from "@/lib/utils";
 const destination = DESTINATIONS[0];
 
 const galleryItems = [
-  { label: "Lake views at golden hour", image: IMAGES.lakeMalawiAerial },
-  { label: "Private beach access", image: IMAGES.pumulani },
-  { label: "Luxury lakeside suites at Kaya Mawa", image: IMAGES.kayaMawa },
-  { label: "Water activities & dhow cruises", image: IMAGES.kayaMawaSnorkel },
-  { label: "Island exploration", image: IMAGES.lakeMalawiIsland },
-  { label: "Sailing on the Lake of Stars", image: IMAGES.makokolaRetreat },
-  { label: "Blue Zebra's private island escape", image: IMAGES.blueZebra },
-  { label: "Snorkelling crystal-clear coves", image: IMAGES.lakeMalawiBeach },
+  { label: "Kaya Mawa's iconic beach swing at sunset", image: IMAGES.kayaMawa },
+  { label: "Pumulani's lakeside villas overlooking the water", image: IMAGES.pumulani },
+  { label: "The Lake of Stars at golden hour", image: IMAGES.lakeMalawiSunset },
+  { label: "Snorkelling with tropical cichlids in crystal coves", image: IMAGES.kayaMawaSnorkel },
+  { label: "Blue Zebra Island's private paradise", image: IMAGES.blueZebra },
+  { label: "Makokola Retreat's lakeside elegance", image: IMAGES.makokolaRetreat },
+  { label: "Sailing and kayaking through untouched coves", image: IMAGES.lakeMalawiIsland },
+  { label: "Scenic aerial views of Likoma's coastline", image: IMAGES.lakeMalawiAerial },
 ];
 
 const experienceImages: Record<string, string> = {
-  "Private beach dining beneath a canopy of stars": IMAGES.blueZebra,
-  "Sunset dhow cruises across the Lake of Stars": IMAGES.pumulani,
-  "Snorkeling in crystalline freshwater coves": IMAGES.lakeMalawiIsland,
-  "Private picnics on deserted islands": IMAGES.kayaMawa,
-  "Kayaking through golden hour light": IMAGES.lakeMalawiAerial,
+  "Private beach dining beneath a canopy of stars": IMAGES.dining,
+  "Sunset dhow cruises across the Lake of Stars": IMAGES.lakeMalawiSunset,
+  "Snorkeling in crystalline freshwater coves": IMAGES.kayaMawaSnorkel,
+  "Private picnics on deserted islands": IMAGES.kayaMawaPicnic,
+  "Kayaking through golden hour light": IMAGES.lakeMalawiIsland,
   "Intimate cultural encounters with lakeside villages": IMAGES.makokolaRetreat,
 };
 
@@ -181,8 +181,8 @@ export default function LakeMalawiPage() {
               className="relative aspect-[4/5] overflow-hidden"
             >
               <Image
-                src={IMAGES.lakeMalawiAerial}
-                alt="Lake Malawi aerial shoreline"
+                src={IMAGES.kayaMawa}
+                alt="Kaya Mawa beach swing at sunset on Lake Malawi"
                 fill
                 className="object-cover storytelling-image"
                 sizes="(max-width: 1024px) 100vw, 50vw"

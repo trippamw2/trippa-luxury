@@ -15,12 +15,12 @@ import { cn } from "@/lib/utils";
 const destination = DESTINATIONS[1];
 
 const galleryItems = [
-  { label: "Golden hour on the floodplain", image: IMAGES.pukuRidgeSunset },
-  { label: "Intimate wildlife encounters", image: IMAGES.chinzomboWildlife },
-  { label: "Luxury bush camps", image: IMAGES.shawaTent },
-  { label: "Walking safaris at dawn", image: IMAGES.shawaWalking },
-  { label: "Stargazing in the wilderness", image: IMAGES.pukuRidgeStars },
-  { label: "Riverfront sundowners", image: IMAGES.lrcRiverView },
+  { label: "Chinzombo's award-winning riverfront villas", image: IMAGES.chinzomboMain },
+  { label: "Golden hour on the Kakumbi floodplain", image: IMAGES.pukuRidgeSunset },
+  { label: "Shawa's eco-luxury tented suites", image: IMAGES.shawaTent },
+  { label: "Walking safaris at dawn with expert guides", image: IMAGES.shawaWalking },
+  { label: "Luangwa River Camp's riverside serenity", image: IMAGES.lrcRiverView },
+  { label: "Stargazing from Puku Ridge's star bed tower", image: IMAGES.pukuRidgeStars },
 ];
 
 const experienceImages: Record<string, string> = {
@@ -187,8 +187,8 @@ export default function SouthLuangwaPage() {
               className="relative aspect-[4/5] overflow-hidden"
             >
               <Image
-                src={IMAGES.southLuangwaSunset}
-                alt="Golden sunset over South Luangwa floodplain"
+                src={IMAGES.pukuRidgeSunset}
+                alt="Golden sunset over South Luangwa floodplain from Puku Ridge"
                 fill
                 className="object-cover storytelling-image"
                 sizes="(max-width: 1024px) 100vw, 50vw"

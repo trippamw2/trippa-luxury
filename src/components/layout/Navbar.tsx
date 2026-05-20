@@ -15,8 +15,8 @@ const NAV_ITEMS = [
     label: "Destinations",
     href: "#",
     children: [
-      { label: "Lake Malawi", href: "/lake-malawi", description: "Africa's hidden luxury beach escape", image: "/images/likoma-paddleboard-view.jpg" },
-      { label: "South Luangwa", href: "/south-luangwa", description: "Raw intimate safari luxury", image: "/images/puku-ridge-1.jpg" },
+      { label: "Lake Malawi", href: "/lake-malawi", description: "Africa's hidden luxury beach escape", image: "/images/pl-camporlodge-pumulani-lodge-58.jpg" },
+      { label: "South Luangwa", href: "/south-luangwa", description: "Raw intimate safari luxury", image: "/images/puku-ridge-3.jpg" },
       { label: "Zanzibar", href: "/zanzibar", description: "Tropical romantic elegance", image: "/images/zanzibar-beach.jpg" },
     ],
   },

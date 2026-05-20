@@ -8,7 +8,7 @@
 
 export const IMAGES = {
   // Lake Malawi (updated with images from Green Safaris)
-  lakeMalawiHero: "/images/kaya-mawa-madimba-evening-pool-view.jpg",
+  lakeMalawiHero: "/images/kaya-mawa-beach-swing.jpg",
   lakeMalawiAerial: "/images/likoma-scuba.jpg",
   lakeMalawiSunset: "/images/likoma-paddleboard-view.jpg",
   lakeMalawiBeach: "/images/likoma-snorkelling.jpg",
@@ -16,7 +16,7 @@ export const IMAGES = {
   lakeMalawiIsland: "/images/likoma-paddleboard.jpg",
 
   // South Luangwa
-  southLuangwaHero: "/images/south-luangwa-sunset.jpg",
+  southLuangwaHero: "/images/puku-ridge-5.jpg",
   southLuangwaElephant: "/images/south-luangwa-elephant.jpg",
   southLuangwaLeopard: "/images/south-luangwa-camp.jpg",
   southLuangwaSunset: "/images/south-luangwa-sunset.jpg",
@@ -659,7 +659,7 @@ export const PROPERTIES = [
       "Set on a sweeping curve of the Luangwa River within 60 acres of private land, Time+Tide Chinzombo is arguably Africa's most celebrated bush sanctuary. Six peerless villas, each with a private plunge pool, redefine the boundaries of ultra luxury safari living.",
     longDescription:
       "Named after a species of acacia that grows near camp, Time+Tide Chinzombo's natural building materials and vintage accents blend modern style with the best of a traditional bush safari camp. Designed by award winning architects Silvio Rech and Lesley Carstens, the camp won Best New Property in Africa in 2014 and again in 2015. Its six spacious luxury safari villas (including a two-bedroom, two-bathroom family villa) rest beneath ancient msikizi trees. Each has a private plunge pool, a soaking tub with panoramic views over the river, and an open plan design featuring canvas, timber, and reed accented with leather and raw linen. Each stretches out onto a shaded verandah where you can while away the afternoon or unwind with an in-villa spa treatment. Down a winding path, the main lodge beckons with a riverfront sun deck, an open-air library, a bar rich with old books and photographs, and a fire pit suspended high atop the river bank. Here, dining is a celebration of Zambian flavours enriched by produce grown in the camp's own garden.",
-    heroImage: IMAGES.chinzombo,
+    heroImage: "/images/cz-pool-villa.jpg",
     gallery: [
       IMAGES.chinzombo,                         // 1  Sundowner baobab
       IMAGES.chinzomboMain,                     // 2  Main area

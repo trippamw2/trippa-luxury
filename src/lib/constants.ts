@@ -288,7 +288,7 @@ export const PROPERTIES = [
       "Perched on the shores of Likoma Island, Kaya Mawa is the apotheosis of barefoot luxury. Each suite handcrafted from local stone and thatch, opening to panoramic views of Lake Malawi's crystalline waters. A place where time suspends and love deepens.",
     longDescription:
       "Kaya Mawa is not a lodge. It is a sanctuary on one of Africa's most beautiful islands, built into the rocky shoreline with such reverence that the landscape remains the protagonist. Each of the eleven houses and rooms offers complete privacy with sweeping lake views, designed in a philosophy of minimal intervention: local stone, handwoven textiles, and an architecture that lets the water take center stage. Some suites feature their own private plunge pools carved from the granite shoreline. Days unfold at nature's pace. Swim in the infinity-edge pool that merges with the lake — Africa's fourth-largest. Explore hidden coves by kayak or stand-up paddleboard. Dive into the crystalline depths with the on-site PADI dive centre. Lose yourself in a novel on your private deck while the lake whispers below. The restaurant serves farm-to-table cuisine with a Malawian soul. The over water Sunset Bar perches above the lake for sundowners that linger into starlit evenings. Kaya Mawa is operated by Green Safaris, running entirely on 100% renewable solar energy, and its Kaya Mawa Foundation champions education and enterprise on the island. Open annually from mid-March to mid-January.",
-    heroImage: IMAGES.kayaMawa,
+    heroImage: "/images/gs--217.mbamba-pool.jpg",
     gallery: [
       IMAGES.kayaMawa,                                   // 1  Hero — beach swing at sunset
       IMAGES.kayaMawaSnorkel,                            // 2  Snorkelling in Likoma's coves
@@ -409,7 +409,7 @@ export const PROPERTIES = [
       "Set on a private peninsula on the Nankumba Peninsula, Pumulani Lodge offers ten secluded villas with sweeping views across Lake Malawi. One of Robin Pope Safaris' finest properties — a place of serene beauty where high net worth couples rediscover each other far from the world's gaze.",
     longDescription:
       "Pumulani Lodge occupies a pristine stretch of the Nankumba Peninsula, offering a level of seclusion that feels like your own private world. The ten villas embody a contemporary African aesthetic: clean architectural lines, natural materials, and floor-to-ceiling windows that frame the lake as living art. Each villa features its own plunge pool and outdoor shower, creating an indoor outdoor living experience that dissolves the boundary between luxury and nature. The main lodge houses a stunning infinity pool, a curated library, and a dining room where the seasonal menu celebrates the flavours of Malawi with a sophistication that rivals the world's finest restaurants. Operated by the award winning Robin Pope Safaris, Pumulani operates on a Fully Inclusive Plus basis: all meals, select premium drinks, laundry, and a wide range of activities are included. From water-skiing and sailing to guided nature walks, mountain biking, and visits to local villages, every day offers a new adventure or perfect stillness — entirely on your terms.",
-    heroImage: IMAGES.pumulani,
+    heroImage: "/images/pl-camporlodge-pumulani-lodge-69.jpg",
     gallery: [
       IMAGES.pumulani,                            // 1  Hero — lodge by the lake
       "/images/pl-camporlodge-pumulani-lodge-64.jpg", // 2  Villa interior
@@ -501,7 +501,7 @@ export const PROPERTIES = [
       "Exclusively set on Nankoma Island within the UNESCO-listed Lake Malawi National Park, Blue Zebra Island Lodge offers an intimate island escape with pristine beaches and the finest freshwater snorkelling in Africa.",
     longDescription:
       "Blue Zebra Island Lodge occupies its own private island in the crystalline waters of Lake Malawi National Park, a UNESCO World Heritage site renowned for its extraordinary biodiversity. With just twelve rooms ranging from Executive Chalets to Lake Safari Tents, the lodge offers an intimacy increasingly rare in travel. The island is a sanctuary for birdlife; the surrounding waters are a haven for snorkellers and divers exploring the most biodiverse freshwater ecosystem on earth, home to over a thousand species of colourful cichlids found nowhere else. The infinity pool gazes across the lake to the mountains of Mozambique. The Island Spa offers treatments on a deck suspended above the water. Days are spent exploring the island's coves by kayak, snorkelling in the crystal-clear shallows, meandering the nature trails, or simply swaying in a hammock with the sound of lapping water as your only companion.",
-    heroImage: IMAGES.blueZebra,
+    heroImage: "/images/bl-wetu-00.jpg",
     gallery: [
       "/images/bz-cormorant-chalet.jpg",          // 1  Cormorant Chalet exterior
       "/images/bz-lounge.jpg",                     // 2  Main lounge area
@@ -583,7 +583,7 @@ export const PROPERTIES = [
       "On Lake Malawi's sun bleached southern shore, Makokola Retreat is a world unto itself. Palm-fringed, white-sanded, and wrapped in the unhurried rhythm of lakeside days. Here, the Lake Suites offer an adult only enclave with private infinity pools suspended above the water — your own crystalline corner of Africa.",
     longDescription:
       "Makokola Retreat unfolds along the brilliant white sands of Lake Malawi's southern shore — a place where time sheds its urgency and the lake becomes the only horizon that matters. The Lake Suites form an adult only sanctuary of 22 suites and the private Sunset Villa, each with a terrace that delivers the lake to your doorstep. The infinity pool here is reserved exclusively for adults — a sheet of still water that seems to pour directly into the lake beyond. The culinary journey carries the same attention to detail: Il Lago serves Italian and Mediterranean cuisine al fresco with the lake as your backdrop, while Harry's Bar is the kind of place where sundowners stretch into evenings without notice. Beyond the pool and plate, a nine-hole par three golf course unfurls along the lakeshore, botanical gardens invite wandering, and the Tropex Nursery offers a living博物馆 of indigenous flora to carry home as memory. The Superior Beach Rooms, reimagined in 2021, blend thatch-roofed charm with considered comfort. All of it set to the soundtrack of lapping water and rustling palms — the soundtrack of Malawi at peace.",
-    heroImage: IMAGES.makokolaRetreat,
+    heroImage: "/images/mk-lake-suite-01.jpg",
     gallery: [
       IMAGES.makokolaRetreat,
       "/images/mk-lake-suite-01.jpg",
@@ -731,7 +731,7 @@ export const PROPERTIES = [
       "Perched on an elevated ridge commanding the Kakumbi Floodplain, Puku Ridge Camp offers eight air conditioned luxury suites, each with its own plunge pool and star bed tower. An encounter that brings you closer to the wild — and to each other — than you thought possible.",
     longDescription:
       "Puku Ridge Camp occupies a spectacular hilltop position in the South Luangwa National Park, commanding panoramic views of the sprawling Kakumbi Floodplain below. Rebuilt in 2019, the camp's eight luxury tented suites are ranged across the hillside, each featuring a super king or twin bed configuration, air conditioning (a rare and welcome luxury in the Luangwa Valley), and en suite facilities with his-and-hers washbasins and a large bathtub with a view. Outside, a multi-level verandah with a private plunge pool overlooks the plains, while a tower above the bathroom offers a star bed for a night under the vast African sky. The main area features indoor and open-air lounges, a bar, a campfire, and a photographic hide overlooking a waterhole that draws predators and prey alike. Zambia is renowned for its walking safaris, and Puku Ridge's award winning guides lead both vehicle and foot explorations, including night drives using an award winning red-light protocol that allows guests to observe nocturnal predators undisturbed.",
-    heroImage: IMAGES.pukuRidge,
+    heroImage: "/images/puku-ridge-5.jpg",
     gallery: [
       IMAGES.pukuRidge,                         // 1  Puku Ridge camp
       IMAGES.pukuRidgeCamp,                     // 2  Camp entrance
@@ -802,7 +802,7 @@ export const PROPERTIES = [
       "A small, eco friendly bush camp overlooking the Luangwa River in the Nsefu Sector. Named after legendary Zambian guide Jacob Shawa, this intimate camp offers silent safaris in solar powered electric vehicles and an immersion into one of the park's most untouched areas.",
     longDescription:
       "Shawa Luangwa Camp rests on the eastern bank of the Luangwa River, overlooking the sweeping landscape of the Nsefu Sector — one of the park's most pristine and wildlife-rich areas. Named in honour of Jacob Shawa, one of Zambia's most celebrated guides, the camp is a labour of love and a deep respect for the Luangwa Valley. The camp features just five raised A-frame canvas tents on wooden platforms: three Luxury Couples Tents and one Family Tent (two tents connected by a deck). Each tent opens entirely on three sides to offer uninterrupted 270 degree views over the river and its pods of snorting hippo. Interiors feature a choice of twin or double beds, soft linen, a sunken bathtub, a private verandah, and a plunge pool. A starbed on the rooftop offers a place to sleep beneath the African sky. Shawa is a pioneer of silent safaris in South Luangwa, using solar powered electric Land Cruisers that traverse the wilderness quietly with minimal carbon footprint. The main camp features an infinity pool, a fire pit at the edge of the wilderness, and a fully stocked bar where you can enjoy an armchair safari.",
-    heroImage: IMAGES.shawaLuangwa,
+    heroImage: "/images/shawa-plunge-pool.jpg",
     gallery: [
       "/images/sw-wetu-00.jpg",                 // 1  Shawa main lodge area
       "/images/sw-wetu-01.jpg",                 // 2  Boma looking out
@@ -868,7 +868,7 @@ export const PROPERTIES = [
       "Set along the banks of the Luangwa River beneath an ancient ebony grove, this intimate five-suite camp offers a classic safari experience with understated luxury and a profound connection to the wilderness. A romantic sanctuary for just ten guests.",
     longDescription:
       "Luangwa River Camp sits nestled under an ancient ebony grove on the banks of the Luangwa River in a game-rich area known as the Luangwa Wafwa. Operated by the renowned Robin Pope Safaris, this small and intimate camp offers just five thatched bush suites, ensuring a maximum of ten guests at any one time. Each suite is individually named (Mwala, Mazi, Merzi, Moto, and Ziko) and features a thatch-and-brick design with large sliding doors that open onto a private river-facing deck. The en suite bathrooms boast double basins and a large sunken stone bathtub that gazes out onto your own private corner of Africa. A multi-level plunge pool with a cascading waterfall sits on the elevated river deck. The central guest area features an open plan bar, lounge, and dining area surrounded by Balinese-inspired columns and a courtyard planted with banana trees. Cuisine is fresh and hearty, celebrating local Zambian produce, served by the river or in the communal boma. Activities include morning and afternoon game drives, guided walking safaris, night drives, and seasonal boat safaris on the Luangwa River.",
-    heroImage: IMAGES.luangwaRiver,
+    heroImage: "/images/lrc-aerial.jpg",
     gallery: [
       IMAGES.luangwaRiver,                      // 1  LRC by the river
       IMAGES.lrcLodge,                          // 2  Main lodge

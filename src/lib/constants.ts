@@ -288,7 +288,7 @@ export const PROPERTIES = [
       "Perched on the shores of Likoma Island, Kaya Mawa is the apotheosis of barefoot luxury. Each suite handcrafted from local stone and thatch, opening to panoramic views of Lake Malawi's crystalline waters. A place where time suspends and love deepens.",
     longDescription:
       "Kaya Mawa is not a lodge. It is a sanctuary on one of Africa's most beautiful islands, built into the rocky shoreline with such reverence that the landscape remains the protagonist. Each of the eleven houses and rooms offers complete privacy with sweeping lake views, designed in a philosophy of minimal intervention: local stone, handwoven textiles, and an architecture that lets the water take center stage. Some suites feature their own private plunge pools carved from the granite shoreline. Days unfold at nature's pace. Swim in the infinity-edge pool that merges with the lake — Africa's fourth-largest. Explore hidden coves by kayak or stand-up paddleboard. Dive into the crystalline depths with the on-site PADI dive centre. Lose yourself in a novel on your private deck while the lake whispers below. The restaurant serves farm-to-table cuisine with a Malawian soul. The over water Sunset Bar perches above the lake for sundowners that linger into starlit evenings. Kaya Mawa is operated by Green Safaris, running entirely on 100% renewable solar energy, and its Kaya Mawa Foundation champions education and enterprise on the island. Open annually from mid-March to mid-January.",
-    heroImage: "/images/gs--217.mbamba-pool.jpg",
+    heroImage: "/images/kaya-mawa-beach-swing.jpg",
     gallery: [
       IMAGES.kayaMawa,                                   // 1  Hero — beach swing at sunset
       IMAGES.kayaMawaSnorkel,                            // 2  Snorkelling in Likoma's coves
@@ -1602,7 +1602,7 @@ There is a quality of light on Lake Malawi that photographers chase their entire
 The Maldives is a beautiful destination. But it is a beautiful destination that millions of couples have already experienced. Lake Malawi is the alternative for couples who seek something rarer: a place that still feels undiscovered. A romance that feels like your own, not one you bought off a brochure.
 
 When you choose Lake Malawi, you are not choosing a lesser-known Maldives. You are choosing something entirely different. You are choosing Africa's most romantic secret — a place where the water is fresh, the welcome is warm, and the memories you create will belong only to you.`,
-    image: "/images/kaya-mawa-madimba-evening-pool-view.jpg",
+    image: IMAGES.journalMalawi,
     category: "Destination Feature",
     date: "May 19, 2026",
     author: "Kivara Concierge",
@@ -1634,7 +1634,7 @@ For couples who crave intimacy with the wild, South Luangwa delivers an intensit
 Zanzibar is where the Indian Ocean paints in impossible blues. The Residence Zanzibar offers villas with private pools and outdoor showers hidden within tropical gardens. The Palms, with just seven villas, offers the ultimate in privacy — your own stretch of beach, your own butler, your own rhythm.
 
 Whether you choose one destination or combine all three, the key is this: travel slowly, stay long, and let Africa work its magic on your love story.`,
-    image: "/images/xanadu-1.jpg",
+    image: IMAGES.journalHoneymoon,
     category: "Honeymoon Guide",
     date: "May 10, 2026",
     author: "Kivara Concierge",

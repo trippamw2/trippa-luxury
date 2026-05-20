@@ -731,7 +731,7 @@ export const PROPERTIES = [
       "Perched on an elevated ridge commanding the Kakumbi Floodplain, Puku Ridge Camp offers eight air conditioned luxury suites, each with its own plunge pool and star bed tower. An encounter that brings you closer to the wild — and to each other — than you thought possible.",
     longDescription:
       "Puku Ridge Camp occupies a spectacular hilltop position in the South Luangwa National Park, commanding panoramic views of the sprawling Kakumbi Floodplain below. Rebuilt in 2019, the camp's eight luxury tented suites are ranged across the hillside, each featuring a super king or twin bed configuration, air conditioning (a rare and welcome luxury in the Luangwa Valley), and en suite facilities with his-and-hers washbasins and a large bathtub with a view. Outside, a multi-level verandah with a private plunge pool overlooks the plains, while a tower above the bathroom offers a star bed for a night under the vast African sky. The main area features indoor and open-air lounges, a bar, a campfire, and a photographic hide overlooking a waterhole that draws predators and prey alike. Zambia is renowned for its walking safaris, and Puku Ridge's award winning guides lead both vehicle and foot explorations, including night drives using an award winning red-light protocol that allows guests to observe nocturnal predators undisturbed.",
-    heroImage: "/images/puku-ridge-1.jpg",
+    heroImage: "/images/puku-ridge-property.jpg",
     gallery: [
       IMAGES.pukuRidge,                         // 1  Puku Ridge camp
       IMAGES.pukuRidgeCamp,                     // 2  Camp entrance

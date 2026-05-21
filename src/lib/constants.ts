@@ -662,33 +662,20 @@ export const PROPERTIES = [
     heroImage: "/images/cz-pool-villa.jpg",
     gallery: [
       // ROOMS — villa interiors, suites, bedrooms
-      "/images/cz-room-01.jpg",                // 1  Villa exterior with plunge pool
-      "/images/cz-room-02.jpg",                // 2  Suite bedroom
-      "/images/cz-room-03.jpg",                // 3  Villa lounge interior
-      "/images/cz-room-04.jpg",                // 4  Bathroom with soaking tub
-      "/images/cz-room-05.jpg",                // 5  Villa verandah
-      "/images/cz-room-06.jpg",                // 6  Camp overview aerial
-      "/images/cz-room-07.jpg",                // 7  Luxury suite panoramic
-      "/images/cz-room-08.jpg",                // 8  Holiday package suite
+      "/images/cz-room-04.jpg",                // 1  Bathroom with soaking tub
+      "/images/cz-room-05.jpg",                // 2  Villa verandah
+      "/images/cz-room-06.jpg",                // 3  Camp overview aerial
+      "/images/cz-room-07.jpg",                // 4  Luxury suite panoramic
+      "/images/cz-room-08.jpg",                // 5  Holiday package suite
 
       // AMENITIES — pool, lounge, dining
-      "/images/cz-pool-villa.jpg",             // 9  Villa with private plunge pool
-      "/images/cz-amenity-01.jpg",             // 10 Main lodge & river views
-      "/images/cz-amenity-02.jpg",             // 11 Sundowner deck
-      "/images/cz-amenity-03.jpg",             // 12 Dining under stars
-      "/images/cz-amenity-04.jpg",             // 13 Riverfront lounge
+      "/images/cz-pool-villa.jpg",             // 6  Villa with private plunge pool
+      "/images/cz-amenity-01.jpg",             // 7  Main lodge & river views
+      "/images/cz-amenity-02.jpg",             // 8  Sundowner deck
 
       // ROMANCE — dining, sundowners, experiences
-      "/images/cz-romance-01.jpg",             // 14 Candlelit dinner
-      "/images/cz-romance-02.jpg",             // 15 Sundowner cocktails
-      "/images/cz-romance-03.jpg",             // 16 Private dining setup
-      "/images/cz-romance-04.jpg",             // 17 Sunset bath
-      "/images/cz-romance-05.jpg",             // 18 Couples massage
-      "/images/cz-romance-06.jpg",             // 19 Stargazing sleepout
-
-      // ACTIVITIES — safari, walking, boating
-      "/images/cz-activity-01.jpg",            // 20 Game drive
-      "/images/cz-activity-02.jpg",            // 21 Walking safari
+      "/images/cz-romance-02.jpg",             // 9  Sundowner cocktails
+      "/images/cz-romance-05.jpg",             // 10 Couples massage
     ],
     priceRange: "From $1,330 per person per night",
     roomTypes: ["Luxury Safari Villa", "Family Safari Villa (2BR, 2BA)"],

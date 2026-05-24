@@ -259,24 +259,126 @@ function generateActivities(
   return acts;
 }
 
+// ── Airport & Transfer Data ────────────────────────────────────────────
+
+const AIRPORTS: Record<string, {
+  pointOfEntry: { name: string; code: string }[];
+  local: { name: string; code: string; propertyIds: string[] }[];
+}> = {
+  "lake-malawi": {
+    pointOfEntry: [
+      { name: "Kamuzu International Airport", code: "LLW" },
+      { name: "Chileka International Airport", code: "BLZ" },
+    ],
+    local: [
+      { name: "Likoma Airport", code: "LIX", propertyIds: ["kaya-mawa", "blue-zebra-island-lodge"] },
+      { name: "Makokola Airfield", code: "MAK", propertyIds: ["makokola-retreat", "pumulani-lodge"] },
+    ],
+  },
+  "south-luangwa": {
+    pointOfEntry: [
+      { name: "Kenneth Kaunda International Airport", code: "LUN" },
+      { name: "Kamuzu International Airport", code: "LLW" },
+    ],
+    local: [
+      { name: "Mfuwe International Airport", code: "MFU", propertyIds: ["chinzombo", "puku-ridge-camp", "shawa-luangwa", "luangwa-river-camp"] },
+    ],
+  },
+  zanzibar: {
+    pointOfEntry: [
+      { name: "Abeid Amani Karume International Airport", code: "ZNZ" },
+    ],
+    local: [
+      { name: "Abeid Amani Karume International Airport", code: "ZNZ", propertyIds: ["xanadu-villas", "kilindi-zanzibar", "baraza-resort-spa", "the-palms-zanzibar", "the-residence-zanzibar"] },
+    ],
+  },
+};
+
+function getLocalAirport(propertyId: string, destId: string): { name: string; code: string } {
+  const destAirports = AIRPORTS[destId];
+  if (!destAirports) return { name: "Local Airport", code: "---" };
+  const found = destAirports.local.find((a) => a.propertyIds.includes(propertyId));
+  return found || destAirports.local[0] || { name: "Local Airport", code: "---" };
+}
+
+function getPointOfEntry(destId: string): { name: string; code: string } {
+  const destAirports = AIRPORTS[destId];
+  return destAirports?.pointOfEntry[0] || { name: "International Airport", code: "---" };
+}
+
+function getDestIdForProperty(propertyId: string): string {
+  for (const [destId, data] of Object.entries(AIRPORTS)) {
+    for (const local of data.local) {
+      if (local.propertyIds.includes(propertyId)) return destId;
+    }
+  }
+  return "lake-malawi";
+}
+
 // ── Transfer Generation ────────────────────────────────────────────────
 
 function generateTransfer(
-  fromLocation: string,
-  toLocation: string,
+  fromDestId: string | null,
+  toDestId: string,
+  fromPropertyId: string | null,
+  toPropertyId: string,
   index: number
 ): Transfer {
-  const isCrossDestination =
-    (fromLocation.includes("Malawi") && toLocation.includes("Luangwa")) ||
-    (fromLocation.includes("Luangwa") && toLocation.includes("Zanzibar")) ||
-    (fromLocation.includes("Malawi") && toLocation.includes("Zanzibar"));
+  // First leg: point of entry → local airport
+  if (index === 0 && fromDestId === null) {
+    const poe = getPointOfEntry(toDestId);
+    const local = getLocalAirport(toPropertyId, toDestId);
+    const isSame = poe.name === local.name;
+    return {
+      from: isSame ? "International Arrival" : poe.name,
+      to: isSame ? `${local.name} (${local.code}) — Property Transfer` : `${local.name} (${local.code})`,
+      mode: isSame ? "road" : "flight",
+      duration: isSame ? "~30 minutes" : `~45 minutes`,
+      notes: isSame ? "Complimentary private transfer to property." : `Private charter from ${poe.code} to ${local.code}. VIP meet-and-greet upon arrival.`,
+    };
+  }
 
+  // Cross-destination: local airport of previous → local airport of current
+  if (fromDestId && fromPropertyId && fromDestId !== toDestId) {
+    const fromLocal = getLocalAirport(fromPropertyId, fromDestId);
+    const toLocal = getLocalAirport(toPropertyId, toDestId);
+    const duration: Record<string, string> = {
+      "lake-malawi_south-luangwa": "~2 hours (charter flight)",
+      "south-luangwa_zanzibar": "~3 hours (via charter + connection)",
+      "lake-malawi_zanzibar": "~2.5 hours (direct charter)",
+    };
+    const key = `${fromDestId}_${toDestId}`;
+    return {
+      from: `${fromLocal.name} (${fromLocal.code})`,
+      to: `${toLocal.name} (${toLocal.code})`,
+      mode: "flight",
+      duration: duration[key] || "~2.5 hours (charter flight)",
+      notes: "Private air charter between destinations. All ground transfers included.",
+    };
+  }
+
+  // Same destination / intra-destination
+  const local = getLocalAirport(toPropertyId, toDestId);
   return {
-    from: fromLocation,
-    to: toLocation,
-    mode: isCrossDestination ? "flight" : index === 0 ? "flight" : "road",
-    duration: isCrossDestination ? "~3 hours (incl. connection)" : "~45 minutes",
-    notes: isCrossDestination ? "Private charter or scheduled flight with VIP lounge access." : undefined,
+    from: `${local.name} (${local.code})`,
+    to: `${local.name} (${local.code}) — Property`,
+    mode: "road",
+    duration: "~30–45 minutes",
+    notes: "Private safari vehicle with refreshments.",
+  };
+}
+
+function generateLastTransfer(
+  fromDestId: string,
+  fromPropertyId: string
+): Transfer {
+  const local = getLocalAirport(fromPropertyId, fromDestId);
+  return {
+    from: `${local.name} (${local.code})`,
+    to: `${local.name} (${local.code}) — Departure`,
+    mode: "road",
+    duration: "~30 minutes",
+    notes: "Private transfer to airport for onward journey.",
   };
 }
 
@@ -311,20 +413,25 @@ function calculatePricing(
   const accommodation: JourneyPricing["accommodation"] = [];
   let subtotal = 0;
 
+  const guestCount = guest.isCouple ? 2 : 1;
+
   for (const { property, nights } of propertyAssignments) {
     // 1. Extract the maximum seasonal PPPN price
     const baseRate = extractMaxPppn(property.priceRange || "");
     // 2. Apply 45% universal markup
     const rateAfterMarkup = Math.round(baseRate * (1 + PPPN_MARKUP));
     // 3. Ultra-luxury guests get an additional premium tier on top
-    const effectiveRate = guest.preferences.budgetRange === "ultra-luxury"
+    const effectivePPPN = guest.preferences.budgetRange === "ultra-luxury"
       ? Math.round(rateAfterMarkup * 1.25)
       : rateAfterMarkup;
-    const subtotalRow = effectiveRate * nights;
+    // 4. Per-night = PPPN × number of guests (couple = 2, solo = 1)
+    const ratePerNight = effectivePPPN * guestCount;
+    const subtotalRow = ratePerNight * nights;
     accommodation.push({
       label: property.name,
       nights,
-      ratePerNight: effectiveRate,
+      ratePerNight,
+      ratePerNightPPPN: effectivePPPN,
       subtotal: subtotalRow,
     });
     subtotal += subtotalRow;
@@ -420,9 +527,21 @@ export class JourneyEngine {
     for (let i = 0; i < propertyAssignments.length; i++) {
       const { property, nights } = propertyAssignments[i];
       const location = property.location || property.destination;
+      const currentDestId = getDestIdForProperty(property.id);
 
-      const arrivalDate = new Date(today);
-      arrivalDate.setDate(arrivalDate.getDate() + dayCounter - 1);
+      // First day: arrival with transfer
+      const prevDestId = i > 0 ? getDestIdForProperty(propertyAssignments[i - 1].property.id) : null;
+      const prevPropertyId = i > 0 ? propertyAssignments[i - 1].property.id : null;
+      const arrivalTransfers: Transfer[] = [];
+
+      if (i === 0) {
+        // Point of entry → local airport
+        arrivalTransfers.push(generateTransfer(null, currentDestId, null, property.id, 0));
+      } else if (prevDestId) {
+        // Previous property → this property
+        arrivalTransfers.push(generateTransfer(prevDestId, currentDestId, prevPropertyId, property.id, i));
+      }
+
       itinerary.push({
         day: dayCounter,
         title: `Arrive at ${property.name}`,
@@ -431,31 +550,37 @@ export class JourneyEngine {
         accommodationImage: property.heroImage,
         meals: ["Dinner"],
         activities: generateActivities(property, guest, "arrival"),
-        transfers: i > 0
-          ? [generateTransfer(propertyAssignments[i - 1].property.location, property.location, i)]
-          : [generateTransfer("Airport", property.location, 0)],
+        transfers: arrivalTransfers,
         highlights: [`Welcome to ${property.name}`, property.tagline].filter(Boolean) as string[],
       });
       dayCounter++;
 
+      // Full days
       for (let n = 1; n <= nights; n++) {
-        const fullDate = new Date(today);
-        fullDate.setDate(fullDate.getDate() + dayCounter - 1);
+        const isLastNight = n === nights;
         itinerary.push({
           day: dayCounter,
-          title: n < nights ? `Explore ${location}` : `Farewell to ${property.name}`,
+          title: isLastNight ? `Farewell to ${property.name}` : `Explore ${location}`,
           location,
           accommodation: property.name,
           accommodationImage: property.heroImage,
-          meals: ["Breakfast", "Lunch", "Dinner"],
-          activities: generateActivities(property, guest, n < nights ? "full" : "departure"),
+          meals: isLastNight ? ["Breakfast", "Lunch", "Dinner"] : ["Breakfast", "Lunch", "Dinner"],
+          activities: generateActivities(property, guest, isLastNight ? "departure" : "full"),
           transfers: [],
-          highlights: n < nights
-            ? (property.romanticHighlights ? pick(property.romanticHighlights, 2) : ["A day of curated experiences"])
-            : ["A final evening to savour", "Last chance to absorb the atmosphere"],
+          highlights: isLastNight
+            ? ["A final evening to savour", "Last chance to absorb the atmosphere"]
+            : (property.romanticHighlights ? pick(property.romanticHighlights, 2) : ["A day of curated experiences"]),
         });
         dayCounter++;
       }
+    }
+
+    // Add departure transfer on the last day
+    if (propertyAssignments.length > 0) {
+      const lastPA = propertyAssignments[propertyAssignments.length - 1];
+      const lastDestId = getDestIdForProperty(lastPA.property.id);
+      const lastDayIdx = itinerary.length - 1;
+      itinerary[lastDayIdx].transfers.push(generateLastTransfer(lastDestId, lastPA.property.id));
     }
 
     const pricing = calculatePricing(propertyAssignments, guest);

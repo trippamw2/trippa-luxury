@@ -72,10 +72,29 @@ export interface Transfer {
   notes?: string;
 }
 
+export interface AccommodationItem {
+  label: string;
+  nights: number;
+  ratePerNight: number;       // Total per night for the booking (PPPN × guests for couple)
+  ratePerNightPPPN: number;   // Per person per night base rate
+  subtotal: number;
+}
+
+export interface ActivityCostItem {
+  label: string;
+  cost: number;
+  pricingModel?: "per-person" | "per-couple" | "per-booking";
+}
+
+export interface TransferCostItem {
+  label: string;
+  cost: number;
+}
+
 export interface JourneyPricing {
-  accommodation: { label: string; nights: number; ratePerNight: number; subtotal: number }[];
-  activities: { label: string; cost: number }[];
-  transfers: { label: string; cost: number }[];
+  accommodation: AccommodationItem[];
+  activities: ActivityCostItem[];
+  transfers: TransferCostItem[];
   subtotal: number;
   taxes: number;
   total: number;

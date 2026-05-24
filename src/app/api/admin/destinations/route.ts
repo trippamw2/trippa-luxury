@@ -8,14 +8,14 @@ export async function GET(_request: NextRequest) {
 
     const [propertiesRes, destinationsRes] = await Promise.all([
       supabase.from("properties").select("*").order("name"),
-      supabase.from("destinations").select("*"),
+      supabase.from("destinations").select("*").order("sort_order"),
     ]);
 
     if (propertiesRes.error) {
       return NextResponse.json({ error: propertiesRes.error.message }, { status: 500 });
     }
 
-    const destMeta = new Map((destinationsRes.data || []).map((d: any) => [d.slug, d]));
+    const destMeta = new Map((destinationsRes.data || []).map((d: any) => [d.slug, mapKeysToCamel(d)]));
 
     const grouped: Record<string, any[]> = {};
     for (const item of propertiesRes.data || []) {
@@ -25,16 +25,21 @@ export async function GET(_request: NextRequest) {
     }
 
     const data = Object.entries(grouped).map(([slug, properties]) => {
-      const meta = destMeta.get(slug);
+      const meta: Record<string, any> = destMeta.get(slug) || {};
       return {
         id: slug,
         slug,
-        name: meta?.name || slug.split("-").map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(" "),
-        description: meta?.description || null,
-        heroImage: meta?.hero_image || null,
-        highlights: meta?.highlights || [],
-        seasons: meta?.seasons || [],
-        isFeatured: meta?.is_featured || false,
+        name: meta.name || slug.split("-").map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(" "),
+        subtitle: meta.subtitle || "",
+        tagline: meta.tagline || "",
+        description: meta.description || "",
+        positioning: meta.positioning || "",
+        heroImage: meta.heroImage || "",
+        gallery: meta.gallery || [],
+        experiences: meta.experiences || [],
+        highlights: meta.highlights || [],
+        seasons: meta.seasons || [],
+        isFeatured: meta.isFeatured || false,
         properties,
         propertyCount: properties.length,
       };
@@ -51,15 +56,19 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const supabase = createAdminClient();
 
-    // Create destination metadata entry
     const slug = body.slug || body.name?.toLowerCase().replace(/\s+/g, "-");
     const { error: destError } = await supabase
       .from("destinations")
       .insert({
         slug,
         name: body.name || slug,
+        subtitle: body.subtitle || "",
+        tagline: body.tagline || "",
         description: body.description || "",
+        positioning: body.positioning || "",
         hero_image: body.heroImage || "",
+        gallery: body.gallery || [],
+        experiences: body.experiences || [],
         highlights: body.highlights || [],
         seasons: body.seasons || [],
         is_featured: body.isFeatured || false,

@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { handleGetOne, handleUpdate, handleDelete } from "@/lib/api-helpers";
 
-const TABLE = "property_pricing";
+const TABLE = "experiences";
 
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

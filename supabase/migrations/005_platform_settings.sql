@@ -19,12 +19,22 @@ ON CONFLICT (key) DO NOTHING;
 -- RLS
 ALTER TABLE platform_settings ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Admin full access to platform settings"
-  ON platform_settings FOR ALL
-  USING (
-    EXISTS (
-      SELECT 1 FROM admin_profiles
-      WHERE id = auth.uid()
-      AND role IN ('admin', 'editor')
-    )
-  );
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE tablename = 'platform_settings'
+    AND policyname = 'Admin full access to platform settings'
+  ) THEN
+    CREATE POLICY "Admin full access to platform settings"
+      ON platform_settings FOR ALL
+      USING (
+        EXISTS (
+          SELECT 1 FROM admin_profiles
+          WHERE id = auth.uid()
+          AND role IN ('admin', 'editor')
+        )
+      );
+  END IF;
+END;
+$$;

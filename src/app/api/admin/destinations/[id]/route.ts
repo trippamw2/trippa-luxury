@@ -16,17 +16,22 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: propertiesRes.error.message }, { status: 500 });
     }
 
-    const meta = destRes.data;
+    const meta = destRes.data ? mapKeysToCamel<any>(destRes.data) : {};
 
     return NextResponse.json({
       id,
       slug: id,
-      name: meta?.name || id.split("-").map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(" "),
-      description: meta?.description || null,
-      heroImage: meta?.hero_image || null,
-      highlights: meta?.highlights || [],
-      seasons: meta?.seasons || [],
-      isFeatured: meta?.is_featured || false,
+      name: meta.name || id.split("-").map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(" "),
+      subtitle: meta.subtitle || "",
+      tagline: meta.tagline || "",
+      description: meta.description || "",
+      positioning: meta.positioning || "",
+      heroImage: meta.heroImage || "",
+      gallery: meta.gallery || [],
+      experiences: meta.experiences || [],
+      highlights: meta.highlights || [],
+      seasons: meta.seasons || [],
+      isFeatured: meta.isFeatured || false,
       properties: mapKeysToCamel(propertiesRes.data || []),
       propertyCount: propertiesRes.data?.length || 0,
     });
@@ -41,11 +46,15 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const body = await request.json();
     const supabase = createAdminClient();
 
-    // Update destination metadata
     const updateData: Record<string, any> = {};
     if (body.name !== undefined) updateData.name = body.name;
+    if (body.subtitle !== undefined) updateData.subtitle = body.subtitle;
+    if (body.tagline !== undefined) updateData.tagline = body.tagline;
     if (body.description !== undefined) updateData.description = body.description;
+    if (body.positioning !== undefined) updateData.positioning = body.positioning;
     if (body.heroImage !== undefined) updateData.hero_image = body.heroImage;
+    if (body.gallery !== undefined) updateData.gallery = body.gallery;
+    if (body.experiences !== undefined) updateData.experiences = body.experiences;
     if (body.highlights !== undefined) updateData.highlights = body.highlights;
     if (body.seasons !== undefined) updateData.seasons = body.seasons;
     if (body.isFeatured !== undefined) updateData.is_featured = body.isFeatured;
@@ -72,7 +81,6 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
     const { id } = await params;
     const supabase = createAdminClient();
 
-    // Check if there are properties in this destination
     const { count } = await supabase
       .from("properties")
       .select("*", { count: "exact", head: true })
@@ -85,7 +93,6 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
       );
     }
 
-    // Delete destination metadata only (no properties affected)
     const { error } = await supabase
       .from("destinations")
       .delete()

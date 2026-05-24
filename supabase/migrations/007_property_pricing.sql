@@ -14,15 +14,26 @@ CREATE TABLE IF NOT EXISTS property_pricing (
 
 ALTER TABLE property_pricing ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Admin full access to property pricing"
-  ON property_pricing FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM admin_profiles
-      WHERE id = auth.uid()
-      AND role IN ('admin', 'editor')
-    )
-  );
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE tablename = 'property_pricing'
+    AND policyname = 'Admin full access to property pricing'
+  ) THEN
+    CREATE POLICY "Admin full access to property pricing"
+      ON property_pricing FOR ALL USING (
+        EXISTS (
+          SELECT 1 FROM admin_profiles
+          WHERE id = auth.uid()
+          AND role IN ('admin', 'editor')
+        )
+      );
+  END IF;
+END;
+$$;
 
+DROP TRIGGER IF EXISTS update_property_pricing_updated_at ON property_pricing;
 CREATE TRIGGER update_property_pricing_updated_at
   BEFORE UPDATE ON property_pricing
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

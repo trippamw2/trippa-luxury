@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Script from "next/script";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
+import { SiteShell } from "@/components/layout/SiteShell";
 import { WhatsAppWidget } from "@/components/ui/whatsapp-widget";
 import { CookieConsent } from "@/components/ui/CookieConsent";
 
@@ -89,9 +88,7 @@ export default function RootLayout({
         )}
       </head>
       <body className="min-h-screen flex flex-col bg-cream text-soft-black font-body antialiased">
-        <Navbar />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <SiteShell>{children}</SiteShell>
         <WhatsAppWidget />
         <CookieConsent />
       </body>

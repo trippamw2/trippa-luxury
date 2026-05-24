@@ -355,14 +355,36 @@ export class JourneyEngine {
         ? ["south-luangwa"]
         : allDestinations;
 
+    // Calculate nights per destination
+    const destNights = selectedDestinations.map((destId) => ({
+      destId,
+      base: recommendNights(destId, guest.preferences.activityLevel),
+    }));
+    const totalBase = destNights.reduce((s, d) => s + d.base, 0);
+    const targetNights = guest.desiredNights || totalBase;
+
+    // Distribute nights proportionally, ensure minimum 2 per destination
+    let allocated = destNights.map((d) => Math.max(2, Math.round((d.base / totalBase) * targetNights)));
+    // Adjust for rounding: add/subtract from largest to hit target exactly
+    const allocatedTotal = allocated.reduce((s, n) => s + n, 0);
+    let diff = targetNights - allocatedTotal;
+    while (diff !== 0) {
+      if (diff > 0) {
+        const maxIdx = allocated.indexOf(Math.max(...allocated));
+        allocated[maxIdx]++;
+        diff--;
+      } else {
+        const minIdx = allocated.indexOf(Math.min(...allocated));
+        if (allocated[minIdx] > 2) { allocated[minIdx]--; diff++; }
+        else break; // can't go below 2
+      }
+    }
+
     const propertyAssignments: { property: (typeof PROPERTIES)[number]; nights: number }[] = [];
-    for (const destId of selectedDestinations) {
-      const props = selectProperties(guest, destId, 1);
+    for (let i = 0; i < destNights.length; i++) {
+      const props = selectProperties(guest, destNights[i].destId, 1);
       for (const p of props) {
-        propertyAssignments.push({
-          property: p,
-          nights: recommendNights(destId, guest.preferences.activityLevel),
-        });
+        propertyAssignments.push({ property: p, nights: allocated[i] });
       }
     }
 

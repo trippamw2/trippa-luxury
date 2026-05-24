@@ -15,6 +15,7 @@ export interface GuestProfile {
     dietaryRestrictions?: string[];
     interests?: string[];
   };
+  desiredNights?: number;
   pastDestinations?: string[];
   wishlist?: string[];
   travelDates?: {

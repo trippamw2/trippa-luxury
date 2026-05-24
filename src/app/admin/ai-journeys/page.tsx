@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Send, Eye, ArrowRight, Loader2, AlertCircle, Check, RefreshCw } from "lucide-react";
+import { Sparkles, Send, Eye, ArrowRight, Loader2, AlertCircle, Check, RefreshCw, X, Moon } from "lucide-react";
 import type { CuratedJourney, GuestProfile, JourneyDay } from "@/lib/ai/types";
 
 const STYLE_OPTIONS = [
@@ -35,11 +35,14 @@ export default function AIJourneysPage() {
     activityLevel: "moderate",
     budgetRange: "premium",
     specialOccasion: "",
+    desiredNights: "10",
   });
   const [journey, setJourney] = useState<CuratedJourney | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [activeDay, setActiveDay] = useState(1);
+  const [showPdf, setShowPdf] = useState(false);
+  const [pdfContent, setPdfContent] = useState("");
 
   const handleGenerate = async () => {
     setLoading(true);
@@ -51,6 +54,7 @@ export default function AIJourneysPage() {
       email: form.email,
       isCouple: form.isCouple,
       specialOccasion: form.specialOccasion || undefined,
+      desiredNights: parseInt(form.desiredNights) || 10,
       preferences: {
         travelStyle: form.travelStyle as GuestProfile["preferences"]["travelStyle"],
         accommodationStyle: form.accommodationStyle as GuestProfile["preferences"]["accommodationStyle"],
@@ -81,6 +85,74 @@ export default function AIJourneysPage() {
     }
   };
 
+  const handlePreviewPdf = () => {
+    if (!journey) return;
+    const lines = [
+      "═══════════════════════════════════════",
+      "  KIVARA LUXURY TRAVEL — JOURNEY PROPOSAL",
+      "═══════════════════════════════════════",
+      "",
+      `  ${journey.title}`,
+      `  ${journey.subtitle}`,
+      "",
+      `  Guest: ${journey.guestProfile.name}`,
+      `  Duration: ${journey.duration} nights (${journey.itinerary.length} days)`,
+      journey.guestProfile.specialOccasion ? `  Occasion: ${journey.guestProfile.specialOccasion}` : "",
+      "",
+      "  ── ITINERARY ──",
+      ...journey.itinerary.map(
+        (d) => `  Day ${d.day}: ${d.title} @ ${d.accommodation}`
+      ),
+      "",
+      "  ── HIGHLIGHTS ──",
+      ...journey.highlights.map((h) => `  · ${h}`),
+      "",
+      "  ── INVESTMENT ──",
+      ...journey.pricing.accommodation.map(
+        (a) => `  ${a.label}: ${a.nights} nights × $${a.ratePerNight}/night = $${a.subtotal.toLocaleString()}`
+      ),
+      "",
+      `  Subtotal: $${journey.pricing.subtotal.toLocaleString()}`,
+      `  Taxes & Fees (10%): $${journey.pricing.taxes.toLocaleString()}`,
+      `  TOTAL: $${journey.pricing.total.toLocaleString()} ${journey.pricing.currency}`,
+      "",
+      "  ── INCLUDED ──",
+      ...journey.includedExtras.map((e) => `  · ${e}`),
+      "",
+      `  Proposal ID: ${journey.id}`,
+      `  Created: ${new Date(journey.createdAt).toLocaleDateString()}`,
+      "",
+      "  Kivara Concierge: concierge@kivara.luxury",
+      "═══════════════════════════════════════",
+    ];
+    setPdfContent(lines.join("\n"));
+    setShowPdf(true);
+  };
+
+  const handleSendToClient = () => {
+    if (!journey) return;
+    const subject = encodeURIComponent(`Your Kivara Journey Proposal — ${journey.title}`);
+    const body = encodeURIComponent(
+      `Dear ${journey.guestProfile.name},\n\n` +
+      `Thank you for allowing Kivara to curate your African journey.\n\n` +
+      `We are delighted to present your personalised proposal:\n\n` +
+      `${journey.title}\n` +
+      `${journey.subtitle}\n\n` +
+      `Duration: ${journey.duration} nights\n` +
+      `Total Investment: $${journey.pricing.total.toLocaleString()} ${journey.pricing.currency}\n\n` +
+      `Please find the full itinerary attached below.\n\n` +
+      `We look forward to bringing this journey to life.\n\n` +
+      `Warmly,\nKivara Concierge\nconcierge@kivara.luxury\n\n` +
+      `---\n${journey.title}\n${journey.subtitle}\n` +
+      `${journey.duration} nights | $${journey.pricing.total.toLocaleString()}\n\n` +
+      `Highlights:\n` +
+      journey.highlights.map(h => `- ${h}`).join("\n") +
+      `\n\nItinerary:\n` +
+      journey.itinerary.map(d => `Day ${d.day}: ${d.title} @ ${d.accommodation}`).join("\n")
+    );
+    window.open(`mailto:${journey.guestProfile.email}?subject=${subject}&body=${body}`, "_blank");
+  };
+
   return (
     <div>
       <div className="mb-8">
@@ -108,61 +180,48 @@ export default function AIJourneysPage() {
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-medium text-earth mb-1">Guest Name</label>
-                <input
-                  type="text"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-200 text-sm focus:outline-none focus:border-soft-black"
-                  placeholder="e.g. Sarah & James Mitchell"
-                />
+                  placeholder="e.g. Sarah & James Mitchell" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-earth mb-1">Email</label>
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-200 text-sm focus:outline-none focus:border-soft-black"
-                  placeholder="guest@example.com"
-                />
+                  placeholder="guest@example.com" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-earth mb-1">Travel Style</label>
-                <select
-                  value={form.travelStyle}
-                  onChange={(e) => setForm({ ...form, travelStyle: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 text-sm focus:outline-none focus:border-soft-black"
-                >
-                  {STYLE_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
+                <select value={form.travelStyle} onChange={(e) => setForm({ ...form, travelStyle: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 text-sm focus:outline-none focus:border-soft-black">
+                  {STYLE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-medium text-earth mb-1">Accommodation Style</label>
-                <select
-                  value={form.accommodationStyle}
-                  onChange={(e) => setForm({ ...form, accommodationStyle: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 text-sm focus:outline-none focus:border-soft-black"
-                >
-                  {ACCOMMODATION_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
+                <select value={form.accommodationStyle} onChange={(e) => setForm({ ...form, accommodationStyle: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 text-sm focus:outline-none focus:border-soft-black">
+                  {ACCOMMODATION_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-earth mb-1">Duration (nights)</label>
+                <input type="number" min="3" max="21" value={form.desiredNights}
+                  onChange={(e) => setForm({ ...form, desiredNights: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 text-sm focus:outline-none focus:border-soft-black"
+                  placeholder="e.g. 7" />
+                <p className="text-[10px] text-earth mt-1">Total nights across all destinations (min 3)</p>
               </div>
               <div>
                 <label className="block text-xs font-medium text-earth mb-1">Activity Level</label>
                 <div className="flex gap-2">
                   {["low", "moderate", "high"].map((level) => (
-                    <button
-                      key={level}
-                      onClick={() => setForm({ ...form, activityLevel: level })}
+                    <button key={level} onClick={() => setForm({ ...form, activityLevel: level })}
                       className={`flex-1 py-2 text-xs font-medium border transition-colors ${
                         form.activityLevel === level
                           ? "bg-soft-black text-cream border-soft-black"
                           : "bg-white text-earth border-gray-200 hover:border-soft-black"
-                      }`}
-                    >
+                      }`}>
                       {level.charAt(0).toUpperCase() + level.slice(1)}
                     </button>
                   ))}
@@ -170,46 +229,26 @@ export default function AIJourneysPage() {
               </div>
               <div>
                 <label className="block text-xs font-medium text-earth mb-1">Budget</label>
-                <select
-                  value={form.budgetRange}
-                  onChange={(e) => setForm({ ...form, budgetRange: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 text-sm focus:outline-none focus:border-soft-black"
-                >
-                  {BUDGET_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
+                <select value={form.budgetRange} onChange={(e) => setForm({ ...form, budgetRange: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 text-sm focus:outline-none focus:border-soft-black">
+                  {BUDGET_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-medium text-earth mb-1">Special Occasion</label>
-                <input
-                  type="text"
-                  value={form.specialOccasion}
-                  onChange={(e) => setForm({ ...form, specialOccasion: e.target.value })}
+                <input type="text" value={form.specialOccasion} onChange={(e) => setForm({ ...form, specialOccasion: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-200 text-sm focus:outline-none focus:border-soft-black"
-                  placeholder="e.g. Honeymoon, Anniversary"
-                />
+                  placeholder="e.g. Honeymoon, Anniversary" />
               </div>
               <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="isCouple"
-                  checked={form.isCouple}
+                <input type="checkbox" id="isCouple" checked={form.isCouple}
                   onChange={(e) => setForm({ ...form, isCouple: e.target.checked })}
-                  className="w-4 h-4 border-gray-300"
-                />
+                  className="w-4 h-4 border-gray-300" />
                 <label htmlFor="isCouple" className="text-xs text-earth">Couple / Romantic Journey</label>
               </div>
-              <button
-                onClick={handleGenerate}
-                disabled={loading || !form.name || !form.email}
-                className="w-full py-3 bg-soft-black text-cream text-sm font-medium hover:bg-soft-black-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {loading ? (
-                  <><Loader2 className="w-4 h-4 animate-spin" /> Generating...</>
-                ) : (
-                  <><Sparkles className="w-4 h-4" /> Curate Journey</>
-                )}
+              <button onClick={handleGenerate} disabled={loading || !form.name || !form.email}
+                className="w-full py-3 bg-soft-black text-cream text-sm font-medium hover:bg-soft-black-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating...</> : <><Sparkles className="w-4 h-4" /> Curate Journey</>}
               </button>
             </div>
           </div>
@@ -217,7 +256,13 @@ export default function AIJourneysPage() {
 
         {/* Generated Journey */}
         <div className="lg:col-span-2">
-          {!journey ? (
+          {loading && (
+            <div className="bg-white border border-gray-100 p-12 text-center">
+              <Loader2 className="w-10 h-10 animate-spin text-gold mx-auto mb-4" />
+              <p className="text-sm text-earth">Crafting your personalised journey...</p>
+            </div>
+          )}
+          {!journey && !loading ? (
             <div className="bg-white border border-gray-100 p-12 text-center">
               <Sparkles className="w-12 h-12 text-gray-200 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-soft-black mb-2">Your AI Journey Studio</h3>
@@ -226,7 +271,7 @@ export default function AIJourneysPage() {
                 luxury African itinerary powered by Kivara&apos;s curation engine.
               </p>
             </div>
-          ) : (
+          ) : journey && !loading ? (
             <div className="space-y-6">
               {/* Journey Header */}
               <div className="bg-white border border-gray-100 p-6">
@@ -236,16 +281,14 @@ export default function AIJourneysPage() {
                     <p className="text-sm text-earth">{journey.subtitle}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-bold text-soft-black">
-                      ${journey.pricing.total.toLocaleString()}
-                    </p>
+                    <p className="text-2xl font-bold text-soft-black">${journey.pricing.total.toLocaleString()}</p>
                     <p className="text-xs text-earth">{journey.pricing.currency}</p>
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-4 text-xs text-earth">
-                  <span className="flex items-center gap-1"><Check className="w-3 h-3 text-green-600" /> {journey.duration} nights</span>
-                  <span className="flex items-center gap-1"><Check className="w-3 h-3 text-green-600" /> {journey.destinations.length} destinations</span>
+                  <span className="flex items-center gap-1"><Moon className="w-3 h-3 text-gold" /> {journey.duration} nights</span>
                   <span className="flex items-center gap-1"><Check className="w-3 h-3 text-green-600" /> {journey.itinerary.length} days</span>
+                  <span className="flex items-center gap-1"><Check className="w-3 h-3 text-green-600" /> {journey.destinations.length} destinations</span>
                   <span className="bg-soft-black/5 px-2 py-0.5">{journey.status}</span>
                 </div>
               </div>
@@ -267,25 +310,17 @@ export default function AIJourneysPage() {
               <div className="bg-white border border-gray-100 p-6">
                 <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-2">
                   {journey.itinerary.map((day) => (
-                    <button
-                      key={day.day}
-                      onClick={() => setActiveDay(day.day)}
+                    <button key={day.day} onClick={() => setActiveDay(day.day)}
                       className={`shrink-0 px-4 py-2 text-xs font-medium border transition-colors ${
                         activeDay === day.day
                           ? "bg-soft-black text-cream border-soft-black"
                           : "bg-white text-earth border-gray-200 hover:border-soft-black"
-                      }`}
-                    >
-                      Day {day.day}
-                    </button>
+                      }`}>Day {day.day}</button>
                   ))}
                 </div>
-
-                {journey.itinerary
-                  .filter((d) => d.day === activeDay)
-                  .map((day) => (
-                    <DayCard key={day.day} day={day} />
-                  ))}
+                {journey.itinerary.filter((d) => d.day === activeDay).map((day) => (
+                  <DayCard key={day.day} day={day} />
+                ))}
               </div>
 
               {/* Pricing Breakdown */}
@@ -316,46 +351,58 @@ export default function AIJourneysPage() {
               </div>
 
               {/* Actions */}
-              <div className="flex gap-3">
-                <button className="flex items-center gap-2 px-5 py-3 bg-soft-black text-cream text-sm font-medium hover:bg-soft-black-light transition-colors">
+              <div className="flex flex-wrap gap-3">
+                <button onClick={handleSendToClient} disabled={!journey.guestProfile.email}
+                  className="flex items-center gap-2 px-5 py-3 bg-soft-black text-cream text-sm font-medium hover:bg-soft-black-light transition-colors disabled:opacity-50">
                   <Send className="w-4 h-4" /> Send to Client
                 </button>
-                <button className="flex items-center gap-2 px-5 py-3 border border-gray-200 text-sm font-medium text-soft-black hover:border-soft-black transition-colors">
-                  <Eye className="w-4 h-4" /> Preview PDF
+                <button onClick={handlePreviewPdf}
+                  className="flex items-center gap-2 px-5 py-3 border border-gray-200 text-sm font-medium text-soft-black hover:border-soft-black transition-colors">
+                  <Eye className="w-4 h-4" /> Preview Proposal
                 </button>
-                <button
-                  onClick={handleGenerate}
-                  className="flex items-center gap-2 px-5 py-3 border border-gray-200 text-sm font-medium text-soft-black hover:border-soft-black transition-colors"
-                >
+                <button onClick={handleGenerate}
+                  className="flex items-center gap-2 px-5 py-3 border border-gray-200 text-sm font-medium text-soft-black hover:border-soft-black transition-colors">
                   <RefreshCw className="w-4 h-4" /> Regenerate
                 </button>
               </div>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
+
+      {/* PDF Preview Modal */}
+      {showPdf && (
+        <div className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowPdf(false)}>
+          <div className="bg-white max-w-2xl w-full max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+              <h2 className="text-lg font-bold text-soft-black">Journey Proposal</h2>
+              <button onClick={() => setShowPdf(false)} className="text-earth hover:text-soft-black"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6">
+              <pre className="text-sm font-mono text-soft-black whitespace-pre-wrap leading-relaxed">{pdfContent}</pre>
+            </div>
+            <div className="flex gap-3 px-6 py-4 border-t border-gray-200">
+              <button onClick={() => setShowPdf(false)} className="px-4 py-2 border border-gray-200 text-sm text-earth hover:border-soft-black">Close</button>
+              <button onClick={() => { navigator.clipboard.writeText(pdfContent); alert("Proposal copied to clipboard!"); }}
+                className="px-4 py-2 bg-soft-black text-cream text-sm font-medium hover:bg-soft-black-light">Copy to Clipboard</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 function DayCard({ day }: { day: JourneyDay }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-4"
-    >
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h4 className="font-semibold text-soft-black">{day.title}</h4>
           <p className="text-xs text-earth">{day.location}</p>
         </div>
-        <span className="text-xs bg-soft-black/5 px-2 py-1">
-          {day.accommodation}
-        </span>
+        <span className="text-xs bg-soft-black/5 px-2 py-1">{day.accommodation}</span>
       </div>
-
-      {/* Transfers */}
       {day.transfers.length > 0 && (
         <div className="bg-gray-50 p-3 space-y-2">
           {day.transfers.map((t, i) => (
@@ -367,33 +414,21 @@ function DayCard({ day }: { day: JourneyDay }) {
           ))}
         </div>
       )}
-
-      {/* Activities */}
       <div className="space-y-2">
         {day.activities.map((act, i) => (
           <div key={i} className="flex items-start gap-3 p-2 hover:bg-gray-50 transition-colors">
-            <div className="w-16 shrink-0 text-xs text-earth/60 text-right">
-              {act.time || "Anytime"}
-            </div>
+            <div className="w-16 shrink-0 text-xs text-earth/60 text-right">{act.time || "Anytime"}</div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-soft-black">{act.title}</p>
               <p className="text-xs text-earth">{act.description}</p>
             </div>
-            {act.included && (
-              <span className="text-[10px] text-green-600 bg-green-50 px-1.5 py-0.5 shrink-0">
-                Included
-              </span>
-            )}
+            {act.included && <span className="text-[10px] text-green-600 bg-green-50 px-1.5 py-0.5 shrink-0">Included</span>}
           </div>
         ))}
       </div>
-
-      {/* Meals */}
       <div className="flex gap-2">
         {day.meals.map((meal) => (
-          <span key={meal} className="text-[10px] bg-gold/10 text-gold-dark px-2 py-0.5">
-            {meal}
-          </span>
+          <span key={meal} className="text-[10px] bg-gold/10 text-gold-dark px-2 py-0.5">{meal}</span>
         ))}
       </div>
     </motion.div>

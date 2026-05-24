@@ -1604,7 +1604,7 @@ There is a quality of light on Lake Malawi that photographers chase their entire
 The Maldives is a beautiful destination. But it is a beautiful destination that millions of couples have already experienced. Lake Malawi is the alternative for couples who seek something rarer: a place that still feels undiscovered. A romance that feels like your own, not one you bought off a brochure.
 
 When you choose Lake Malawi, you are not choosing a lesser-known Maldives. You are choosing something entirely different. You are choosing Africa's most romantic secret — a place where the water is fresh, the welcome is warm, and the memories you create will belong only to you.`,
-    image: IMAGES.journalMalawi,
+    image: "/images/kaya-mawa-beach-swing.jpg",
     category: "Destination Feature",
     date: "May 19, 2026",
     author: "Kivara Concierge",
@@ -1636,7 +1636,7 @@ For couples who crave intimacy with the wild, South Luangwa delivers an intensit
 Zanzibar is where the Indian Ocean paints in impossible blues. The Residence Zanzibar offers villas with private pools and outdoor showers hidden within tropical gardens. The Palms, with just seven villas, offers the ultimate in privacy — your own stretch of beach, your own butler, your own rhythm.
 
 Whether you choose one destination or combine all three, the key is this: travel slowly, stay long, and let Africa work its magic on your love story.`,
-    image: IMAGES.journalHoneymoon,
+    image: "/images/zanzibar-dhow.jpg",
     category: "Honeymoon Guide",
     date: "May 10, 2026",
     author: "Kivara Concierge",

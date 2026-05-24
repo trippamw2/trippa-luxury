@@ -3,9 +3,10 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Container } from "@/components/ui/container";
-import { EXPERIENCES } from "@/lib/constants";
+import { useExperiences } from "@/lib/use-public-data";
 
 export function ExperiencesSection() {
+  const experiences = useExperiences();
   return (
     <section className="py-24 md:py-32 bg-soft-black relative overflow-hidden">
       <div className="absolute inset-0 opacity-[0.03]">
@@ -37,7 +38,7 @@ export function ExperiencesSection() {
         </motion.div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {EXPERIENCES.map((experience, index) => (
+          {experiences.map((experience, index) => (
             <motion.div
               key={experience.id}
               initial={{ opacity: 0, y: 30 }}

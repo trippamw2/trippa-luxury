@@ -3,6 +3,8 @@ import {
   PROPERTIES as CONSTANT_PROPERTIES,
   JOURNAL_POSTS as CONSTANT_POSTS,
   PACKAGES as CONSTANT_PACKAGES,
+  EXPERIENCES as CONSTANT_EXPERIENCES,
+  DESTINATIONS as CONSTANT_DESTINATIONS,
 } from "@/lib/constants";
 import { luxury } from "@/lib/voice";
 
@@ -181,5 +183,100 @@ export async function getMergedPackages() {
   } catch (err) {
     console.warn("Error merging packages, using constants:", err);
     return CONSTANT_PACKAGES;
+  }
+}
+
+/** Merge constant experiences with Supabase overrides */
+export async function getMergedExperiences() {
+  try {
+    const supabase = createAdminClient();
+    const { data: dbItems, error } = await supabase
+      .from("experiences")
+      .select("*")
+      .eq("is_active", true)
+      .order("sort_order");
+
+    if (error || !dbItems) {
+      console.warn("Failed to fetch experiences from DB, using constants:", error?.message);
+      return CONSTANT_EXPERIENCES;
+    }
+
+    const dbMap = new Map<string, Record<string, any>>();
+    for (const item of dbItems) {
+      const camel = mapKeysToCamel<Record<string, any>>(item);
+      dbMap.set(camel.slug || camel.id, camel);
+    }
+
+    const merged = CONSTANT_EXPERIENCES.map((constant) => {
+      const dbRecord = dbMap.get(constant.id);
+      if (!dbRecord) return constant;
+      return {
+        ...constant,
+        title: dbRecord.title || constant.title,
+        description: luxury(dbRecord.description || constant.description),
+        image: dbRecord.image || constant.image,
+        category: dbRecord.category || constant.category,
+      };
+    });
+
+    // Add any DB-only experiences
+    for (const [slug, dbRecord] of dbMap) {
+      const exists = CONSTANT_EXPERIENCES.find((c) => c.id === slug);
+      if (!exists) {
+        merged.push({
+          id: slug,
+          title: luxury(dbRecord.title || "Untitled"),
+          description: luxury(dbRecord.description || ""),
+          image: dbRecord.image || "",
+          category: dbRecord.category || "Romance",
+        });
+      }
+    }
+
+    return merged;
+  } catch (err) {
+    console.warn("Error merging experiences, using constants:", err);
+    return CONSTANT_EXPERIENCES;
+  }
+}
+
+/** Merge constant destinations with Supabase overrides */
+export async function getMergedDestinations() {
+  try {
+    const supabase = createAdminClient();
+    const { data: dbItems, error } = await supabase
+      .from("destinations")
+      .select("*")
+      .order("sort_order");
+
+    if (error || !dbItems) {
+      console.warn("Failed to fetch destinations from DB, using constants:", error?.message);
+      return CONSTANT_DESTINATIONS;
+    }
+
+    const dbMap = new Map<string, Record<string, any>>();
+    for (const item of dbItems) {
+      const camel = mapKeysToCamel<Record<string, any>>(item);
+      dbMap.set(camel.slug || camel.id, camel);
+    }
+
+    return CONSTANT_DESTINATIONS.map((constant) => {
+      const dbRecord = dbMap.get(constant.id);
+      if (!dbRecord) return constant;
+      return {
+        ...constant,
+        title: dbRecord.name || constant.title,
+        subtitle: dbRecord.subtitle || constant.subtitle,
+        tagline: dbRecord.tagline || constant.tagline,
+        description: luxury(dbRecord.description || constant.description),
+        positioning: luxury(dbRecord.positioning || constant.positioning),
+        heroImage: dbRecord.heroImage || constant.heroImage,
+        experiences: dbRecord.experiences || constant.experiences,
+        gallery: dbRecord.gallery || [],
+      };
+    });
+  } catch (err) {
+    console.warn("Error merging destinations, using constants:", err);
+    return CONSTANT_DESTINATIONS;
   }
 }

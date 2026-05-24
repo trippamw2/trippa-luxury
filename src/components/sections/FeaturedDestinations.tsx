@@ -3,9 +3,10 @@
 import { motion } from "framer-motion";
 import { Container } from "@/components/ui/container";
 import { DestinationCard } from "@/components/ui/destination-card";
-import { DESTINATIONS } from "@/lib/constants";
+import { useDestinations } from "@/lib/use-public-data";
 
 export function FeaturedDestinations() {
+  const destinations = useDestinations();
   return (
     <section className="py-24 md:py-32 bg-warm-white">
       <Container>
@@ -31,7 +32,7 @@ export function FeaturedDestinations() {
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-4 lg:gap-6">
-          {DESTINATIONS.map((dest, index) => (
+          {destinations.map((dest, index) => (
             <DestinationCard
               key={dest.id}
               title={dest.title}

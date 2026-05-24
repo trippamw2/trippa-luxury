@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { PROPERTIES, JOURNAL_POSTS, PACKAGES } from "@/lib/constants";
+import { PROPERTIES, JOURNAL_POSTS, PACKAGES, EXPERIENCES, DESTINATIONS } from "@/lib/constants";
 
 interface UsePublicDataResult<T> {
   data: T[];
@@ -17,50 +17,41 @@ function attachMeta<T>(arr: T[], loading: boolean, error: string | null): T[] & 
   return result;
 }
 
-export function useProperties() {
-  const [data, setData] = useState(PROPERTIES);
+function usePublicData<T>(
+  endpoint: string,
+  fallback: T[]
+): T[] & UsePublicDataResult<T> {
+  const [data, setData] = useState<T[]>(fallback);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     setLoading(true);
     setError(null);
-    fetch("/api/data/properties")
+    fetch(endpoint)
       .then((r) => r.json())
       .then((json) => { if (json.data) setData(json.data); })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, []);
+  }, [endpoint]);
   return attachMeta(data, loading, error);
+}
+
+export function useProperties() {
+  return usePublicData("/api/data/properties", PROPERTIES);
 }
 
 export function useBlogPosts() {
-  const [data, setData] = useState(JOURNAL_POSTS);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-    fetch("/api/data/blog")
-      .then((r) => r.json())
-      .then((json) => { if (json.data) setData(json.data); })
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, []);
-  return attachMeta(data, loading, error);
+  return usePublicData("/api/data/blog", JOURNAL_POSTS);
 }
 
 export function usePackages() {
-  const [data, setData] = useState(PACKAGES);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-    fetch("/api/data/packages")
-      .then((r) => r.json())
-      .then((json) => { if (json.data) setData(json.data); })
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, []);
-  return attachMeta(data, loading, error);
+  return usePublicData("/api/data/packages", PACKAGES);
+}
+
+export function useExperiences() {
+  return usePublicData("/api/data/experiences", EXPERIENCES);
+}
+
+export function useDestinations() {
+  return usePublicData("/api/data/destinations", DESTINATIONS);
 }

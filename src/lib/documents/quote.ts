@@ -16,6 +16,8 @@ export function generateQuoteDocument(journey: CuratedJourney, meta: {
   const isCouple = journey.guestProfile.isCouple ?? true;
   const guestCount = isCouple ? 2 : 1;
   const guestLabel = isCouple ? "Couple" : "Solo Traveller";
+  const transferCost = pricing.transfers.reduce((s, t) => s + t.cost, 0);
+  const accomSubtotal = pricing.subtotal - transferCost;
 
   const accommodationRows = pricing.accommodation.map(a => {
     const pppn = a.ratePerNightPPPN || Math.round(a.ratePerNight / guestCount);
@@ -30,13 +32,25 @@ export function generateQuoteDocument(journey: CuratedJourney, meta: {
     </tr>`;
   }).join("");
 
-  const itineraryPreview = journey.itinerary.slice(0, 5).map(d => `
+  const itineraryPreview = journey.itinerary.slice(0, 5).map(d => {
+    const transferNotes = d.transfers.map(t =>
+      `<div style="font-size: 10px; color: #8B7D6B; line-height: 1.5;">
+        <span style="color: #C9A96E;">${t.mode === "flight" ? "✈" : "🚙"}</span>
+        ${t.from} → ${t.to}
+        <span style="color: #A89880;"> ($${t.cost}/person)</span>
+      </div>`
+    ).join("");
+    return `
     <tr>
-      <td style="width: 40px; font-size: 11px; color: #C9A96E;">Day ${d.day}</td>
-      <td>${d.title}</td>
-      <td style="color: #8B7D6B;">${d.accommodation}</td>
-      <td style="color: #8B7D6B;">${d.location}</td>
-    </tr>`).join("");
+      <td style="width: 40px; font-size: 11px; color: #C9A96E; vertical-align: top;">Day ${d.day}</td>
+      <td style="vertical-align: top;">
+        ${d.title}
+        ${transferNotes ? `<div style="margin-top: 4px;">${transferNotes}</div>` : ""}
+      </td>
+      <td style="color: #8B7D6B; vertical-align: top;">${d.accommodation}</td>
+      <td style="color: #8B7D6B; vertical-align: top;">${d.location}</td>
+    </tr>`;
+  }).join("");
 
   const highlightsList = journey.highlights.map(h => `<li style="margin-bottom: 6px;">${h}</li>`).join("");
 
@@ -91,12 +105,13 @@ export function generateQuoteDocument(journey: CuratedJourney, meta: {
         </thead>
         <tbody>${accommodationRows}</tbody>
         <tfoot>
-          <tr><td colspan="4" class="text-right subtotal-label">Subtotal</td><td class="text-right font-bold">$${pricing.subtotal.toLocaleString()}</td></tr>
+          <tr><td colspan="4" class="text-right subtotal-label">Accommodation Subtotal</td><td class="text-right">$${accomSubtotal.toLocaleString()}</td></tr>
+          <tr><td colspan="4" class="text-right subtotal-label">Private Charters & Transfers</td><td class="text-right">$${transferCost.toLocaleString()}</td></tr>
           <tr><td colspan="4" class="text-right subtotal-label">Taxes & Fees (10%)</td><td class="text-right font-bold">$${pricing.taxes.toLocaleString()}</td></tr>
           <tr class="total-row"><td colspan="4" class="text-right">Total</td><td class="text-right total-amount">$${pricing.total.toLocaleString()} ${pricing.currency}</td></tr>
         </tfoot>
       </table>
-      <p class="text-earth text-xs">${isCouple ? "PPPN = Per Person Per Night (double occupancy). Per Couple/Night = PPPN × 2." : "PPPN = Per Person Per Night (single occupancy)."}</p>
+      <p class="text-earth text-xs">${isCouple ? "PPPN = Per Person Per Night (double occupancy). Per Couple/Night = PPPN × 2." : "PPPN = Per Person Per Night (single occupancy)."} Transfer costs cover all private charters and road transfers for your entire party and are included in the total.</p>
 
       <h3>Journey Highlights</h3>
       <ul style="padding-left: 20px; font-size: 13px; color: #4A4A4A; line-height: 1.7;">${highlightsList}</ul>

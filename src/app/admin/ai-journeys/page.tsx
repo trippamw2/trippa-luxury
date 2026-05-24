@@ -160,6 +160,8 @@ export default function AIJourneysPage() {
         setPdfContent(result.html);
       } else {
         // Fallback: text-based preview
+        const xfTotal = journey.pricing.transfers.reduce((s, t) => s + t.cost, 0);
+        const accomSub = journey.pricing.subtotal - xfTotal;
         const lines = [
           "═══════════════════════════════════════",
           "  KIVARA LUXURY TRAVEL — JOURNEY PROPOSAL",
@@ -183,6 +185,8 @@ export default function AIJourneysPage() {
             (a) => `  ${a.label}: ${a.nights} nights × $${a.ratePerNight}/night = $${a.subtotal.toLocaleString()}`
           ),
           "",
+          `  Accommodation: $${accomSub.toLocaleString()}`,
+          ...(xfTotal > 0 ? [`  Private Charters & Transfers: $${xfTotal.toLocaleString()}`] : []),
           `  Subtotal: $${journey.pricing.subtotal.toLocaleString()}`,
           `  Taxes & Fees (10%): $${journey.pricing.taxes.toLocaleString()}`,
           `  TOTAL: $${journey.pricing.total.toLocaleString()} ${journey.pricing.currency}`,

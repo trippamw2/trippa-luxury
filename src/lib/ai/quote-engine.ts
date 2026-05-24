@@ -107,18 +107,17 @@ export class QuoteEngine {
               ${lineItems}
             </tbody>
             <tfoot>
-              <tr>
-                <td colspan="3" style="text-align: right; padding: 12px 0 4px; font-size: 13px; color: #8B7D6B;">Subtotal</td>
-                <td style="text-align: right; padding: 12px 0 4px; font-size: 14px; color: #1A1A1A;">$${j.pricing.subtotal.toLocaleString()}</td>
-              </tr>
-              <tr>
-                <td colspan="3" style="text-align: right; padding: 4px 0; font-size: 13px; color: #8B7D6B;">Taxes & Fees (10%)</td>
-                <td style="text-align: right; padding: 4px 0; font-size: 14px; color: #1A1A1A;">$${j.pricing.taxes.toLocaleString()}</td>
-              </tr>
-              <tr>
-                <td colspan="3" style="text-align: right; padding: 8px 0; font-size: 16px; color: #1A1A1A; font-weight: 700; border-top: 2px solid #1A1A1A;">Total Investment</td>
-                <td style="text-align: right; padding: 8px 0; font-size: 18px; color: #C9A96E; font-weight: 700; border-top: 2px solid #1A1A1A;">$${j.pricing.total.toLocaleString()} ${j.pricing.currency}</td>
-              </tr>
+              ${(() => {
+                const transferCost = j.pricing.transfers.reduce((s: number, t: any) => s + t.cost, 0);
+                const accomSub = j.pricing.subtotal - transferCost;
+                let rows = `<tr><td colspan="3" style="text-align: right; padding: 12px 0 4px; font-size: 13px; color: #8B7D6B;">Accommodation Subtotal</td><td style="text-align: right; padding: 12px 0 4px; font-size: 14px; color: #1A1A1A;">$${accomSub.toLocaleString()}</td></tr>`;
+                if (transferCost > 0) {
+                  rows += `<tr><td colspan="3" style="text-align: right; padding: 4px 0; font-size: 13px; color: #8B7D6B;">Private Charters & Transfers</td><td style="text-align: right; padding: 4px 0; font-size: 14px; color: #1A1A1A;">$${transferCost.toLocaleString()}</td></tr>`;
+                }
+                rows += `<tr><td colspan="3" style="text-align: right; padding: 4px 0; font-size: 13px; color: #8B7D6B;">Taxes & Fees (10%)</td><td style="text-align: right; padding: 4px 0; font-size: 14px; color: #1A1A1A;">$${j.pricing.taxes.toLocaleString()}</td></tr>`;
+                rows += `<tr><td colspan="3" style="text-align: right; padding: 8px 0; font-size: 16px; color: #1A1A1A; font-weight: 700; border-top: 2px solid #1A1A1A;">Total Investment</td><td style="text-align: right; padding: 8px 0; font-size: 18px; color: #C9A96E; font-weight: 700; border-top: 2px solid #1A1A1A;">$${j.pricing.total.toLocaleString()} ${j.pricing.currency}</td></tr>`;
+                return rows;
+              })()}
             </tfoot>
           </table>
         </div>

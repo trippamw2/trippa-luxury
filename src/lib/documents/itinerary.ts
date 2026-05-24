@@ -6,6 +6,8 @@ import type { CuratedJourney } from "@/lib/ai/types";
 export function generateItineraryDocument(journey: CuratedJourney): string {
   const isCouple = journey.guestProfile.isCouple ?? true;
   const guestCount = isCouple ? 2 : 1;
+  const transferCost = journey.pricing.transfers.reduce((s, t) => s + t.cost, 0);
+  const accomSubtotal = journey.pricing.subtotal - transferCost;
 
   const accommodationRows = journey.pricing.accommodation.map(a => {
     const pppn = a.ratePerNightPPPN || Math.round(a.ratePerNight / guestCount);
@@ -32,9 +34,18 @@ export function generateItineraryDocument(journey: CuratedJourney): string {
       </div>`).join("");
 
     const transfersList = d.transfers.map(t => `
-      <div style="font-size: 12px; color: #8B7D6B; margin-bottom: 4px;">
-        <span style="color: #C9A96E;">✈</span> ${t.from} → ${t.to}
-        <span style="color: #A89880;"> (${t.mode} · ${t.duration})</span>
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #4A4A4A; margin-bottom: 6px; padding: 6px 10px; background: #F9F6F0; border-left: 2px solid #C9A96E;">
+        <span style="font-size: 14px; flex-shrink: 0;">${t.mode === "flight" ? "✈" : "🚙"}</span>
+        <div style="flex: 1;">
+          <span style="font-weight: 600;">${t.from}</span>
+          <span style="color: #C9A96E; margin: 0 4px;">→</span>
+          <span style="font-weight: 600;">${t.to}</span>
+          <div style="font-size: 10px; color: #8B7D6B; margin-top: 1px;">
+            ${t.mode === "flight" ? "Charter flight" : "Private road transfer"} · ${t.duration}
+            ${t.cost ? ` · <span style="color: #C9A96E;">$${t.cost.toLocaleString()}/person</span>` : ""}
+          </div>
+        </div>
+        ${t.notes ? `<div style="font-size: 10px; color: #8B7D6B; max-width: 200px; text-align: right; line-height: 1.4;">${t.notes}</div>` : ""}
       </div>`).join("");
 
     return `
@@ -96,12 +107,13 @@ export function generateItineraryDocument(journey: CuratedJourney): string {
         </thead>
         <tbody>${accommodationRows}</tbody>
         <tfoot>
-          <tr><td colspan="4" class="text-right subtotal-label">Subtotal</td><td class="text-right font-bold">$${journey.pricing.subtotal.toLocaleString()}</td></tr>
+          <tr><td colspan="4" class="text-right subtotal-label">Accommodation Subtotal</td><td class="text-right">$${accomSubtotal.toLocaleString()}</td></tr>
+          <tr><td colspan="4" class="text-right subtotal-label">Private Charters & Transfers</td><td class="text-right">$${transferCost.toLocaleString()}</td></tr>
           <tr><td colspan="4" class="text-right subtotal-label">Taxes & Fees (10%)</td><td class="text-right font-bold">$${journey.pricing.taxes.toLocaleString()}</td></tr>
           <tr class="total-row"><td colspan="4" class="text-right">Total</td><td class="text-right total-amount">$${journey.pricing.total.toLocaleString()} ${journey.pricing.currency}</td></tr>
         </tfoot>
       </table>
-      <p class="text-earth text-xs">${isCouple ? "PPPN = Per Person Per Night (double occupancy). Per Couple/Night = PPPN × 2." : "PPPN = Per Person Per Night (single occupancy)."}</p>
+      <p class="text-earth text-xs">${isCouple ? "PPPN = Per Person Per Night (double occupancy). Per Couple/Night = PPPN × 2." : "PPPN = Per Person Per Night (single occupancy)."} Transfer costs cover all private charters and road transfers for your entire party.</p>
 
       <h3>Your Itinerary</h3>
       ${daysHtml}

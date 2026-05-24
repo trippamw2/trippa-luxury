@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 interface ApiResponse<T> {
   data: T[];
@@ -35,10 +35,20 @@ export function useApiData<T extends { id: string }>(
 
   const baseUrl = `/api/admin/${resource}`;
 
-  const mapFromApi = options?.mapFromApi || ((item: any) => item as T);
-  const mapToApi = options?.mapToApi || ((item: any) => item);
+  // Use refs for mapper functions so inline arrows from consumers don't
+  // trigger infinite re-fetch loops via useCallback dependency changes.
+  const mapFromApiRef = useRef<(item: any) => T>(
+    options?.mapFromApi || ((item: any) => item as T)
+  );
+  mapFromApiRef.current = options?.mapFromApi || ((item: any) => item as T);
+
+  const mapToApiRef = useRef<(item: any) => any>(
+    options?.mapToApi || ((item: any) => item)
+  );
+  mapToApiRef.current = options?.mapToApi || ((item: any) => item);
 
   const fetchData = useCallback(async () => {
+    const mapFrom = mapFromApiRef.current;
     try {
       setLoading(true);
       setError(null);
@@ -48,32 +58,34 @@ export function useApiData<T extends { id: string }>(
         throw new Error(errData.error || `HTTP ${res.status}`);
       }
       const json: ApiResponse<any> = await res.json();
-      setData((json.data || []).map(mapFromApi));
+      setData((json.data || []).map(mapFrom));
     } catch (err: any) {
       console.error(`Error fetching ${resource}:`, err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  }, [baseUrl, mapFromApi, resource]);
+  }, [baseUrl, resource]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
   const create = useCallback(async (item: any): Promise<T | null> => {
+    const mapFrom = mapFromApiRef.current;
+    const mapTo = mapToApiRef.current;
     try {
       const res = await fetch(baseUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(mapToApi(item)),
+        body: JSON.stringify(mapTo(item)),
       });
       if (!res.ok) {
         const errData = await res.json().catch(() => ({ error: "Create failed" }));
         throw new Error(errData.error || `HTTP ${res.status}`);
       }
       const result = await res.json();
-      const mapped = mapFromApi(result);
+      const mapped = mapFrom(result);
       setData((prev) => [mapped, ...prev]);
       return mapped;
     } catch (err: any) {
@@ -81,21 +93,23 @@ export function useApiData<T extends { id: string }>(
       setError(err.message);
       return null;
     }
-  }, [baseUrl, mapFromApi, mapToApi, resource]);
+  }, [baseUrl, resource]);
 
   const update = useCallback(async (id: string, item: any): Promise<T | null> => {
+    const mapFrom = mapFromApiRef.current;
+    const mapTo = mapToApiRef.current;
     try {
       const res = await fetch(`${baseUrl}/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(mapToApi(item)),
+        body: JSON.stringify(mapTo(item)),
       });
       if (!res.ok) {
         const errData = await res.json().catch(() => ({ error: "Update failed" }));
         throw new Error(errData.error || `HTTP ${res.status}`);
       }
       const result = await res.json();
-      const mapped = mapFromApi(result);
+      const mapped = mapFrom(result);
       setData((prev) => prev.map((d) => (d.id === id ? mapped : d)));
       return mapped;
     } catch (err: any) {
@@ -103,7 +117,7 @@ export function useApiData<T extends { id: string }>(
       setError(err.message);
       return null;
     }
-  }, [baseUrl, mapFromApi, mapToApi, resource]);
+  }, [baseUrl, resource]);
 
   const remove = useCallback(async (id: string): Promise<boolean> => {
     try {

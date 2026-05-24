@@ -348,43 +348,68 @@ function calculatePricing(
 
 export class JourneyEngine {
   generate(guest: GuestProfile): CuratedJourney {
-    const allDestinations = DESTINATIONS.map((d) => d.id);
-    const selectedDestinations = guest.preferences.travelStyle === "relaxation"
-      ? ["lake-malawi", "zanzibar"]
-      : guest.preferences.travelStyle === "adventure"
-        ? ["south-luangwa"]
-        : allDestinations;
+    // Use explicit destination assignments if provided, otherwise auto-select
+    const hasExplicit = guest.explicitDestinations && guest.explicitDestinations.length > 0;
 
-    // Calculate nights per destination
-    const destNights = selectedDestinations.map((destId) => ({
-      destId,
-      base: recommendNights(destId, guest.preferences.activityLevel),
-    }));
-    const totalBase = destNights.reduce((s, d) => s + d.base, 0);
-    const targetNights = guest.desiredNights || totalBase;
+    let selectedDestinations: string[];
+    let propertyAssignments: { property: (typeof PROPERTIES)[number]; nights: number }[];
 
-    // Distribute nights proportionally, ensure minimum 2 per destination
-    let allocated = destNights.map((d) => Math.max(2, Math.round((d.base / totalBase) * targetNights)));
-    // Adjust for rounding: add/subtract from largest to hit target exactly
-    const allocatedTotal = allocated.reduce((s, n) => s + n, 0);
-    let diff = targetNights - allocatedTotal;
-    while (diff !== 0) {
-      if (diff > 0) {
-        const maxIdx = allocated.indexOf(Math.max(...allocated));
-        allocated[maxIdx]++;
-        diff--;
-      } else {
-        const minIdx = allocated.indexOf(Math.min(...allocated));
-        if (allocated[minIdx] > 2) { allocated[minIdx]--; diff++; }
-        else break; // can't go below 2
+    if (hasExplicit) {
+      // Use explicit destination/property/nights from user
+      selectedDestinations = guest.explicitDestinations!.map((d) => d.destinationId);
+      propertyAssignments = [];
+      for (const assign of guest.explicitDestinations!) {
+        let props: (typeof PROPERTIES)[number][];
+        if (assign.propertyId) {
+          // Specific property requested
+          const found = PROPERTIES.find((p) => p.id === assign.propertyId);
+          props = found ? [found] : selectProperties(guest, assign.destinationId, 1);
+        } else {
+          props = selectProperties(guest, assign.destinationId, 1);
+        }
+        for (const p of props) {
+          propertyAssignments.push({ property: p, nights: assign.nights });
+        }
       }
-    }
+    } else {
+      // Auto-select destinations based on travel style
+      const allDestinations = DESTINATIONS.map((d) => d.id);
+      selectedDestinations = guest.preferences.travelStyle === "relaxation"
+        ? ["lake-malawi", "zanzibar"]
+        : guest.preferences.travelStyle === "adventure"
+          ? ["south-luangwa"]
+          : allDestinations;
 
-    const propertyAssignments: { property: (typeof PROPERTIES)[number]; nights: number }[] = [];
-    for (let i = 0; i < destNights.length; i++) {
-      const props = selectProperties(guest, destNights[i].destId, 1);
-      for (const p of props) {
-        propertyAssignments.push({ property: p, nights: allocated[i] });
+      // Calculate nights per destination
+      const destNights = selectedDestinations.map((destId) => ({
+        destId,
+        base: recommendNights(destId, guest.preferences.activityLevel),
+      }));
+      const totalBase = destNights.reduce((s, d) => s + d.base, 0);
+      const targetNights = guest.desiredNights || totalBase;
+
+      // Distribute nights proportionally, ensure minimum 2 per destination
+      let allocated = destNights.map((d) => Math.max(2, Math.round((d.base / totalBase) * targetNights)));
+      const allocatedTotal = allocated.reduce((s, n) => s + n, 0);
+      let diff = targetNights - allocatedTotal;
+      while (diff !== 0) {
+        if (diff > 0) {
+          const maxIdx = allocated.indexOf(Math.max(...allocated));
+          allocated[maxIdx]++;
+          diff--;
+        } else {
+          const minIdx = allocated.indexOf(Math.min(...allocated));
+          if (allocated[minIdx] > 2) { allocated[minIdx]--; diff++; }
+          else break;
+        }
+      }
+
+      propertyAssignments = [];
+      for (let i = 0; i < destNights.length; i++) {
+        const props = selectProperties(guest, destNights[i].destId, 1);
+        for (const p of props) {
+          propertyAssignments.push({ property: p, nights: allocated[i] });
+        }
       }
     }
 

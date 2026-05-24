@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Search, Calendar, Users, MapPin, DollarSign, Edit2, Trash2, X, Check, AlertCircle, FileText, Mail, Phone } from "lucide-react";
+import { Plus, Search, Calendar, Users, MapPin, DollarSign, Edit2, Trash2, X, Check, AlertCircle, FileText, Mail, Phone, Send, Printer, ChevronDown, Loader2 } from "lucide-react";
 import { useApiData } from "@/lib/use-api-data";
 
 type BookingStatus = "provisional" | "deposit_paid" | "confirmed" | "balance_due" | "paid" | "in_progress" | "completed" | "cancelled" | "refunded";
@@ -23,6 +23,9 @@ interface Booking {
   status: BookingStatus;
   package?: string;
   specialRequests?: string;
+  depositMethod?: string;
+  swiftCode?: string;
+  depositNotes?: string;
 }
 
 function mapBooking(item: any): Booking {
@@ -42,6 +45,9 @@ function mapBooking(item: any): Booking {
     status: item.status || "provisional",
     package: item.packageId || "",
     specialRequests: item.specialRequests || "",
+    depositMethod: item.depositMethod || "",
+    swiftCode: item.swiftConfirmationCode || "",
+    depositNotes: item.depositNotes || "",
   };
 }
 
@@ -58,6 +64,9 @@ function mapBookingToApi(item: Partial<Booking>): any {
     deposit_amount: item.depositPaid ? parseFloat(item.depositPaid.replace(/[$,]/g, "")) : 0,
     status: item.status || "provisional",
     special_requests: item.specialRequests,
+    deposit_method: item.depositMethod || null,
+    swift_confirmation_code: item.swiftCode || null,
+    deposit_notes: item.depositNotes || null,
   };
 }
 
@@ -85,6 +94,10 @@ export default function AdminBookings() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [formData, setFormData] = useState<any>({});
+  const [docMenu, setDocMenu] = useState<string | null>(null);
+  const [emailMenu, setEmailMenu] = useState<string | null>(null);
+  const [sendingEmail, setSendingEmail] = useState<string | null>(null);
+  const [generatingDoc, setGeneratingDoc] = useState<string | null>(null);
 
   const showToast = (message: string, type: "success" | "error") => { setToast({ message, type }); setTimeout(() => setToast(null), 3000); };
 
@@ -134,10 +147,77 @@ export default function AdminBookings() {
     }
   };
 
+  // ─── Document Generation ──────────────────────────────────────────
+  const DOCUMENT_TYPES = ["invoice", "receipt", "itinerary", "welcome", "travel-brief", "payment-reminder", "thank-you"];
+
+  const handleGenerateDoc = async (booking: Booking, docType: string) => {
+    setGeneratingDoc(docType);
+    setDocMenu(null);
+    try {
+      const res = await fetch("/api/documents/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: docType,
+          data: {
+            clientName: booking.clientName,
+            bookingRef: booking.ref,
+            destination: booking.destination,
+            totalAmount: booking.totalPrice,
+            depositAmount: booking.depositPaid,
+            startDate: booking.checkIn,
+            endDate: booking.checkOut,
+            guests: booking.guests,
+          },
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to generate document");
+      const result = await res.json();
+      const win = window.open("", "_blank");
+      if (win) {
+        win.document.write(result.html);
+        win.document.close();
+        win.focus();
+      }
+      showToast(`${docType.charAt(0).toUpperCase() + docType.slice(1)} generated`, "success");
+    } catch (err: any) {
+      showToast(`Failed to generate ${docType}: ${err.message}`, "error");
+    }
+    setGeneratingDoc(null);
+  };
+
+  // ─── Email Sending ────────────────────────────────────────────────
+  const EMAIL_TYPES = [
+    { value: "confirmation", label: "Booking Confirmation" },
+    { value: "receipt", label: "Payment Receipt" },
+    { value: "reminder", label: "Payment Reminder" },
+  ];
+
+  const handleSendEmail = async (booking: Booking, type: string) => {
+    setSendingEmail(type);
+    setEmailMenu(null);
+    try {
+      const res = await fetch(`/api/admin/bookings/${booking.id}/email`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to send email");
+      }
+      showToast(`${type === "confirmation" ? "Confirmation" : type === "receipt" ? "Receipt" : "Reminder"} sent to ${booking.clientEmail}`, "success");
+    } catch (err: any) {
+      showToast(`Failed to send email: ${err.message}`, "error");
+    }
+    setSendingEmail(null);
+  };
+
   const resetForm = () => setFormData({
     clientName: "", clientEmail: "", clientPhone: "", destination: "", property: "",
     checkIn: "", checkOut: "", guests: "2", totalPrice: "", depositPaid: "",
     status: "provisional", package: "", specialRequests: "",
+    depositMethod: "", swiftCode: "", depositNotes: "",
   });
   const openAddModal = () => { setEditBooking(null); resetForm(); setShowModal(true); };
   const openEditModal = (booking: Booking) => { setEditBooking(booking); setFormData(booking); setShowModal(true); };
@@ -236,9 +316,61 @@ export default function AdminBookings() {
                         {STATUS_STYLES[b.status]?.label || b.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right">
-                      <button onClick={() => openEditModal(b)} className="text-xs text-gold mr-3">Edit</button>
-                      <button onClick={() => setDeleteConfirm(b.id)} className="text-xs text-red-500">Delete</button>
+                    <td className="px-4 py-3 text-right relative">
+                      <div className="flex items-center justify-end gap-1">
+                        {/* Document Dropdown */}
+                        <div className="relative">
+                          <button onClick={() => setDocMenu(docMenu === b.id ? null : b.id)}
+                            className="p-1.5 text-xs text-earth hover:text-soft-black hover:bg-sand-light rounded">
+                            <FileText className="w-3.5 h-3.5" />
+                          </button>
+                          {docMenu === b.id && (
+                            <>
+                              <div className="fixed inset-0 z-10" onClick={() => setDocMenu(null)} />
+                              <div className="absolute right-0 top-full mt-1 z-20 bg-white border border-sand-light shadow-lg min-w-[140px]">
+                                {DOCUMENT_TYPES.map((dt) => (
+                                  <button key={dt} onClick={() => handleGenerateDoc(b, dt)}
+                                    disabled={generatingDoc === dt}
+                                    className="block w-full text-left px-3 py-2 text-xs text-earth hover:bg-warm-white disabled:opacity-50 flex items-center gap-2">
+                                    {generatingDoc === dt ? <Loader2 className="w-3 h-3 animate-spin" /> : <Printer className="w-3 h-3" />}
+                                    {dt.charAt(0).toUpperCase() + dt.slice(1).replace("-", " ")}
+                                  </button>
+                                ))}
+                              </div>
+                            </>
+                          )}
+                        </div>
+
+                        {/* Email Dropdown */}
+                        <div className="relative">
+                          <button onClick={() => setEmailMenu(emailMenu === b.id ? null : b.id)}
+                            className="p-1.5 text-xs text-earth hover:text-soft-black hover:bg-sand-light rounded">
+                            <Mail className="w-3.5 h-3.5" />
+                          </button>
+                          {emailMenu === b.id && (
+                            <>
+                              <div className="fixed inset-0 z-10" onClick={() => setEmailMenu(null)} />
+                              <div className="absolute right-0 top-full mt-1 z-20 bg-white border border-sand-light shadow-lg min-w-[160px]">
+                                {EMAIL_TYPES.map((et) => (
+                                  <button key={et.value} onClick={() => handleSendEmail(b, et.value)}
+                                    disabled={sendingEmail === et.value}
+                                    className="block w-full text-left px-3 py-2 text-xs text-earth hover:bg-warm-white disabled:opacity-50 flex items-center gap-2">
+                                    {sendingEmail === et.value ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
+                                    {et.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </>
+                          )}
+                        </div>
+
+                        <button onClick={() => openEditModal(b)} className="p-1.5 text-xs text-gold hover:bg-sand-light rounded">
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button onClick={() => setDeleteConfirm(b.id)} className="p-1.5 text-xs text-red-400 hover:bg-sand-light rounded">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -304,6 +436,28 @@ export default function AdminBookings() {
                     <label className="block text-xs font-medium text-earth uppercase mb-2">Deposit Paid</label>
                     <input type="text" value={formData.depositPaid || ""} onChange={e => setFormData({ ...formData, depositPaid: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" placeholder="$2,500" />
                   </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-earth uppercase mb-2">Deposit Method</label>
+                    <select value={formData.depositMethod || ""} onChange={e => setFormData({ ...formData, depositMethod: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm">
+                      <option value="">Select method...</option>
+                      <option value="swift">SWIFT / Wire Transfer</option>
+                      <option value="credit_card">Credit Card</option>
+                      <option value="bank_transfer">Bank Transfer</option>
+                      <option value="cash">Cash</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-earth uppercase mb-2">SWIFT Confirmation Code</label>
+                    <input type="text" value={formData.swiftCode || ""} onChange={e => setFormData({ ...formData, swiftCode: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" placeholder="e.g. SFTRO12345" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-earth uppercase mb-2">Deposit Notes</label>
+                  <textarea value={formData.depositNotes || ""} onChange={e => setFormData({ ...formData, depositNotes: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" rows={2} placeholder="SWIFT reference, payment instructions, notes..." />
                 </div>
 
                 <div>

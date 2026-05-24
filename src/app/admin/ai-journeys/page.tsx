@@ -2,8 +2,43 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Send, Eye, ArrowRight, Loader2, AlertCircle, Check, RefreshCw, X, Moon } from "lucide-react";
-import type { CuratedJourney, GuestProfile, JourneyDay } from "@/lib/ai/types";
+import { Sparkles, Send, Eye, ArrowRight, Loader2, AlertCircle, Check, RefreshCw, X, Moon, Save, Database, MapPin, Hotel } from "lucide-react";
+import type { CuratedJourney, GuestProfile, JourneyDay, DestinationAssignment } from "@/lib/ai/types";
+
+// Available destinations with their properties
+const DESTINATIONS_META = [
+  {
+    id: "lake-malawi",
+    label: "Lake Malawi",
+    properties: [
+      { id: "kaya-mawa", name: "Kaya Mawa" },
+      { id: "pumulani-lodge", name: "Pumulani Lodge" },
+      { id: "blue-zebra-island-lodge", name: "Blue Zebra Island Lodge" },
+      { id: "makokola-retreat", name: "Makokola Retreat" },
+    ],
+  },
+  {
+    id: "south-luangwa",
+    label: "South Luangwa",
+    properties: [
+      { id: "chinzombo", name: "Chinzombo" },
+      { id: "puku-ridge-camp", name: "Puku Ridge Camp" },
+      { id: "shawa-luangwa", name: "Shawa Luangwa" },
+      { id: "luangwa-river-camp", name: "Luangwa River Camp" },
+    ],
+  },
+  {
+    id: "zanzibar",
+    label: "Zanzibar",
+    properties: [
+      { id: "xanadu-villas", name: "Xanadu Villas" },
+      { id: "kilindi-zanzibar", name: "Kilindi Zanzibar" },
+      { id: "baraza-resort-spa", name: "Baraza Resort & Spa" },
+      { id: "the-palms-zanzibar", name: "The Palms Zanzibar" },
+      { id: "the-residence-zanzibar", name: "The Residence Zanzibar" },
+    ],
+  },
+];
 
 const STYLE_OPTIONS = [
   { value: "romantic", label: "Romantic" },
@@ -37,16 +72,29 @@ export default function AIJourneysPage() {
     specialOccasion: "",
     desiredNights: "10",
   });
+  const [selectedDests, setSelectedDests] = useState<string[]>([]);
+  const [destProperties, setDestProperties] = useState<Record<string, string>>({});
+  const [destNights, setDestNights] = useState<Record<string, string>>({});
   const [journey, setJourney] = useState<CuratedJourney | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [activeDay, setActiveDay] = useState(1);
   const [showPdf, setShowPdf] = useState(false);
   const [pdfContent, setPdfContent] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [savedJourneyId, setSavedJourneyId] = useState<string | null>(null);
 
   const handleGenerate = async () => {
     setLoading(true);
     setError("");
+    setSavedJourneyId(null);
+
+    // Build explicit destinations if any are selected
+    const explicitDestinations: DestinationAssignment[] = selectedDests.map((destId) => ({
+      destinationId: destId,
+      propertyId: destProperties[destId] || undefined,
+      nights: parseInt(destNights[destId]) || 3,
+    }));
 
     const profile: GuestProfile = {
       id: `guest-${Date.now()}`,
@@ -61,6 +109,7 @@ export default function AIJourneysPage() {
         activityLevel: form.activityLevel as GuestProfile["preferences"]["activityLevel"],
         budgetRange: form.budgetRange as GuestProfile["preferences"]["budgetRange"],
       },
+      ...(explicitDestinations.length > 0 ? { explicitDestinations } : {}),
     };
 
     try {
@@ -85,48 +134,113 @@ export default function AIJourneysPage() {
     }
   };
 
-  const handlePreviewPdf = () => {
+  const handlePreviewPdf = async () => {
     if (!journey) return;
-    const lines = [
-      "═══════════════════════════════════════",
-      "  KIVARA LUXURY TRAVEL — JOURNEY PROPOSAL",
-      "═══════════════════════════════════════",
-      "",
-      `  ${journey.title}`,
-      `  ${journey.subtitle}`,
-      "",
-      `  Guest: ${journey.guestProfile.name}`,
-      `  Duration: ${journey.duration} nights (${journey.itinerary.length} days)`,
-      journey.guestProfile.specialOccasion ? `  Occasion: ${journey.guestProfile.specialOccasion}` : "",
-      "",
-      "  ── ITINERARY ──",
-      ...journey.itinerary.map(
-        (d) => `  Day ${d.day}: ${d.title} @ ${d.accommodation}`
-      ),
-      "",
-      "  ── HIGHLIGHTS ──",
-      ...journey.highlights.map((h) => `  · ${h}`),
-      "",
-      "  ── INVESTMENT ──",
-      ...journey.pricing.accommodation.map(
-        (a) => `  ${a.label}: ${a.nights} nights × $${a.ratePerNight}/night = $${a.subtotal.toLocaleString()}`
-      ),
-      "",
-      `  Subtotal: $${journey.pricing.subtotal.toLocaleString()}`,
-      `  Taxes & Fees (10%): $${journey.pricing.taxes.toLocaleString()}`,
-      `  TOTAL: $${journey.pricing.total.toLocaleString()} ${journey.pricing.currency}`,
-      "",
-      "  ── INCLUDED ──",
-      ...journey.includedExtras.map((e) => `  · ${e}`),
-      "",
-      `  Proposal ID: ${journey.id}`,
-      `  Created: ${new Date(journey.createdAt).toLocaleDateString()}`,
-      "",
-      "  Kivara Concierge: concierge@kivara.luxury",
-      "═══════════════════════════════════════",
-    ];
-    setPdfContent(lines.join("\n"));
+    setLoading(true);
+    try {
+      const res = await fetch("/api/documents/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "quote",
+          data: {
+            journey,
+            meta: {
+              reference: journey.id || "N/A",
+              validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+              depositRequired: Math.round(journey.pricing.total * 0.3),
+              depositPercent: 30,
+              paymentTerms: "30% deposit upon acceptance, balance due 60 days before travel",
+            },
+          },
+        }),
+      });
+      if (res.ok) {
+        const result = await res.json();
+        setPdfContent(result.html);
+      } else {
+        // Fallback: text-based preview
+        const lines = [
+          "═══════════════════════════════════════",
+          "  KIVARA LUXURY TRAVEL — JOURNEY PROPOSAL",
+          "═══════════════════════════════════════",
+          "",
+          `  ${journey.title}`,
+          `  ${journey.subtitle}`,
+          "",
+          `  Guest: ${journey.guestProfile.name}`,
+          `  Duration: ${journey.duration} nights (${journey.itinerary.length} days)`,
+          journey.guestProfile.specialOccasion ? `  Occasion: ${journey.guestProfile.specialOccasion}` : "",
+          "",
+          "  ── ITINERARY ──",
+          ...journey.itinerary.map((d) => `  Day ${d.day}: ${d.title} @ ${d.accommodation}`),
+          "",
+          "  ── HIGHLIGHTS ──",
+          ...journey.highlights.map((h) => `  · ${h}`),
+          "",
+          "  ── INVESTMENT ──",
+          ...journey.pricing.accommodation.map(
+            (a) => `  ${a.label}: ${a.nights} nights × $${a.ratePerNight}/night = $${a.subtotal.toLocaleString()}`
+          ),
+          "",
+          `  Subtotal: $${journey.pricing.subtotal.toLocaleString()}`,
+          `  Taxes & Fees (10%): $${journey.pricing.taxes.toLocaleString()}`,
+          `  TOTAL: $${journey.pricing.total.toLocaleString()} ${journey.pricing.currency}`,
+          "",
+          "  ── INCLUDED ──",
+          ...journey.includedExtras.map((e) => `  · ${e}`),
+          "",
+          `  Proposal ID: ${journey.id}`,
+          `  Created: ${new Date(journey.createdAt).toLocaleDateString()}`,
+          "",
+          "  Kivara Concierge: concierge@kivara.luxury",
+          "═══════════════════════════════════════",
+        ];
+        setPdfContent(lines.join("\n"));
+      }
+    } catch {
+      setPdfContent("Failed to generate preview. Please try again.");
+    }
+    setLoading(false);
     setShowPdf(true);
+  };
+
+  const handleSaveJourney = async () => {
+    if (!journey) return;
+    setSaving(true);
+    try {
+      const payload = {
+        title: journey.title,
+        subtitle: journey.subtitle,
+        guest_name: journey.guestProfile.name,
+        guest_email: journey.guestProfile.email,
+        is_couple: journey.guestProfile.isCouple,
+        special_occasion: journey.guestProfile.specialOccasion || null,
+        destinations: journey.destinations,
+        duration: journey.duration,
+        itinerary: journey.itinerary,
+        pricing: journey.pricing,
+        highlights: journey.highlights,
+        included_extras: journey.includedExtras,
+        preferences: journey.guestProfile.preferences,
+        status: "draft",
+      };
+      const res = await fetch("/api/admin/journeys", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || "Failed to save journey");
+      }
+      const data = await res.json();
+      setSavedJourneyId(data.id);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to save journey");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleSendToClient = () => {
@@ -234,6 +348,59 @@ export default function AIJourneysPage() {
                   {BUDGET_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
               </div>
+              {/* Destination Selector */}
+              <div className="border-t border-gray-100 pt-4">
+                <h3 className="text-xs font-semibold text-earth uppercase mb-3 flex items-center gap-1">
+                  <MapPin className="w-3 h-3" /> Destinations & Properties
+                </h3>
+                <p className="text-[10px] text-earth/60 mb-3">Select destinations and optionally pick specific properties. Leave properties empty for AI to choose.</p>
+                {DESTINATIONS_META.map((dest) => {
+                  const isSelected = selectedDests.includes(dest.id);
+                  return (
+                    <div key={dest.id} className="mb-3 pb-3 border-b border-gray-50 last:border-b-0">
+                      <label className="flex items-center gap-2 mb-2 cursor-pointer">
+                        <input type="checkbox" checked={isSelected}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedDests([...selectedDests, dest.id]);
+                              setDestNights({ ...destNights, [dest.id]: "3" });
+                            } else {
+                              setSelectedDests(selectedDests.filter((d) => d !== dest.id));
+                              const newProps = { ...destProperties }; delete newProps[dest.id];
+                              const newNights = { ...destNights }; delete newNights[dest.id];
+                              setDestProperties(newProps);
+                              setDestNights(newNights);
+                            }
+                          }}
+                          className="w-4 h-4 border-gray-300" />
+                        <span className="text-sm font-medium text-soft-black">{dest.label}</span>
+                      </label>
+                      {isSelected && (
+                        <div className="ml-6 grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="block text-[10px] text-earth mb-0.5">Property (optional)</label>
+                            <select value={destProperties[dest.id] || ""}
+                              onChange={(e) => setDestProperties({ ...destProperties, [dest.id]: e.target.value })}
+                              className="w-full px-2 py-1.5 border border-gray-200 text-xs focus:outline-none focus:border-soft-black">
+                              <option value="">AI Auto-Select</option>
+                              {dest.properties.map((p) => (
+                                <option key={p.id} value={p.id}>{p.name}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-earth mb-0.5">Nights</label>
+                            <input type="number" min="1" max="14" value={destNights[dest.id] || "3"}
+                              onChange={(e) => setDestNights({ ...destNights, [dest.id]: e.target.value })}
+                              className="w-full px-2 py-1.5 border border-gray-200 text-xs focus:outline-none focus:border-soft-black" />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
               <div>
                 <label className="block text-xs font-medium text-earth mb-1">Special Occasion</label>
                 <input type="text" value={form.specialOccasion} onChange={(e) => setForm({ ...form, specialOccasion: e.target.value })}
@@ -352,6 +519,16 @@ export default function AIJourneysPage() {
 
               {/* Actions */}
               <div className="flex flex-wrap gap-3">
+                <button onClick={handleSaveJourney} disabled={saving}
+                  className="flex items-center gap-2 px-5 py-3 bg-gold text-cream text-sm font-medium hover:bg-gold-dark transition-colors disabled:opacity-50">
+                  {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : <><Database className="w-4 h-4" /> {savedJourneyId ? "Saved" : "Save Journey"}</>}
+                </button>
+                {savedJourneyId && (
+                  <a href={`/admin/journeys?id=${savedJourneyId}`}
+                    className="flex items-center gap-2 px-5 py-3 border border-gray-200 text-sm font-medium text-soft-black hover:border-soft-black transition-colors">
+                    <Save className="w-4 h-4" /> Open in Editor
+                  </a>
+                )}
                 <button onClick={handleSendToClient} disabled={!journey.guestProfile.email}
                   className="flex items-center gap-2 px-5 py-3 bg-soft-black text-cream text-sm font-medium hover:bg-soft-black-light transition-colors disabled:opacity-50">
                   <Send className="w-4 h-4" /> Send to Client
@@ -379,12 +556,18 @@ export default function AIJourneysPage() {
               <button onClick={() => setShowPdf(false)} className="text-earth hover:text-soft-black"><X className="w-5 h-5" /></button>
             </div>
             <div className="flex-1 overflow-y-auto p-6">
-              <pre className="text-sm font-mono text-soft-black whitespace-pre-wrap leading-relaxed">{pdfContent}</pre>
+              {pdfContent.startsWith("<") ? (
+                <iframe srcDoc={pdfContent} className="w-full h-full border-0" title="Journey Proposal" style={{ minHeight: "60vh" }} />
+              ) : (
+                <pre className="text-sm font-mono text-soft-black whitespace-pre-wrap leading-relaxed">{pdfContent}</pre>
+              )}
             </div>
             <div className="flex gap-3 px-6 py-4 border-t border-gray-200">
               <button onClick={() => setShowPdf(false)} className="px-4 py-2 border border-gray-200 text-sm text-earth hover:border-soft-black">Close</button>
-              <button onClick={() => { navigator.clipboard.writeText(pdfContent); alert("Proposal copied to clipboard!"); }}
-                className="px-4 py-2 bg-soft-black text-cream text-sm font-medium hover:bg-soft-black-light">Copy to Clipboard</button>
+              {!pdfContent.startsWith("<") && (
+                <button onClick={() => { navigator.clipboard.writeText(pdfContent); alert("Proposal copied to clipboard!"); }}
+                  className="px-4 py-2 bg-soft-black text-cream text-sm font-medium hover:bg-soft-black-light">Copy to Clipboard</button>
+              )}
             </div>
           </div>
         </div>

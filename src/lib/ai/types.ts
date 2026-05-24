@@ -1,6 +1,12 @@
 // ─── Kivara AI Journey Curation Engine — Core Types ──────────────────────
 // Data models for guest profiling, journey generation, and pricing.
 
+export interface DestinationAssignment {
+  destinationId: string;  // e.g. "lake-malawi"
+  propertyId?: string;    // e.g. "kaya-mawa" — omit for auto-select
+  nights: number;         // nights at this destination
+}
+
 export interface GuestProfile {
   id: string;
   name: string;
@@ -23,6 +29,8 @@ export interface GuestProfile {
     end: string;
     flexible: boolean;
   };
+  // Explicit destination selection — overrides auto-selection when provided
+  explicitDestinations?: DestinationAssignment[];
 }
 
 export interface JourneyDay {

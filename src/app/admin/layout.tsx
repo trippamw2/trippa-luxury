@@ -30,6 +30,8 @@ export default function AdminLayout({
             { label: "Bookings", href: "/admin/bookings" },
             { label: "Inquiries", href: "/admin/inquiries" },
             { label: "AI Journeys", href: "/admin/ai-journeys" },
+            { label: "Journey Editor", href: "/admin/journeys" },
+            { label: "Guest Profiles", href: "/admin/guest-profiles" },
             { label: "Finance", href: "/admin/finance" },
             { label: "Suppliers", href: "/admin/suppliers" },
             { label: "Blog", href: "/admin/blog" },

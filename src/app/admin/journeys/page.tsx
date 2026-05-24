@@ -294,7 +294,7 @@ export default function AdminJourneyEditor() {
 
   const addTransfer = (day: number) => {
     if (!editing) return;
-    const newTr: Transfer = { from: "", to: "", mode: "road", duration: "30 min" };
+    const newTr: Transfer = { from: "", to: "", mode: "road", duration: "30 min", cost: 0 };
     updateDay(day, {
       transfers: [...(editing.itinerary.find((d) => d.day === day)?.transfers || []), newTr],
     });
@@ -640,6 +640,8 @@ export default function AdminJourneyEditor() {
                             </select>
                             <input type="text" value={t.duration} onChange={(e) => updateTransfer(day.day, i, { duration: e.target.value })}
                               placeholder="Duration" className="w-20 px-2 py-1.5 border border-gray-200 text-xs focus:outline-none focus:border-soft-black" />
+                            <input type="number" value={t.cost || 0} onChange={(e) => updateTransfer(day.day, i, { cost: parseInt(e.target.value) || 0 })}
+                              placeholder="Cost" className="w-16 px-2 py-1.5 border border-gray-200 text-xs focus:outline-none focus:border-soft-black" />
                             <button onClick={() => removeTransfer(day.day, i)}
                               className="p-1 text-earth hover:text-red-500"><X className="w-3.5 h-3.5" /></button>
                           </div>

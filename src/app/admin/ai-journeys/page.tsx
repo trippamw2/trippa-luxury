@@ -450,6 +450,7 @@ export default function AIJourneysPage() {
                   <div className="text-right">
                     <p className="text-2xl font-bold text-soft-black">${journey.pricing.total.toLocaleString()}</p>
                     <p className="text-xs text-earth">{journey.pricing.currency}</p>
+                    <p className="text-[10px] text-gold">{journey.guestProfile.isCouple ? "Per Couple" : "Per Person"}</p>
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-4 text-xs text-earth">
@@ -493,28 +494,44 @@ export default function AIJourneysPage() {
               {/* Pricing Breakdown */}
               <div className="bg-white border border-gray-100 p-6">
                 <h3 className="text-sm font-semibold text-soft-black mb-3">Pricing Breakdown</h3>
-                <div className="space-y-2">
-                  {journey.pricing.accommodation.map((a, i) => (
-                    <div key={i} className="flex justify-between text-sm">
-                      <span className="text-earth">{a.label} ({a.nights} nights)</span>
-                      <span className="font-medium text-soft-black">${a.subtotal.toLocaleString()}</span>
+                {/* Table header */}
+                <div className="flex items-center gap-3 text-[10px] text-earth uppercase tracking-wider font-semibold pb-2 border-b border-gray-100 mb-2">
+                  <span className="flex-[2]">Property</span>
+                  <span className="w-14 text-right">Nights</span>
+                  <span className="w-24 text-right">PPPN</span>
+                  <span className="w-24 text-right">{journey.guestProfile.isCouple ? "Per Couple" : "Per Person"}</span>
+                  <span className="w-24 text-right">Subtotal</span>
+                </div>
+                {journey.pricing.accommodation.map((a, i) => {
+                  const pppn = (a as any).ratePerNightPPPN || Math.round(a.ratePerNight / (journey.guestProfile.isCouple ? 2 : 1));
+                  return (
+                    <div key={i} className="flex items-center gap-3 text-sm py-2 border-b border-gray-50 last:border-b-0">
+                      <span className="flex-[2] text-earth">{a.label}</span>
+                      <span className="w-14 text-right text-earth">{a.nights}</span>
+                      <span className="w-24 text-right text-soft-black font-medium">${pppn.toLocaleString()}</span>
+                      <span className="w-24 text-right text-soft-black font-medium">${(pppn * (journey.guestProfile.isCouple ? 2 : 1)).toLocaleString()}</span>
+                      <span className="w-24 text-right text-soft-black font-semibold">${a.subtotal.toLocaleString()}</span>
                     </div>
-                  ))}
-                  <div className="border-t border-gray-100 pt-2 mt-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-earth">Subtotal</span>
-                      <span className="font-medium text-soft-black">${journey.pricing.subtotal.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-earth">Taxes & Fees (10%)</span>
-                      <span className="font-medium text-soft-black">${journey.pricing.taxes.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between text-base font-bold text-soft-black border-t border-gray-200 pt-2 mt-1">
-                      <span>Total</span>
-                      <span>${journey.pricing.total.toLocaleString()} {journey.pricing.currency}</span>
-                    </div>
+                  );
+                })}
+                <div className="border-t border-gray-100 pt-2 mt-2 space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-earth">Subtotal</span>
+                    <span className="font-medium text-soft-black">${journey.pricing.subtotal.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-earth">Taxes & Fees (10%)</span>
+                    <span className="font-medium text-soft-black">${journey.pricing.taxes.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-base font-bold text-soft-black border-t border-gray-200 pt-2 mt-1">
+                    <span>Total</span>
+                    <span>${journey.pricing.total.toLocaleString()} {journey.pricing.currency}</span>
                   </div>
                 </div>
+                <p className="text-[10px] text-earth/60 mt-3 italic">
+                  {journey.guestProfile.isCouple ? "PPPN = Per Person Per Night · Per Couple = PPPN × 2" : "PPPN = Per Person Per Night"}
+                  {journey.guestProfile.isCouple ? " · Rates based on double occupancy" : " · Rates based on single occupancy"}
+                </p>
               </div>
 
               {/* Actions */}

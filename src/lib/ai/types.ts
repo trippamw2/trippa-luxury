@@ -69,6 +69,8 @@ export interface Transfer {
   to: string;
   mode: "flight" | "road" | "boat" | "helicopter";
   duration: string;
+  cost: number;           // Per person cost for this leg
+  currency?: string;
   notes?: string;
 }
 

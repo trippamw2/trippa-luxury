@@ -316,70 +316,181 @@ function getDestIdForProperty(propertyId: string): string {
 }
 
 // ── Transfer Generation ────────────────────────────────────────────────
+// Pricing constants (per person)
+const CHARTER_COSTS: Record<string, number> = {
+  "lake-malawi_south-luangwa": 850,
+  "south-luangwa_zanzibar": 1200,
+  "lake-malawi_zanzibar": 1450,
+};
+const DEFAULT_CHARTER_COST = 650;
+const ROAD_TRANSFER_COST = 95;
+const EXIT_CHARTER_COST = 550;
 
-function generateTransfer(
-  fromDestId: string | null,
-  toDestId: string,
-  fromPropertyId: string | null,
-  toPropertyId: string,
-  index: number
+/** Generate an air transfer (charter flight) between two airports */
+function generateAirTransfer(
+  fromName: string,
+  fromCode: string,
+  toName: string,
+  toCode: string,
+  routeKey: string,
+  isEntry: boolean,
+  isExit: boolean,
 ): Transfer {
-  // First leg: point of entry → local airport
-  if (index === 0 && fromDestId === null) {
-    const poe = getPointOfEntry(toDestId);
-    const local = getLocalAirport(toPropertyId, toDestId);
-    const isSame = poe.name === local.name;
-    return {
-      from: isSame ? "International Arrival" : poe.name,
-      to: isSame ? `${local.name} (${local.code}) — Property Transfer` : `${local.name} (${local.code})`,
-      mode: isSame ? "road" : "flight",
-      duration: isSame ? "~30 minutes" : `~45 minutes`,
-      notes: isSame ? "Complimentary private transfer to property." : `Private charter from ${poe.code} to ${local.code}. VIP meet-and-greet upon arrival.`,
-    };
-  }
+  const cost = isExit
+    ? EXIT_CHARTER_COST
+    : CHARTER_COSTS[routeKey] || DEFAULT_CHARTER_COST;
 
-  // Cross-destination: local airport of previous → local airport of current
-  if (fromDestId && fromPropertyId && fromDestId !== toDestId) {
-    const fromLocal = getLocalAirport(fromPropertyId, fromDestId);
-    const toLocal = getLocalAirport(toPropertyId, toDestId);
-    const duration: Record<string, string> = {
-      "lake-malawi_south-luangwa": "~2 hours (charter flight)",
-      "south-luangwa_zanzibar": "~3 hours (via charter + connection)",
-      "lake-malawi_zanzibar": "~2.5 hours (direct charter)",
-    };
-    const key = `${fromDestId}_${toDestId}`;
+  if (isEntry) {
     return {
-      from: `${fromLocal.name} (${fromLocal.code})`,
-      to: `${toLocal.name} (${toLocal.code})`,
+      from: fromName,
+      to: `${toName} (${toCode})`,
       mode: "flight",
-      duration: duration[key] || "~2.5 hours (charter flight)",
-      notes: "Private air charter between destinations. All ground transfers included.",
+      duration: "~45–60 minutes",
+      cost,
+      notes: `Private charter from ${fromCode} to ${toCode}. VIP meet-and-greet upon arrival.`,
     };
   }
 
-  // Same destination / intra-destination
-  const local = getLocalAirport(toPropertyId, toDestId);
+  if (isExit) {
+    return {
+      from: `${fromName} (${fromCode})`,
+      to: `${toName} (${toCode}) — International Departure`,
+      mode: "flight",
+      duration: "~45–60 minutes",
+      cost,
+      notes: `Private charter from ${fromCode} to ${toCode} for international connection.`,
+    };
+  }
+
+  // Cross-destination charter
+  const durationMap: Record<string, string> = {
+    "lake-malawi_south-luangwa": "~2 hours",
+    "south-luangwa_zanzibar": "~3 hours",
+    "lake-malawi_zanzibar": "~2.5 hours",
+  };
   return {
-    from: `${local.name} (${local.code})`,
-    to: `${local.name} (${local.code}) — Property`,
-    mode: "road",
-    duration: "~30–45 minutes",
-    notes: "Private safari vehicle with refreshments.",
+    from: `${fromName} (${fromCode})`,
+    to: `${toName} (${toCode})`,
+    mode: "flight",
+    duration: durationMap[routeKey] || "~2.5 hours",
+    cost,
+    notes: "Private air charter between destinations. All ground transfers included.",
   };
 }
 
-function generateLastTransfer(
-  fromDestId: string,
-  fromPropertyId: string
+/** Generate a road transfer (pickup/dropoff) between a local airport and a property */
+function generateRoadLeg(
+  airportName: string,
+  airportCode: string,
+  propertyName: string,
+  direction: "pickup" | "dropoff"
 ): Transfer {
-  const local = getLocalAirport(fromPropertyId, fromDestId);
   return {
-    from: `${local.name} (${local.code})`,
-    to: `${local.name} (${local.code}) — Departure`,
+    from: direction === "pickup"
+      ? `${airportName} (${airportCode})`
+      : propertyName,
+    to: direction === "pickup"
+      ? propertyName
+      : `${airportName} (${airportCode})`,
     mode: "road",
-    duration: "~30 minutes",
-    notes: "Private transfer to airport for onward journey.",
+    duration: "~30–45 minutes",
+    cost: ROAD_TRANSFER_COST,
+    notes: direction === "pickup"
+      ? "Private safari vehicle with refreshments. Driver will greet you at arrivals."
+      : "Private vehicle transfer to the airstrip for your departure charter.",
   };
+}
+
+/** Build all transfers for a single-leg arrival into a property */
+function buildArrivalTransfers(
+  index: number,
+  currentDestId: string,
+  currentPropertyId: string,
+  currentPropertyName: string,
+  prevDestId: string | null,
+  prevPropertyId: string | null,
+): Transfer[] {
+  const currentLocal = getLocalAirport(currentPropertyId, currentDestId);
+  const transfers: Transfer[] = [];
+
+  if (index === 0) {
+    // First property: international entry → local airstrip
+    const poe = getPointOfEntry(currentDestId);
+    const isSame = poe.name === currentLocal.name;
+    if (!isSame) {
+      transfers.push(generateAirTransfer(
+        `${poe.name} (${poe.code}) — International Arrival`,
+        poe.code,
+        currentLocal.name,
+        currentLocal.code,
+        `entry_${currentDestId}`,
+        true,   // isEntry
+        false,  // isExit
+      ));
+    }
+  } else if (prevDestId && prevPropertyId) {
+    // Cross-destination or same-destination: previous local → current local
+    const prevLocal = getLocalAirport(prevPropertyId, prevDestId);
+    const routeKey = `${prevDestId}_${currentDestId}`;
+    const isSameDest = prevDestId === currentDestId;
+
+    if (isSameDest && prevLocal.code === currentLocal.code) {
+      // Same local airport → just a road transfer
+      transfers.push(generateRoadLeg(
+        currentLocal.name, currentLocal.code,
+        currentPropertyName, "pickup",
+      ));
+      return transfers;
+    }
+
+    // Air transfer between airports
+    transfers.push(generateAirTransfer(
+      prevLocal.name, prevLocal.code,
+      currentLocal.name, currentLocal.code,
+      routeKey,
+      false,  // isEntry
+      false,  // isExit
+    ));
+  }
+
+  // Road leg: local airport → property (always present after air transfer)
+  transfers.push(generateRoadLeg(
+    currentLocal.name, currentLocal.code,
+    currentPropertyName, "pickup",
+  ));
+
+  return transfers;
+}
+
+/** Build departure transfers from the last property */
+function buildDepartureTransfers(
+  destId: string,
+  propertyId: string,
+  propertyName: string,
+): Transfer[] {
+  const local = getLocalAirport(propertyId, destId);
+  const poe = getPointOfEntry(destId);
+  const isSame = local.name === poe.name;
+  const transfers: Transfer[] = [];
+
+  // Road leg: property → local airport
+  transfers.push(generateRoadLeg(
+    local.name, local.code,
+    propertyName, "dropoff",
+  ));
+
+  // Charter leg: local airport → international point of entry (if different)
+  if (!isSame) {
+    transfers.push(generateAirTransfer(
+      local.name, local.code,
+      poe.name, poe.code,
+      `${destId}_exit`,
+      false,  // isEntry
+      true,   // isExit
+    ));
+  }
+
+  return transfers;
 }
 
 // ── Pricing Calculation ────────────────────────────────────────────────
@@ -437,13 +548,54 @@ function calculatePricing(
     subtotal += subtotalRow;
   }
 
+  // Calculate transfer costs (per person) for the full itinerary
+  let transferTotal = 0;
+  for (let i = 0; i < propertyAssignments.length; i++) {
+    const { property } = propertyAssignments[i];
+    const curDestId = getDestIdForProperty(property.id);
+
+    // Arrival transfers
+    const prevProp = i > 0 ? propertyAssignments[i - 1] : null;
+    const prevDestId = prevProp ? getDestIdForProperty(prevProp.property.id) : null;
+    const prevPropId = prevProp ? prevProp.property.id : null;
+
+    if (i === 0) {
+      const poe = getPointOfEntry(curDestId);
+      const local = getLocalAirport(property.id, curDestId);
+      if (poe.name !== local.name) transferTotal += DEFAULT_CHARTER_COST;
+      transferTotal += ROAD_TRANSFER_COST;
+    } else if (prevDestId && prevPropId) {
+      const prevLocal = getLocalAirport(prevPropId, prevDestId);
+      const curLocal = getLocalAirport(property.id, curDestId);
+      if (prevDestId !== curDestId || prevLocal.code !== curLocal.code) {
+        const routeKey = `${prevDestId}_${curDestId}`;
+        transferTotal += CHARTER_COSTS[routeKey] || DEFAULT_CHARTER_COST;
+      }
+      transferTotal += ROAD_TRANSFER_COST;
+    }
+  }
+
+  // Last property departure
+  if (propertyAssignments.length > 0) {
+    const last = propertyAssignments[propertyAssignments.length - 1];
+    const lastDestId = getDestIdForProperty(last.property.id);
+    const lastLocal = getLocalAirport(last.property.id, lastDestId);
+    const lastPoe = getPointOfEntry(lastDestId);
+    transferTotal += ROAD_TRANSFER_COST; // property → local airport
+    if (lastLocal.name !== lastPoe.name) transferTotal += EXIT_CHARTER_COST; // local → international
+  }
+
+  // Multiply by guest count (each guest pays for transfers)
+  const transferTotalGuests = transferTotal * guestCount;
+  subtotal += transferTotalGuests;
+
   const taxes = Math.round(subtotal * 0.1);
   const total = subtotal + taxes;
 
   return {
     accommodation,
     activities: [],
-    transfers: [],
+    transfers: [{ label: "All private charters & road transfers", cost: transferTotalGuests }],
     subtotal,
     taxes,
     total,
@@ -529,18 +681,13 @@ export class JourneyEngine {
       const location = property.location || property.destination;
       const currentDestId = getDestIdForProperty(property.id);
 
-      // First day: arrival with transfer
+      // Build arrival transfers (charter + road pickup)
       const prevDestId = i > 0 ? getDestIdForProperty(propertyAssignments[i - 1].property.id) : null;
       const prevPropertyId = i > 0 ? propertyAssignments[i - 1].property.id : null;
-      const arrivalTransfers: Transfer[] = [];
-
-      if (i === 0) {
-        // Point of entry → local airport
-        arrivalTransfers.push(generateTransfer(null, currentDestId, null, property.id, 0));
-      } else if (prevDestId) {
-        // Previous property → this property
-        arrivalTransfers.push(generateTransfer(prevDestId, currentDestId, prevPropertyId, property.id, i));
-      }
+      const arrivalTransfers = buildArrivalTransfers(
+        i, currentDestId, property.id, property.name,
+        prevDestId, prevPropertyId,
+      );
 
       itinerary.push({
         day: dayCounter,
@@ -575,12 +722,13 @@ export class JourneyEngine {
       }
     }
 
-    // Add departure transfer on the last day
+    // Add departure transfers on the last day (road dropoff + charter to international)
     if (propertyAssignments.length > 0) {
       const lastPA = propertyAssignments[propertyAssignments.length - 1];
       const lastDestId = getDestIdForProperty(lastPA.property.id);
       const lastDayIdx = itinerary.length - 1;
-      itinerary[lastDayIdx].transfers.push(generateLastTransfer(lastDestId, lastPA.property.id));
+      const departureTransfers = buildDepartureTransfers(lastDestId, lastPA.property.id, lastPA.property.name);
+      itinerary[lastDayIdx].transfers.push(...departureTransfers);
     }
 
     const pricing = calculatePricing(propertyAssignments, guest);
@@ -683,6 +831,8 @@ export class JourneyEngine {
    * Generate a formatted quote summary with brand voice.
    */
   generateQuote(journey: CuratedJourney): string {
+    const xfTotal = journey.pricing.transfers.reduce((s, t) => s + t.cost, 0);
+    const accomSub = journey.pricing.subtotal - xfTotal;
     const lines = [
       "═══════════════════════════════════════",
       "  KIVARA LUXURY TRAVEL — JOURNEY PROPOSAL",
@@ -701,6 +851,8 @@ export class JourneyEngine {
         (a) => `  ${a.label}: ${a.nights} nights × $${a.ratePerNight}/night = $${a.subtotal.toLocaleString()}`
       ),
       "",
+      `  Accommodation: $${accomSub.toLocaleString()}`,
+      ...(xfTotal > 0 ? [`  Private Charters & Transfers: $${xfTotal.toLocaleString()}`] : []),
       `  Subtotal: $${journey.pricing.subtotal.toLocaleString()}`,
       `  Taxes & Fees (10%): $${journey.pricing.taxes.toLocaleString()}`,
       `  TOTAL INVESTMENT: $${journey.pricing.total.toLocaleString()} ${journey.pricing.currency}`,

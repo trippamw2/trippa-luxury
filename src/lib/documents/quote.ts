@@ -13,13 +13,22 @@ export function generateQuoteDocument(journey: CuratedJourney, meta: {
 }): string {
   const { pricing } = journey;
 
-  const accommodationRows = pricing.accommodation.map(a => `
+  const isCouple = journey.guestProfile.isCouple ?? true;
+  const guestCount = isCouple ? 2 : 1;
+  const guestLabel = isCouple ? "Couple" : "Solo Traveller";
+
+  const accommodationRows = pricing.accommodation.map(a => {
+    const pppn = a.ratePerNightPPPN || Math.round(a.ratePerNight / guestCount);
+    const perNightTotal = a.ratePerNight;
+    return `
     <tr>
       <td>${a.label}</td>
       <td class="text-center">${a.nights}</td>
-      <td class="text-right">$${a.ratePerNight.toLocaleString()}</td>
+      <td class="text-right">$${pppn.toLocaleString()}</td>
+      <td class="text-right">$${perNightTotal.toLocaleString()}</td>
       <td class="text-right font-bold">$${a.subtotal.toLocaleString()}</td>
-    </tr>`).join("");
+    </tr>`;
+  }).join("");
 
   const itineraryPreview = journey.itinerary.slice(0, 5).map(d => `
     <tr>
@@ -45,12 +54,16 @@ export function generateQuoteDocument(journey: CuratedJourney, meta: {
           <span>${journey.guestProfile.name}</span>
         </div>
         <div class="info-item">
-          <label>Valid Until</label>
-          <span>${meta.validUntil}</span>
+          <label>Party</label>
+          <span>${guestLabel} &middot; ${isCouple ? "2 Guests" : "1 Guest"}</span>
         </div>
         <div class="info-item">
           <label>Duration</label>
           <span>${journey.duration} Nights</span>
+        </div>
+        <div class="info-item">
+          <label>Valid Until</label>
+          <span>${meta.validUntil}</span>
         </div>
         <div class="info-item">
           <label>Destinations</label>
@@ -74,15 +87,16 @@ export function generateQuoteDocument(journey: CuratedJourney, meta: {
       <h3>Investment</h3>
       <table>
         <thead>
-          <tr><th>Accommodation</th><th class="text-center">Nights</th><th class="text-right">Rate/Night</th><th class="text-right">Total</th></tr>
+          <tr><th>Accommodation</th><th class="text-center">Nights</th><th class="text-right">PPPN</th><th class="text-right">${isCouple ? "Per Couple" : "Per Person"}/Night</th><th class="text-right">Subtotal</th></tr>
         </thead>
         <tbody>${accommodationRows}</tbody>
         <tfoot>
-          <tr><td colspan="3" class="text-right" style="padding: 8px 8px 4px; font-size: 13px; color: #8B7D6B;">Subtotal</td><td class="text-right" style="padding: 8px 8px 4px; font-size: 14px;">$${pricing.subtotal.toLocaleString()}</td></tr>
-          <tr><td colspan="3" class="text-right" style="padding: 4px 8px; font-size: 13px; color: #8B7D6B;">Taxes & Fees (10%)</td><td class="text-right" style="padding: 4px 8px; font-size: 14px;">$${pricing.taxes.toLocaleString()}</td></tr>
-          <tr class="total-row"><td colspan="3" class="text-right" style="padding: 16px 8px; font-size: 16px; font-weight: 700;">Total</td><td class="text-right" style="padding: 16px 8px; font-size: 22px; font-weight: 700; color: ${KIVARA_BRAND.colors.gold};">$${pricing.total.toLocaleString()} ${pricing.currency}</td></tr>
+          <tr><td colspan="4" class="text-right subtotal-label">Subtotal</td><td class="text-right font-bold">$${pricing.subtotal.toLocaleString()}</td></tr>
+          <tr><td colspan="4" class="text-right subtotal-label">Taxes & Fees (10%)</td><td class="text-right font-bold">$${pricing.taxes.toLocaleString()}</td></tr>
+          <tr class="total-row"><td colspan="4" class="text-right">Total</td><td class="text-right total-amount">$${pricing.total.toLocaleString()} ${pricing.currency}</td></tr>
         </tfoot>
       </table>
+      <p class="text-earth text-xs">${isCouple ? "PPPN = Per Person Per Night (double occupancy). Per Couple/Night = PPPN × 2." : "PPPN = Per Person Per Night (single occupancy)."}</p>
 
       <h3>Journey Highlights</h3>
       <ul style="padding-left: 20px; font-size: 13px; color: #4A4A4A; line-height: 1.7;">${highlightsList}</ul>

@@ -71,7 +71,7 @@ function mapDestination(item: ApiDestination): Destination {
 }
 
 export default function DestinationsPage() {
-  const { data: apiDestinations, loading, create, update, remove } = useApiData<ApiDestination>("destinations", {});
+  const { data: apiDestinations, loading, create, update, remove, refresh } = useApiData<ApiDestination>("destinations", {});
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [editingDest, setEditingDest] = useState<Destination | null>(null);
@@ -105,14 +105,10 @@ export default function DestinationsPage() {
   };
 
   const handleDelete = async (slug: string) => {
-    const dest = destinations.find(d => d.slug === slug);
-    if (!dest || dest.properties.length === 0) {
-      showNotification("No properties to delete");
-      return;
-    }
-    const ok = await remove(dest.properties[0].id);
-    if (ok) showNotification("Destination properties removed");
-    else showNotification("Failed to remove");
+    if (!confirm(`Delete destination "${slug}"? This removes destination metadata only.`)) return;
+    const ok = await remove(slug);
+    if (ok) showNotification("Destination deleted");
+    else showNotification("Failed to delete destination");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -121,15 +117,12 @@ export default function DestinationsPage() {
     const payload = {
       name: formData.title,
       slug,
-      location: formData.properties.split(",")[0]?.trim() || slug,
-      description: formData.description,
-      tagline: formData.tagline || formData.subtitle,
-      heroImage: formData.heroImage || "https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=1920&q=80",
-      gallery: editingDest?.gallery || [],
+      description: formData.description || editingDest?.description || "",
+      heroImage: formData.heroImage || editingDest?.heroImage || "",
     };
     let result;
-    if (editingDest && editingDest.properties.length > 0) {
-      result = await update(editingDest.properties[0].id, payload);
+    if (editingDest) {
+      result = await update(editingDest.slug, payload);
     } else {
       result = await create(payload);
     }
@@ -141,16 +134,28 @@ export default function DestinationsPage() {
     }
   };
 
-  const handleAddGalleryImage = (destSlug: string) => {
+  const handleAddGalleryImage = async (destSlug: string) => {
     const url = (document.getElementById("galleryImageUrl") as HTMLInputElement)?.value;
     if (!url) return;
     const dest = destinations.find(d => d.slug === destSlug);
     if (dest && dest.properties.length > 0) {
       const prop = dest.properties[0];
-      update(prop.id, { gallery: [...prop.gallery, url] }).then(() => {
-        showNotification("Gallery image added");
-        setShowGalleryModal(false);
-      });
+      try {
+        const res = await fetch(`/api/admin/properties/${prop.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ gallery: [...prop.gallery, url] }),
+        });
+        if (res.ok) {
+          showNotification("Gallery image added");
+          setShowGalleryModal(false);
+          refresh();
+        } else {
+          showNotification("Failed to add image");
+        }
+      } catch {
+        showNotification("Failed to add image");
+      }
     }
   };
 
@@ -158,9 +163,21 @@ export default function DestinationsPage() {
     const dest = destinations.find(d => d.slug === destSlug);
     if (dest && dest.properties.length > 0) {
       const prop = dest.properties[0];
-      const newGallery = prop.gallery.filter((_, i) => i !== index);
-      await update(prop.id, { gallery: newGallery });
-      showNotification("Gallery image removed");
+      try {
+        const res = await fetch(`/api/admin/properties/${prop.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ gallery: prop.gallery.filter((_, i) => i !== index) }),
+        });
+        if (res.ok) {
+          showNotification("Gallery image removed");
+          refresh();
+        } else {
+          showNotification("Failed to remove image");
+        }
+      } catch {
+        showNotification("Failed to remove image");
+      }
     }
   };
 
@@ -182,7 +199,7 @@ export default function DestinationsPage() {
           <div key={dest.id} className="bg-white border border-sand-light p-6">
             <div className="flex gap-6">
               <div className="w-48 h-32 relative overflow-hidden flex-shrink-0">
-                <Image src={dest.heroImage} alt={dest.name} fill className="object-cover" />
+                <Image src={dest.heroImage} alt={dest.name} fill unoptimized className="object-cover" />
               </div>
               <div className="flex-1">
                 <div className="flex items-start justify-between">
@@ -207,7 +224,7 @@ export default function DestinationsPage() {
                   <div className="flex gap-2 flex-wrap">
                     {dest.gallery.map((img, idx) => (
                       <div key={idx} className="relative w-20 h-20 overflow-hidden group">
-                        <Image src={img} alt={`Gallery ${idx}`} fill className="object-cover" />
+                        <Image src={img} alt={`Gallery ${idx}`} fill unoptimized className="object-cover" />
                         <button onClick={() => handleDeleteGalleryImage(dest.slug, idx)} className="absolute top-1 right-1 w-5 h-5 bg-red-600 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity">×</button>
                       </div>
                     ))}

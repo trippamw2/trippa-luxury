@@ -76,8 +76,7 @@ function mapTourToApi(item: Partial<Tour>): any {
     hero_image: item.image,
     included: item.inclusions,
     excluded: item.exclusions,
-    meeting_point: item.meetingPoint,
-    group_size: item.groupSize,
+    // NOTE: meeting_point and group_size not yet in DB schema
   };
 }
 
@@ -142,8 +141,6 @@ export default function AdminTours() {
       itinerary: formData.itinerary.filter(i => i.title),
       inclusions: formData.inclusions.split(",").map(i => i.trim()).filter(Boolean),
       exclusions: formData.exclusions.split(",").map(e => e.trim()).filter(Boolean),
-      meetingPoint: formData.meetingPoint,
-      groupSize: formData.groupSize
     });
     if (result) {
       setShowModal(false);
@@ -170,8 +167,6 @@ export default function AdminTours() {
       itinerary: formData.itinerary.filter(i => i.title),
       inclusions: formData.inclusions.split(",").map(i => i.trim()).filter(Boolean),
       exclusions: formData.exclusions.split(",").map(e => e.trim()).filter(Boolean),
-      meetingPoint: formData.meetingPoint,
-      groupSize: formData.groupSize
     });
     if (result) {
       setEditingTour(null);
@@ -258,7 +253,7 @@ export default function AdminTours() {
         {filteredTours.map((tour, index) => (
           <motion.div key={tour.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.03 }} className="bg-white border border-sand-light overflow-hidden group hover:shadow-lg transition-shadow">
             <div className="relative aspect-video bg-cream">
-              {tour.image ? <Image src={tour.image} alt={tour.title} fill className="object-cover" /> : <div className="flex items-center justify-center h-full"><ImageIcon className="w-8 h-8 text-earth-light" /></div>}
+              {tour.image ? <Image src={tour.image} alt={tour.title} fill unoptimized className="object-cover" /> : <div className="flex items-center justify-center h-full"><ImageIcon className="w-8 h-8 text-earth-light" /></div>}
               {tour.featured && <div className="absolute top-2 left-2"><Star className="w-4 h-4 text-gold fill-gold" /></div>}
               <div className="absolute top-2 right-2"><span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium ${tour.status === "active" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : tour.status === "draft" ? "bg-sand-light text-earth border-sand" : "bg-gray-100 text-gray-400 border-gray-200"}`}>{tour.status}</span></div>
             </div>
@@ -289,7 +284,7 @@ export default function AdminTours() {
             <motion.div initial={{ scale: 0.95 }} className="bg-cream border border-sand-light p-6 w-full max-w-3xl my-8" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-6"><h2 className="text-xl font-bold text-soft-black">{editingTour ? "Edit Tour" : "Create New Tour"}</h2><button onClick={() => setShowModal(false)} className="text-earth hover:text-soft-black"><X className="w-5 h-5" /></button></div>
               <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
-                <div><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Tour Image URL</label><div className="flex gap-2"><input type="url" value={formData.image} onChange={(e) => setFormData({ ...formData, image: e.target.value })} className="flex-1 px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" placeholder="https://images.unsplash.com/..." />{formData.image && <div className="relative w-16 h-16 rounded overflow-hidden flex-shrink-0 border border-sand-light"><Image src={formData.image} alt="Preview" fill className="object-cover" /></div>}</div></div>
+                <div><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Tour Image URL</label><div className="flex gap-2"><input type="url" value={formData.image} onChange={(e) => setFormData({ ...formData, image: e.target.value })} className="flex-1 px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" placeholder="https://images.unsplash.com/..." />{formData.image && <div className="relative w-16 h-16 rounded overflow-hidden flex-shrink-0 border border-sand-light"><Image src={formData.image} alt="Preview" fill unoptimized className="object-cover" /></div>}</div></div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="col-span-2"><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Tour Name</label><input type="text" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" placeholder="Walking Safari Adventure" /></div>
                   <div><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Category</label><select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white">{CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}</select></div>

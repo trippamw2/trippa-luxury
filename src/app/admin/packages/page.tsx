@@ -76,6 +76,7 @@ export default function AdminPackages() {
   );
 
   const handleAdd = async () => {
+    const itineraryLines = formData.itinerary.split("\n").map(l => l.trim()).filter(Boolean);
     const result = await create({
       title: formData.title,
       subtitle: formData.subtitle,
@@ -86,7 +87,9 @@ export default function AdminPackages() {
       image: formData.image || "",
       properties: formData.properties.split(",").map(p => p.trim()).filter(Boolean),
       inclusions: formData.inclusions.split("\n").map(i => i.trim()).filter(Boolean),
-      itinerary: formData.itinerary ? [{ day: 1, title: "Arrival", description: formData.itinerary }] : [{ day: 1, title: "Arrival", description: "Welcome and transfer to property" }],
+      itinerary: itineraryLines.length > 0
+        ? itineraryLines.map((line, idx) => ({ day: idx + 1, title: `Day ${idx + 1}`, description: line }))
+        : [{ day: 1, title: "Arrival", description: "Welcome and transfer to property" }],
     });
     if (result) {
       setShowModal(false);

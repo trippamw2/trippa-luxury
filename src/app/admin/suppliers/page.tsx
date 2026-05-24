@@ -53,6 +53,7 @@ function mapSupplier(item: any): Supplier {
 function mapSupplierToApi(item: Partial<Supplier>): any {
   const result: any = {
     name: item.name,
+    category: item.category, // API converts slug → category_id
     contact_person: item.contactPerson,
     email: item.email,
     phone: item.phone,
@@ -193,7 +194,7 @@ export default function AdminSuppliers() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filtered.map((supplier) => (
           <motion.div key={supplier.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white border border-sand-light rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
-            {supplier.image && (<div className="relative h-32 bg-cream"><Image src={supplier.image} alt={supplier.name} fill className="object-cover" /></div>)}
+            {supplier.image && (<div className="relative h-32 bg-cream"><Image src={supplier.image} alt={supplier.name} fill unoptimized className="object-cover" /></div>)}
             <div className="p-4">
               <div className="flex items-start justify-between mb-2">
                 <div><h3 className="font-bold text-soft-black">{supplier.name}</h3><p className="text-xs text-earth flex items-center gap-1"><MapPin className="w-3 h-3" />{supplier.location}{supplier.country ? `, ${supplier.country}` : ""}</p></div>

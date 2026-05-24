@@ -56,7 +56,7 @@ function mapInvToApi(item: Partial<Invoice>): any {
 
 function mapExp(item: any): Expense {
   return {
-    id: item.id, category: item.category || (item.categoryId ? "Other" : "Operations"),
+    id: item.id, category: item.category || "Other",
     description: item.description || "", amount: item.amount || 0,
     date: item.expenseDate?.split("T")[0] || item.date || "", status: item.status || "approved",
     receipt: item.receiptUrl || "",
@@ -64,6 +64,7 @@ function mapExp(item: any): Expense {
 }
 function mapExpToApi(item: Partial<Expense>): any {
   return {
+    category: item.category, // API converts name → category_id
     description: item.description, amount: item.amount,
     expense_date: item.date, receipt_url: item.receipt,
   };
@@ -92,7 +93,7 @@ export default function AdminFinance() {
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [formData, setFormData] = useState<any>({});
 
-  const loading = loadTx && loadInv && loadExp;
+  const loading = loadTx || loadInv || loadExp;
 
   const showToast = (message: string, type: "success" | "error") => { setToast({ message, type }); setTimeout(() => setToast(null), 3000); };
 

@@ -40,6 +40,15 @@ interface SavedJourney {
   updatedAt: string;
 }
 
+// Extend AccommodationItem type for the editor
+interface AccommodationItem {
+  label: string;
+  nights: number;
+  ratePerNight: number;
+  ratePerNightPPPN: number;
+  subtotal: number;
+}
+
 function mapJourney(item: any): SavedJourney {
   return {
     id: item.id || "",
@@ -322,10 +331,17 @@ export default function AdminJourneyEditor() {
   };
 
   // Pricing helpers
-  const updateAccomItem = (idx: number, updates: Partial<{ label: string; nights: number; ratePerNight: number }>) => {
+  const updateAccomItem = (idx: number, updates: Partial<{ label: string; nights: number; ratePerNight: number; ratePerNightPPPN: number }>) => {
     if (!editing) return;
-    const newAccom = [...(editing.pricing.accommodation || [])];
-    newAccom[idx] = { ...newAccom[idx], ...updates, subtotal: (updates.nights ?? newAccom[idx].nights) * (updates.ratePerNight ?? newAccom[idx].ratePerNight) };
+    const newAccom = [...(editing.pricing.accommodation || [])] as any[];
+    const current = newAccom[idx];
+    const merged = { ...current, ...updates };
+    // If PPPN was updated, recalc ratePerNight
+    if (updates.ratePerNightPPPN !== undefined) {
+      merged.ratePerNight = updates.ratePerNightPPPN * (editing.isCouple ? 2 : 1);
+    }
+    merged.subtotal = (merged.nights) * (merged.ratePerNight || 0);
+    newAccom[idx] = merged;
     setEditing({ ...editing, pricing: recalcPricing({ ...editing.pricing, accommodation: newAccom }) });
   };
 
@@ -335,7 +351,7 @@ export default function AdminJourneyEditor() {
       ...editing,
       pricing: recalcPricing({
         ...editing.pricing,
-        accommodation: [...(editing.pricing.accommodation || []), { label: "", nights: 1, ratePerNight: 0, subtotal: 0 }],
+        accommodation: [...(editing.pricing.accommodation || []), { label: "", nights: 1, ratePerNight: 0, ratePerNightPPPN: 0, subtotal: 0 }],
       }),
     });
   };
@@ -707,20 +723,32 @@ export default function AdminJourneyEditor() {
                     </button>
                   </div>
                   <div className="space-y-2">
-                    {(editing.pricing.accommodation || []).map((a, i) => (
-                      <div key={i} className="flex items-center gap-2 p-2 bg-gray-50">
-                        <input type="text" value={a.label} onChange={(e) => updateAccomItem(i, { label: e.target.value })}
-                          placeholder="Property name"
-                          className="flex-[2] px-2 py-1.5 border border-gray-200 text-xs focus:outline-none focus:border-soft-black" />
-                        <input type="number" value={a.nights} onChange={(e) => updateAccomItem(i, { nights: parseInt(e.target.value) || 0 })}
-                          placeholder="Nights"
-                          className="w-16 px-2 py-1.5 border border-gray-200 text-xs focus:outline-none focus:border-soft-black" />
-                        <input type="number" value={a.ratePerNight} onChange={(e) => updateAccomItem(i, { ratePerNight: parseFloat(e.target.value) || 0 })}
-                          placeholder="Rate/night"
-                          className="w-24 px-2 py-1.5 border border-gray-200 text-xs focus:outline-none focus:border-soft-black" />
-                        <span className="text-xs text-earth font-medium w-20 text-right">${a.subtotal.toLocaleString()}</span>
-                        <button onClick={() => removeAccomItem(i)}
-                          className="p-1 text-earth hover:text-red-500"><X className="w-3.5 h-3.5" /></button>
+                    {(editing.pricing.accommodation || []).map((a: any, i: number) => (
+                      <div key={i} className="p-2 bg-gray-50 space-y-1">
+                        <div className="flex items-center gap-2">
+                          <input type="text" value={a.label} onChange={(e) => updateAccomItem(i, { label: e.target.value })}
+                            placeholder="Property name"
+                            className="flex-[2] px-2 py-1.5 border border-gray-200 text-xs focus:outline-none focus:border-soft-black" />
+                          <input type="number" value={a.nights} onChange={(e) => updateAccomItem(i, { nights: parseInt(e.target.value) || 0 })}
+                            placeholder="Nights"
+                            className="w-16 px-2 py-1.5 border border-gray-200 text-xs focus:outline-none focus:border-soft-black" />
+                          <button onClick={() => removeAccomItem(i)}
+                            className="p-1 text-earth hover:text-red-500"><X className="w-3.5 h-3.5" /></button>
+                        </div>
+                        <div className="flex items-center gap-2 text-[10px] text-earth">
+                          <span className="w-8">PPPN:</span>
+                          <input type="number" value={a.ratePerNightPPPN || Math.round(a.ratePerNight / (editing.isCouple ? 2 : 1))}
+                            onChange={(e) => {
+                              const pppn = parseFloat(e.target.value) || 0;
+                              const guestCount = editing.isCouple ? 2 : 1;
+                              updateAccomItem(i, { ratePerNightPPPN: pppn, ratePerNight: pppn * guestCount });
+                            }}
+                            className="w-20 px-2 py-1 border border-gray-200 text-xs focus:outline-none focus:border-soft-black" />
+                          <span className="w-10">×{editing.isCouple ? "2" : "1"} =</span>
+                          <span className="font-medium text-soft-black">${((a.ratePerNightPPPN || Math.round(a.ratePerNight / (editing.isCouple ? 2 : 1))) * (editing.isCouple ? 2 : 1)).toLocaleString()}/night</span>
+                          <span className="ml-auto text-[10px] text-earth/60">{a.nights} nights → </span>
+                          <span className="font-semibold text-soft-black text-xs">${a.subtotal.toLocaleString()}</span>
+                        </div>
                       </div>
                     ))}
                   </div>

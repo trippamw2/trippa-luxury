@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { TrendingUp, DollarSign, MessageCircle, CalendarCheck, Eye, Users, Building, Plane, Receipt, ArrowRight, Plus, Luggage, MapPin } from "lucide-react";
+import { DollarSign, MessageCircle, CalendarCheck, Eye, Users, Building, Plane, Receipt, ArrowRight, Plus, Luggage, MapPin } from "lucide-react";
 
 interface DashboardData {
   totalProperties: number;
@@ -133,8 +133,7 @@ export default function AdminDashboard() {
               </div>
               <div className="p-4 space-y-2">
                 {[
-                  { label: "Pipeline View", href: "/admin/workflow", icon: TrendingUp, color: "text-emerald-600" },
-                  { label: "New Booking", href: "/admin/bookings", icon: CalendarCheck, color: "text-green-600" },
+{ label: "New Booking", href: "/admin/bookings", icon: CalendarCheck, color: "text-green-600" },
                   { label: "AI Journey Curation", href: "/admin/ai-journeys", icon: Plane, color: "text-purple-600" },
                   { label: "Create Tour", href: "/admin/tours", icon: Plus, color: "text-amber-600" },
                   { label: "Add Supplier", href: "/admin/suppliers", icon: Building, color: "text-purple-600" },

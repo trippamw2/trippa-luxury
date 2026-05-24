@@ -26,8 +26,7 @@ export default function AdminLayout({
             { label: "Properties", href: "/admin/properties" },
             { label: "Tours & Experiences", href: "/admin/tours" },
             { label: "Packages", href: "/admin/packages" },
-            { label: "Pricing", href: "/admin/pricing" },
-            { label: "Pipeline", href: "/admin/workflow" },
+
             { label: "Bookings", href: "/admin/bookings" },
             { label: "Inquiries", href: "/admin/inquiries" },
             { label: "AI Journeys", href: "/admin/ai-journeys" },
@@ -36,7 +35,7 @@ export default function AdminLayout({
             { label: "Blog", href: "/admin/blog" },
             { label: "Media Library", href: "/admin/media" },
             { label: "Users", href: "/admin/users" },
-            { label: "Analytics", href: "/admin/analytics" },
+
             { label: "Settings", href: "/admin/settings" },
           ].map((item) => (
             <a

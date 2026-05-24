@@ -205,7 +205,7 @@ export default function MediaPage() {
                   type="url"
                   value={formData.url}
                   onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-                  placeholder="https://images.unsplash.com/..."
+                  placeholder="/images/kaya-mawa-beach-swing.jpg"
                   className="w-full px-4 py-2.5 border border-sand-light text-sm"
                 />
               </div>

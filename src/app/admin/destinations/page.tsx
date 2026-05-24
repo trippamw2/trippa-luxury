@@ -40,7 +40,7 @@ interface ApiDestination {
   propertyCount: number;
 }
 
-function mapDestination(item: ApiDestination): Destination {
+function mapDestination(item: any): Destination {
   const props = (item.properties || []).map((p: any) => ({
     id: p.id,
     slug: p.slug || "",
@@ -53,20 +53,19 @@ function mapDestination(item: ApiDestination): Destination {
     rating: p.rating || 0,
     isActive: p.isActive ?? true,
   }));
-  const firstProp = props[0];
   return {
     id: item.id,
     slug: item.slug,
     name: item.name,
-    subtitle: firstProp?.tagline || item.name,
-    tagline: firstProp?.tagline || `Discover ${item.name}`,
-    description: firstProp?.description || "",
-    positioning: "",
-    heroImage: firstProp?.heroImage || "",
-    gallery: firstProp?.gallery || [],
+    subtitle: item.subtitle || "",
+    tagline: item.tagline || "",
+    description: item.description || "",
+    positioning: item.positioning || "",
+    heroImage: item.heroImage || "",
+    gallery: item.gallery || [],
     properties: props,
     propertyCount: item.propertyCount,
-    experiences: [],
+    experiences: item.experiences || [],
   };
 }
 
@@ -117,8 +116,13 @@ export default function DestinationsPage() {
     const payload = {
       name: formData.title,
       slug,
-      description: formData.description || editingDest?.description || "",
-      heroImage: formData.heroImage || editingDest?.heroImage || "",
+      subtitle: formData.subtitle || "",
+      tagline: formData.tagline || "",
+      description: formData.description || "",
+      positioning: formData.positioning || "",
+      heroImage: formData.heroImage || "",
+      experiences: formData.experiences.split("\n").map(s => s.trim()).filter(Boolean),
+      gallery: editingDest?.gallery || [],
     };
     let result;
     if (editingDest) {
@@ -261,7 +265,7 @@ export default function DestinationsPage() {
         <div className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-cream border border-sand-light max-w-md w-full p-6">
             <h3 className="text-lg font-heading font-bold text-soft-black mb-4">Add Gallery Image</h3>
-            <input type="url" id="galleryImageUrl" className="w-full px-3 py-2 border border-sand-light focus:border-gold focus:outline-none mb-4" placeholder="https://images.unsplash.com/..." />
+            <input type="url" id="galleryImageUrl" className="w-full px-3 py-2 border border-sand-light focus:border-gold focus:outline-none mb-4" placeholder="/images/kaya-mawa-beach-swing.jpg" />
             <div className="flex gap-3">
               <button onClick={() => handleAddGalleryImage(currentDestSlug)} className="px-4 py-2 bg-gold text-soft-black font-medium hover:bg-gold/90 transition-colors">Add Image</button>
               <button onClick={() => setShowGalleryModal(false)} className="px-4 py-2 text-soft-black border border-sand-light hover:bg-cream transition-colors">Cancel</button>

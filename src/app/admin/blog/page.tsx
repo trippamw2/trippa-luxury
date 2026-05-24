@@ -82,7 +82,7 @@ export default function AdminBlog() {
       date: formData.date || new Date().toISOString().split("T")[0],
       author: formData.author,
       excerpt: formData.excerpt,
-      image: formData.image || "https://images.unsplash.com/photo-1499750310159-5b5f096fd68b?w=800&q=80",
+      image: formData.image || "/images/journal-honeymoon.jpg",
       content: formData.content,
       published: formData.published,
     });

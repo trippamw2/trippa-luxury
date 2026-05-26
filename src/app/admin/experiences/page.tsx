@@ -170,12 +170,12 @@ export default function AdminExperiences() {
       <AnimatePresence>
         {showModal && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-40 p-4" onClick={() => setShowModal(false)}>
-            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-cream border border-sand-light p-6 w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-center justify-between mb-6">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-cream border border-sand-light w-full max-w-lg max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between px-6 py-4 border-b border-sand-light flex-shrink-0">
                 <h2 className="text-xl font-bold text-soft-black">{editing ? "Edit Experience" : "Add Experience"}</h2>
                 <button onClick={() => setShowModal(false)} className="text-earth hover:text-soft-black"><X className="w-5 h-5" /></button>
               </div>
-              <div className="space-y-4">
+              <div className="flex-1 overflow-y-auto p-6 space-y-4 min-h-0">
                 <div><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Title</label>
                   <input type="text" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})}
                     className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" placeholder="Private Beach Dining" /></div>
@@ -196,7 +196,7 @@ export default function AdminExperiences() {
                   <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})}
                     className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" rows={3} placeholder="Describe this experience..." /></div>
               </div>
-              <div className="flex gap-3 mt-6 pt-4 border-t border-sand-light">
+              <div className="flex gap-3 px-6 py-4 border-t border-sand-light flex-shrink-0">
                 <button onClick={() => setShowModal(false)} className="flex-1 px-5 py-2.5 border border-sand-light text-earth text-sm hover:bg-warm-white">Cancel</button>
                 <button onClick={editing ? handleEdit : handleAdd} className="flex-1 px-5 py-2.5 bg-gold text-soft-black text-sm font-medium hover:bg-gold-dark">{editing ? "Save Changes" : "Create Experience"}</button>
               </div>

@@ -276,12 +276,12 @@ export default function AdminGuestProfiles() {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowCreate(false)}>
             <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }}
-              className="bg-white max-w-lg w-full max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+              className="bg-white max-w-lg w-full max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 flex-shrink-0">
                 <h2 className="text-lg font-bold text-soft-black">New Guest Profile</h2>
                 <button onClick={() => setShowCreate(false)} className="text-earth hover:text-soft-black"><X className="w-5 h-5" /></button>
               </div>
-              <div className="p-6 space-y-4">
+              <div className="flex-1 overflow-y-auto p-6 space-y-4 min-h-0">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="col-span-2">
                     <label className="block text-xs font-medium text-earth mb-1">Full Name *</label>
@@ -323,6 +323,8 @@ export default function AdminGuestProfiles() {
                     className="w-4 h-4 border-gray-300" />
                   <label htmlFor="newVip" className="text-xs text-earth">VIP Guest</label>
                 </div>
+              </div>
+              <div className="px-6 py-4 border-t border-gray-200 flex-shrink-0">
                 <button onClick={handleCreate} disabled={saving || !newProfile.fullName || !newProfile.email}
                   className="w-full py-3 bg-soft-black text-cream text-sm font-medium hover:bg-soft-black-light transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
                   {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : "Create Profile"}

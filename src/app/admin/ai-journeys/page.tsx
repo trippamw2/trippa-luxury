@@ -576,7 +576,7 @@ export default function AIJourneysPage() {
               <h2 className="text-lg font-bold text-soft-black">Journey Proposal</h2>
               <button onClick={() => setShowPdf(false)} className="text-earth hover:text-soft-black"><X className="w-5 h-5" /></button>
             </div>
-            <div className="flex-1 overflow-y-auto p-6">
+            <div className="flex-1 overflow-y-auto p-6 min-h-0">
               {pdfContent.startsWith("<") ? (
                 <iframe srcDoc={pdfContent} className="w-full h-full border-0" title="Journey Proposal" style={{ minHeight: "60vh" }} />
               ) : (

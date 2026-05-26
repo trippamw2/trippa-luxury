@@ -218,7 +218,7 @@ export default function AdminSuppliers() {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-40 p-4" onClick={() => setShowModal(false)}>
             <motion.div initial={{ scale: 0.95 }} className="bg-cream border border-sand-light w-full max-w-2xl max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between px-6 py-4 border-b border-sand-light flex-shrink-0"><h2 className="text-xl font-bold text-soft-black">{editingSupplier ? "Edit Supplier" : "Add New Supplier"}</h2><button onClick={() => setShowModal(false)}><X className="w-5 h-5 text-earth" /></button></div>
-              <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              <div className="flex-1 overflow-y-auto p-6 space-y-4 min-h-0">
                 <div><label className="block text-xs font-medium text-earth uppercase mb-2">Supplier Name</label><input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" placeholder="Kaya Mawa" /></div>
                 <div className="grid grid-cols-2 gap-4">
                   <div><label className="block text-xs font-medium text-earth uppercase mb-2">Category</label><select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value as SupplierCategory })} className="w-full px-4 py-2.5 border border-sand-light text-sm">{CATEGORIES.map(cat => (<option key={cat} value={cat}>{categoryConfig[cat].label}</option>))}</select></div>

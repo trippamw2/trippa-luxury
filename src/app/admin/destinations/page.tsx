@@ -305,7 +305,7 @@ export default function DestinationsPage() {
               <button type="button" onClick={() => setShowModal(false)} className="text-earth hover:text-soft-black text-xl leading-none">&times;</button>
             </div>
             <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
-              <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              <div className="flex-1 overflow-y-auto p-6 space-y-4 min-h-0">
                 {/* Basic Info */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>

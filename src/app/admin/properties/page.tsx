@@ -473,7 +473,7 @@ export default function AdminProperties() {
               </div>
 
               {/* Body */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              <div className="flex-1 overflow-y-auto p-6 space-y-4 min-h-0">
                 {activeTab === "basic" && (
                   <>
                     <div className="grid grid-cols-2 gap-4">

@@ -397,7 +397,7 @@ export default function AdminBookings() {
               <button onClick={() => setShowModal(false)}><X className="w-5 h-5 text-earth" /></button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 min-h-0">
               {["clientName", "clientEmail", "clientPhone", "destination", "property"].map(f => (
                 <div key={f}>
                   <label className="block text-xs font-medium text-earth uppercase mb-2">

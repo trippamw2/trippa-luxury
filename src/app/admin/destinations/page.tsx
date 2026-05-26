@@ -299,104 +299,107 @@ export default function DestinationsPage() {
 
       {showModal && (
         <div className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowModal(false)}>
-          <div className="bg-cream border border-sand-light max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="p-6 border-b border-sand-light sticky top-0 bg-cream z-10">
+          <div className="bg-cream border border-sand-light max-w-2xl w-full max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-sand-light flex-shrink-0">
               <h2 className="text-xl font-heading font-bold text-soft-black">{editingDest ? "Edit Destination" : "Add Destination"}</h2>
+              <button type="button" onClick={() => setShowModal(false)} className="text-earth hover:text-soft-black text-xl leading-none">&times;</button>
             </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              {/* Basic Info */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Title</label>
-                  <input type="text" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})}
-                    className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" required placeholder="e.g., Lake Malawi" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Hero Image URL</label>
-                  <input type="url" value={formData.heroImage} onChange={e => setFormData({...formData, heroImage: e.target.value})}
-                    className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" placeholder="/images/lake-malawi-hero.jpg" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Subtitle</label>
-                <input type="text" value={formData.subtitle} onChange={e => setFormData({...formData, subtitle: e.target.value})}
-                  className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" placeholder="A freshwater archipelago known only to the fortunate few." />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Tagline</label>
-                <input type="text" value={formData.tagline} onChange={e => setFormData({...formData, tagline: e.target.value})}
-                  className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" placeholder="Where the lake becomes an ocean of romantic tranquility" />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Description</label>
-                <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})}
-                  className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" rows={3} />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Positioning (hero paragraph)</label>
-                <textarea value={formData.positioning} onChange={e => setFormData({...formData, positioning: e.target.value})}
-                  className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" rows={4} />
-              </div>
-
-              {/* Experiences & Highlights */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Experiences (one per line)</label>
-                  <textarea value={formData.experiences} onChange={e => setFormData({...formData, experiences: e.target.value})}
-                    className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" rows={5} placeholder="Private beach dining&#10;Sunset dhow cruises&#10;..." />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Highlights (one per line)</label>
-                  <textarea value={formData.highlights} onChange={e => setFormData({...formData, highlights: e.target.value})}
-                    className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" rows={5} placeholder="Crystal clear waters&#10;Year round sunshine&#10;..." />
-                </div>
-              </div>
-
-              {/* Gallery */}
-              <div>
-                <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Gallery Images (one URL per line)</label>
-                <textarea value={formData.gallery.join("\n")} onChange={e => setFormData({...formData, gallery: e.target.value.split("\n").map(s => s.trim()).filter(Boolean)})}
-                  className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" rows={4} placeholder="/images/kaya-mawa-beach-swing.jpg" />
-                {formData.gallery.length > 0 && (
-                  <div className="grid grid-cols-4 gap-2 mt-3">
-                    {formData.gallery.map((url, i) => (
-                      <div key={i} className="relative aspect-[4/3] bg-sand-light overflow-hidden group">
-                        <img src={url} alt="" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                        <button type="button" onClick={() => setFormData({...formData, gallery: formData.gallery.filter((_, j) => j !== i)})}
-                          className="absolute top-1 right-1 w-5 h-5 bg-red-600 text-white text-xs opacity-0 group-hover:opacity-100 flex items-center justify-center">×</button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Seasons */}
-              <div className="border-t border-sand-light pt-4">
-                <h3 className="text-sm font-bold text-soft-black mb-3">Seasons / Best Time to Visit</h3>
+            <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                {/* Basic Info */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Best Time</label>
-                    <input type="text" value={formData.seasonsBestTime} onChange={e => setFormData({...formData, seasonsBestTime: e.target.value})}
-                      className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" placeholder="April to October" />
+                    <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Title</label>
+                    <input type="text" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})}
+                      className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" required placeholder="e.g., Lake Malawi" />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Closed Season Note</label>
-                    <input type="text" value={formData.seasonsClosed} onChange={e => setFormData({...formData, seasonsClosed: e.target.value})}
-                      className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" placeholder="Some properties close Nov Mar" />
+                    <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Hero Image URL</label>
+                    <input type="url" value={formData.heroImage} onChange={e => setFormData({...formData, heroImage: e.target.value})}
+                      className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" placeholder="/images/lake-malawi-hero.jpg" />
                   </div>
                 </div>
-                <div className="mt-3">
-                  <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">
-                    Monthly Breakdown (JSON array)
-                    <span className="text-earth/50 font-normal lowercase ml-2">{'[{name, temp, weather, open}]'}</span>
-                  </label>
-                  <textarea value={formData.seasonsMonths} onChange={e => setFormData({...formData, seasonsMonths: e.target.value})}
-                    className="w-full px-4 py-2.5 border border-sand-light text-sm font-mono focus:outline-none focus:border-gold bg-white" rows={6}
-                    placeholder={`[\n  {"name": "January", "temp": "26°C", "weather": "Dry", "open": true}\n]`} />
+                <div>
+                  <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Subtitle</label>
+                  <input type="text" value={formData.subtitle} onChange={e => setFormData({...formData, subtitle: e.target.value})}
+                    className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" placeholder="A freshwater archipelago known only to the fortunate few." />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Tagline</label>
+                  <input type="text" value={formData.tagline} onChange={e => setFormData({...formData, tagline: e.target.value})}
+                    className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" placeholder="Where the lake becomes an ocean of romantic tranquility" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Description</label>
+                  <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})}
+                    className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" rows={3} />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Positioning (hero paragraph)</label>
+                  <textarea value={formData.positioning} onChange={e => setFormData({...formData, positioning: e.target.value})}
+                    className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" rows={4} />
+                </div>
+
+                {/* Experiences & Highlights */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Experiences (one per line)</label>
+                    <textarea value={formData.experiences} onChange={e => setFormData({...formData, experiences: e.target.value})}
+                      className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" rows={5} placeholder="Private beach dining&#10;Sunset dhow cruises&#10;..." />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Highlights (one per line)</label>
+                    <textarea value={formData.highlights} onChange={e => setFormData({...formData, highlights: e.target.value})}
+                      className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" rows={5} placeholder="Crystal clear waters&#10;Year round sunshine&#10;..." />
+                  </div>
+                </div>
+
+                {/* Gallery */}
+                <div>
+                  <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Gallery Images (one URL per line)</label>
+                  <textarea value={formData.gallery.join("\n")} onChange={e => setFormData({...formData, gallery: e.target.value.split("\n").map(s => s.trim()).filter(Boolean)})}
+                    className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" rows={4} placeholder="/images/kaya-mawa-beach-swing.jpg" />
+                  {formData.gallery.length > 0 && (
+                    <div className="grid grid-cols-4 gap-2 mt-3">
+                      {formData.gallery.map((url, i) => (
+                        <div key={i} className="relative aspect-[4/3] bg-sand-light overflow-hidden group">
+                          <img src={url} alt="" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                          <button type="button" onClick={() => setFormData({...formData, gallery: formData.gallery.filter((_, j) => j !== i)})}
+                            className="absolute top-1 right-1 w-5 h-5 bg-red-600 text-white text-xs opacity-0 group-hover:opacity-100 flex items-center justify-center">×</button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Seasons */}
+                <div className="border-t border-sand-light pt-4">
+                  <h3 className="text-sm font-bold text-soft-black mb-3">Seasons / Best Time to Visit</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Best Time</label>
+                      <input type="text" value={formData.seasonsBestTime} onChange={e => setFormData({...formData, seasonsBestTime: e.target.value})}
+                        className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" placeholder="April to October" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Closed Season Note</label>
+                      <input type="text" value={formData.seasonsClosed} onChange={e => setFormData({...formData, seasonsClosed: e.target.value})}
+                        className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" placeholder="Some properties close Nov Mar" />
+                    </div>
+                  </div>
+                  <div className="mt-3">
+                    <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">
+                      Monthly Breakdown (JSON array)
+                      <span className="text-earth/50 font-normal lowercase ml-2">{'[{name, temp, weather, open}]'}</span>
+                    </label>
+                    <textarea value={formData.seasonsMonths} onChange={e => setFormData({...formData, seasonsMonths: e.target.value})}
+                      className="w-full px-4 py-2.5 border border-sand-light text-sm font-mono focus:outline-none focus:border-gold bg-white" rows={6}
+                      placeholder={`[\n  {"name": "January", "temp": "26°C", "weather": "Dry", "open": true}\n]`} />
+                  </div>
                 </div>
               </div>
 
-              <div className="flex gap-3 pt-4 border-t border-sand-light">
+              <div className="flex gap-3 px-6 py-4 border-t border-sand-light flex-shrink-0">
                 <button type="button" onClick={() => setShowModal(false)} className="flex-1 px-5 py-2.5 border border-sand-light text-earth text-sm hover:bg-warm-white transition-colors">Cancel</button>
                 <button type="submit" className="flex-1 px-5 py-2.5 bg-gold text-soft-black text-sm font-medium hover:bg-gold-dark transition-colors">
                   {editingDest ? "Update Destination" : "Create Destination"}

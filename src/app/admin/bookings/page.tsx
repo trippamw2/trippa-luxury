@@ -387,101 +387,101 @@ export default function AdminBookings() {
             className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-40 p-4"
             onClick={() => setShowModal(false)}
           >
-            <motion.div
-              initial={{ scale: 0.95 }}
-              className="bg-cream border border-sand-light p-6 w-full max-w-2xl"
-              onClick={e => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-soft-black">{editBooking ? "Edit Booking" : "Add New Booking"}</h2>
-                <button onClick={() => setShowModal(false)}><X className="w-5 h-5 text-earth" /></button>
+          <motion.div
+            initial={{ scale: 0.95 }}
+            className="bg-cream border border-sand-light w-full max-w-2xl max-h-[90vh] flex flex-col"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-6 py-4 border-b border-sand-light flex-shrink-0">
+              <h2 className="text-xl font-bold text-soft-black">{editBooking ? "Edit Booking" : "Add New Booking"}</h2>
+              <button onClick={() => setShowModal(false)}><X className="w-5 h-5 text-earth" /></button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              {["clientName", "clientEmail", "clientPhone", "destination", "property"].map(f => (
+                <div key={f}>
+                  <label className="block text-xs font-medium text-earth uppercase mb-2">
+                    {f.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())}
+                  </label>
+                  <input
+                    type={f.includes("Email") ? "email" : f.includes("Phone") ? "tel" : "text"}
+                    value={formData[f] || ""}
+                    onChange={e => setFormData({ ...formData, [f]: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-sand-light text-sm"
+                  />
+                </div>
+              ))}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-earth uppercase mb-2">Check-in</label>
+                  <input type="date" value={formData.checkIn || ""} onChange={e => setFormData({ ...formData, checkIn: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-earth uppercase mb-2">Check-out</label>
+                  <input type="date" value={formData.checkOut || ""} onChange={e => setFormData({ ...formData, checkOut: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" />
+                </div>
               </div>
 
-              <div className="space-y-4">
-                {["clientName", "clientEmail", "clientPhone", "destination", "property"].map(f => (
-                  <div key={f}>
-                    <label className="block text-xs font-medium text-earth uppercase mb-2">
-                      {f.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())}
-                    </label>
-                    <input
-                      type={f.includes("Email") ? "email" : f.includes("Phone") ? "tel" : "text"}
-                      value={formData[f] || ""}
-                      onChange={e => setFormData({ ...formData, [f]: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-sand-light text-sm"
-                    />
-                  </div>
-                ))}
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-medium text-earth uppercase mb-2">Check-in</label>
-                    <input type="date" value={formData.checkIn || ""} onChange={e => setFormData({ ...formData, checkIn: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-earth uppercase mb-2">Check-out</label>
-                    <input type="date" value={formData.checkOut || ""} onChange={e => setFormData({ ...formData, checkOut: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-xs font-medium text-earth uppercase mb-2">Guests</label>
-                    <input type="number" value={formData.guests || "2"} onChange={e => setFormData({ ...formData, guests: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-earth uppercase mb-2">Total Price</label>
-                    <input type="text" value={formData.totalPrice || ""} onChange={e => setFormData({ ...formData, totalPrice: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" placeholder="$5,000" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-earth uppercase mb-2">Deposit Paid</label>
-                    <input type="text" value={formData.depositPaid || ""} onChange={e => setFormData({ ...formData, depositPaid: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" placeholder="$2,500" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-medium text-earth uppercase mb-2">Deposit Method</label>
-                    <select value={formData.depositMethod || ""} onChange={e => setFormData({ ...formData, depositMethod: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm">
-                      <option value="">Select method...</option>
-                      <option value="swift">SWIFT / Wire Transfer</option>
-                      <option value="credit_card">Credit Card</option>
-                      <option value="bank_transfer">Bank Transfer</option>
-                      <option value="cash">Cash</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-earth uppercase mb-2">SWIFT Confirmation Code</label>
-                    <input type="text" value={formData.swiftCode || ""} onChange={e => setFormData({ ...formData, swiftCode: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" placeholder="e.g. SFTRO12345" />
-                  </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-earth uppercase mb-2">Guests</label>
+                  <input type="number" value={formData.guests || "2"} onChange={e => setFormData({ ...formData, guests: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-earth uppercase mb-2">Deposit Notes</label>
-                  <textarea value={formData.depositNotes || ""} onChange={e => setFormData({ ...formData, depositNotes: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" rows={2} placeholder="SWIFT reference, payment instructions, notes..." />
+                  <label className="block text-xs font-medium text-earth uppercase mb-2">Total Price</label>
+                  <input type="text" value={formData.totalPrice || ""} onChange={e => setFormData({ ...formData, totalPrice: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" placeholder="$5,000" />
                 </div>
-
                 <div>
-                  <label className="block text-xs font-medium text-earth uppercase mb-2">Status</label>
-                  <select value={formData.status || "provisional"} onChange={e => setFormData({ ...formData, status: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm">
-                    {Object.entries(STATUS_STYLES).map(([key, s]) => (
-                      <option key={key} value={key}>{s.label}</option>
-                    ))}
+                  <label className="block text-xs font-medium text-earth uppercase mb-2">Deposit Paid</label>
+                  <input type="text" value={formData.depositPaid || ""} onChange={e => setFormData({ ...formData, depositPaid: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" placeholder="$2,500" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-earth uppercase mb-2">Deposit Method</label>
+                  <select value={formData.depositMethod || ""} onChange={e => setFormData({ ...formData, depositMethod: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm">
+                    <option value="">Select method...</option>
+                    <option value="swift">SWIFT / Wire Transfer</option>
+                    <option value="credit_card">Credit Card</option>
+                    <option value="bank_transfer">Bank Transfer</option>
+                    <option value="cash">Cash</option>
+                    <option value="other">Other</option>
                   </select>
                 </div>
-
                 <div>
-                  <label className="block text-xs font-medium text-earth uppercase mb-2">Special Requests</label>
-                  <textarea value={formData.specialRequests || ""} onChange={e => setFormData({ ...formData, specialRequests: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" rows={2} />
+                  <label className="block text-xs font-medium text-earth uppercase mb-2">SWIFT Confirmation Code</label>
+                  <input type="text" value={formData.swiftCode || ""} onChange={e => setFormData({ ...formData, swiftCode: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" placeholder="e.g. SFTRO12345" />
                 </div>
               </div>
-
-              <div className="flex gap-3 mt-6 pt-4 border-t border-sand-light">
-                <button onClick={() => setShowModal(false)} className="flex-1 px-4 py-2.5 border border-sand-light text-earth text-sm">Cancel</button>
-                <button onClick={editBooking ? handleEdit : handleAdd} className="flex-1 px-4 py-2.5 bg-gold text-soft-black text-sm font-medium">
-                  {editBooking ? "Save Changes" : "Create Booking"}
-                </button>
+              <div>
+                <label className="block text-xs font-medium text-earth uppercase mb-2">Deposit Notes</label>
+                <textarea value={formData.depositNotes || ""} onChange={e => setFormData({ ...formData, depositNotes: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" rows={2} placeholder="SWIFT reference, payment instructions, notes..." />
               </div>
-            </motion.div>
+
+              <div>
+                <label className="block text-xs font-medium text-earth uppercase mb-2">Status</label>
+                <select value={formData.status || "provisional"} onChange={e => setFormData({ ...formData, status: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm">
+                  {Object.entries(STATUS_STYLES).map(([key, s]) => (
+                    <option key={key} value={key}>{s.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-earth uppercase mb-2">Special Requests</label>
+                <textarea value={formData.specialRequests || ""} onChange={e => setFormData({ ...formData, specialRequests: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" rows={2} />
+              </div>
+            </div>
+
+            <div className="flex gap-3 px-6 py-4 border-t border-sand-light flex-shrink-0">
+              <button onClick={() => setShowModal(false)} className="flex-1 px-4 py-2.5 border border-sand-light text-earth text-sm">Cancel</button>
+              <button onClick={editBooking ? handleEdit : handleAdd} className="flex-1 px-4 py-2.5 bg-gold text-soft-black text-sm font-medium">
+                {editBooking ? "Save Changes" : "Create Booking"}
+              </button>
+            </div>
+          </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

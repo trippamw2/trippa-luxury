@@ -215,10 +215,10 @@ export default function AdminSuppliers() {
 
       <AnimatePresence>
         {showModal && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-40 p-4 overflow-y-auto" onClick={() => setShowModal(false)}>
-            <motion.div initial={{ scale: 0.95 }} className="bg-cream border border-sand-light p-6 w-full max-w-2xl my-8" onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-center justify-between mb-6"><h2 className="text-xl font-bold text-soft-black">{editingSupplier ? "Edit Supplier" : "Add New Supplier"}</h2><button onClick={() => setShowModal(false)}><X className="w-5 h-5 text-earth" /></button></div>
-              <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-40 p-4" onClick={() => setShowModal(false)}>
+            <motion.div initial={{ scale: 0.95 }} className="bg-cream border border-sand-light w-full max-w-2xl max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between px-6 py-4 border-b border-sand-light flex-shrink-0"><h2 className="text-xl font-bold text-soft-black">{editingSupplier ? "Edit Supplier" : "Add New Supplier"}</h2><button onClick={() => setShowModal(false)}><X className="w-5 h-5 text-earth" /></button></div>
+              <div className="flex-1 overflow-y-auto p-6 space-y-4">
                 <div><label className="block text-xs font-medium text-earth uppercase mb-2">Supplier Name</label><input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" placeholder="Kaya Mawa" /></div>
                 <div className="grid grid-cols-2 gap-4">
                   <div><label className="block text-xs font-medium text-earth uppercase mb-2">Category</label><select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value as SupplierCategory })} className="w-full px-4 py-2.5 border border-sand-light text-sm">{CATEGORIES.map(cat => (<option key={cat} value={cat}>{categoryConfig[cat].label}</option>))}</select></div>
@@ -244,7 +244,7 @@ export default function AdminSuppliers() {
                 <div><label className="block text-xs font-medium text-earth uppercase mb-2">Image URL</label><input type="url" value={formData.image} onChange={(e) => setFormData({ ...formData, image: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" placeholder="/images/shawa-lodge.jpg" /></div>
                 <div><label className="block text-xs font-medium text-earth uppercase mb-2">Notes</label><textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" rows={2} placeholder="Additional notes..." /></div>
               </div>
-              <div className="flex gap-3 mt-6"><button onClick={() => setShowModal(false)} className="flex-1 px-5 py-2.5 border border-sand-light text-earth text-sm hover:bg-warm-white">Cancel</button><button onClick={editingSupplier ? handleEdit : handleAdd} className="flex-1 px-5 py-2.5 bg-gold text-soft-black text-sm font-medium hover:bg-gold-dark">{editingSupplier ? "Save Changes" : "Create Supplier"}</button></div>
+              <div className="flex gap-3 px-6 py-4 border-t border-sand-light flex-shrink-0"><button onClick={() => setShowModal(false)} className="flex-1 px-5 py-2.5 border border-sand-light text-earth text-sm hover:bg-warm-white">Cancel</button><button onClick={editingSupplier ? handleEdit : handleAdd} className="flex-1 px-5 py-2.5 bg-gold text-soft-black text-sm font-medium hover:bg-gold-dark">{editingSupplier ? "Save Changes" : "Create Supplier"}</button></div>
             </motion.div>
           </motion.div>
         )}

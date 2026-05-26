@@ -173,10 +173,10 @@ export default function AdminBlog() {
 
       <AnimatePresence>
         {showModal && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-40 p-4 overflow-y-auto" onClick={() => setShowModal(false)}>
-            <motion.div initial={{ scale: 0.95 }} className="bg-cream border border-sand-light p-6 w-full max-w-2xl my-8" onClick={e => e.stopPropagation()}>
-              <div className="flex items-center justify-between mb-6"><h2 className="text-xl font-bold text-soft-black">{editingPost ? "Edit Post" : "New Blog Post"}</h2><button onClick={() => setShowModal(false)}><X className="w-5 h-5 text-earth" /></button></div>
-              <div className="space-y-4">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-40 p-4" onClick={() => setShowModal(false)}>
+            <motion.div initial={{ scale: 0.95 }} className="bg-cream border border-sand-light w-full max-w-2xl max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between px-6 py-4 border-b border-sand-light flex-shrink-0"><h2 className="text-xl font-bold text-soft-black">{editingPost ? "Edit Post" : "New Blog Post"}</h2><button onClick={() => setShowModal(false)}><X className="w-5 h-5 text-earth" /></button></div>
+              <div className="flex-1 overflow-y-auto p-6 space-y-4">
                 <div><label className="block text-xs font-medium text-earth uppercase mb-2">Title</label><input type="text" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className={formStyle} /></div>
                 <div className="grid grid-cols-2 gap-4">
                   <div><label className="block text-xs font-medium text-earth uppercase mb-2">Category</label><select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className={formStyle}>{CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
@@ -187,7 +187,7 @@ export default function AdminBlog() {
                 <div><label className="block text-xs font-medium text-earth uppercase mb-2">Content</label><textarea value={formData.content} onChange={e => setFormData({...formData, content: e.target.value})} className={formStyle} rows={6} /></div>
                 <div className="flex items-center gap-2"><input type="checkbox" checked={formData.published} onChange={e => setFormData({...formData, published: e.target.checked})} className="w-4 h-4" /><label className="text-sm text-earth">Published</label></div>
               </div>
-              <div className="flex gap-3 mt-6 pt-4 border-t border-sand-light">
+              <div className="flex gap-3 px-6 py-4 border-t border-sand-light flex-shrink-0">
                 <button onClick={() => setShowModal(false)} className="flex-1 px-4 py-2.5 border border-sand-light text-earth text-sm">Cancel</button>
                 <button onClick={editingPost ? handleEdit : handleAdd} className="flex-1 px-4 py-2.5 bg-gold text-soft-black text-sm font-medium">{editingPost ? "Update" : "Create"}</button>
               </div>

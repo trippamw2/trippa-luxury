@@ -24,7 +24,7 @@ export async function POST(request: Request) {
       guests: guests || 2,
     };
 
-    const profile: ProfiledGuest = guestProfiler.profile(raw);
+    const profile: ProfiledGuest = await guestProfiler.llmProfile(raw);
 
     return NextResponse.json({
       success: true,

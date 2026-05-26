@@ -14,6 +14,7 @@ import type {
   JourneyAlternative,
 } from "./types";
 import { luxury } from "@/lib/voice";
+import { callLlmJson, type LlmMessage } from "./llm";
 
 // ── Helpers ─────────────────────────────────────────────────────────────
 
@@ -870,6 +871,231 @@ export class JourneyEngine {
       "═══════════════════════════════════════",
     ];
     return lines.join("\n");
+  }
+
+  // ── LLM-Powered Journey Curation ───────────────────────────────────────
+
+  /**
+   * Generate a journey using LLM for personalized, brand-voice curation.
+   * Falls back to rule-based generation if LLM is unavailable.
+   * Pricing is always calculated deterministically via calculatePricing().
+   */
+  async llmGenerate(guest: GuestProfile): Promise<CuratedJourney> {
+    try {
+      // Build a compact representation of our available inventory
+      const inventorySummary = DESTINATIONS.map((d) => {
+        const destProps = d.properties
+          .map((pid) => PROPERTIES.find((p) => p.id === pid)!)
+          .filter(Boolean);
+        return {
+          destination: d.title,
+          id: d.id,
+          tagline: d.tagline,
+          properties: destProps.map((p) => ({
+            id: p.id,
+            name: p.name,
+            location: p.location,
+            tagline: p.tagline,
+            priceRange: p.priceRange,
+            roomTypes: p.roomTypes,
+            amenities: p.amenities,
+            romanticHighlights: p.romanticHighlights,
+            heroImage: p.heroImage,
+          })),
+        };
+      });
+
+      const systemPrompt = `You are Kivara's lead journey curator — a master of African luxury travel design. You craft bespoke itineraries for discerning couples.
+
+KIVARA BRAND VOICE:
+- Tone: Warm, sophisticated, intimate. Not transactional — evocative.
+- Language: "sanctuary" not "hotel", "journey" not "trip", "investment" not "price", "discover" not "visit"
+- Spirit: Africa's most coveted romance sanctuary. We occupy the space between Aman's serenity and &Beyond's wilderness.
+
+AVAILABLE INVENTORY:
+${JSON.stringify(inventorySummary, null, 2)}
+
+Respond in valid JSON only with this exact structure:
+{
+  "title": string (evocative journey title, e.g. "A Romance Written in the Stars"),
+  "subtitle": string (brief subtitle with destinations, nights),
+  "destinations": string[] (destination IDs used),
+  "itinerary": [
+    {
+      "day": number,
+      "title": string,
+      "location": string,
+      "accommodation": string (property name),
+      "accommodationImage": string (heroImage URL),
+      "meals": string[],
+      "activities": [
+        {
+          "time": string,
+          "title": string,
+          "description": string (2-3 sentences, brand voice, sensory),
+          "duration": string,
+          "included": boolean,
+          "type": "safari" | "water-sports" | "cultural" | "spa" | "dining" | "relaxation" | "adventure" | "wellness" | "other"
+        }
+      ],
+      "highlights": string[] (2-3 highlights for this day)
+    }
+  ],
+  "highlights": string[] (3-5 journey-level highlights),
+  "includedExtras": string[] (4-6 included services),
+  "planningNotes": string (1-2 sentences of personalized advice)
+}`;
+
+      const userMessage = `Create a bespoke luxury journey for this guest:
+
+Guest Profile:
+${JSON.stringify(
+  {
+    name: guest.name,
+    isCouple: guest.isCouple,
+    specialOccasion: guest.specialOccasion,
+    preferences: guest.preferences,
+    desiredNights: guest.desiredNights,
+    explicitDestinations: guest.explicitDestinations,
+  },
+  null,
+  2
+)}
+
+${guest.explicitDestinations && guest.explicitDestinations.length > 0
+  ? `The guest has explicitly requested these destinations. Use ONLY these:
+${guest.explicitDestinations.map((d) => `  - ${d.destinationId}${d.propertyId ? ` (property: ${d.propertyId})` : ""} for ${d.nights} nights`).join("\n")}`
+  : `Based on their profile, select the best destinations and properties from the available inventory.`}
+
+Design a day-by-day itinerary that:
+1. Selects the best-matching properties from available inventory
+2. Creates unique, vivid activity descriptions in Kivara's brand voice
+3. Includes sensory details (light, sound, scent, texture)
+4. Flows naturally between locations with appropriate pacing
+5. Reflects their special occasion and preferences
+6. 1-2 activities per day maximum (luxury travel is unhurried)
+
+Property selection guidelines:
+- Romantic/relaxation travelers → Lake Malawi or Zanzibar beach properties
+- Adventure travelers → South Luangwa (walking safaris, game drives)
+- Mixed style → Bush & Beach combination (Luangwa + Zanzibar)
+- Couples on honeymoon → properties with romantic highlights
+- Ultra-luxury budget → premium villas and suites
+- Standard luxury → all properties are available`;
+
+      const messages: LlmMessage[] = [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userMessage },
+      ];
+
+      const { data } = await callLlmJson<{
+        title: string;
+        subtitle: string;
+        destinations: string[];
+        itinerary: Array<{
+          day: number;
+          title: string;
+          location: string;
+          accommodation: string;
+          accommodationImage: string;
+          meals: string[];
+          activities: Array<{
+            time: string;
+            title: string;
+            description: string;
+            duration: string;
+            included: boolean;
+            type: string;
+          }>;
+          highlights: string[];
+        }>;
+        highlights: string[];
+        includedExtras: string[];
+        planningNotes: string;
+      }>(messages, { temperature: 0.7, maxTokens: 4096 });
+
+      // Map property names to actual property data for pricing
+      const propertyAssignments: { property: (typeof PROPERTIES)[number]; nights: number }[] = [];
+      const dayAccommodations = new Map<string, number>(); // property name → night count
+
+      for (const day of data.itinerary) {
+        const propName = day.accommodation;
+        dayAccommodations.set(propName, (dayAccommodations.get(propName) || 0) + 1);
+      }
+
+      for (const [propName, nights] of dayAccommodations) {
+        const property = PROPERTIES.find(
+          (p) => p.name.toLowerCase() === propName.toLowerCase()
+        );
+        if (property) {
+          propertyAssignments.push({ property, nights });
+        }
+      }
+
+      // If properties couldn't be matched, fall back to rule-based
+      if (propertyAssignments.length === 0) {
+        console.warn("LLM journey: no properties matched, falling back to rule-based");
+        return this.generate(guest);
+      }
+
+      // Calculate pricing deterministically
+      const pricing = calculatePricing(propertyAssignments, guest);
+
+      // Build itinerary with proper images and transfer data
+      const itinerary: JourneyDay[] = data.itinerary.map((day) => {
+        const property = PROPERTIES.find(
+          (p) => p.name.toLowerCase() === day.accommodation.toLowerCase()
+        );
+
+        return {
+          day: day.day,
+          title: day.title,
+          location: day.location,
+          accommodation: day.accommodation,
+          accommodationImage: property?.heroImage || day.accommodationImage || "",
+          meals: day.meals || ["Breakfast", "Dinner"],
+          activities: day.activities.map((a) => ({
+            time: a.time || "Flexible",
+            title: a.title,
+            description: a.description,
+            duration: a.duration || "2 hours",
+            included: a.included ?? true,
+            type: (a.type as Activity["type"]) || "other",
+          })),
+          transfers: [],
+          highlights: day.highlights || [],
+        };
+      });
+
+      return {
+        id: generateId(),
+        title: data.title || "A Curated African Journey",
+        subtitle:
+          data.subtitle ||
+          `${data.destinations?.length || 1} destinations · ${propertyAssignments.reduce((s, p) => s + p.nights, 0)} nights`,
+        guestProfile: guest,
+        destinations: data.destinations || [],
+        duration: propertyAssignments.reduce((s, p) => s + p.nights, 0),
+        pricing,
+        itinerary,
+        highlights: data.highlights || [],
+        includedExtras: data.includedExtras || [
+          "All accommodation and daily dining",
+          "Private transfers throughout your journey",
+          "Personal concierge from inquiry to farewell",
+          guest.isCouple ? "Thoughtful romance amenity on arrival" : "Thoughtful welcome amenity on arrival",
+        ],
+        createdAt: new Date().toISOString(),
+        status: "draft",
+      };
+    } catch (err) {
+      // LLM failed — fall back to rule-based generation
+      console.warn(
+        "LLM journey generation failed, using rule-based fallback:",
+        err instanceof Error ? err.message : String(err)
+      );
+      return this.generate(guest);
+    }
   }
 }
 

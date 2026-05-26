@@ -1,8 +1,9 @@
 // ─── Kivara AI Guest Profiler ──────────────────────────────────────────
 // Extracts structured guest preferences from raw inquiry text.
-// Uses keyword matching and rule-based classification (LLM-ready interface).
+// Uses LLM (via OpenRouter) for deep analysis, with rule-based fallback.
 
 import type { GuestProfile } from "./types";
+import { callLlmJson, type LlmMessage } from "./llm";
 
 export interface RawInquiry {
   fullName: string;
@@ -280,6 +281,132 @@ export class GuestProfiler {
     if (score >= 60) return "hot";
     if (score >= 30) return "warm";
     return "cold";
+  }
+
+  // ── LLM-Powered Profiling ─────────────────────────────────────────────
+
+  /**
+   * Profile a guest using LLM for deeper semantic understanding.
+   * Falls back to rule-based profiling if LLM is unavailable.
+   */
+  async llmProfile(raw: RawInquiry): Promise<ProfiledGuest> {
+    try {
+      const systemPrompt = `You are a luxury travel concierge specializing in Africa's most exclusive destinations. Your task is to analyze a guest inquiry and extract structured profile data.
+
+KIVARA operates three destinations:
+1. **Lake Malawi** — freshwater archipelago, barefoot luxury, intimate beach properties (Kaya Mawa, Pumulani, Blue Zebra, Makokola Retreat)
+2. **South Luangwa** — Zambia's premier walking safari destination, wildlife, luxury camps (Chinzombo, Puku Ridge, Shawa, Luangwa River Camp)
+3. **Zanzibar** — Spice Island, white sand beaches, Swahili culture (Xanadu Villas, Kilindi, Baraza, The Palms, The Residence)
+
+Respond in valid JSON only with this exact structure:
+{
+  "isCouple": boolean,
+  "specialOccasion": string | null,
+  "travelStyle": "romantic" | "adventure" | "relaxation" | "cultural" | "mixed",
+  "accommodationStyle": "intimate-boutique" | "luxury-resort" | "eco-camp" | "private-villa",
+  "activityLevel": "low" | "moderate" | "high",
+  "budgetRange": "premium" | "ultra-luxury",
+  "destinations": string[],
+  "interests": string[],
+  "leadScore": number (0-100),
+  "leadTier": "hot" | "warm" | "cold",
+  "extractedPreferences": string[],
+  "extractedBudget": string | null,
+  "extractedOccasion": string | null,
+  "reasoning": string
+}`;
+
+      const userMessage = `Analyze this luxury travel inquiry:
+
+Name: ${raw.fullName}
+Email: ${raw.email}
+${raw.phone ? `Phone: ${raw.phone}` : ""}
+${raw.destination ? `Destination Mentioned: ${raw.destination}` : ""}
+${raw.preferredDates ? `Preferred Dates: ${raw.preferredDates}` : ""}
+Guests: ${raw.guests || "not specified"}
+
+Message:
+${raw.message}
+
+Extract the guest's profile. Consider:
+1. Are they a couple? (look for "we", "us", "our", "honeymoon", "anniversary", "fiancé", etc.)
+2. What special occasion drives this trip?
+3. What travel style do they prefer?
+4. What accommodation style suits them?
+5. What activity level?
+6. What budget range do they imply?
+7. Which destinations are they interested in?
+8. What specific interests do they mention?
+9. Score the lead (0-100) based on: detail level, clear occasion, destination knowledge, urgency`;
+
+      const messages: LlmMessage[] = [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userMessage },
+      ];
+
+      const { data } = await callLlmJson<{
+        isCouple: boolean;
+        specialOccasion: string | null;
+        travelStyle: string;
+        accommodationStyle: string;
+        activityLevel: string;
+        budgetRange: string;
+        destinations: string[];
+        interests: string[];
+        leadScore: number;
+        leadTier: string;
+        extractedPreferences: string[];
+        extractedBudget: string | null;
+        extractedOccasion: string | null;
+        reasoning: string;
+      }>(messages, { temperature: 0.2, maxTokens: 1024 });
+
+      // Validate and normalize the response
+      const validStyles = ["romantic", "adventure", "relaxation", "cultural", "mixed"] as const;
+      const validAccommodation = ["intimate-boutique", "luxury-resort", "eco-camp", "private-villa"] as const;
+      const validActivity = ["low", "moderate", "high"] as const;
+      const validBudget = ["premium", "ultra-luxury"] as const;
+      const validTiers = ["hot", "warm", "cold"] as const;
+
+      return {
+        id: `guest-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        name: raw.fullName,
+        email: raw.email,
+        isCouple: typeof data.isCouple === "boolean" ? data.isCouple : true,
+        specialOccasion: typeof data.specialOccasion === "string" ? data.specialOccasion : undefined,
+        preferences: {
+          travelStyle: validStyles.includes(data.travelStyle as any)
+            ? (data.travelStyle as GuestProfile["preferences"]["travelStyle"])
+            : "mixed",
+          accommodationStyle: validAccommodation.includes(data.accommodationStyle as any)
+            ? (data.accommodationStyle as GuestProfile["preferences"]["accommodationStyle"])
+            : "luxury-resort",
+          activityLevel: validActivity.includes(data.activityLevel as any)
+            ? (data.activityLevel as GuestProfile["preferences"]["activityLevel"])
+            : "moderate",
+          budgetRange: validBudget.includes(data.budgetRange as any)
+            ? (data.budgetRange as GuestProfile["preferences"]["budgetRange"])
+            : "premium",
+          interests: Array.isArray(data.interests) ? data.interests : [],
+        },
+        source: "website",
+        inquiryId: undefined,
+        leadScore: Math.min(100, Math.max(0, typeof data.leadScore === "number" ? data.leadScore : 0)),
+        leadTier: validTiers.includes(data.leadTier as any)
+          ? (data.leadTier as "hot" | "warm" | "cold")
+          : "cold",
+        extractedPreferences: Array.isArray(data.extractedPreferences) ? data.extractedPreferences : [],
+        extractedBudget: typeof data.extractedBudget === "string" ? data.extractedBudget : undefined,
+        extractedOccasion: typeof data.extractedOccasion === "string" ? data.extractedOccasion : data.specialOccasion || undefined,
+        extractedDestinations: Array.isArray(data.destinations) && data.destinations.length > 0
+          ? data.destinations
+          : [raw.destination || "lake-malawi"],
+      };
+    } catch (err) {
+      // LLM failed — fall back to rule-based profiling
+      console.warn("LLM profiling failed, using rule-based fallback:", err instanceof Error ? err.message : String(err));
+      return this.profile(raw);
+    }
   }
 }
 

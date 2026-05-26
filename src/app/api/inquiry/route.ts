@@ -43,7 +43,7 @@ export async function POST(request: Request) {
       console.error("Supabase insert error:", dbError);
     }
 
-    // ── 2. AI: Profile the guest ──
+    // ── 2. AI: Profile the guest (LLM-powered) ──
     let aiProfile: {
       id: string;
       isCouple: boolean;
@@ -54,7 +54,7 @@ export async function POST(request: Request) {
     let aiLeadScore: { score: number; tier: string } | null = null;
     let aiWorkflow: any = null;
     try {
-      const profile = guestProfiler.profile({
+      const profile = await guestProfiler.llmProfile({
         fullName,
         email,
         phone: phone || undefined,

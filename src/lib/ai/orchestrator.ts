@@ -72,10 +72,10 @@ export class AIOrchestrator {
     const documentsGenerated: string[] = [];
     const emailsSent: string[] = [];
 
-    // Step 1: Profile guest
+    // Step 1: Profile guest (LLM-powered with rule-based fallback)
     let profiled: ProfiledGuest;
     try {
-      profiled = guestProfiler.profile(raw);
+      profiled = await guestProfiler.llmProfile(raw);
       completedTasks.push("guest_profiling");
     } catch (err: any) {
       return {
@@ -90,7 +90,7 @@ export class AIOrchestrator {
       };
     }
 
-    // Step 2: Curate journey (if auto-curate enabled)
+    // Step 2: Curate journey (LLM-powered with rule-based fallback)
     let journey: CuratedJourney | undefined;
     if (options?.autoCurate !== false) {
       try {
@@ -103,7 +103,7 @@ export class AIOrchestrator {
           preferences: profiled.preferences,
           travelDates: undefined,
         };
-        journey = journeyEngine.generate(profile);
+        journey = await journeyEngine.llmGenerate(profile);
         completedTasks.push("journey_curation");
       } catch (err: any) {
         errors.push(`Journey curation failed: ${err.message}`);

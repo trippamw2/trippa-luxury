@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const journey = engine.generate({
+    const journey = await engine.llmGenerate({
       ...body,
       id: body.id || `guest-${Date.now()}`,
       isCouple: body.isCouple ?? true,

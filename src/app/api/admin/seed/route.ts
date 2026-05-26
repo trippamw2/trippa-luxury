@@ -3,12 +3,33 @@
 // After seeding, the admin panel can edit the data that previously
 // existed only in src/lib/constants.ts.
 //
-// Usage:  POST /api/admin/seed
+// Usage:  POST /api/admin/seed  (requires x-seed-key header)
 //         GET  /api/admin/seed  (dry-run, returns count of items to seed)
+//
+// Security: Both GET and POST are gated by ADMIN_SEED_SECRET env var.
+// Set ADMIN_SEED_SECRET to a random string, then pass it as
+// the x-seed-key header. Without it, the endpoint returns 401.
 // ─────────────────────────────────────────────────────────────────────────
 
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+
+// ─── Auth guard ───────────────────────────────────────────────────────────
+function isAuthorized(request: Request): boolean {
+  const secret = process.env.ADMIN_SEED_SECRET;
+  // If no secret is configured, block all access
+  if (!secret) return false;
+  const provided = request.headers.get("x-seed-key");
+  return provided === secret;
+}
+
+function unauthorized() {
+  return NextResponse.json(
+    { success: false, error: "Unauthorized. Set ADMIN_SEED_SECRET env var and pass x-seed-key header." },
+    { status: 401 }
+  );
+}
+// ─────────────────────────────────────────────────────────────────────────
 import {
   PROPERTIES as CONSTANT_PROPERTIES,
   DESTINATIONS as CONSTANT_DESTINATIONS,
@@ -72,7 +93,9 @@ function mapPackageToDb(pkg: any) {
   };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  if (!isAuthorized(request)) return unauthorized();
+
   return NextResponse.json({
     properties: CONSTANT_PROPERTIES.length,
     destinations: CONSTANT_DESTINATIONS.length,
@@ -81,7 +104,9 @@ export async function GET() {
   });
 }
 
-export async function POST() {
+export async function POST(request: Request) {
+  if (!isAuthorized(request)) return unauthorized();
+
   try {
     const supabase = createAdminClient();
     const results: Record<string, any> = {};

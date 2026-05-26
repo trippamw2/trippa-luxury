@@ -7,7 +7,7 @@ import Link from "next/link";
 import { ArrowRight, Check, Clock, MapPin, Heart, MessageCircle, ChevronLeft, Star } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
-import { PROPERTIES, SITE_CONFIG } from "@/lib/constants";
+import { SITE_CONFIG } from "@/lib/constants";
 import { usePackages, useProperties } from "@/lib/use-public-data";
 import { cn } from "@/lib/utils";
 

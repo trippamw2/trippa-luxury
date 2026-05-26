@@ -21,7 +21,15 @@ function mapKeysToCamel<T = any>(obj: Record<string, any>): T {
   return result as T;
 }
 
-/** Merge constant properties with Supabase overrides */
+/** Fields on a Property that can be overridden by the DB */
+const PROPERTY_MERGE_FIELDS = [
+  "name", "destination", "location", "tagline", "description",
+  "longDescription", "priceRange", "rating", "heroImage", "gallery",
+  "roomTypes", "rooms", "amenities", "romanticHighlights", "awards",
+  "reviews", "isFeatured", "isActive",
+] as const;
+
+/** Merge constant properties with Supabase overrides — DB wins on all fields */
 export async function getMergedProperties() {
   try {
     const supabase = createAdminClient();
@@ -41,20 +49,52 @@ export async function getMergedProperties() {
       dbMap.set(camel.slug || camel.id, camel);
     }
 
-    return CONSTANT_PROPERTIES.map((constant) => {
+    // Merge constants with selective DB overrides (skip null/undefined DB fields)
+    const merged = CONSTANT_PROPERTIES.map((constant) => {
       const dbRecord = dbMap.get(constant.id);
       if (!dbRecord) return constant;
-      return {
-        ...constant,
-        name: dbRecord.name || constant.name,
-        description: luxury(dbRecord.description || constant.description),
-        tagline: luxury(dbRecord.tagline || constant.tagline),
-        location: dbRecord.location || constant.location,
-        priceRange: dbRecord.priceRange || constant.priceRange,
-        rating: dbRecord.rating ?? constant.rating,
-        heroImage: constant.heroImage || dbRecord.heroImage,
-      };
+      const result: Record<string, any> = { ...constant };
+      for (const field of PROPERTY_MERGE_FIELDS) {
+        if (dbRecord[field] !== null && dbRecord[field] !== undefined) {
+          result[field] = dbRecord[field];
+        }
+      }
+      // Preserve constant id (DB id is a UUID, we use the slug)
+      result.id = constant.id;
+      // Apply luxury voice formatting to text fields
+      if (result.description) result.description = luxury(String(result.description));
+      if (result.longDescription) result.longDescription = luxury(String(result.longDescription));
+      if (result.tagline) result.tagline = luxury(String(result.tagline));
+      return result as typeof constant;
     });
+
+    // Add any DB-only properties (created in admin, no constant counterpart)
+    for (const [slug, dbRecord] of dbMap) {
+      const exists = CONSTANT_PROPERTIES.find((c) => c.id === slug);
+      if (!exists) {
+        merged.push({
+          id: slug,
+          name: dbRecord.name || slug,
+          destination: dbRecord.destination || "",
+          location: dbRecord.location || "",
+          tagline: luxury(dbRecord.tagline || ""),
+          description: luxury(dbRecord.description || ""),
+          longDescription: luxury(dbRecord.longDescription || ""),
+          heroImage: dbRecord.heroImage || "",
+          gallery: dbRecord.gallery || [],
+          priceRange: dbRecord.priceRange || "",
+          roomTypes: dbRecord.roomTypes || [],
+          amenities: dbRecord.amenities || [],
+          rating: dbRecord.rating ?? 0,
+          reviews: dbRecord.reviews || [],
+          romanticHighlights: dbRecord.romanticHighlights || [],
+          rooms: dbRecord.rooms || [],
+          awards: dbRecord.awards || [],
+        } as any);
+      }
+    }
+
+    return merged;
   } catch (err) {
     console.warn("Error merging properties, using constants:", err);
     return CONSTANT_PROPERTIES;
@@ -240,7 +280,14 @@ export async function getMergedExperiences() {
   }
 }
 
-/** Merge constant destinations with Supabase overrides */
+/** Fields on a Destination that can be overridden by the DB */
+const DESTINATION_MERGE_FIELDS = [
+  "name", "subtitle", "tagline", "description", "positioning",
+  "heroImage", "gallery", "experiences", "highlights", "seasons",
+  "isFeatured",
+] as const;
+
+/** Merge constant destinations with Supabase overrides — DB wins on all fields */
 export async function getMergedDestinations() {
   try {
     const supabase = createAdminClient();
@@ -260,21 +307,54 @@ export async function getMergedDestinations() {
       dbMap.set(camel.slug || camel.id, camel);
     }
 
-    return CONSTANT_DESTINATIONS.map((constant) => {
+    // Merge constants with selective DB overrides (skip null/undefined DB fields)
+    const merged = CONSTANT_DESTINATIONS.map((constant) => {
       const dbRecord = dbMap.get(constant.id);
       if (!dbRecord) return constant;
-      return {
-        ...constant,
-        title: dbRecord.name || constant.title,
-        subtitle: dbRecord.subtitle || constant.subtitle,
-        tagline: dbRecord.tagline || constant.tagline,
-        description: luxury(dbRecord.description || constant.description),
-        positioning: luxury(dbRecord.positioning || constant.positioning),
-        heroImage: dbRecord.heroImage || constant.heroImage,
-        experiences: dbRecord.experiences || constant.experiences,
-        gallery: dbRecord.gallery || [],
-      };
+      const result: Record<string, any> = { ...constant };
+      for (const field of DESTINATION_MERGE_FIELDS) {
+        if (dbRecord[field] !== null && dbRecord[field] !== undefined) {
+          result[field] = dbRecord[field];
+        }
+      }
+      // Preserve constant id/slug/relation fields
+      result.id = constant.id;
+      result.slug = constant.slug;
+      result.propertyCount = constant.propertyCount;
+      result.properties = constant.properties;
+      // DB may store name instead of title
+      if (dbRecord.name) result.title = dbRecord.name;
+      // Apply luxury voice formatting
+      if (result.description) result.description = luxury(String(result.description));
+      if (result.positioning) result.positioning = luxury(String(result.positioning));
+      return result as typeof constant;
     });
+
+    // Add any DB-only destinations
+    for (const [slug, dbRecord] of dbMap) {
+      const exists = CONSTANT_DESTINATIONS.find((c) => c.id === slug);
+      if (!exists) {
+        merged.push({
+          id: slug,
+          slug,
+          title: dbRecord.name || slug,
+          subtitle: dbRecord.subtitle || "",
+          tagline: dbRecord.tagline || "",
+          description: luxury(dbRecord.description || ""),
+          positioning: luxury(dbRecord.positioning || ""),
+          heroImage: dbRecord.heroImage || "",
+          gallery: dbRecord.gallery || [],
+          experiences: dbRecord.experiences || [],
+          highlights: dbRecord.highlights || [],
+          seasons: dbRecord.seasons || null,
+          isFeatured: dbRecord.isFeatured || false,
+          properties: [],
+          propertyCount: 0,
+        } as any);
+      }
+    }
+
+    return merged;
   } catch (err) {
     console.warn("Error merging destinations, using constants:", err);
     return CONSTANT_DESTINATIONS;

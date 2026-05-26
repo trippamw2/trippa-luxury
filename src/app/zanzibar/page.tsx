@@ -8,11 +8,11 @@ import Image from "next/image";
 import { Container } from "@/components/ui/container";
 import { PropertyCard } from "@/components/ui/property-card";
 import { Button } from "@/components/ui/button";
-import { DESTINATIONS, IMAGES } from "@/lib/constants";
-import { useProperties, usePackages } from "@/lib/use-public-data";
+import { IMAGES } from "@/lib/constants";
+import { useProperties, usePackages, useDestinations } from "@/lib/use-public-data";
 import { cn } from "@/lib/utils";
 
-const destination = DESTINATIONS[2];
+const DESTINATION_SLUG = "zanzibar";
 
 const galleryItems = [
   { label: "Xanadu's white sand paradise", image: "/images/xanadu-1.jpg" },
@@ -38,6 +38,9 @@ export default function ZanzibarPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
+
+  const destinations = useDestinations();
+  const destination = destinations.find((d) => d.id === DESTINATION_SLUG) || destinations[2];
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

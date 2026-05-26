@@ -65,9 +65,14 @@ export class QuoteEngine {
 
     return `
     <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #FAF7F2; color: #1A1A1A;">
-      <div style="background: #1A1A1A; padding: 40px; text-align: center;">
-        <h1 style="font-family: 'Times New Roman', serif; color: #D4BC8A; font-size: 28px; margin: 0; letter-spacing: 3px;">KIVARA</h1>
-        <p style="color: #A89880; font-size: 10px; text-transform: uppercase; letter-spacing: 4px; margin: 6px 0 0;">Your Curated Journey</p>
+      <div style="background: #141414; padding: 44px 60px 36px; text-align: center;">
+        <svg viewBox="0 0 400 145" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: block; width: 220px; height: auto; margin: 0 auto;" aria-label="Kivara">
+          <path d="M 105,12 Q 200,24 295,12 Q 200,40 105,12 Z" fill="#F4F0E8" opacity="0.7"/>
+          <path d="M 105,46 Q 200,36 295,46 Q 200,22 105,46 Z" fill="#D4BC8A" opacity="0.8"/>
+          <text x="200" y="88" text-anchor="middle" font-family="'Trajan Pro','Times New Roman',Georgia,serif" font-size="44" font-weight="400" fill="#F4F0E8" style="letter-spacing: 28px;">KIVARA</text>
+          <text x="200" y="120" text-anchor="middle" font-family="'Montserrat','Helvetica Neue',Arial,sans-serif" font-size="7" font-weight="300" fill="#D8CBB8" style="letter-spacing: 5px;">BUSH ● BEACH ● ROMANCE</text>
+        </svg>
+        <p style="color: #A89880; font-size: 9px; text-transform: uppercase; letter-spacing: 3px; margin: 8px 0 0;">Your Curated Journey</p>
       </div>
 
       <div style="padding: 40px;">

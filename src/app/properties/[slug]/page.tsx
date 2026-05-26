@@ -8,8 +8,8 @@ import Image from "next/image";
 import { ArrowRight, Star, MapPin, Wifi, Waves, Car, Utensils, Sparkles, Heart, MessageCircle, Check, ChevronLeft } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
-import { SITE_CONFIG, DESTINATIONS } from "@/lib/constants";
-import { useProperties } from "@/lib/use-public-data";
+import { SITE_CONFIG } from "@/lib/constants";
+import { useProperties, useDestinations } from "@/lib/use-public-data";
 import { cn } from "@/lib/utils";
 
 const amenityIcons: Record<string, React.ReactNode> = {
@@ -25,6 +25,7 @@ const amenityIcons: Record<string, React.ReactNode> = {
 export default function PropertyDetailPage() {
   const params = useParams();
   const properties = useProperties();
+  const destinations = useDestinations();
   const property = properties.find((p) => p.id === params.slug);
 
   if (!property) {
@@ -233,7 +234,7 @@ export default function PropertyDetailPage() {
 
                 {/* Seasonal Availability */}
                 {(() => {
-                  const dest = DESTINATIONS.find(d => d.id === property.destination);
+                  const dest = destinations.find(d => d.id === property.destination);
                   if (!dest?.seasons) return null;
                   return (
                     <div className="pt-2">

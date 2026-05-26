@@ -38,6 +38,11 @@ interface EmailAddress {
   name?: string;
 }
 
+interface EmailAttachment {
+  content: string; // base64-encoded content
+  name: string;    // filename with extension
+}
+
 interface EmailParams {
   to: EmailAddress[];
   subject: string;
@@ -45,6 +50,7 @@ interface EmailParams {
   cc?: EmailAddress[];
   bcc?: EmailAddress[];
   replyTo?: EmailAddress;
+  attachment?: EmailAttachment[];
 }
 
 const FROM_EMAIL = "concierge@kivara.luxury";
@@ -53,7 +59,7 @@ const FROM_NAME = "Kivara Concierge";
 export async function sendEmail(params: EmailParams) {
   try {
     const instance = getClient();
-    const payload = {
+    const payload: Record<string, any> = {
       sender: { email: FROM_EMAIL, name: FROM_NAME },
       replyTo: params.replyTo || { email: FROM_EMAIL, name: FROM_NAME },
       to: params.to,
@@ -62,6 +68,13 @@ export async function sendEmail(params: EmailParams) {
       ...(params.cc?.length ? { cc: params.cc } : {}),
       ...(params.bcc?.length ? { bcc: params.bcc } : {}),
     };
+
+    if (params.attachment?.length) {
+      payload.attachment = params.attachment.map((a) => ({
+        content: a.content,
+        name: a.name,
+      }));
+    }
 
     const response = await instance.transactionalEmails.sendTransacEmail(payload);
     return { success: true, messageId: response.messageId };

@@ -1,7 +1,8 @@
 import type { MetadataRoute } from "next";
-import { DESTINATIONS, PROPERTIES, PACKAGES, JOURNAL_POSTS } from "@/lib/constants";
+import { PACKAGES, JOURNAL_POSTS } from "@/lib/constants";
+import { getMergedDestinations, getMergedProperties } from "@/lib/public-data";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = "https://kivara.luxury";
 
   // Static routes
@@ -14,8 +15,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${siteUrl}/privacy`, lastModified: new Date(), changeFrequency: "yearly" as const, priority: 0.3 },
   ];
 
+  // Dynamic data from API/DB
+  const [destinations, properties] = await Promise.all([
+    getMergedDestinations(),
+    getMergedProperties(),
+  ]);
+
   // Destination routes
-  const destinationRoutes = DESTINATIONS.map((dest) => ({
+  const destinationRoutes = destinations.map((dest) => ({
     url: `${siteUrl}/${dest.slug}`,
     lastModified: new Date(),
     changeFrequency: "monthly" as const,
@@ -23,7 +30,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }));
 
   // Property routes
-  const propertyRoutes = PROPERTIES.map((prop) => ({
+  const propertyRoutes = properties.map((prop) => ({
     url: `${siteUrl}/properties/${prop.id}`,
     lastModified: new Date(),
     changeFrequency: "monthly" as const,

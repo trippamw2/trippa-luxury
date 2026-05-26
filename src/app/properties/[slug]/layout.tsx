@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { PROPERTIES } from "@/lib/constants";
+import { getMergedProperties } from "@/lib/public-data";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -10,7 +10,8 @@ const baseUrl = "https://kivara.com";
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const property = PROPERTIES.find((p) => p.id === slug);
+  const properties = await getMergedProperties();
+  const property = properties.find((p) => p.id === slug);
 
   if (!property) {
     return { title: "Property Not Found" };

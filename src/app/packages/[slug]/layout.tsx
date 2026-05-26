@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { PACKAGES } from "@/lib/constants";
+import { getMergedPackages } from "@/lib/public-data";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -8,7 +8,8 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const pkg = PACKAGES.find((p) => p.id === slug);
+  const packages = await getMergedPackages();
+  const pkg = packages.find((p) => p.id === slug);
 
   if (!pkg) {
     return { title: "Package Not Found" };

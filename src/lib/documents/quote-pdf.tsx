@@ -553,7 +553,7 @@ export async function generateQuotePDFBuffer(data: {
   paymentTerms: string;
 }): Promise<Buffer> {
   const element = React.createElement(QuotePDF, data);
-  return renderToBuffer(element);
+  return renderToBuffer(element as unknown as React.ReactElement<React.ComponentProps<typeof Document>>);
 }
 
 export default QuotePDF;

@@ -320,7 +320,6 @@ export async function getMergedDestinations() {
       // Preserve constant id/slug/relation fields
       result.id = constant.id;
       result.slug = constant.slug;
-      result.propertyCount = constant.propertyCount;
       result.properties = constant.properties;
       // DB may store name instead of title
       if (dbRecord.name) result.title = dbRecord.name;

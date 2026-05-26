@@ -388,7 +388,7 @@ export default function DestinationsPage() {
                 <div className="mt-3">
                   <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">
                     Monthly Breakdown (JSON array)
-                    <span className="text-earth/50 font-normal lowercase ml-2">[{{name, temp, weather, open}}]</span>
+                    <span className="text-earth/50 font-normal lowercase ml-2">{'[{name, temp, weather, open}]'}</span>
                   </label>
                   <textarea value={formData.seasonsMonths} onChange={e => setFormData({...formData, seasonsMonths: e.target.value})}
                     className="w-full px-4 py-2.5 border border-sand-light text-sm font-mono focus:outline-none focus:border-gold bg-white" rows={6}

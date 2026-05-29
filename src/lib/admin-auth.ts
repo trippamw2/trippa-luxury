@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export class AdminAuthError extends Error {
   constructor(
@@ -18,6 +19,10 @@ export class AdminAuthError extends Error {
  * 1. A valid session exists
  * 2. The user has an admin_profiles entry with role "admin" or "editor"
  *
+ * The admin_profiles query uses the service-role client to bypass the
+ * recursive RLS policy on admin_profiles (which self-references and
+ * triggers "infinite recursion detected in policy for relation").
+ *
  * Throws AdminAuthError (401/403) if unauthorized.
  * Returns the session and profile on success.
  */
@@ -30,7 +35,10 @@ export async function requireAdmin() {
     throw new AdminAuthError("Unauthorized — no valid session");
   }
 
-  const { data: profile, error: profileError } = await supabase
+  // Use service-role client to bypass the self-referencing RLS policy
+  // on admin_profiles which causes infinite recursion.
+  const adminClient = createAdminClient();
+  const { data: profile, error: profileError } = await adminClient
     .from("admin_profiles")
     .select("role")
     .eq("id", sessionData.session.user.id)

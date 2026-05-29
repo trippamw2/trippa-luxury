@@ -154,13 +154,15 @@ export default function LakeMalawiPage() {
               </h2>
               <p className="text-base text-earth leading-relaxed mb-4">
                 Lake Malawi is not merely a destination — it is a feeling. Known as the Lake of Stars, 
-                its crystalline waters have drawn travelers for centuries. Today, it remains one of 
-                Africa&apos;s best-kept secrets, a sanctuary of serenity and natural beauty.
+                this ancient freshwater sea has cradled lovers for centuries. You wake to the gentle 
+                lap of water against the shore, spend your days exploring deserted islands hand in hand, 
+                and dine beneath constellations on a private beach where the only footsteps in the sand 
+                are your own.
               </p>
               <p className="text-base text-earth leading-relaxed">
-                Here, luxury means waking to the sound of lapping water, spending your days exploring 
-                deserted islands, and dining under a canopy of stars. This is Africa at its most 
-                tranquil, its most romantic, its most unforgettable.
+                This is Africa at its most intimate. Where the world falls away and all that remains 
+                is you, your beloved, and the quiet rhythm of the lake. Every moment designed not for 
+                sightseeing, but for rediscovering each other.
               </p>
               <div className="mt-8 flex flex-wrap gap-6">
                 {[

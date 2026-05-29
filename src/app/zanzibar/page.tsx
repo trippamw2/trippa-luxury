@@ -156,10 +156,12 @@ export default function ZanzibarPage() {
                 the ancient alleyways of Stone Town whisper stories of centuries past.
               </p>
               <p className="text-base text-earth leading-relaxed">
-                Here, Swahili culture meets coastal elegance. Days are spent exploring spice 
-                plantations, sailing on traditional dhows at sunset, and dining on freshly caught 
-                seafood under a canopy of stars. Zanzibar is not just a destination — it is the 
-                setting for your most beautiful memories.
+                Here, Swahili culture meets coastal elegance. You spend your days exploring spice 
+                plantations hand in hand, sailing on traditional dhows at sunset, and dining on 
+                freshly caught seafood under a canopy of stars. Zanzibar is not just a destination 
+                — it is the setting for your most beautiful memories. Where every experience, from 
+                the scent of cloves in Stone Town to the turquoise embrace of the Indian Ocean, 
+                is crafted to bring you closer.
               </p>
               <div className="mt-8 flex flex-wrap gap-6">
                 {[

@@ -149,15 +149,17 @@ export default function SouthLuangwaPage() {
                 <span className="italic text-earth">Wilderness</span>
               </h2>
               <p className="text-base text-earth leading-relaxed mb-4">
-                South Luangwa National Park is the birthplace of the walking safari and remains 
-                one of Africa&apos; greatest wildlife sanctuaries. Here, the roar of a lion at dawn 
-                is your wake-up call, and elephants wander through camp at dusk.
+                South Luangwa is the birthplace of the walking safari, but to experience it as a 
+                couple is to understand something far deeper. Here, the roar of a lion at dawn 
+                becomes your shared call to adventure, and elephants wander through camp at dusk 
+                as if welcoming you into their world.
               </p>
               <p className="text-base text-earth leading-relaxed">
                 This is not a theme park — it is the real Africa. Untamed, intimate, and deeply 
-                moving. With some of the highest concentrations of leopard on the continent and 
-                walking safaris that bring you face-to-face with the wild, South Luangwa offers 
-                a safari experience unlike any other.
+                moving. You walk ancient paths together, with nothing but the sounds of the bush 
+                around you. You fall asleep to the rumble of lions and wake to the call of fish 
+                eagles, knowing you are among a privileged few who will ever know this silence. 
+                Here, your love story finds its wildest, most beautiful chapter.
               </p>
               <p className="text-base text-earth leading-relaxed">
                 Our collection of four hand-selected properties spans the full spectrum of South 

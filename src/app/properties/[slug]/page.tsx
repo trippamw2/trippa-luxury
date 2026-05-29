@@ -8,7 +8,7 @@ import Image from "next/image";
 import { ArrowRight, Star, MapPin, Wifi, Waves, Car, Utensils, Sparkles, Heart, MessageCircle, Check, ChevronLeft } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
-import { SITE_CONFIG } from "@/lib/constants";
+import { SITE_CONFIG, SITE_URL } from "@/lib/constants";
 import { useProperties, useDestinations } from "@/lib/use-public-data";
 import { cn } from "@/lib/utils";
 
@@ -75,8 +75,8 @@ export default function PropertyDetailPage() {
     "@type": "LodgingBusiness",
     name: property.name,
     description: property.description || property.tagline,
-    image: property.heroImage ? `https://kivara.com${property.heroImage}` : undefined,
-    url: `https://kivara.com/properties/${property.id}`,
+    image: property.heroImage ? `${SITE_URL}${property.heroImage}` : undefined,
+    url: `${SITE_URL}/properties/${property.id}`,
     address: { "@type": "PostalAddress", addressLocality: property.location },
     priceRange: property.priceRange,
     amenityFeature: property.amenities?.map((a) => ({

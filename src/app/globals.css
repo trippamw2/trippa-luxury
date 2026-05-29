@@ -59,6 +59,9 @@
 
   --color-background: var(--color-warm-ivory);
   --color-foreground: var(--color-deep-earth);
+
+  /* Skeleton shimmer */
+  --animate-shimmer: shimmer 2s ease-in-out infinite;
 }
 
 /* Montserrat loaded via Google Fonts */
@@ -297,6 +300,21 @@ input:focus, textarea:focus, select:focus {
   border-color: var(--color-sunset-gold) !important;
   outline: none;
   box-shadow: 0 0 0 3px rgba(194, 164, 109, 0.1);
+}
+
+/* Slide-in animation for mobile sidebar */
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+@utility animate-slide-in-left {
+  animation: slideInLeft 0.25s ease-out;
+}
+
+/* Admin mobile sidebar overrides */
+@utility admin-sidebar-content {
+  width: 100%;
 }
 
 /* Luxury scrollbar */

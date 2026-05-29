@@ -1,7 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   PROPERTIES as CONSTANT_PROPERTIES,
-  JOURNAL_POSTS as CONSTANT_POSTS,
   PACKAGES as CONSTANT_PACKAGES,
   EXPERIENCES as CONSTANT_EXPERIENCES,
   DESTINATIONS as CONSTANT_DESTINATIONS,
@@ -101,7 +100,7 @@ export async function getMergedProperties() {
   }
 }
 
-/** Merge constant blog posts with Supabase overrides */
+/** Fetch published blog posts from the database */
 export async function getMergedBlogPosts() {
   try {
     const supabase = createAdminClient();
@@ -112,54 +111,31 @@ export async function getMergedBlogPosts() {
       .order("published_at", { ascending: false });
 
     if (error || !dbPosts) {
-      console.warn("Failed to fetch blog posts from DB, using constants:", error?.message);
-      return CONSTANT_POSTS;
+      console.warn("Failed to fetch blog posts from DB:", error?.message);
+      return [];
     }
 
-    const dbMap = new Map<string, Record<string, any>>();
-    for (const item of dbPosts) {
-      const camel = mapKeysToCamel<Record<string, any>>(item);
-      dbMap.set(camel.slug || camel.id, camel);
-    }
-
-    const merged = CONSTANT_POSTS.map((constant) => {
-      const dbRecord = dbMap.get(constant.id);
-      if (!dbRecord) return constant;
-      return {
-        ...constant,
-        title: luxury(dbRecord.title || constant.title),
-        excerpt: luxury(dbRecord.excerpt || constant.excerpt),
-        category: dbRecord.category || constant.category,
-        image: dbRecord.image || constant.image,
-        author: dbRecord.author || constant.author,
-        readTime: dbRecord.readTime || constant.readTime,
-      };
-    });
-
-    // Add any DB-only posts
-    for (const [slug, dbRecord] of dbMap) {
-      const exists = CONSTANT_POSTS.find((c) => c.id === slug);
-      if (!exists) {
-        const newPost: Record<string, any> = {
-          id: slug,
-          title: luxury(dbRecord.title || "Untitled"),
-          excerpt: luxury(dbRecord.excerpt || ""),
-          content: luxury(dbRecord.content || ""),
-          category: dbRecord.category || "Travel",
-          image: dbRecord.image || "/images/hero-poster.jpg",
-          author: dbRecord.author || "Kivara Team",
-          readTime: dbRecord.readTime || "5 min read",
-          date: dbRecord.publishedAt?.split("T")[0] || "",
-          slug,
-        };
-        merged.push(newPost as any);
-      }
-    }
-
-    return merged;
+    return dbPosts.map((post: Record<string, any>) => ({
+      id: post.slug,
+      slug: post.slug,
+      title: luxury(post.title || "Untitled"),
+      excerpt: luxury(post.excerpt || ""),
+      content: post.content || "",
+      category: post.category || "Travel",
+      image: post.image || "/images/hero-poster.jpg",
+      author: post.author || "Kivara Team",
+      readTime: post.read_time || "5 min read",
+      date: post.published_at
+        ? new Date(post.published_at).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })
+        : "",
+    }));
   } catch (err) {
-    console.warn("Error merging blog posts, using constants:", err);
-    return CONSTANT_POSTS;
+    console.warn("Error fetching blog posts:", err);
+    return [];
   }
 }
 

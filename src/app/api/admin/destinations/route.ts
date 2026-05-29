@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { mapKeysToCamel } from "@/lib/api-helpers";
+import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 
 export async function GET(_request: NextRequest) {
   try {
+    await requireAdmin();
     const supabase = createAdminClient();
 
     const [propertiesRes, destinationsRes] = await Promise.all([
@@ -47,12 +49,16 @@ export async function GET(_request: NextRequest) {
 
     return NextResponse.json({ data, count: data.length });
   } catch (err: any) {
+    if (err instanceof AdminAuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
+    await requireAdmin();
     const body = await request.json();
     const supabase = createAdminClient();
 
@@ -80,6 +86,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ id: slug, slug, name: body.name }, { status: 201 });
   } catch (err: any) {
+    if (err instanceof AdminAuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

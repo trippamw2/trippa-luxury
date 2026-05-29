@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { mapKeysToCamel, mapKeysToSnake } from "@/lib/api-helpers";
+import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 
 const TABLE = "suppliers";
 
@@ -16,6 +17,7 @@ function mapRow(item: any) {
 
 export async function GET(request: NextRequest) {
   try {
+    await requireAdmin();
     const supabase = createAdminClient();
     const { data, error, count } = await supabase
       .from(TABLE)
@@ -32,6 +34,9 @@ export async function GET(request: NextRequest) {
       count: count || 0,
     });
   } catch (err: any) {
+    if (err instanceof AdminAuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
     console.error("Error in GET /api/admin/suppliers:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
@@ -39,6 +44,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    await requireAdmin();
     const body = await request.json();
     const supabase = createAdminClient();
 
@@ -68,6 +74,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(mapRow(data), { status: 201 });
   } catch (err: any) {
+    if (err instanceof AdminAuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
     console.error("Error in POST /api/admin/suppliers:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

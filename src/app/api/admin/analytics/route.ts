@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 
 export async function GET() {
   try {
+    await requireAdmin();
     const supabase = createAdminClient();
 
     // ── Aggregate counts ──────────────────────────────────────────────
@@ -129,6 +131,48 @@ export async function GET() {
       {} as Record<string, number>
     );
 
+    // ── Monthly revenue trends (last 12 months) ────────────────────────
+    const twelveMonthsAgo = new Date();
+    twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+    const cutoffDate = twelveMonthsAgo.toISOString();
+
+    const revenueBookingsAll = (allBookings || []).filter((b: any) =>
+      ["confirmed", "deposit_paid", "paid", "completed"].includes(b.status)
+    );
+
+    const monthlyRevenue: { month: string; revenue: number }[] = [];
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      const yearMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      const monthTotal = revenueBookingsAll
+        .filter((b: any) => {
+          const created = b.created_at || b.start_date;
+          if (!created) return false;
+          const bMonth = created.slice(0, 7);
+          return bMonth === yearMonth;
+        })
+        .reduce((sum: number, b: any) => sum + (parseFloat(b.total_amount) || 0), 0);
+      monthlyRevenue.push({
+        month: yearMonth,
+        revenue: monthTotal,
+      });
+    }
+
+    // ── Booking trends (bookings per month) ────────────────────────────
+    const monthlyBookings: { month: string; count: number }[] = [];
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      const yearMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      const monthCount = (allBookings || []).filter((b: any) => {
+        const created = b.created_at || b.start_date;
+        if (!created) return false;
+        return created.slice(0, 7) === yearMonth;
+      }).length;
+      monthlyBookings.push({ month: yearMonth, count: monthCount });
+    }
+
     return NextResponse.json({
       totalProperties: propertiesRes.count || 0,
       totalBookings: bookingsRes.count || 0,
@@ -157,8 +201,13 @@ export async function GET() {
       tourSummary,
       supplierSummary,
       bookingStatusDistribution,
+      monthlyRevenue,
+      monthlyBookings,
     });
   } catch (err: any) {
+    if (err instanceof AdminAuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

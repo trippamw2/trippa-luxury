@@ -1,7 +1,8 @@
 import type { MetadataRoute } from "next";
+import { SITE_URL } from "@/lib/constants";
 
 export default function robots(): MetadataRoute.Robots {
-  const siteUrl = "https://kivara.luxury";
+  const siteUrl = SITE_URL;
 
   return {
     rules: [

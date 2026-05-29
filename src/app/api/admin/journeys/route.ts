@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { handleGetList, handleCreate, queryTable, mapKeysToCamel, mapKeysToSnake } from "@/lib/api-helpers";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 
 const TABLE = "saved_journeys";
 
 export async function GET(request: NextRequest) {
+  await requireAdmin();
   const url = new URL(request.url);
   const search = url.searchParams.get("search");
 

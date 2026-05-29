@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
+import { createAuditLog, sanitizeForAudit, getIpFromRequest } from "@/lib/audit";
 
 type SupabaseClient = ReturnType<typeof createAdminClient>;
 
@@ -85,6 +87,7 @@ export async function handleGetList(
   options?: { orderBy?: { column: string; direction?: "asc" | "desc" }; select?: string }
 ) {
   try {
+    await requireAdmin();
     const url = new URL(request.url);
     const filters: Record<string, any> = {};
     
@@ -120,6 +123,9 @@ export async function handleGetList(
       count: count || 0,
     });
   } catch (err: any) {
+    if (err instanceof AdminAuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
     console.error(`Error in GET /api/admin/${table}:`, err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
@@ -128,6 +134,7 @@ export async function handleGetList(
 /** Handle GET (single) for a resource */
 export async function handleGetOne(table: string, id: string) {
   try {
+    await requireAdmin();
     const supabase = createAdminClient();
     const { data, error } = await supabase
       .from(table)
@@ -145,14 +152,22 @@ export async function handleGetOne(table: string, id: string) {
 
     return NextResponse.json(mapKeysToCamel(data));
   } catch (err: any) {
+    if (err instanceof AdminAuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
     console.error(`Error in GET /api/admin/${table}/${id}:`, err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
 
 /** Handle POST (create) for a resource */
-export async function handleCreate(table: string, body: Record<string, any>) {
+export async function handleCreate(
+  table: string,
+  body: Record<string, any>,
+  request?: Request
+) {
   try {
+    const auth = await requireAdmin();
     const supabase = createAdminClient();
     const dbData = mapKeysToSnake(body);
 
@@ -167,8 +182,21 @@ export async function handleCreate(table: string, body: Record<string, any>) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // Audit log
+    createAuditLog({
+      tableName: table,
+      recordId: data?.id,
+      action: "CREATE",
+      newData: sanitizeForAudit(data),
+      performedBy: auth.profile.id,
+      ipAddress: request ? getIpFromRequest(request) : undefined,
+    });
+
     return NextResponse.json(mapKeysToCamel(data), { status: 201 });
   } catch (err: any) {
+    if (err instanceof AdminAuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
     console.error(`Error in POST /api/admin/${table}:`, err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
@@ -178,11 +206,20 @@ export async function handleCreate(table: string, body: Record<string, any>) {
 export async function handleUpdate(
   table: string,
   id: string,
-  body: Record<string, any>
+  body: Record<string, any>,
+  request?: Request
 ) {
   try {
+    const auth = await requireAdmin();
     const supabase = createAdminClient();
     const dbData = mapKeysToSnake(body);
+
+    // Fetch old data before updating (for audit trail)
+    const { data: oldData } = await supabase
+      .from(table)
+      .select("*")
+      .eq("id", id)
+      .single();
 
     // Remove id from update data if present
     delete dbData.id;
@@ -199,17 +236,44 @@ export async function handleUpdate(
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // Audit log
+    createAuditLog({
+      tableName: table,
+      recordId: id,
+      action: "UPDATE",
+      oldData: sanitizeForAudit(oldData),
+      newData: sanitizeForAudit(data),
+      performedBy: auth.profile.id,
+      ipAddress: request ? getIpFromRequest(request) : undefined,
+    });
+
     return NextResponse.json(mapKeysToCamel(data));
   } catch (err: any) {
+    if (err instanceof AdminAuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
     console.error(`Error in PUT /api/admin/${table}/${id}:`, err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
 
 /** Handle DELETE for a resource */
-export async function handleDelete(table: string, id: string) {
+export async function handleDelete(
+  table: string,
+  id: string,
+  request?: Request
+) {
   try {
+    const auth = await requireAdmin();
     const supabase = createAdminClient();
+
+    // Fetch old data before deleting (for audit trail)
+    const { data: oldData } = await supabase
+      .from(table)
+      .select("*")
+      .eq("id", id)
+      .single();
+
     const { error } = await supabase.from(table).delete().eq("id", id);
 
     if (error) {
@@ -217,8 +281,21 @@ export async function handleDelete(table: string, id: string) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // Audit log
+    createAuditLog({
+      tableName: table,
+      recordId: id,
+      action: "DELETE",
+      oldData: sanitizeForAudit(oldData),
+      performedBy: auth.profile.id,
+      ipAddress: request ? getIpFromRequest(request) : undefined,
+    });
+
     return NextResponse.json({ success: true });
   } catch (err: any) {
+    if (err instanceof AdminAuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
     console.error(`Error in DELETE /api/admin/${table}/${id}:`, err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

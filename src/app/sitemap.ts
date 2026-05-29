@@ -1,9 +1,9 @@
 import type { MetadataRoute } from "next";
-import { PACKAGES, JOURNAL_POSTS } from "@/lib/constants";
-import { getMergedDestinations, getMergedProperties } from "@/lib/public-data";
+import { SITE_URL, PACKAGES } from "@/lib/constants";
+import { getMergedDestinations, getMergedProperties, getMergedBlogPosts } from "@/lib/public-data";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const siteUrl = "https://kivara.luxury";
+  const siteUrl = SITE_URL;
 
   // Static routes
   const staticRoutes = [
@@ -39,16 +39,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Package routes
   const packageRoutes = PACKAGES.map((pkg) => ({
-    url: `${siteUrl}/packages#${pkg.id}`,
+    url: `${siteUrl}/packages/${pkg.id}`,
     lastModified: new Date(),
     changeFrequency: "monthly" as const,
     priority: 0.7,
   }));
 
-  // Journal routes
-  const journalRoutes = JOURNAL_POSTS.map((post) => ({
+  // Journal routes — fetch from DB
+  const journalPosts = await getMergedBlogPosts();
+  const journalRoutes = journalPosts.map((post) => ({
     url: `${siteUrl}/journal/${post.id}`,
-    lastModified: new Date(post.date),
+    lastModified: post.date ? new Date(post.date) : new Date(),
     changeFrequency: "monthly" as const,
     priority: 0.7,
   }));

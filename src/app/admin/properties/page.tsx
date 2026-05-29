@@ -2,9 +2,12 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Edit2, Trash2, X, Search, MapPin, Star, Check, AlertCircle, GripVertical, ChevronDown, ChevronRight } from "lucide-react";
+import { Plus, Edit2, Trash2, X, Search, MapPin, Star, GripVertical, ChevronDown, ChevronRight } from "lucide-react";
 import { formatDestination } from "@/lib/utils";
 import { useApiData } from "@/lib/use-api-data";
+import { useToast } from "@/app/admin/components/Toast";
+import { RichTextEditor } from "@/app/admin/components/RichTextEditor";
+import { ImageUpload } from "@/app/admin/components/ImageUpload";
 
 interface Room {
   name: string;
@@ -269,14 +272,10 @@ export default function AdminProperties() {
   const [showModal, setShowModal] = useState(false);
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [formData, setFormData] = useState(DEFAULT_FORM);
   const [activeTab, setActiveTab] = useState("basic");
 
-  const showToast = (message: string, type: "success" | "error") => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
+  const { toast } = useToast();
 
   const filtered = properties.filter(p => 
     p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -313,9 +312,9 @@ export default function AdminProperties() {
     if (result) {
       setShowModal(false);
       resetForm();
-      showToast("Property added successfully", "success");
+      toast("Property added successfully", "success");
     } else {
-      showToast("Failed to add property", "error");
+      toast("Failed to add property", "error");
     }
   };
 
@@ -325,9 +324,9 @@ export default function AdminProperties() {
     if (result) {
       setEditingProperty(null);
       setShowModal(false);
-      showToast("Property updated successfully", "success");
+      toast("Property updated successfully", "success");
     } else {
-      showToast("Failed to update property", "error");
+      toast("Failed to update property", "error");
     }
   };
 
@@ -335,9 +334,9 @@ export default function AdminProperties() {
     const ok = await remove(id);
     if (ok) {
       setDeleteConfirm(null);
-      showToast("Property deleted successfully", "success");
+      toast("Property deleted successfully", "success");
     } else {
-      showToast("Failed to delete property", "error");
+      toast("Failed to delete property", "error");
     }
   };
 
@@ -353,21 +352,7 @@ export default function AdminProperties() {
 
   return (
     <div className="min-h-screen">
-      <AnimatePresence>
-        {toast && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className={`fixed top-6 right-6 px-5 py-3 rounded-lg shadow-lg z-50 flex items-center gap-3 ${
-              toast.type === "success" ? "bg-emerald-50 text-emerald-800 border border-emerald-200" : "bg-red-50 text-red-800 border border-red-200"
-            }`}
-          >
-            {toast.type === "success" ? <Check className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-            <span className="text-sm font-medium">{toast.message}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
 
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -500,20 +485,14 @@ export default function AdminProperties() {
                         <input type="number" step="0.1" min="0" max="5" value={formData.rating} onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
                           className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" /></div>
                     </div>
-                    <div><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Hero Image URL</label>
-                      <input type="url" value={formData.heroImage} onChange={(e) => setFormData({ ...formData, heroImage: e.target.value })}
-                        className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" placeholder="/images/kaya-mawa-beach-swing.jpg" /></div>
+                    <ImageUpload label="Hero Image" value={formData.heroImage} onChange={(url) => setFormData({ ...formData, heroImage: url })} />
                   </>
                 )}
 
                 {activeTab === "desc" && (
                   <>
-                    <div><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Short Description (card previews)</label>
-                      <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" rows={3} placeholder="Short description for cards and previews" /></div>
-                    <div><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Long Description (full property page)</label>
-                      <textarea value={formData.longDescription} onChange={(e) => setFormData({ ...formData, longDescription: e.target.value })}
-                        className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" rows={8} placeholder="Detailed description for the property page..." /></div>
+                    <RichTextEditor label="Short Description (card previews)" value={formData.description} onChange={(html) => setFormData({ ...formData, description: html })} minH="120px" placeholder="Short description for cards and previews" />
+                    <RichTextEditor label="Long Description (full property page)" value={formData.longDescription} onChange={(html) => setFormData({ ...formData, longDescription: html })} minH="320px" placeholder="Detailed description for the property page..." />
                   </>
                 )}
 

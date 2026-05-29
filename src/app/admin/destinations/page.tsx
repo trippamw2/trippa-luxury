@@ -3,6 +3,12 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useApiData } from "@/lib/use-api-data";
+import { useToast } from "@/app/admin/components/Toast";
+import { FormInput } from "@/app/admin/components/FormField";
+import { RichTextEditor } from "@/app/admin/components/RichTextEditor";
+import { ImageUpload } from "@/app/admin/components/ImageUpload";
+import { TagInput } from "@/app/admin/components/TagInput";
+import { JsonEditor } from "@/app/admin/components/JsonEditor";
 
 interface PropertyRef {
   id: string;
@@ -91,8 +97,7 @@ export default function DestinationsPage() {
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [editingDest, setEditingDest] = useState<Destination | null>(null);
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState("");
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     title: "", subtitle: "", tagline: "", description: "", positioning: "", heroImage: "",
     gallery: [] as string[], experiences: "", highlights: "" as string,
@@ -103,7 +108,7 @@ export default function DestinationsPage() {
     setDestinations(apiDestinations.map(mapDestination));
   }, [apiDestinations]);
 
-  const showNotification = (msg: string) => { setToastMessage(msg); setShowToast(true); setTimeout(() => setShowToast(false), 3000); };
+
 
   const handleAdd = () => {
     setEditingDest(null);
@@ -133,8 +138,8 @@ export default function DestinationsPage() {
   const handleDelete = async (slug: string) => {
     if (!confirm(`Delete destination "${slug}"? This removes destination metadata only.`)) return;
     const ok = await remove(slug);
-    if (ok) showNotification("Destination deleted");
-    else showNotification("Failed to delete destination");
+    if (ok) toast("Destination deleted");
+    else toast("Failed to delete destination");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -175,10 +180,10 @@ export default function DestinationsPage() {
       result = await create(payload);
     }
     if (result) {
-      showNotification(editingDest ? "Destination updated" : "Destination created");
+      toast(editingDest ? "Destination updated" : "Destination created");
       setShowModal(false);
     } else {
-      showNotification("Failed to save destination");
+      toast("Failed to save destination");
     }
   };
 
@@ -195,13 +200,13 @@ export default function DestinationsPage() {
         body: JSON.stringify({ gallery: updatedGallery }),
       });
       if (res.ok) {
-        showNotification("Gallery image added");
+        toast("Gallery image added");
         refresh();
       } else {
-        showNotification("Failed to add image");
+        toast("Failed to add image");
       }
     } catch {
-      showNotification("Failed to add image");
+      toast("Failed to add image");
     }
   };
 
@@ -216,13 +221,13 @@ export default function DestinationsPage() {
         body: JSON.stringify({ gallery: updatedGallery }),
       });
       if (res.ok) {
-        showNotification("Gallery image removed");
+        toast("Gallery image removed");
         refresh();
       } else {
-        showNotification("Failed to remove image");
+        toast("Failed to remove image");
       }
     } catch {
-      showNotification("Failed to remove image");
+      toast("Failed to remove image");
     }
   };
 
@@ -308,50 +313,18 @@ export default function DestinationsPage() {
               <div className="flex-1 overflow-y-auto p-6 space-y-4 min-h-0">
                 {/* Basic Info */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Title</label>
-                    <input type="text" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})}
-                      className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" required placeholder="e.g., Lake Malawi" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Hero Image URL</label>
-                    <input type="url" value={formData.heroImage} onChange={e => setFormData({...formData, heroImage: e.target.value})}
-                      className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" placeholder="/images/lake-malawi-hero.jpg" />
-                  </div>
+                  <FormInput label="Title" name="title" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} required placeholder="e.g., Lake Malawi" />
+                  <ImageUpload label="Hero Image" value={formData.heroImage} onChange={(url) => setFormData({...formData, heroImage: url})} />
                 </div>
-                <div>
-                  <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Subtitle</label>
-                  <input type="text" value={formData.subtitle} onChange={e => setFormData({...formData, subtitle: e.target.value})}
-                    className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" placeholder="A freshwater archipelago known only to the fortunate few." />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Tagline</label>
-                  <input type="text" value={formData.tagline} onChange={e => setFormData({...formData, tagline: e.target.value})}
-                    className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" placeholder="Where the lake becomes an ocean of romantic tranquility" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Description</label>
-                  <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})}
-                    className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" rows={3} />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Positioning (hero paragraph)</label>
-                  <textarea value={formData.positioning} onChange={e => setFormData({...formData, positioning: e.target.value})}
-                    className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" rows={4} />
-                </div>
+                <FormInput label="Subtitle" name="subtitle" value={formData.subtitle} onChange={e => setFormData({...formData, subtitle: e.target.value})} placeholder="A freshwater archipelago known only to the fortunate few." />
+                <FormInput label="Tagline" name="tagline" value={formData.tagline} onChange={e => setFormData({...formData, tagline: e.target.value})} placeholder="Where the lake becomes an ocean of romantic tranquility" />
+                <RichTextEditor label="Description" value={formData.description} onChange={(html) => setFormData({...formData, description: html})} minH="200px" />
+                <RichTextEditor label="Positioning (hero paragraph)" value={formData.positioning} onChange={(html) => setFormData({...formData, positioning: html})} minH="200px" />
 
                 {/* Experiences & Highlights */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Experiences (one per line)</label>
-                    <textarea value={formData.experiences} onChange={e => setFormData({...formData, experiences: e.target.value})}
-                      className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" rows={5} placeholder="Private beach dining&#10;Sunset dhow cruises&#10;..." />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Highlights (one per line)</label>
-                    <textarea value={formData.highlights} onChange={e => setFormData({...formData, highlights: e.target.value})}
-                      className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" rows={5} placeholder="Crystal clear waters&#10;Year round sunshine&#10;..." />
-                  </div>
+                  <TagInput label="Experiences" value={formData.experiences.split("\n").filter(Boolean)} onChange={(tags) => setFormData({...formData, experiences: tags.join("\n")})} placeholder="Private beach dining" />
+                  <TagInput label="Highlights" value={formData.highlights.split("\n").filter(Boolean)} onChange={(tags) => setFormData({...formData, highlights: tags.join("\n")})} placeholder="Crystal clear waters" />
                 </div>
 
                 {/* Gallery */}
@@ -388,13 +361,7 @@ export default function DestinationsPage() {
                     </div>
                   </div>
                   <div className="mt-3">
-                    <label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">
-                      Monthly Breakdown (JSON array)
-                      <span className="text-earth/50 font-normal lowercase ml-2">{'[{name, temp, weather, open}]'}</span>
-                    </label>
-                    <textarea value={formData.seasonsMonths} onChange={e => setFormData({...formData, seasonsMonths: e.target.value})}
-                      className="w-full px-4 py-2.5 border border-sand-light text-sm font-mono focus:outline-none focus:border-gold bg-white" rows={6}
-                      placeholder={`[\n  {"name": "January", "temp": "26°C", "weather": "Dry", "open": true}\n]`} />
+                    <JsonEditor label="Monthly Breakdown" value={formData.seasonsMonths} onChange={(val) => setFormData({...formData, seasonsMonths: val})} minH="160px" placeholder={`[\n  {"name": "January", "temp": "26°C", "weather": "Dry", "open": true}\n]`} />
                   </div>
                 </div>
               </div>
@@ -410,9 +377,7 @@ export default function DestinationsPage() {
         </div>
       )}
 
-      {showToast && (
-        <div className="fixed bottom-4 right-4 bg-soft-black text-white px-4 py-2 shadow-lg z-50">{toastMessage}</div>
-      )}
+
     </div>
   );
 }

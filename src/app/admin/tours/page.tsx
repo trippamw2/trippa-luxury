@@ -2,10 +2,16 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Search, Edit2, Trash2, X, Clock, MapPin, DollarSign, Users, Star, Check, AlertCircle, Eye, Copy, Archive, Image as ImageIcon, Calendar, Plane, Utensils, Car } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, X, Clock, MapPin, Users, Star, Copy, Image as ImageIcon, Calendar, Compass } from "lucide-react";
 import Image from "next/image";
 import { formatDestination } from "@/lib/utils";
 import { useApiData } from "@/lib/use-api-data";
+import { useToast } from "@/app/admin/components/Toast";
+import { SkeletonText } from "@/app/admin/components/Skeleton";
+import { EmptyState } from "@/app/admin/components/EmptyState";
+import { FormInput, FormTextarea, FormSelect, FormGroup } from "@/app/admin/components/FormField";
+import { RichTextEditor } from "@/app/admin/components/RichTextEditor";
+import { ImageUpload } from "@/app/admin/components/ImageUpload";
 
 interface ItineraryDay {
   day: number;
@@ -76,7 +82,6 @@ function mapTourToApi(item: Partial<Tour>): any {
     hero_image: item.image,
     included: item.inclusions,
     excluded: item.exclusions,
-    // NOTE: meeting_point and group_size not yet in DB schema
   };
 }
 
@@ -100,26 +105,19 @@ export default function AdminTours() {
     mapFromApi: mapTour,
     mapToApi: mapTourToApi,
   });
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showModal, setShowModal] = useState(false);
   const [editingTour, setEditingTour] = useState<Tour | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
-  const [showItinerary, setShowItinerary] = useState(false);
-  
   const [formData, setFormData] = useState({
-    title: "", category: "Safari", destination: "lake-malawi", 
-    durationDays: "1", pricingFrom: "", status: "draft" as "active" | "draft" | "archived", 
+    title: "", category: "Safari", destination: "lake-malawi",
+    durationDays: "1", pricingFrom: "", status: "draft" as "active" | "draft" | "archived",
     featured: false, description: "", image: "",
     itinerary: [{ ...DEFAULT_ITINERARY }] as ItineraryDay[],
     inclusions: "", exclusions: "", meetingPoint: "", groupSize: ""
   });
-
-  const showToast = (message: string, type: "success" | "error") => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
 
   const filteredTours = tours.filter((t) => {
     const matchesSearch = t.title.toLowerCase().includes(searchQuery.toLowerCase()) || t.category.toLowerCase().includes(searchQuery.toLowerCase());
@@ -127,16 +125,15 @@ export default function AdminTours() {
     return matchesSearch && matchesStatus;
   });
 
+  const resetForm = () => {
+    setFormData({ title: "", category: "Safari", destination: "lake-malawi", durationDays: "1", pricingFrom: "", status: "draft", featured: false, description: "", image: "", itinerary: [{ ...DEFAULT_ITINERARY }], inclusions: "", exclusions: "", meetingPoint: "", groupSize: "" });
+  };
+
   const handleAdd = async () => {
     const result = await create({
-      title: formData.title,
-      category: formData.category,
-      destination: formData.destination,
-      durationDays: parseInt(formData.durationDays) || 1,
-      pricingFrom: parseInt(formData.pricingFrom) || 0,
-      status: formData.status,
-      featured: formData.featured,
-      description: formData.description,
+      title: formData.title, category: formData.category, destination: formData.destination,
+      durationDays: parseInt(formData.durationDays) || 1, pricingFrom: parseInt(formData.pricingFrom) || 0,
+      status: formData.status, featured: formData.featured, description: formData.description,
       image: formData.image || "/images/lrc-walking.jpg",
       itinerary: formData.itinerary.filter(i => i.title),
       inclusions: formData.inclusions.split(",").map(i => i.trim()).filter(Boolean),
@@ -145,9 +142,9 @@ export default function AdminTours() {
     if (result) {
       setShowModal(false);
       resetForm();
-      showToast("Tour created successfully", "success");
+      toast("Tour created successfully", "success");
     } else {
-      showToast("Failed to create tour", "error");
+      toast("Failed to create tour", "error");
     }
   };
 
@@ -155,14 +152,9 @@ export default function AdminTours() {
     if (!editingTour) return;
     const result = await update(editingTour.id, {
       ...editingTour,
-      title: formData.title,
-      category: formData.category,
-      destination: formData.destination,
-      durationDays: parseInt(formData.durationDays) || 1,
-      pricingFrom: parseInt(formData.pricingFrom) || 0,
-      status: formData.status,
-      featured: formData.featured,
-      description: formData.description,
+      title: formData.title, category: formData.category, destination: formData.destination,
+      durationDays: parseInt(formData.durationDays) || 1, pricingFrom: parseInt(formData.pricingFrom) || 0,
+      status: formData.status, featured: formData.featured, description: formData.description,
       image: formData.image || "/images/lrc-walking.jpg",
       itinerary: formData.itinerary.filter(i => i.title),
       inclusions: formData.inclusions.split(",").map(i => i.trim()).filter(Boolean),
@@ -172,9 +164,9 @@ export default function AdminTours() {
       setEditingTour(null);
       setShowModal(false);
       resetForm();
-      showToast("Tour updated successfully", "success");
+      toast("Tour updated successfully", "success");
     } else {
-      showToast("Failed to update tour", "error");
+      toast("Failed to update tour", "error");
     }
   };
 
@@ -182,19 +174,15 @@ export default function AdminTours() {
     const ok = await remove(id);
     if (ok) {
       setDeleteConfirm(null);
-      showToast("Tour deleted", "success");
+      toast("Tour deleted", "success");
     } else {
-      showToast("Failed to delete tour", "error");
+      toast("Failed to delete tour", "error");
     }
   };
 
   const handleDuplicate = async (tour: Tour) => {
     await create({ ...tour, title: `${tour.title} (Copy)`, bookings: 0, rating: 0, status: "draft" as const });
-    showToast("Tour duplicated", "success");
-  };
-
-  const resetForm = () => {
-    setFormData({ title: "", category: "Safari", destination: "lake-malawi", durationDays: "1", pricingFrom: "", status: "draft", featured: false, description: "", image: "", itinerary: [{ ...DEFAULT_ITINERARY }], inclusions: "", exclusions: "", meetingPoint: "", groupSize: "" });
+    toast("Tour duplicated", "success");
   };
 
   const openEditModal = (tour: Tour) => {
@@ -231,95 +219,173 @@ export default function AdminTours() {
     }
   };
 
+  const stats = {
+    total: tours.length, active: tours.filter(t => t.status === "active").length,
+    drafts: tours.filter(t => t.status === "draft").length, featured: tours.filter(t => t.featured).length,
+  };
+
   return (
     <div className="min-h-screen">
-      <AnimatePresence>{toast && (<motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className={`fixed top-6 right-6 px-5 py-3 rounded-lg shadow-lg z-50 flex items-center gap-3 ${toast.type === "success" ? "bg-emerald-50 text-emerald-800 border border-emerald-200" : "bg-red-50 text-red-800 border border-red-200"}`}>{toast.type === "success" ? <Check className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}<span className="text-sm font-medium">{toast.message}</span></motion.div>)}</AnimatePresence>
       <div className="flex items-center justify-between mb-6">
         <div><h1 className="text-2xl font-heading font-bold text-soft-black">Tours & Experiences</h1><p className="text-earth mt-1">Create and manage tours, activities, and experiences</p></div>
         <button onClick={openAddModal} className="inline-flex items-center gap-2 px-5 py-2.5 bg-gold text-soft-black text-sm font-medium tracking-widest uppercase hover:bg-gold-dark transition-all"><Plus className="w-4 h-4" />New Tour</button>
       </div>
-      {loading ? (
-        <div className="flex items-center justify-center py-20"><div className="text-earth text-sm">Loading tours...</div></div>
-      ) : (
-      <>
+
+      {/* Stats */}
       <div className="grid grid-cols-4 gap-4 mb-6">
-        {[{ label: "Total Tours", value: tours.length, color: "text-soft-black" }, { label: "Active", value: tours.filter(t => t.status === "active").length, color: "text-emerald-600" }, { label: "Draft", value: tours.filter(t => t.status === "draft").length, color: "text-earth" }, { label: "Featured", value: tours.filter(t => t.featured).length, color: "text-gold" }].map(stat => (<div key={stat.label} className="bg-white border border-sand-light p-4"><p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p><p className="text-xs text-earth">{stat.label}</p></div>))}
-      </div>
-      <div className="flex gap-4 mb-6">
-        <div className="flex-1 relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-earth" /><input type="text" placeholder="Search tours..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-10 pr-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" /></div>
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white"><option value="all">All Status</option><option value="active">Active</option><option value="draft">Draft</option><option value="archived">Archived</option></select>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {filteredTours.map((tour, index) => (
-          <motion.div key={tour.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.03 }} className="bg-white border border-sand-light overflow-hidden group hover:shadow-lg transition-shadow">
-            <div className="relative aspect-video bg-cream">
-              {tour.image ? <Image src={tour.image} alt={tour.title} fill unoptimized className="object-cover" /> : <div className="flex items-center justify-center h-full"><ImageIcon className="w-8 h-8 text-earth-light" /></div>}
-              {tour.featured && <div className="absolute top-2 left-2"><Star className="w-4 h-4 text-gold fill-gold" /></div>}
-              <div className="absolute top-2 right-2"><span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium ${tour.status === "active" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : tour.status === "draft" ? "bg-sand-light text-earth border-sand" : "bg-gray-100 text-gray-400 border-gray-200"}`}>{tour.status}</span></div>
-            </div>
-            <div className="p-4">
-              <div className="flex items-start justify-between mb-2"><span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium border ${categoryColors[tour.category] || "bg-gray-50 text-gray-600 border-gray-200"}`}>{tour.category}</span></div>
-              <h3 className="text-base font-semibold text-soft-black mb-1 line-clamp-1">{tour.title}</h3>
-              <p className="text-xs text-earth flex items-center gap-1 mb-2"><MapPin className="w-3 h-3" />{formatDestination(tour.destination)}</p>
-              {tour.itinerary && tour.itinerary.length > 0 && (<div className="flex items-center gap-2 text-xs text-earth bg-cream px-2 py-1 rounded mb-3"><Calendar className="w-3 h-3" />{tour.itinerary.length} day{tour.itinerary.length > 1 ? "s" : ""}</div>)}
-              <div className="flex items-center gap-4 text-xs text-earth mb-3"><span className="flex items-center gap-1"><Clock className="w-3 h-3" />{tour.durationDays} {tour.durationDays === 1 ? "day" : "days"}</span><span className="flex items-center gap-1"><Users className="w-3 h-3" />{tour.bookings}</span>{tour.rating > 0 && <span className="flex items-center gap-1"><Star className="w-3 h-3 fill-gold text-gold" />{tour.rating}</span>}</div>
-              <div className="pt-3 border-t border-sand-light flex items-center justify-between"><span className="text-sm font-semibold text-soft-black">${tour.pricingFrom.toLocaleString()}<span className="text-xs text-earth font-normal"> /person</span></span></div>
-            </div>
-            <div className="px-4 py-3 bg-warm-white flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity">
-              <div className="flex items-center gap-3">
-                <button onClick={() => handleDuplicate(tour)} className="text-xs text-gold hover:text-gold-dark flex items-center gap-1"><Copy className="w-3 h-3" /> Duplicate</button>
-                <button onClick={() => openEditModal(tour)} className="text-xs text-gold hover:text-gold-dark flex items-center gap-1"><Edit2 className="w-3 h-3" /> Edit</button>
-              </div>
-              <button onClick={() => setDeleteConfirm(tour.id)} className="text-xs text-red-500 hover:text-red-700">Delete</button>
-            </div>
-          </motion.div>
+        {[{ label: "Total Tours", value: stats.total, color: "text-soft-black" }, { label: "Active", value: stats.active, color: "text-emerald-600" }, { label: "Draft", value: stats.drafts, color: "text-earth" }, { label: "Featured", value: stats.featured, color: "text-gold" }].map(stat => (
+          <div key={stat.label} className="bg-white border border-sand-light p-4"><p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p><p className="text-xs text-earth">{stat.label}</p></div>
         ))}
       </div>
-      </>
+
+      {/* Search + filter */}
+      <div className="flex gap-4 mb-6">
+        <div className="flex-1"><input type="text" placeholder="Search tours..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" /></div>
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white"><option value="all">All Status</option><option value="active">Active</option><option value="draft">Draft</option><option value="archived">Archived</option></select>
+      </div>
+
+      {/* Card grid */}
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="bg-white border border-sand-light overflow-hidden">
+              <div className="aspect-video bg-sand-light" />
+              <div className="p-4 space-y-2"><SkeletonText className="w-1/3" /><SkeletonText className="w-2/3" /><SkeletonText className="w-1/2" /></div>
+            </div>
+          ))}
+        </div>
+      ) : filteredTours.length === 0 ? (
+        <EmptyState
+          icon={Compass}
+          title="No tours yet"
+          description={searchQuery || statusFilter !== "all" ? "No tours match your filters." : "Create your first tour to get started."}
+          action={!searchQuery && statusFilter === "all" ? { label: "New Tour", onClick: openAddModal } : undefined}
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredTours.map((tour, index) => (
+            <motion.div key={tour.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.03 }}
+              className="bg-white border border-sand-light overflow-hidden group hover:shadow-lg transition-shadow">
+              <div className="relative aspect-video bg-cream">
+                {tour.image ? <Image src={tour.image} alt={tour.title} fill unoptimized className="object-cover" /> : <div className="flex items-center justify-center h-full"><ImageIcon className="w-8 h-8 text-earth" /></div>}
+                {tour.featured && <div className="absolute top-2 left-2"><Star className="w-4 h-4 text-gold fill-gold" /></div>}
+                <div className="absolute top-2 right-2">
+                  <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium ${tour.status === "active" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : tour.status === "draft" ? "bg-sand-light text-earth border-sand" : "bg-gray-100 text-gray-400 border-gray-200"}`}>{tour.status}</span>
+                </div>
+              </div>
+              <div className="p-4">
+                <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium border ${categoryColors[tour.category] || "bg-gray-50 text-gray-600 border-gray-200"}`}>{tour.category}</span>
+                <h3 className="text-base font-semibold text-soft-black mb-1 mt-2 line-clamp-1">{tour.title}</h3>
+                <p className="text-xs text-earth flex items-center gap-1 mb-2"><MapPin className="w-3 h-3" />{formatDestination(tour.destination)}</p>
+                {tour.itinerary && tour.itinerary.length > 0 && (
+                  <div className="flex items-center gap-2 text-xs text-earth bg-cream px-2 py-1 mb-3"><Calendar className="w-3 h-3" />{tour.itinerary.length} day{tour.itinerary.length > 1 ? "s" : ""}</div>
+                )}
+                <div className="flex items-center gap-4 text-xs text-earth mb-3">
+                  <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{tour.durationDays} {tour.durationDays === 1 ? "day" : "days"}</span>
+                  <span className="flex items-center gap-1"><Users className="w-3 h-3" />{tour.bookings}</span>
+                  {tour.rating > 0 && <span className="flex items-center gap-1"><Star className="w-3 h-3 fill-gold text-gold" />{tour.rating}</span>}
+                </div>
+                <div className="pt-3 border-t border-sand-light">
+                  <span className="text-sm font-semibold text-soft-black">${tour.pricingFrom.toLocaleString()}<span className="text-xs text-earth font-normal"> /person</span></span>
+                </div>
+              </div>
+              <div className="px-4 py-3 bg-warm-white flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center gap-3">
+                  <button onClick={() => handleDuplicate(tour)} className="text-xs text-gold hover:text-gold-dark flex items-center gap-1"><Copy className="w-3 h-3" /> Duplicate</button>
+                  <button onClick={() => openEditModal(tour)} className="text-xs text-gold hover:text-gold-dark flex items-center gap-1"><Edit2 className="w-3 h-3" /> Edit</button>
+                </div>
+                <button onClick={() => setDeleteConfirm(tour.id)} className="text-xs text-red-500 hover:text-red-700">Delete</button>
+              </div>
+            </motion.div>
+          ))}
+        </div>
       )}
 
+      {/* ─── Modal ──────────────────────────────────── */}
       <AnimatePresence>
         {showModal && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-40 p-4" onClick={() => setShowModal(false)}>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-40 p-4"
+            onClick={() => setShowModal(false)}>
             <motion.div initial={{ scale: 0.95 }} className="bg-cream border border-sand-light w-full max-w-3xl max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-center justify-between px-6 py-4 border-b border-sand-light flex-shrink-0"><h2 className="text-xl font-bold text-soft-black">{editingTour ? "Edit Tour" : "Create New Tour"}</h2><button onClick={() => setShowModal(false)} className="text-earth hover:text-soft-black"><X className="w-5 h-5" /></button></div>
-              <div className="flex-1 overflow-y-auto p-6 space-y-6 min-h-0">
-                <div><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Tour Image URL</label><div className="flex gap-2"><input type="url" value={formData.image} onChange={(e) => setFormData({ ...formData, image: e.target.value })} className="flex-1 px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" placeholder="/images/lrc-walking.jpg" />{formData.image && <div className="relative w-16 h-16 rounded overflow-hidden flex-shrink-0 border border-sand-light"><Image src={formData.image} alt="Preview" fill unoptimized className="object-cover" /></div>}</div></div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="col-span-2"><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Tour Name</label><input type="text" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" placeholder="Walking Safari Adventure" /></div>
-                  <div><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Category</label><select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white">{CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}</select></div>
-                  <div><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Destination</label><select value={formData.destination} onChange={(e) => setFormData({ ...formData, destination: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white"><option value="lake-malawi">Lake Malawi</option><option value="south-luangwa">South Luangwa</option><option value="zanzibar">Zanzibar</option></select></div>
-                </div>
-                <div><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Description</label><textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" rows={3} placeholder="Describe the tour experience..." /></div>
-                <div className="grid grid-cols-3 gap-4">
-                  <div><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Duration (days)</label><input type="number" value={formData.durationDays} onChange={(e) => setFormData({ ...formData, durationDays: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" /></div>
-                  <div><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Price (USD)</label><input type="number" value={formData.pricingFrom} onChange={(e) => setFormData({ ...formData, pricingFrom: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" placeholder="350" /></div>
-                  <div><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Group Size</label><input type="text" value={formData.groupSize} onChange={(e) => setFormData({ ...formData, groupSize: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" placeholder="2-8 guests" /></div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Status</label><select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value as "active" | "draft" | "archived" })} className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white"><option value="draft">Draft</option><option value="active">Active</option><option value="archived">Archived</option></select></div>
-                  <div className="flex items-center pt-6"><label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={formData.featured} onChange={(e) => setFormData({ ...formData, featured: e.target.checked })} className="w-4 h-4 text-gold border-sand-light focus:ring-gold" /><span className="text-sm text-earth">Featured Tour</span></label></div>
-                </div>
-                <div><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Meeting Point</label><input type="text" value={formData.meetingPoint} onChange={(e) => setFormData({ ...formData, meetingPoint: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" placeholder="Mfuwe Airport or Hotel lobby" /></div>
-                <div className="border-t border-sand-light pt-6">
-                  <div className="flex items-center justify-between mb-4"><label className="block text-xs font-medium text-earth uppercase tracking-wider">Itinerary</label><button type="button" onClick={addItineraryDay} className="text-xs text-gold hover:underline flex items-center gap-1"><Plus className="w-3 h-3" /> Add Day</button></div>
-                  {formData.itinerary.map((day, idx) => (<div key={idx} className="bg-white border border-sand-light rounded-lg p-4 mb-4"><div className="flex items-center justify-between mb-3"><span className="text-sm font-medium text-soft-black">Day {day.day}</span>{formData.itinerary.length > 1 && (<button type="button" onClick={() => removeItineraryDay(idx)} className="text-xs text-red-500 hover:text-red-700">Remove</button>)}</div><div className="space-y-3"><input type="text" value={day.title} onChange={(e) => updateItineraryDay(idx, "title", e.target.value)} className="w-full px-3 py-2 border border-sand-light text-sm" placeholder="Day title" /><textarea value={day.description} onChange={(e) => updateItineraryDay(idx, "description", e.target.value)} className="w-full px-3 py-2 border border-sand-light text-sm" rows={2} placeholder="Description" /><input type="text" value={day.activities?.join(", ")} onChange={(e) => updateItineraryDay(idx, "activities", e.target.value.split(", ").filter(Boolean))} className="w-full px-3 py-2 border border-sand-light text-sm" placeholder="Activities (comma separated)" /><input type="text" value={day.meals?.join(", ")} onChange={(e) => updateItineraryDay(idx, "meals", e.target.value.split(", ").filter(Boolean))} className="w-full px-3 py-2 border border-sand-light text-sm" placeholder="Meals included" /><input type="text" value={day.accommodation || ""} onChange={(e) => updateItineraryDay(idx, "accommodation", e.target.value)} className="w-full px-3 py-2 border border-sand-light text-sm" placeholder="Overnight accommodation" /></div></div>))}
-                </div>
-                <div className="grid grid-cols-2 gap-4"><div><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Inclusions</label><textarea value={formData.inclusions} onChange={(e) => setFormData({ ...formData, inclusions: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" rows={2} placeholder="All meals, Park fees, Guide" /></div><div><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Exclusions</label><textarea value={formData.exclusions} onChange={(e) => setFormData({ ...formData, exclusions: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" rows={2} placeholder="Flights, Travel insurance" /></div></div>
+              <div className="flex items-center justify-between px-6 py-4 border-b border-sand-light flex-shrink-0">
+                <h2 className="text-xl font-bold text-soft-black">{editingTour ? "Edit Tour" : "Create New Tour"}</h2>
+                <button onClick={() => setShowModal(false)} className="text-earth hover:text-soft-black"><X className="w-5 h-5" /></button>
               </div>
-              <div className="flex gap-3 px-6 py-4 border-t border-sand-light flex-shrink-0"><button onClick={() => setShowModal(false)} className="flex-1 px-5 py-2.5 border border-sand-light text-earth text-sm hover:bg-warm-white transition-colors">Cancel</button><button onClick={editingTour ? handleEdit : handleAdd} className="flex-1 px-5 py-2.5 bg-gold text-soft-black text-sm font-medium hover:bg-gold-dark transition-colors">{editingTour ? "Save Changes" : "Create Tour"}</button></div>
+              <div className="flex-1 overflow-y-auto p-6 space-y-6 min-h-0">
+                <ImageUpload label="Tour Image" value={formData.image} onChange={(url) => setFormData({ ...formData, image: url })} />
+                <FormInput label="Tour Name" name="title" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="Walking Safari Adventure" required />
+                <FormGroup>
+                  <FormSelect label="Category" name="category" value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} options={CATEGORIES.map(c => ({ value: c, label: c }))} />
+                  <FormSelect label="Destination" name="destination" value={formData.destination} onChange={(e) => setFormData({ ...formData, destination: e.target.value })} options={[{ value: "lake-malawi", label: "Lake Malawi" }, { value: "south-luangwa", label: "South Luangwa" }, { value: "zanzibar", label: "Zanzibar" }]} />
+                </FormGroup>
+                <RichTextEditor label="Description" value={formData.description} onChange={(html) => setFormData({ ...formData, description: html })} minH="200px" placeholder="Describe the tour experience..." />
+                <FormGroup>
+                  <FormInput label="Duration (days)" name="durationDays" type="number" value={formData.durationDays} onChange={(e) => setFormData({ ...formData, durationDays: e.target.value })} />
+                  <FormInput label="Price (USD)" name="pricingFrom" type="number" value={formData.pricingFrom} onChange={(e) => setFormData({ ...formData, pricingFrom: e.target.value })} placeholder="350" />
+                  <FormInput label="Group Size" name="groupSize" value={formData.groupSize} onChange={(e) => setFormData({ ...formData, groupSize: e.target.value })} placeholder="2-8 guests" />
+                </FormGroup>
+                <FormGroup>
+                  <FormSelect label="Status" name="status" value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value as "active" | "draft" | "archived" })} options={[{ value: "draft", label: "Draft" }, { value: "active", label: "Active" }, { value: "archived", label: "Archived" }]} />
+                  <div className="flex items-end pb-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked={formData.featured} onChange={(e) => setFormData({ ...formData, featured: e.target.checked })} className="w-4 h-4 accent-gold" />
+                      <span className="text-sm text-earth">Featured Tour</span>
+                    </label>
+                  </div>
+                </FormGroup>
+                <FormInput label="Meeting Point" name="meetingPoint" value={formData.meetingPoint} onChange={(e) => setFormData({ ...formData, meetingPoint: e.target.value })} placeholder="Mfuwe Airport or Hotel lobby" />
+
+                {/* Itinerary */}
+                <div className="border-t border-sand-light pt-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-xs font-medium text-earth uppercase tracking-wider">Itinerary</span>
+                    <button type="button" onClick={addItineraryDay} className="text-xs text-gold hover:underline flex items-center gap-1"><Plus className="w-3 h-3" /> Add Day</button>
+                  </div>
+                  {formData.itinerary.map((day, idx) => (
+                    <div key={idx} className="bg-white border border-sand-light p-4 mb-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-sm font-medium text-soft-black">Day {day.day}</span>
+                        {formData.itinerary.length > 1 && (<button type="button" onClick={() => removeItineraryDay(idx)} className="text-xs text-red-500 hover:text-red-700">Remove</button>)}
+                      </div>
+                      <div className="space-y-3">
+                        <input type="text" value={day.title} onChange={(e) => updateItineraryDay(idx, "title", e.target.value)} className="w-full px-3 py-2 border border-sand-light text-sm" placeholder="Day title" />
+                        <textarea value={day.description} onChange={(e) => updateItineraryDay(idx, "description", e.target.value)} className="w-full px-3 py-2 border border-sand-light text-sm" rows={2} placeholder="Description" />
+                        <input type="text" value={day.activities?.join(", ")} onChange={(e) => updateItineraryDay(idx, "activities", e.target.value.split(", ").filter(Boolean))} className="w-full px-3 py-2 border border-sand-light text-sm" placeholder="Activities (comma separated)" />
+                        <input type="text" value={day.meals?.join(", ")} onChange={(e) => updateItineraryDay(idx, "meals", e.target.value.split(", ").filter(Boolean))} className="w-full px-3 py-2 border border-sand-light text-sm" placeholder="Meals included" />
+                        <input type="text" value={day.accommodation || ""} onChange={(e) => updateItineraryDay(idx, "accommodation", e.target.value)} className="w-full px-3 py-2 border border-sand-light text-sm" placeholder="Overnight accommodation" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <FormGroup>
+                  <FormTextarea label="Inclusions (comma separated)" name="inclusions" value={formData.inclusions} onChange={(e) => setFormData({ ...formData, inclusions: e.target.value })} rows={2} placeholder="All meals, Park fees, Guide" />
+                  <FormTextarea label="Exclusions (comma separated)" name="exclusions" value={formData.exclusions} onChange={(e) => setFormData({ ...formData, exclusions: e.target.value })} rows={2} placeholder="Flights, Travel insurance" />
+                </FormGroup>
+              </div>
+              <div className="flex gap-3 px-6 py-4 border-t border-sand-light flex-shrink-0">
+                <button onClick={() => setShowModal(false)} className="flex-1 px-5 py-2.5 border border-sand-light text-earth text-sm hover:bg-warm-white transition-colors">Cancel</button>
+                <button onClick={editingTour ? handleEdit : handleAdd} className="flex-1 px-5 py-2.5 bg-gold text-soft-black text-sm font-medium hover:bg-gold-dark transition-colors">{editingTour ? "Save Changes" : "Create Tour"}</button>
+              </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
+      {/* ─── Delete Confirmation ────────────────────── */}
       <AnimatePresence>
         {deleteConfirm && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-50 p-4" onClick={() => setDeleteConfirm(null)}>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setDeleteConfirm(null)}>
             <motion.div initial={{ scale: 0.95 }} className="bg-cream border border-sand-light p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
               <h3 className="text-lg font-bold text-soft-black mb-2">Confirm Delete</h3>
               <p className="text-sm text-earth mb-6">Are you sure you want to delete this tour?</p>
-              <div className="flex gap-3"><button onClick={() => setDeleteConfirm(null)} className="flex-1 px-4 py-2.5 border border-sand-light text-earth text-sm hover:bg-warm-white">Cancel</button><button onClick={() => handleDelete(deleteConfirm)} className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm font-medium hover:bg-red-600">Delete</button></div>
+              <div className="flex gap-3">
+                <button onClick={() => setDeleteConfirm(null)} className="flex-1 px-4 py-2.5 border border-sand-light text-earth text-sm hover:bg-warm-white transition-colors">Cancel</button>
+                <button onClick={() => handleDelete(deleteConfirm)} className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition-colors">Delete</button>
+              </div>
             </motion.div>
           </motion.div>
         )}

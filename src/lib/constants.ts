@@ -93,7 +93,7 @@ export const IMAGES = {
   // Journal
   journalHoneymoon: "/images/journal-honeymoon.jpg",
   journalMalawi: "/images/journal-malawi.jpg",
-  journalWalking: "/images/lrc-walking.jpg",
+
   journalZanzibar: "/images/journal-zanzibar.jpg",
 
   // Hero video poster frames
@@ -118,11 +118,14 @@ export const BRAND_POSITIONING = {
   },
 };
 
+/** Single canonical URL — all absolute URLs derive from this */
+export const SITE_URL = "https://kivarajourneys.com";
+
 export const SITE_CONFIG = {
   name: "Kivara",
   tagline: BRAND_POSITIONING.tagline,
   description: BRAND_POSITIONING.description,
-  url: "https://kivara.com",
+  url: SITE_URL,
   email: "concierge@kivara.luxury",
   phone: "+27 87 123 4567",
   whatsapp: "+27871234567",
@@ -1560,166 +1563,5 @@ export const EXPERIENCES = [
   },
 ];
 
-export const JOURNAL_POSTS = [
-  {
-    id: "lake-malawi-vs-maldives",
-    title: "Why Lake Malawi Trumps the Maldives for Romance",
-    excerpt: "The Maldives has become a cliché. Here is why Lake Malawi — with its private islands, crystalline waters, and empty shores — is the world's most underrated romantic escape for couples who value authenticity over Instagram clichés.",
-    content: `There is a conversation that happens on every honeymoon consultation at Kivara. The couple sits across from us, eyes bright with anticipation, and says the same thing: "We were thinking about the Maldives."
-
-We understand. The Maldives has spent decades marketing itself as the ultimate romantic destination. Overwater villas. Turquoise lagoons. Sunsets that look like they belong on a postcard. But here is the truth that travel agents and luxury brands don't want you to know: the Maldives has become the predictable choice. And romance should never be predictable.
-
-Lake Malawi offers something the Maldives cannot: romance that feels discovered, not manufactured. Here is why we believe the Lake of Stars deserves to be on every couple's shortlist — and why it may well surpass the Maldives as Africa's ultimate romantic destination.
-
-<h3>The Comparison</h3>
-
-|<strong>Dimension</strong>|<strong>Maldives</strong>|<strong>Lake Malawi</strong>|
-|---|---|---|
-|Privacy|100+ resorts competing for attention; shared islands, busy seaplane corridors.|Four handpicked properties across an entire lake, each on its own stretch of shore.|
-|Unique experiences|Snorkeling, diving, beach — same as every other atoll.|Walking safaris, island-hopping by dhow, star beds, cultural visits to island communities, kayaking through UNESCO waters.|
-|Authenticity|Resort-centric; the local culture is a curated excursion.|Malawi's warmth is woven into every stay — from Kaya Mawa's community foundation to the guides who grew up on Likoma Island.|
-|Value for romance|Premium for "Maldives" name; you pay for the cliché.|The same level of luxury — private pools, butler service, beach dining — at a more honest price point.|
-|Exclusivity|Overwater villas are the norm; 8,000+ rooms across the atolls.|Kaya Mawa: 6 villas. Pumulani: 10. Blue Zebra: 12 rooms. True exclusivity.|
-
-<h3>Privacy That Cannot Be Staged</h3>
-
-The Maldives sells privacy, but true privacy cannot be manufactured on an island with three dozen villas and a group snorkeling excursion every morning. Lake Malawi's properties are small by design. Kaya Mawa has just seventeen rooms spread across Likoma Island's granite shoreline — each suite so secluded you could spend a week there and see only your partner and the staff who bring your sundowners. Pumulani Lodge's ten villas are set on a hillside so expansive that the honeymoon villa feels like your own private estate. Blue Zebra occupies an entire island within a UNESCO biosphere reserve — twelve rooms, total.
-
-This is not curated privacy. This is natural seclusion.
-
-<h3>The Experiences Money Cannot Buy in the Maldives</h3>
-
-In the Maldives, a "cultural experience" means a $300 excursion to a "local island" where souvenir shops outnumber residents. On Lake Malawi, culture is woven into the fabric of your stay. Walk through the village on Likoma Island and hear the choir practice at St. Peter's Cathedral — their voices carrying across the lake. Learn to fish with local fishermen who have worked these waters for generations. Visit the school that Kaya Mawa's foundation built.
-
-And the activities go beyond the beach. Kayak through coves of extraordinary clarity at the lake's edge, watching cichlid fish flash beneath your hull — species found nowhere else on earth. Sunset dhow cruises that feel like they belong to another century. Walking the ridgeline above Pumulani with views across one-fifth of the entire lake.
-
-In the Maldives, you experience a resort. On Lake Malawi, you experience a world.
-
-<h3>The Light</h3>
-
-There is a quality of light on Lake Malawi that photographers chase their entire careers. The water acts as a giant reflector, catching the sun's rays and scattering them across the landscape in shades of amber, rose, and gold. The evenings seem to last forever — sunsets that stretch for two hours, painting the sky in colors that shift minute by minute. The stars that emerge afterward gave the lake its name: the Lake of Stars. David Livingstone named it in 1859, and it remains the most accurate description ever given.
-
-<h3>The Verdict</h3>
-
-The Maldives is a beautiful destination. But it is a beautiful destination that millions of couples have already experienced. Lake Malawi is the alternative for couples who seek something rarer: a place that still feels undiscovered. A romance that feels like your own, not one you bought off a brochure.
-
-When you choose Lake Malawi, you are not choosing a lesser-known Maldives. You are choosing something entirely different. You are choosing Africa's most romantic secret — a place where the water is fresh, the welcome is warm, and the memories you create will belong only to you.`,
-    image: "/images/kaya-mawa-beach-swing.jpg",
-    category: "Destination Feature",
-    date: "May 19, 2026",
-    author: "Kivara Concierge",
-    readTime: "7 min read",
-  },
-  {
-    id: "honeymoon-guide-2026",
-    title: "The Ultimate African Honeymoon Guide for Discerning Couples",
-    excerpt: "From the shores of Lake Malawi to the wilds of Zambia and the spice scented breezes of Zanzibar. Discover the most romantic escapes Africa has to offer for those who refuse to compromise on beauty.",
-    content: `Planning a honeymoon is about more than choosing a destination. It is about curating the opening chapter of your shared history — a journey that sets the tone for a lifetime of adventure together.
-
-Africa offers something no other continent can: the chance to begin your marriage in absolute privacy, surrounded by beauty that has remained unchanged for millennia. At Kivara, we have spent years identifying the properties and experiences that make for an unforgettable honeymoon.
-
-<h3>Lake Malawi: The Lake of Stars</h3>
-David Livingstone called it the Lake of Stars, and one night on its shores will show you why. Lake Malawi offers four extraordinary honeymoon experiences, each distinct in character yet united by one truth: this is where romance finds its natural habitat.
-
-On Likoma Island, <strong>Kaya Mawa</strong> is our flagship for a reason. Honeymoon suites are carved into the granite shoreline, with private sundecks plunging directly into crystalline waters. The Madimba House comes with its own infinity pool and uninterrupted views across the Mozambique Channel. Mornings begin with coffee brought to your terrace as saffron light spills across the lake. Evenings bring dhow cruises, champagne in hand, as the sky ignites in shades of amber and rose.
-
-Across the lake on the Nankhumba Peninsula, <strong>Pumulani Lodge</strong> rises from a hillside of ancient trees, each villa a private sanctuary with plunge pool, outdoor shower, and a terrace that frames the sunset. The honeymoon villa sits so far from the main lodge that you might forget there is anyone else on earth — just you, your love, and the vast expanse of the lake.
-
-For the ultimate in island seclusion, <strong>Blue Zebra Island Lodge</strong> occupies its own private island within the UNESCO-listed Lake Malawi National Park. Just twelve rooms ensure absolute privacy. Snorkel together in coves of extraordinary clarity, kayak along deserted shores, and dine on the beach beneath stars undimmed by city light.
-
-On the southern shore, <strong>The Makokola Retreat</strong> offers a different kind of honeymoon magic. The adult only Lake Suites form an enclave of pure indulgence, each with private infinity pool and dedicated bar. Days are spent on the championship golf course or in the spa; evenings bring candlelit Italian dinners at Il Lago, the lake glimmering beyond the terrace.
-
-<h3>South Luangwa: The Wild Heart</h3>
-For couples who crave intimacy with the wild, South Luangwa delivers an intensity of experience unmatched anywhere in Africa. Walking safaris at dawn reveal tracks you would miss from a vehicle. Night drives unveil a world of predators and glowing eyes. And at Puku Ridge Camp, honeymoon suites sit high on a ridge with panoramic views over the floodplain. The bed faces the bush, so you fall asleep to the sound of hyenas calling across the valley.
-
-<h3>Zanzibar: The Spice Island</h3>
-Zanzibar is where the Indian Ocean paints in impossible blues. The Residence Zanzibar offers villas with private pools and outdoor showers hidden within tropical gardens. The Palms, with just seven villas, offers the ultimate in privacy — your own stretch of beach, your own butler, your own rhythm.
-
-Whether you choose one destination or combine all three, the key is this: travel slowly, stay long, and let Africa work its magic on your love story.`,
-    image: "/images/zanzibar-dhow.jpg",
-    category: "Honeymoon Guide",
-    date: "May 10, 2026",
-    author: "Kivara Concierge",
-    readTime: "9 min read",
-  },
-  {
-    id: "why-lake-malawi",
-    title: "Why Lake Malawi is Africa's Most Romantic Secret — A Couples' Guide to the Lake of Stars",
-    excerpt: "Forget the Maldives. Lake Malawi is the world's most intoxicating romantic escape — crystalline waters, private islands, and four extraordinary properties where love takes centre stage beneath the Southern Cross.",
-    content: `There is a place where the water is so clear it looks like liquid glass, where the night sky spills stars from horizon to horizon, and where the only sound is the gentle lapping of waves against a deserted shore. This is Lake Malawi — Africa's best-kept romantic secret.
-
-While the world queues for the Mediterranean and the Maldives, discerning couples have discovered something rarer: a freshwater paradise where luxury meets raw, unfiltered romance. Here, on the shores of what David Livingstone called the Lake of Stars, four extraordinary properties offer the most intimate escapes on the continent.
-
-<h3>Kaya Mawa — The Island Crown Jewel</h3>
-Perched on the granite shoreline of Likoma Island, Kaya Mawa is the definition of barefoot romance. Seventeen suites and villas — each carved into the rock, each with its own private sundeck plunging toward the lake. The Honeymoon Suite, Madimba House, comes with its own infinity pool and uninterrupted views across the Mozambique Channel. Mornings begin with coffee brought to your terrace as saffron light spills across the water. Evenings mean sundowners on your private deck, followed by candlelit dinners on the beach beneath a canopy of stars. The spa, suspended above the lake on a rocky outcrop, offers couples treatments with nothing but the sound of water beneath you.
-
-<h3>Pumulani Lodge — Hillside Honeymoon Haven</h3>
-On the western shore, Pumulani Lodge by Robin Pope Safaris rises from a hillside of ancient msikizi trees, ten villas overlooking the vast expanse of the lake. This is romance on a grander scale — each villa is a private sanctuary with its own plunge pool, outdoor shower, and a terrace that frames the sunset like a living painting. The honeymoon villa sits at the furthest point of the property, so secluded that you might forget there is anyone else on earth. Days are spent swimming in the infinity pool that seems to merge with the lake below, or exploring the shoreline by kayak. The lodge's location on the Nankhumba Peninsula means you witness both sunrise and sunset over the water — a rare gift on Lake Malawi.
-
-<h3>Blue Zebra Island Lodge — Exclusive Island Escape</h3>
-Set on its own private island within the UNESCO-listed Lake Malawi National Park, Blue Zebra Island Lodge offers the ultimate in romantic isolation. With just twelve rooms — from Executive Chalets with panoramic lake views to Lake Safari Tents nestled along the shoreline — this is intimacy by design. Snorkel together in the crystal-clear waters among cichlid fish found nowhere else on earth. Kayak along deserted coves. Dine on a private beach beneath the stars. The island is a sanctuary not just for the birdlife that fills the canopy, but for couples seeking a world where time stands still.
-
-<h3>Makokola Retreat — Lakeside Estate Elegance</h3>
-On the southern shore, The Makokola Retreat offers a different kind of romance — elegant, expansive, effortlessly luxurious. The crown jewel is the adult only Lake Suite enclave, where twenty-two suites and the private Sunset Villa each open onto the lake with their own infinity pool, dedicated bar, and a level of service that anticipates your every desire. Spend afternoons on the nine-hole Mlambe golf course, hand in hand. Evenings bring sundowners at Harry's Bar as the sun melts into the lake, followed by Italian-Mediterranean dining at Il Lago, where the ambience is as exquisite as the cuisine.
-
-<h3>When Romance Beckons</h3>
-The sweetest months on Lake Malawi are April through October, when the skies are clear, the breeze is gentle, and the water temperature hovers at a perfect 26°C. This is the season for sunset dhow cruises, for swimming in coves so clear you can count the fish below, for lying on the deck of your villa and watching the Southern Cross emerge above the Lake of Stars.
-
-Whether you choose the barefoot intimacy of Kaya Mawa, the hillside grandeur of Pumulani, the island solitude of Blue Zebra, or the lakeside elegance of Makokola — Lake Malawi offers something the world's great romantic destinations cannot: a place that still feels undiscovered. A secret waiting to be shared with the one you love.`,
-    image: "/images/kaya-mawa-beach-swing.jpg",
-    category: "Destination Feature",
-    date: "April 28, 2026",
-    author: "Kivara Concierge",
-    readTime: "8 min read",
-  },
-  {
-    id: "walking-safari-guide",
-    title: "The Art of the Walking Safari: Intimacy with the Wild in South Luangwa",
-    excerpt: "There is no more intimate way to experience Africa than on foot. Here is why South Luangwa is the world's premier walking safari destination for couples seeking transcendence.",
-    content: `The vehicle turns off its engine, and suddenly the world is silent. Not the silence of absence, but the silence of presence — the rustle of a leaf, the call of a hornbill, the distant thud of a baboon dropping from a branch. You step out onto the earth, and for the first time, you are not observing Africa. You are in it.
-
-<h3>The Birthplace of the Walking Safari</h3>
-South Luangwa National Park in Zambia is the birthplace of the walking safari, and it remains the finest place on earth to experience it. Norman Carr pioneered the concept in the 1950s, believing that the true spirit of Africa could only be felt on foot. Nearly seventy years later, his legacy lives on in every guided walk through this extraordinary valley.
-
-<h3>What to Expect</h3>
-A walking safari is not about covering distance. It is about immersion. Your guide reads the bush like a book: here, the imprint of a leopard's paw in the damp sand. There, the musky scent of a buffalo herd bedded down in the thicket. Every step reveals something new.
-
-Walks typically begin at dawn, when the air is cool and the animals are most active. You might walk for two hours or four, stopping frequently to examine tracks, to listen, to simply stand in silence and feel the weight of being in a place where humans are not the dominant species.
-
-<h3>Where to Stay</h3>
-Puku Ridge Camp sits on a ridge above the Luangwa floodplain, offering panoramic views that stretch for miles. The rooms are luxury tents on raised decks, each with a private plunge pool and an outdoor shower. The star bed experience — a four-poster rollaway that the staff sets up under the open sky — is the ultimate way to sleep in the wilderness.
-
-<h3>Why It Matters for Couples</h3>
-There is something profoundly bonding about experiencing the wild together, without barriers. No windows. No engine. No separation from the world around you. Walking safaris create a shared vulnerability and wonder that strengthens connection. You hold hands a little tighter. You speak in whispers. You see each other react to the raw beauty of the natural world.`,
-    image: IMAGES.journalWalking,
-    category: "Safari Stories",
-    date: "April 15, 2026",
-    author: "Kivara Concierge",
-    readTime: "10 min read",
-  },
-  {
-    id: "zanzibar-spice-island",
-    title: "Zanzibar: Love Letters from the Spice Island",
-    excerpt: "Beyond the beaches lies an island woven with history, spice, and romance. Our guide to the most enchanting experiences in Zanzibar for couples who seek the extraordinary.",
-    content: `Zanzibar has a way of slowing time. The island operates on what locals call "Zanzibar time" — a gentle rhythm that resists hurry. Within days of arriving, you will find yourself calibrated to its pace: breakfasts that stretch into mid-morning, afternoons lost to books and hammocks, dinners that begin at sunset and end when the last candle flickers out.
-
-<h3>Stone Town: The Soul of the Island</h3>
-Before you lose yourself to beach life, spend a night in Stone Town. This UNESCO World Heritage site is a labyrinth of narrow alleys, carved wooden doors, and bustling markets. The history here is layered — Arab, Persian, Indian, African, European — woven into the architecture, the food, the very air. Stay at Emerson on Hurumzi or the Zanzibar Serena Inn, and let the winding streets guide your exploration.
-
-<h3>The Beach Life</h3>
-Zanzibar's east coast is where the postcard images come to life. Bwejuu, Paje, and Jambiani offer endless white sand beaches lapped by turquoise water. The Palms Zanzibar is the ultimate romantic retreat — just seven villas on the beachfront, each with a private plunge pool and personal butler. For those who prefer the tranquil southern coast, The Residence Zanzibar offers sprawling beachfront villas surrounded by lush tropical gardens — the pinnacle of barefoot elegance.
-
-<h3>Beyond the Beach</h3>
-A spice tour is essential — Zanzibar is the Spice Island, after all, and the scent of cloves, nutmeg, and cinnamon hangs in the air. Visit a working spice farm, taste fresh vanilla pods, and learn how the spice trade shaped the island's history.
-
-The Jozani Forest, home to the endemic red colobus monkey, offers a completely different side of Zanzibar. And for the ultimate romantic experience, book a private sunset dhow cruise along the coast — just you, your love, and the Indian Ocean painted in gold.
-
-<h3>When to Go</h3>
-Zanzibar is lovely year-round, but the sweet spot is June to October and December to February, when the weather is dry and the seas are calm. The long rains (March to May) bring lush vegetation and lower rates, while the short rains (November) are typically brief and refreshing.`,
-    image: "/images/zanzibar-dhow.jpg",
-    category: "Destination Feature",
-    date: "March 30, 2026",
-    author: "Kivara Concierge",
-    readTime: "7 min read",
-  },
-];
+// JOURNAL_POSTS removed — now served from blog_posts table via getMergedBlogPosts()
+// See supabase/migrations/011_journal_posts.sql for the seed data.

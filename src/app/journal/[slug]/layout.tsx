@@ -1,14 +1,21 @@
 import type { Metadata } from "next";
-import { JOURNAL_POSTS } from "@/lib/constants";
+import { SITE_URL } from "@/lib/constants";
+import { getMergedBlogPosts } from "@/lib/public-data";
+import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 
 type Props = {
   params: Promise<{ slug: string }>;
   children: React.ReactNode;
 };
 
+async function findPost(slug: string) {
+  const posts = await getMergedBlogPosts();
+  return posts.find((p) => p.id === slug) || null;
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const post = JOURNAL_POSTS.find((p) => p.id === slug);
+  const post = await findPost(slug);
 
   if (!post) {
     return { title: "Article Not Found" };
@@ -18,12 +25,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${post.title} | Kivara Journal`,
     description: post.excerpt,
     alternates: {
-      canonical: `https://kivara.luxury/journal/${post.id}`,
+      canonical: `${SITE_URL}/journal/${post.id}`,
     },
     openGraph: {
       title: `${post.title} | Kivara`,
       description: post.excerpt,
-      url: `https://kivara.luxury/journal/${post.id}`,
+      url: `${SITE_URL}/journal/${post.id}`,
       images: [{ url: post.image, width: 1200, height: 630, alt: post.title }],
       type: "article",
       locale: "en_US",
@@ -39,6 +46,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default function JournalArticleLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+export default async function JournalArticleLayout({ params, children }: Props) {
+  const { slug } = await params;
+  const post = await findPost(slug);
+
+  return (
+    <>
+      {post && (
+        <BreadcrumbJsonLd
+          items={[
+            { name: "Home", url: SITE_URL },
+            { name: "Journal", url: `${SITE_URL}/journal` },
+            { name: post.title, url: `${SITE_URL}/journal/${post.id}` },
+          ]}
+        />
+      )}
+      {children}
+    </>
+  );
 }

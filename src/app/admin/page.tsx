@@ -4,6 +4,10 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { DollarSign, MessageCircle, CalendarCheck, Eye, Users, Building, Plane, Receipt, ArrowRight, Plus, Luggage, MapPin } from "lucide-react";
+import { RevenueChart } from "./components/RevenueChart";
+import { BookingTrendsChart } from "./components/BookingTrendsChart";
+import { StatusDistributionChart } from "./components/StatusDistributionChart";
+import { GuestAnalytics } from "./components/GuestAnalytics";
 
 interface DashboardData {
   totalProperties: number;
@@ -20,6 +24,9 @@ interface DashboardData {
   upcomingBookings: { ref: string; client: string; destination: string; checkIn: string; status: string }[];
   tourSummary: { name: string; bookings: number; revenue: number }[];
   supplierSummary: { name: string; type: string; commission: number; revenue: number }[];
+  bookingStatusDistribution: Record<string, number>;
+  monthlyRevenue: { month: string; revenue: number }[];
+  monthlyBookings: { month: string; count: number }[];
 }
 
 export default function AdminDashboard() {
@@ -246,6 +253,42 @@ export default function AdminDashboard() {
                 )}
               </div>
             </div>
+          </div>
+
+          {/* Charts Section */}
+          {data && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+              <RevenueChart data={data.monthlyRevenue || []} />
+              <BookingTrendsChart data={data.monthlyBookings || []} />
+            </div>
+          )}
+          {data && data.bookingStatusDistribution && Object.keys(data.bookingStatusDistribution).length > 0 && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <StatusDistributionChart data={data.bookingStatusDistribution} />
+              <div className="bg-white border border-gray-100 p-5">
+                <h3 className="text-xs font-semibold text-gray-900 uppercase tracking-wider mb-4">
+                  Key Metrics
+                </h3>
+                <div className="space-y-4">
+                  {[
+                    { label: "Avg. Booking Value", value: data.totalBookings > 0 ? `$${(data.totalRevenue / data.totalBookings).toLocaleString(undefined, { maximumFractionDigits: 0 })}` : "$0" },
+                    { label: "Revenue per Tour", value: data.tourSummary.length > 0 ? `$${(data.tourSummary.reduce((s, t) => s + t.revenue, 0) / data.tourSummary.length).toLocaleString(undefined, { maximumFractionDigits: 0 })}` : "$0" },
+                    { label: "Conversion Rate", value: data.totalInquiries > 0 ? `${((data.totalBookings / data.totalInquiries) * 100).toFixed(1)}%` : "0%" },
+                    { label: "Avg. Guests per Booking", value: "—" },
+                  ].map((metric) => (
+                    <div key={metric.label} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                      <span className="text-sm text-gray-500">{metric.label}</span>
+                      <span className="text-sm font-semibold text-gray-900">{metric.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Guest Analytics */}
+          <div className="mt-6">
+            <GuestAnalytics />
           </div>
         </>
       )}

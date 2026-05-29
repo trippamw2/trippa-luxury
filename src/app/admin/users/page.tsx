@@ -2,8 +2,12 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, Shield, Edit2, Trash2, X, Check, AlertCircle, Plus, Search, Mail, User } from "lucide-react";
+import { Users, Shield, X, Plus, User, Mail } from "lucide-react";
 import { useApiData } from "@/lib/use-api-data";
+import { useToast } from "@/app/admin/components/Toast";
+import { SkeletonText } from "@/app/admin/components/Skeleton";
+import { EmptyState } from "@/app/admin/components/EmptyState";
+import { FormInput, FormSelect } from "@/app/admin/components/FormField";
 
 interface AdminUser {
   id: string;
@@ -50,30 +54,38 @@ const STATUS_BADGES: Record<string, string> = {
   suspended: "bg-red-50 text-red-700 border-red-200",
 };
 
+const ROLES = [
+  { value: "admin", label: "Admin" },
+  { value: "editor", label: "Editor" },
+  { value: "agent", label: "Agent" },
+];
+
+const STATUSES = [
+  { value: "active", label: "Active" },
+  { value: "suspended", label: "Suspended" },
+];
+
 export default function AdminUsers() {
   const { data: users, loading, create, update, remove } = useApiData<AdminUser>("users", {
     mapFromApi: mapUser,
     mapToApi: mapUserToApi,
   });
-  const [searchQuery, setSearchQuery] = useState("");
+  const { toast } = useToast();
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [formData, setFormData] = useState({ name: "", email: "", role: "editor" as "admin" | "editor" | "agent", status: "active" as "active" | "invited" | "suspended" });
 
-  const showToast = (message: string, type: "success" | "error") => { setToast({ message, type }); setTimeout(() => setToast(null), 3000); };
-
-  const filtered = users.filter(u => u.name.toLowerCase().includes(searchQuery.toLowerCase()) || u.email.toLowerCase().includes(searchQuery.toLowerCase()));
+  const resetForm = () => setFormData({ name: "", email: "", role: "editor", status: "active" });
 
   const handleAdd = async () => {
     const result = await create(formData);
     if (result) {
       setShowModal(false);
-      setFormData({ name: "", email: "", role: "editor", status: "active" });
-      showToast("User created", "success");
+      resetForm();
+      toast("User created", "success");
     } else {
-      showToast("Failed to create user", "error");
+      toast("Failed to create user", "error");
     }
   };
 
@@ -83,9 +95,9 @@ export default function AdminUsers() {
     if (result) {
       setEditingUser(null);
       setShowModal(false);
-      showToast("User updated", "success");
+      toast("User updated", "success");
     } else {
-      showToast("Failed to update user", "error");
+      toast("Failed to update user", "error");
     }
   };
 
@@ -93,69 +105,92 @@ export default function AdminUsers() {
     const ok = await remove(id);
     if (ok) {
       setDeleteConfirm(null);
-      showToast("User deleted", "success");
+      toast("User deleted", "success");
     } else {
-      showToast("Failed to delete user", "error");
+      toast("Failed to delete user", "error");
     }
   };
 
+  const openAddModal = () => { setEditingUser(null); resetForm(); setShowModal(true); };
+  const openEditModal = (u: AdminUser) => { setEditingUser(u); setFormData({ name: u.name, email: u.email, role: u.role, status: u.status }); setShowModal(true); };
+
   return (
     <div className="min-h-screen">
-      <AnimatePresence>{toast && (<motion.div initial={{opacity:0,y:-20}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-20}} className={`fixed top-6 right-6 px-5 py-3 rounded-lg shadow-lg z-50 flex items-center gap-3 ${toast.type==="success"?"bg-emerald-50 text-emerald-800 border border-emerald-200":"bg-red-50 text-red-800 border border-red-200"}`}>{toast.type==="success"?<Check className="w-4 h-4"/>:<AlertCircle className="w-4 h-4"/>}<span className="text-sm font-medium">{toast.message}</span></motion.div>)}</AnimatePresence>
       <div className="flex items-center justify-between mb-6">
         <div><h1 className="text-2xl font-heading font-bold text-soft-black">Users</h1><p className="text-earth mt-1">Manage admin users and roles</p></div>
-        <button onClick={() => { setEditingUser(null); setFormData({ name: "", email: "", role: "editor", status: "active" }); setShowModal(true); }} className="flex items-center gap-2 px-4 py-2 bg-gold text-soft-black font-medium rounded hover:bg-gold/90"><Plus className="w-4 h-4" />Add User</button>
+        <button onClick={openAddModal} className="flex items-center gap-2 px-4 py-2 bg-gold text-soft-black font-medium rounded hover:bg-gold/90 transition-colors"><Plus className="w-4 h-4" />Add User</button>
       </div>
-      <div className="bg-white border border-sand-light p-4 mb-6"><div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-earth" /><input type="text" placeholder="Search users..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-10 pr-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" /></div></div>
+
       {loading ? (
-        <div className="flex items-center justify-center py-20"><div className="text-earth text-sm">Loading users...</div></div>
+        <div className="bg-white border border-sand-light divide-y divide-sand-light">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-4 p-4">
+              <div className="w-10 h-10 rounded-full bg-sand-light" />
+              <div className="flex-1 space-y-1"><SkeletonText className="w-1/3" /><SkeletonText className="w-1/4" /></div>
+            </div>
+          ))}
+        </div>
+      ) : users.length === 0 ? (
+        <EmptyState icon={Users} title="No users yet" description="Add admin users to manage the platform." action={{ label: "Add User", onClick: openAddModal }} />
       ) : (
-      <div className="bg-white border border-sand-light divide-y divide-sand-light">
-        {filtered.map(u => (
-          <div key={u.id} className="flex items-center justify-between p-4 hover:bg-warm-white">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center"><User className="w-5 h-5 text-gold" /></div>
-              <div><p className="font-medium text-soft-black">{u.name}</p><p className="text-xs text-earth">{u.email}</p></div>
+        <div className="bg-white border border-sand-light divide-y divide-sand-light">
+          {users.map(u => (
+            <div key={u.id} className="flex items-center justify-between p-4 hover:bg-warm-white">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center"><User className="w-5 h-5 text-gold" /></div>
+                <div><p className="font-medium text-soft-black">{u.name}</p><p className="text-xs text-earth flex items-center gap-1"><Mail className="w-3 h-3" />{u.email}</p></div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className={`px-2 py-0.5 text-xs font-medium border ${ROLE_BADGES[u.role] || ""}`}>{u.role}</span>
+                <span className={`px-2 py-0.5 text-xs font-medium border ${STATUS_BADGES[u.status] || ""}`}>{u.status}</span>
+                <span className="text-xs text-earth hidden md:inline">{u.lastActive}</span>
+                <button onClick={() => openEditModal(u)} className="text-xs text-gold ml-3 hover:underline">Edit</button>
+                <button onClick={() => setDeleteConfirm(u.id)} className="text-xs text-red-500 hover:underline">Delete</button>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <span className={`px-2 py-0.5 text-xs font-medium border ${ROLE_BADGES[u.role] || ""}`}>{u.role}</span>
-              <span className={`px-2 py-0.5 text-xs font-medium border ${STATUS_BADGES[u.status] || ""}`}>{u.status}</span>
-              <span className="text-xs text-earth">{u.lastActive}</span>
-              <button onClick={() => { setEditingUser(u); setFormData({ name: u.name, email: u.email, role: u.role, status: u.status }); setShowModal(true); }} className="text-xs text-gold ml-3">Edit</button>
-              <button onClick={() => setDeleteConfirm(u.id)} className="text-xs text-red-500">Delete</button>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
       )}
 
+      {/* ─── Modal ──────────────────────────────────── */}
       <AnimatePresence>
         {showModal && (
-          <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-40 p-4" onClick={()=>setShowModal(false)}>
-            <motion.div initial={{scale:0.95}} className="bg-cream border border-sand-light w-full max-w-md max-h-[90vh] flex flex-col" onClick={e=>e.stopPropagation()}>
-              <div className="flex items-center justify-between px-6 py-4 border-b border-sand-light flex-shrink-0"><h2 className="text-xl font-bold text-soft-black">{editingUser?"Edit User":"Add User"}</h2><button onClick={()=>setShowModal(false)}><X className="w-5 h-5 text-earth"/></button></div>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-40 p-4"
+            onClick={() => setShowModal(false)}>
+            <motion.div initial={{ scale: 0.95 }} className="bg-cream border border-sand-light w-full max-w-md max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between px-6 py-4 border-b border-sand-light flex-shrink-0">
+                <h2 className="text-xl font-bold text-soft-black">{editingUser ? "Edit User" : "Add User"}</h2>
+                <button onClick={() => setShowModal(false)}><X className="w-5 h-5 text-earth" /></button>
+              </div>
               <div className="flex-1 overflow-y-auto p-6 space-y-4 min-h-0">
-                <div><label className="block text-xs font-medium text-earth uppercase mb-2">Name</label><input type="text" value={formData.name} onChange={e=>setFormData({...formData,name:e.target.value})} className="w-full px-4 py-2.5 border border-sand-light text-sm" /></div>
-                <div><label className="block text-xs font-medium text-earth uppercase mb-2">Email</label><input type="email" value={formData.email} onChange={e=>setFormData({...formData,email:e.target.value})} className="w-full px-4 py-2.5 border border-sand-light text-sm" /></div>
-                <div><label className="block text-xs font-medium text-earth uppercase mb-2">Role</label><select value={formData.role} onChange={e=>setFormData({...formData,role:e.target.value as any})} className="w-full px-4 py-2.5 border border-sand-light text-sm bg-white"><option value="admin">Admin</option><option value="editor">Editor</option><option value="agent">Agent</option></select></div>
-                <div><label className="block text-xs font-medium text-earth uppercase mb-2">Status</label><select value={formData.status} onChange={e=>setFormData({...formData,status:e.target.value as any})} className="w-full px-4 py-2.5 border border-sand-light text-sm bg-white"><option value="active">Active</option><option value="suspended">Suspended</option></select></div>
+                <FormInput label="Name" name="name" value={formData.name} onChange={e => setFormData(p => ({ ...p, name: e.target.value }))} required />
+                <FormInput label="Email" name="email" type="email" value={formData.email} onChange={e => setFormData(p => ({ ...p, email: e.target.value }))} required />
+                <FormSelect label="Role" name="role" value={formData.role} onChange={e => setFormData(p => ({ ...p, role: e.target.value as any }))} options={ROLES} />
+                <FormSelect label="Status" name="status" value={formData.status} onChange={e => setFormData(p => ({ ...p, status: e.target.value as any }))} options={STATUSES} />
               </div>
               <div className="flex gap-3 px-6 py-4 border-t border-sand-light flex-shrink-0">
-                <button onClick={()=>setShowModal(false)} className="flex-1 px-4 py-2.5 border border-sand-light text-earth text-sm">Cancel</button>
-                <button onClick={editingUser?handleEdit:handleAdd} className="flex-1 px-4 py-2.5 bg-gold text-soft-black text-sm font-medium">{editingUser?"Save":"Add User"}</button>
+                <button onClick={() => setShowModal(false)} className="flex-1 px-4 py-2.5 border border-sand-light text-earth text-sm hover:bg-warm-white transition-colors">Cancel</button>
+                <button onClick={editingUser ? handleEdit : handleAdd} className="flex-1 px-4 py-2.5 bg-gold text-soft-black text-sm font-medium hover:bg-gold-dark transition-colors">{editingUser ? "Save" : "Add User"}</button>
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
+      {/* ─── Delete Confirmation ────────────────────── */}
       <AnimatePresence>
         {deleteConfirm && (
-          <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-50 p-4" onClick={()=>setDeleteConfirm(null)}>
-            <motion.div initial={{scale:0.95}} className="bg-cream border border-sand-light p-6 w-full max-w-sm" onClick={e=>e.stopPropagation()}>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setDeleteConfirm(null)}>
+            <motion.div initial={{ scale: 0.95 }} className="bg-cream border border-sand-light p-6 w-full max-w-sm" onClick={e => e.stopPropagation()}>
               <h3 className="text-lg font-bold text-soft-black mb-2">Delete User</h3>
               <p className="text-sm text-earth mb-6">Delete this user?</p>
-              <div className="flex gap-3"><button onClick={()=>setDeleteConfirm(null)} className="flex-1 px-4 py-2.5 border border-sand-light text-earth text-sm">Cancel</button><button onClick={()=>handleDelete(deleteConfirm)} className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm font-medium">Delete</button></div>
+              <div className="flex gap-3">
+                <button onClick={() => setDeleteConfirm(null)} className="flex-1 px-4 py-2.5 border border-sand-light text-earth text-sm hover:bg-warm-white transition-colors">Cancel</button>
+                <button onClick={() => handleDelete(deleteConfirm)} className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition-colors">Delete</button>
+              </div>
             </motion.div>
           </motion.div>
         )}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { PROPERTIES, JOURNAL_POSTS, PACKAGES, EXPERIENCES, DESTINATIONS } from "@/lib/constants";
+import { PROPERTIES, PACKAGES, EXPERIENCES, DESTINATIONS } from "@/lib/constants";
 
 interface UsePublicDataResult<T> {
   data: T[];
@@ -40,8 +40,13 @@ export function useProperties() {
   return usePublicData("/api/data/properties", PROPERTIES);
 }
 
+export type BlogPost = {
+  id: string; title: string; excerpt: string; content: string;
+  category: string; image: string; author: string; readTime: string; date: string;
+};
+
 export function useBlogPosts() {
-  return usePublicData("/api/data/blog", JOURNAL_POSTS);
+  return usePublicData<BlogPost>("/api/data/blog", []);
 }
 
 export function usePackages() {

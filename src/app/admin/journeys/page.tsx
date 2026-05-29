@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
+import { useToast } from "@/app/admin/components/Toast";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Search, Plus, Edit2, Trash2, X, Check, AlertCircle, Loader2, Save,
+  Search, Plus, Edit2, Trash2, X, Loader2, Save,
   Eye, Send, Calendar, Users, MapPin, DollarSign, Moon, ArrowRight, Sparkles,
   FileText, Tag, Clock, Sun, Umbrella, Plane, Car, Hotel, Activity as ActivityIcon,
   ChevronDown, ChevronUp, Copy
@@ -160,13 +161,9 @@ export default function AdminJourneyEditor() {
   const [activeTab, setActiveTab] = useState<"details" | "itinerary" | "pricing" | "guest">("details");
   const [activeDay, setActiveDay] = useState(1);
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [showDelete, setShowDelete] = useState(false);
 
-  const showToast = useCallback((message: string, type: "success" | "error") => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  }, []);
+  const { toast } = useToast();
 
   // Auto-open from URL param
   useEffect(() => {
@@ -197,9 +194,9 @@ export default function AdminJourneyEditor() {
     if (result) {
       setSelected(result);
       setEditing(result);
-      showToast("Journey saved", "success");
+      toast("Journey saved", "success");
     } else {
-      showToast("Failed to save journey", "error");
+      toast("Failed to save journey", "error");
     }
     setSaving(false);
   };
@@ -213,9 +210,9 @@ export default function AdminJourneyEditor() {
     if (result) {
       setSelected(result);
       setEditing({ ...editing, ...result });
-      showToast(`Status changed to ${STATUS_CONFIG[newStatus]?.label || newStatus}`, "success");
+      toast(`Status changed to ${STATUS_CONFIG[newStatus]?.label || newStatus}`, "success");
     } else {
-      showToast("Failed to update status", "error");
+      toast("Failed to update status", "error");
     }
   };
 
@@ -226,9 +223,9 @@ export default function AdminJourneyEditor() {
       setSelected(null);
       setEditing(null);
       setShowDelete(false);
-      showToast("Journey deleted", "success");
+      toast("Journey deleted", "success");
     } else {
-      showToast("Failed to delete journey", "error");
+      toast("Failed to delete journey", "error");
     }
   };
 
@@ -240,7 +237,7 @@ export default function AdminJourneyEditor() {
     copy.status = "draft";
     const result = await create(mapJourneyToApi(copy));
     if (result) {
-      showToast("Journey duplicated", "success");
+      toast("Journey duplicated", "success");
       refresh();
     }
   };
@@ -415,18 +412,7 @@ export default function AdminJourneyEditor() {
 
   return (
     <div>
-      {/* Toast */}
-      <AnimatePresence>
-        {toast && (
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
-            className={`fixed top-4 right-4 z-50 px-4 py-3 text-sm flex items-center gap-2 shadow-lg ${
-              toast.type === "success" ? "bg-emerald-50 text-emerald-800 border border-emerald-200" : "bg-red-50 text-red-800 border border-red-200"
-            }`}>
-            {toast.type === "success" ? <Check className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-            {toast.message}
-          </motion.div>
-        )}
-      </AnimatePresence>
+
 
       {selected && editing ? (
         /* ── Editor View ── */

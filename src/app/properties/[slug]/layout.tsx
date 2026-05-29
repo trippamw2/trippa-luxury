@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
+import { SITE_URL } from "@/lib/constants";
 import { getMergedProperties } from "@/lib/public-data";
+import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 
 type Props = {
   params: Promise<{ slug: string }>;
   children: React.ReactNode;
 };
 
-const baseUrl = "https://kivara.com";
+const baseUrl = SITE_URL;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -40,6 +42,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default function PropertyLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+export default async function PropertyLayout({ params, children }: Props) {
+  const { slug } = await params;
+  const properties = await getMergedProperties();
+  const property = properties.find((p) => p.id === slug);
+
+  return (
+    <>
+      {property && (
+        <BreadcrumbJsonLd
+          items={[
+            { name: "Home", url: SITE_URL },
+            { name: "Properties", url: `${SITE_URL}/properties` },
+            { name: property.name, url: `${SITE_URL}/properties/${property.id}` },
+          ]}
+        />
+      )}
+      {children}
+    </>
+  );
 }

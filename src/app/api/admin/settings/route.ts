@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 
 export async function GET() {
   try {
+    await requireAdmin();
     const supabase = createAdminClient();
 
     const { data: settings } = await supabase
@@ -22,12 +24,16 @@ export async function GET() {
       brevoConfigured: !!process.env.NEXT_BREVO_KEY,
     });
   } catch (err: any) {
+    if (err instanceof AdminAuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
 
 export async function PUT(request: NextRequest) {
   try {
+    await requireAdmin();
     const body = await request.json();
     const supabase = createAdminClient();
 
@@ -46,6 +52,9 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({ ok: true });
   } catch (err: any) {
+    if (err instanceof AdminAuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

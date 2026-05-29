@@ -52,7 +52,7 @@ export function HeroSection() {
       <div className="absolute inset-0 opacity-0 pointer-events-none">
         <Image
           src={IMAGES.heroPoster}
-          alt=""
+          alt="" /* decorative fallback — hidden while video loads */
           fill
           className="object-cover"
           priority

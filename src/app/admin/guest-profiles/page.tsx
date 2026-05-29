@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Mail, Phone, MapPin, User, Star, Heart, Tag, Award, Calendar, Plus, Edit2, Trash2, X, Check, AlertCircle, Loader2, Globe } from "lucide-react";
+import { Search, Mail, Phone, MapPin, User, Star, Heart, Tag, Award, Calendar, Plus, Edit2, Trash2, X, Check, Loader2, Globe } from "lucide-react";
 import { useApiData } from "@/lib/use-api-data";
+import { useToast } from "@/app/admin/components/Toast";
 
 interface GuestProfile {
   id: string;
@@ -142,12 +143,7 @@ export default function AdminGuestProfiles() {
   const [showCreate, setShowCreate] = useState(false);
   const [newProfile, setNewProfile] = useState<Partial<GuestProfile>>({ fullName: "", email: "", isCouple: true, source: "website", emailOptIn: true, tags: [], interests: [], dietaryRestrictions: [], pastDestinations: [], wishlist: [] });
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
-
-  const showToast = (message: string, type: "success" | "error") => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
+  const { toast } = useToast();
 
   const filtered = profiles.filter((p) =>
     !search || p.fullName.toLowerCase().includes(search.toLowerCase()) ||
@@ -166,9 +162,9 @@ export default function AdminGuestProfiles() {
     if (result) {
       setSelected(result);
       setEditing(null);
-      showToast("Profile updated", "success");
+      toast("Profile updated", "success");
     } else {
-      showToast("Failed to update profile", "error");
+      toast("Failed to update profile", "error");
     }
     setSaving(false);
   };
@@ -180,9 +176,9 @@ export default function AdminGuestProfiles() {
     if (result) {
       setShowCreate(false);
       setNewProfile({ fullName: "", email: "", isCouple: true, source: "website", emailOptIn: true, tags: [], interests: [], dietaryRestrictions: [], pastDestinations: [], wishlist: [] });
-      showToast("Profile created", "success");
+      toast("Profile created", "success");
     } else {
-      showToast("Failed to create profile", "error");
+      toast("Failed to create profile", "error");
     }
     setSaving(false);
   };
@@ -192,24 +188,15 @@ export default function AdminGuestProfiles() {
     const ok = await remove(id);
     if (ok) {
       if (selected?.id === id) setSelected(null);
-      showToast("Profile deleted", "success");
+      toast("Profile deleted", "success");
     } else {
-      showToast("Failed to delete profile", "error");
+      toast("Failed to delete profile", "error");
     }
   };
 
   return (
     <div>
-      {/* Toast */}
-      <AnimatePresence>
-        {toast && (
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
-            className={`fixed top-4 right-4 z-50 px-4 py-3 text-sm flex items-center gap-2 ${toast.type === "success" ? "bg-emerald-50 text-emerald-800 border border-emerald-200" : "bg-red-50 text-red-800 border border-red-200"}`}>
-            {toast.type === "success" ? <Check className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-            {toast.message}
-          </motion.div>
-        )}
-      </AnimatePresence>
+
 
       <div className="flex items-center justify-between mb-6">
         <div>

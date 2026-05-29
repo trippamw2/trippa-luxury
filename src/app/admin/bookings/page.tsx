@@ -1,9 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Search, Calendar, Users, MapPin, DollarSign, Edit2, Trash2, X, Check, AlertCircle, FileText, Mail, Phone, Send, Printer, ChevronDown, Loader2 } from "lucide-react";
+import { Plus, X, FileText, Mail, Send, Printer, Loader2, Edit2, Trash2, Calendar, CalendarDays, AlertTriangle, RefreshCw, Download } from "lucide-react";
 import { useApiData } from "@/lib/use-api-data";
+import { useToast } from "@/app/admin/components/Toast";
+import { DataTable, type Column } from "@/app/admin/components/DataTable";
+import { Skeleton, SkeletonTable } from "@/app/admin/components/Skeleton";
+import { EmptyState } from "@/app/admin/components/EmptyState";
+import { FormInput, FormTextarea, FormSelect, FormGroup } from "@/app/admin/components/FormField";
 
 type BookingStatus = "provisional" | "deposit_paid" | "confirmed" | "balance_due" | "paid" | "in_progress" | "completed" | "cancelled" | "refunded";
 
@@ -82,46 +87,85 @@ const STATUS_STYLES: Record<string, { label: string; color: string; bg: string }
   refunded: { label: "Refunded", color: "text-purple-700", bg: "bg-purple-50" },
 };
 
+const STATUS_OPTIONS = Object.entries(STATUS_STYLES).map(([value, s]) => ({ value, label: s.label }));
+
 export default function AdminBookings() {
   const { data: bookings, loading, create, update, remove } = useApiData<Booking>("bookings", {
     mapFromApi: mapBooking,
     mapToApi: mapBookingToApi,
   });
-  const [searchQuery, setSearchQuery] = useState("");
+  const { toast } = useToast();
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showModal, setShowModal] = useState(false);
   const [editBooking, setEditBooking] = useState<Booking | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [formData, setFormData] = useState<any>({});
   const [docMenu, setDocMenu] = useState<string | null>(null);
   const [emailMenu, setEmailMenu] = useState<string | null>(null);
   const [sendingEmail, setSendingEmail] = useState<string | null>(null);
   const [generatingDoc, setGeneratingDoc] = useState<string | null>(null);
 
-  const showToast = (message: string, type: "success" | "error") => { setToast({ message, type }); setTimeout(() => setToast(null), 3000); };
+  // ─── Provisional holds ─────────────────────────────
+  const [staleProvisionals, setStaleProvisionals] = useState<number>(0);
+  const [releasing, setReleasing] = useState(false);
 
-  const filtered = bookings.filter(b => {
-    const matchesSearch = b.clientName.toLowerCase().includes(searchQuery.toLowerCase()) || b.ref.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "all" || b.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  const checkStaleProvisionals = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/bookings/provisional-holds");
+      if (res.ok) {
+        const json = await res.json();
+        setStaleProvisionals(json.count || 0);
+      }
+    } catch {
+      // Silently fail
+    }
+  }, []);
 
-  const stats = {
+  useEffect(() => {
+    checkStaleProvisionals();
+  }, [checkStaleProvisionals]);
+
+  const handleReleaseProvisionals = async () => {
+    setReleasing(true);
+    try {
+      const res = await fetch("/api/admin/bookings/provisional-holds", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dry_run: false, older_than_hours: 48 }),
+      });
+      if (res.ok) {
+        toast("Stale provisional bookings released", "success");
+        setStaleProvisionals(0);
+        // Refresh booking list
+        window.location.reload();
+      }
+    } catch {
+      toast("Failed to release provisional holds", "error");
+    }
+    setReleasing(false);
+  };
+
+  const stats = useMemo(() => ({
     total: bookings.length,
     active: bookings.filter(b => ["provisional","deposit_paid","confirmed","balance_due","paid","in_progress"].includes(b.status)).length,
     completed: bookings.filter(b => b.status === "completed").length,
     cancelled: bookings.filter(b => b.status === "cancelled" || b.status === "refunded").length,
-  };
+  }), [bookings]);
 
+  const filtered = useMemo(() => {
+    if (statusFilter === "all") return bookings;
+    return bookings.filter(b => b.status === statusFilter);
+  }, [bookings, statusFilter]);
+
+  // ─── CRUD Handlers ──────────────────────────────────
   const handleAdd = async () => {
     const result = await create(formData);
     if (result) {
       setShowModal(false);
       resetForm();
-      showToast("Booking created successfully", "success");
+      toast("Booking created successfully", "success");
     } else {
-      showToast("Failed to create booking", "error");
+      toast("Failed to create booking", "error");
     }
   };
 
@@ -131,9 +175,9 @@ export default function AdminBookings() {
     if (result) {
       setEditBooking(null);
       setShowModal(false);
-      showToast("Booking updated successfully", "success");
+      toast("Booking updated successfully", "success");
     } else {
-      showToast("Failed to update booking", "error");
+      toast("Failed to update booking", "error");
     }
   };
 
@@ -141,52 +185,44 @@ export default function AdminBookings() {
     const ok = await remove(id);
     if (ok) {
       setDeleteConfirm(null);
-      showToast("Booking deleted", "success");
+      toast("Booking deleted", "success");
     } else {
-      showToast("Failed to delete booking", "error");
+      toast("Failed to delete booking", "error");
     }
   };
 
-  // ─── Document Generation ──────────────────────────────────────────
+  // ─── Document Generation ────────────────────────────
   const DOCUMENT_TYPES = ["invoice", "receipt", "itinerary", "welcome", "travel-brief", "payment-reminder", "thank-you"];
+
+  const getDocUrl = (booking: Booking, docType: string) => {
+    const params = new URLSearchParams({
+      type: docType,
+      bookingRef: booking.ref,
+      clientName: booking.clientName,
+      destination: booking.destination,
+      totalAmount: booking.totalPrice,
+      depositAmount: booking.depositPaid,
+      startDate: booking.checkIn,
+      endDate: booking.checkOut,
+      guests: String(booking.guests),
+    });
+    return `/api/documents/download?${params}`;
+  };
 
   const handleGenerateDoc = async (booking: Booking, docType: string) => {
     setGeneratingDoc(docType);
     setDocMenu(null);
     try {
-      const res = await fetch("/api/documents/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: docType,
-          data: {
-            clientName: booking.clientName,
-            bookingRef: booking.ref,
-            destination: booking.destination,
-            totalAmount: booking.totalPrice,
-            depositAmount: booking.depositPaid,
-            startDate: booking.checkIn,
-            endDate: booking.checkOut,
-            guests: booking.guests,
-          },
-        }),
-      });
-      if (!res.ok) throw new Error("Failed to generate document");
-      const result = await res.json();
-      const win = window.open("", "_blank");
-      if (win) {
-        win.document.write(result.html);
-        win.document.close();
-        win.focus();
-      }
-      showToast(`${docType.charAt(0).toUpperCase() + docType.slice(1)} generated`, "success");
+      // Open download in new tab (triggers browser download)
+      window.open(getDocUrl(booking, docType), "_blank");
+      toast(`${docType.charAt(0).toUpperCase() + docType.slice(1)} downloaded`, "success");
     } catch (err: any) {
-      showToast(`Failed to generate ${docType}: ${err.message}`, "error");
+      toast(`Failed to generate ${docType}: ${err.message}`, "error");
     }
     setGeneratingDoc(null);
   };
 
-  // ─── Email Sending ────────────────────────────────────────────────
+  // ─── Email Sending ──────────────────────────────────
   const EMAIL_TYPES = [
     { value: "confirmation", label: "Booking Confirmation" },
     { value: "receipt", label: "Payment Receipt" },
@@ -206,9 +242,9 @@ export default function AdminBookings() {
         const err = await res.json();
         throw new Error(err.error || "Failed to send email");
       }
-      showToast(`${type === "confirmation" ? "Confirmation" : type === "receipt" ? "Receipt" : "Reminder"} sent to ${booking.clientEmail}`, "success");
+      toast(`${type === "confirmation" ? "Confirmation" : type === "receipt" ? "Receipt" : "Reminder"} sent to ${booking.clientEmail}`, "success");
     } catch (err: any) {
-      showToast(`Failed to send email: ${err.message}`, "error");
+      toast(`Failed to send email: ${err.message}`, "error");
     }
     setSendingEmail(null);
   };
@@ -222,164 +258,220 @@ export default function AdminBookings() {
   const openAddModal = () => { setEditBooking(null); resetForm(); setShowModal(true); };
   const openEditModal = (booking: Booking) => { setEditBooking(booking); setFormData(booking); setShowModal(true); };
 
+  // ─── Table Columns ──────────────────────────────────
+  const columns: Column<Booking>[] = [
+    {
+      key: "ref",
+      header: "Ref",
+      className: "font-medium text-gold font-mono text-xs",
+      render: (b) => b.ref,
+    },
+    {
+      key: "clientName",
+      header: "Client",
+      render: (b) => (
+        <div>
+          <p className="font-medium text-soft-black">{b.clientName}</p>
+          <p className="text-xs text-earth">{b.clientEmail}</p>
+        </div>
+      ),
+    },
+    {
+      key: "destination",
+      header: "Destination",
+      render: (b) => <span className="text-earth">{b.destination}</span>,
+    },
+    {
+      key: "checkIn",
+      header: "Dates",
+      render: (b) => (
+        <span className="text-earth text-xs">
+          {b.checkIn} – {b.checkOut}
+        </span>
+      ),
+    },
+    {
+      key: "totalPrice",
+      header: "Amount",
+      render: (b) => <span className="font-medium text-soft-black">{b.totalPrice}</span>,
+    },
+    {
+      key: "status",
+      header: "Status",
+      sortable: true,
+      render: (b) => {
+        const s = STATUS_STYLES[b.status];
+        return (
+          <span className={`inline-flex px-2 py-1 text-xs rounded ${s?.bg || "bg-gray-50"} ${s?.color || "text-gray-600"}`}>
+            {s?.label || b.status}
+          </span>
+        );
+      },
+    },
+    {
+      key: "actions",
+      header: "",
+      headerClassName: "text-right",
+      className: "text-right",
+      sortable: false,
+      render: (b) => (
+        <div className="flex items-center justify-end gap-1">
+          {/* Download iCal */}
+          <a
+            href={`/api/admin/bookings/${b.id}/ical`}
+            download
+            className="p-1.5 text-xs text-earth hover:text-soft-black hover:bg-sand-light rounded inline-flex"
+            title="Download iCal"
+          >
+            <CalendarDays className="w-3.5 h-3.5" />
+          </a>
+
+          {/* Document dropdown */}
+          <div className="relative">
+            <button onClick={() => setDocMenu(docMenu === b.id ? null : b.id)}
+              className="p-1.5 text-xs text-earth hover:text-soft-black hover:bg-sand-light rounded">
+              <FileText className="w-3.5 h-3.5" />
+            </button>
+            {docMenu === b.id && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setDocMenu(null)} />
+                <div className="absolute right-0 top-full mt-1 z-20 bg-white border border-sand-light shadow-lg min-w-[140px]">
+                  {DOCUMENT_TYPES.map((dt) => (
+                    <button key={dt} onClick={() => handleGenerateDoc(b, dt)}
+                      disabled={generatingDoc === dt}
+                      className="block w-full text-left px-3 py-2 text-xs text-earth hover:bg-warm-white disabled:opacity-50 flex items-center gap-2">
+                      {generatingDoc === dt ? <Loader2 className="w-3 h-3 animate-spin" /> : <Printer className="w-3 h-3" />}
+                      {dt.charAt(0).toUpperCase() + dt.slice(1).replace("-", " ")}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Email dropdown */}
+          <div className="relative">
+            <button onClick={() => setEmailMenu(emailMenu === b.id ? null : b.id)}
+              className="p-1.5 text-xs text-earth hover:text-soft-black hover:bg-sand-light rounded">
+              <Mail className="w-3.5 h-3.5" />
+            </button>
+            {emailMenu === b.id && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setEmailMenu(null)} />
+                <div className="absolute right-0 top-full mt-1 z-20 bg-white border border-sand-light shadow-lg min-w-[160px]">
+                  {EMAIL_TYPES.map((et) => (
+                    <button key={et.value} onClick={() => handleSendEmail(b, et.value)}
+                      disabled={sendingEmail === et.value}
+                      className="block w-full text-left px-3 py-2 text-xs text-earth hover:bg-warm-white disabled:opacity-50 flex items-center gap-2">
+                      {sendingEmail === et.value ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
+                      {et.label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          <button onClick={() => openEditModal(b)} className="p-1.5 text-xs text-gold hover:bg-sand-light rounded">
+            <Edit2 className="w-3.5 h-3.5" />
+          </button>
+          <button onClick={() => setDeleteConfirm(b.id)} className="p-1.5 text-xs text-red-400 hover:bg-sand-light rounded">
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="min-h-screen">
-      <AnimatePresence>
-        {toast && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className={`fixed top-6 right-6 px-5 py-3 rounded-lg shadow-lg z-50 flex items-center gap-3 ${
-              toast.type === "success"
-                ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
-                : "bg-red-50 text-red-800 border border-red-200"
-            }`}
-          >
-            {toast.type === "success" ? <Check className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-            <span className="text-sm font-medium">{toast.message}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
+      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-heading font-bold text-soft-black">Bookings</h1>
           <p className="text-earth mt-1">Manage all bookings, reservations, and guest details</p>
         </div>
-        <button onClick={openAddModal} className="flex items-center gap-2 px-4 py-2 bg-gold text-soft-black font-medium rounded hover:bg-gold/90">
-          <Plus className="w-4 h-4" />Add Booking
-        </button>
+        <div className="flex items-center gap-3">
+          <a
+            href={`/api/admin/bookings/export${statusFilter !== "all" ? `?status=${statusFilter}` : ""}`}
+            download
+            className="flex items-center gap-2 px-4 py-2 border border-sand-light text-earth font-medium rounded hover:bg-warm-white transition-colors text-sm"
+          >
+            <Download className="w-4 h-4" />Export CSV
+          </a>
+          <button onClick={openAddModal} className="flex items-center gap-2 px-4 py-2 bg-gold text-soft-black font-medium rounded hover:bg-gold/90 transition-colors">
+            <Plus className="w-4 h-4" />Add Booking
+          </button>
+        </div>
       </div>
 
-      {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="text-earth text-sm">Loading bookings...</div>
+      {/* Stats */}
+      <div className="grid grid-cols-4 gap-4 mb-6">
+        {[
+          { label: "Total Bookings", value: stats.total },
+          { label: "Active", value: stats.active },
+          { label: "Completed", value: stats.completed },
+          { label: "Cancelled", value: stats.cancelled },
+        ].map(s => (
+          <div key={s.label} className="bg-white p-4 border border-sand-light">
+            <p className="text-2xl font-bold text-soft-black">{s.value}</p>
+            <p className="text-xs text-earth">{s.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Stale provisional warning */}
+      {staleProvisionals > 0 && (
+        <div className="flex items-center justify-between bg-amber-50 border border-amber-200 px-4 py-3 mb-6">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-600" />
+            <p className="text-sm text-amber-800">
+              <strong>{staleProvisionals}</strong> provisional booking{staleProvisionals !== 1 ? "s" : ""} older than 48 hours — pending release.
+            </p>
+          </div>
+          <button
+            onClick={handleReleaseProvisionals}
+            disabled={releasing}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-amber-600 text-white rounded hover:bg-amber-700 disabled:opacity-50 transition-colors"
+          >
+            {releasing ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+            Release All
+          </button>
         </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-4 gap-4 mb-6">
-            {[
-              { label: "Total Bookings", value: stats.total },
-              { label: "Active", value: stats.active },
-              { label: "Completed", value: stats.completed },
-              { label: "Cancelled", value: stats.cancelled },
-            ].map(s => (
-              <div key={s.label} className="bg-white p-4 border border-sand-light">
-                <p className="text-2xl font-bold text-soft-black">{s.value}</p>
-                <p className="text-xs text-earth">{s.label}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex gap-4 mb-6">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-earth" />
-              <input
-                type="text" placeholder="Search bookings..."
-                value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white"
-              />
-            </div>
-            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white">
-              <option value="all">All Status</option>
-              {Object.entries(STATUS_STYLES).map(([key, s]) => (
-                <option key={key} value={key}>{s.label}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="bg-white border border-sand-light overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-warm-white border-b border-sand-light">
-                <tr>
-                  <th className="text-left px-4 py-3 font-medium text-earth">Ref</th>
-                  <th className="text-left px-4 py-3 font-medium text-earth">Client</th>
-                  <th className="text-left px-4 py-3 font-medium text-earth">Destination</th>
-                  <th className="text-left px-4 py-3 font-medium text-earth">Dates</th>
-                  <th className="text-left px-4 py-3 font-medium text-earth">Amount</th>
-                  <th className="text-left px-4 py-3 font-medium text-earth">Status</th>
-                  <th className="text-right px-4 py-3 font-medium text-earth">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-sand-light">
-                {filtered.map(b => (
-                  <tr key={b.id} className="hover:bg-warm-white">
-                    <td className="px-4 py-3 font-medium text-gold">{b.ref}</td>
-                    <td className="px-4 py-3 text-soft-black">{b.clientName}</td>
-                    <td className="px-4 py-3 text-earth">{b.destination}</td>
-                    <td className="px-4 py-3 text-earth">{b.checkIn} - {b.checkOut}</td>
-                    <td className="px-4 py-3 font-medium text-soft-black">{b.totalPrice}</td>
-                    <td className="px-4 py-3">
-                      <span className={`px-2 py-1 text-xs rounded ${STATUS_STYLES[b.status]?.bg || "bg-gray-50"} ${STATUS_STYLES[b.status]?.color || "text-gray-600"}`}>
-                        {STATUS_STYLES[b.status]?.label || b.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right relative">
-                      <div className="flex items-center justify-end gap-1">
-                        {/* Document Dropdown */}
-                        <div className="relative">
-                          <button onClick={() => setDocMenu(docMenu === b.id ? null : b.id)}
-                            className="p-1.5 text-xs text-earth hover:text-soft-black hover:bg-sand-light rounded">
-                            <FileText className="w-3.5 h-3.5" />
-                          </button>
-                          {docMenu === b.id && (
-                            <>
-                              <div className="fixed inset-0 z-10" onClick={() => setDocMenu(null)} />
-                              <div className="absolute right-0 top-full mt-1 z-20 bg-white border border-sand-light shadow-lg min-w-[140px]">
-                                {DOCUMENT_TYPES.map((dt) => (
-                                  <button key={dt} onClick={() => handleGenerateDoc(b, dt)}
-                                    disabled={generatingDoc === dt}
-                                    className="block w-full text-left px-3 py-2 text-xs text-earth hover:bg-warm-white disabled:opacity-50 flex items-center gap-2">
-                                    {generatingDoc === dt ? <Loader2 className="w-3 h-3 animate-spin" /> : <Printer className="w-3 h-3" />}
-                                    {dt.charAt(0).toUpperCase() + dt.slice(1).replace("-", " ")}
-                                  </button>
-                                ))}
-                              </div>
-                            </>
-                          )}
-                        </div>
-
-                        {/* Email Dropdown */}
-                        <div className="relative">
-                          <button onClick={() => setEmailMenu(emailMenu === b.id ? null : b.id)}
-                            className="p-1.5 text-xs text-earth hover:text-soft-black hover:bg-sand-light rounded">
-                            <Mail className="w-3.5 h-3.5" />
-                          </button>
-                          {emailMenu === b.id && (
-                            <>
-                              <div className="fixed inset-0 z-10" onClick={() => setEmailMenu(null)} />
-                              <div className="absolute right-0 top-full mt-1 z-20 bg-white border border-sand-light shadow-lg min-w-[160px]">
-                                {EMAIL_TYPES.map((et) => (
-                                  <button key={et.value} onClick={() => handleSendEmail(b, et.value)}
-                                    disabled={sendingEmail === et.value}
-                                    className="block w-full text-left px-3 py-2 text-xs text-earth hover:bg-warm-white disabled:opacity-50 flex items-center gap-2">
-                                    {sendingEmail === et.value ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
-                                    {et.label}
-                                  </button>
-                                ))}
-                              </div>
-                            </>
-                          )}
-                        </div>
-
-                        <button onClick={() => openEditModal(b)} className="p-1.5 text-xs text-gold hover:bg-sand-light rounded">
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-                        <button onClick={() => setDeleteConfirm(b.id)} className="p-1.5 text-xs text-red-400 hover:bg-sand-light rounded">
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </>
       )}
 
+      {/* Status filter */}
+      <div className="flex items-center gap-4 mb-4">
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
+          className="px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white">
+          <option value="all">All Status</option>
+          {STATUS_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Table */}
+      <DataTable
+        columns={columns}
+        data={filtered}
+        keyField="id"
+        searchable
+        searchPlaceholder="Search by client name, ref, destination..."
+        loading={loading}
+        exportable
+        exportFilename="kivara-bookings"
+        emptyState={
+          <EmptyState
+            icon={Calendar}
+            title="No bookings yet"
+            description={statusFilter !== "all" ? "No bookings match the selected status." : "Create your first booking to get started."}
+            action={statusFilter === "all" ? { label: "Add Booking", onClick: openAddModal } : undefined}
+          />
+        }
+      />
+
+      {/* ─── Modal ──────────────────────────────────── */}
       <AnimatePresence>
         {showModal && (
           <motion.div
@@ -398,86 +490,50 @@ export default function AdminBookings() {
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 space-y-4 min-h-0">
-              {["clientName", "clientEmail", "clientPhone", "destination", "property"].map(f => (
-                <div key={f}>
-                  <label className="block text-xs font-medium text-earth uppercase mb-2">
-                    {f.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())}
-                  </label>
-                  <input
-                    type={f.includes("Email") ? "email" : f.includes("Phone") ? "tel" : "text"}
-                    value={formData[f] || ""}
-                    onChange={e => setFormData({ ...formData, [f]: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-sand-light text-sm"
-                  />
-                </div>
-              ))}
+              <FormGroup>
+                <FormInput label="Client Name" name="clientName" value={formData.clientName || ""} onChange={e => setFormData({ ...formData, clientName: e.target.value })} required />
+                <FormInput label="Client Email" name="clientEmail" type="email" value={formData.clientEmail || ""} onChange={e => setFormData({ ...formData, clientEmail: e.target.value })} />
+              </FormGroup>
+              <FormGroup>
+                <FormInput label="Client Phone" name="clientPhone" type="tel" value={formData.clientPhone || ""} onChange={e => setFormData({ ...formData, clientPhone: e.target.value })} />
+                <FormInput label="Destination" name="destination" value={formData.destination || ""} onChange={e => setFormData({ ...formData, destination: e.target.value })} />
+              </FormGroup>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-earth uppercase mb-2">Check-in</label>
-                  <input type="date" value={formData.checkIn || ""} onChange={e => setFormData({ ...formData, checkIn: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-earth uppercase mb-2">Check-out</label>
-                  <input type="date" value={formData.checkOut || ""} onChange={e => setFormData({ ...formData, checkOut: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" />
-                </div>
-              </div>
+              <FormGroup>
+                <FormInput label="Check-in" name="checkIn" type="date" value={formData.checkIn || ""} onChange={e => setFormData({ ...formData, checkIn: e.target.value })} />
+                <FormInput label="Check-out" name="checkOut" type="date" value={formData.checkOut || ""} onChange={e => setFormData({ ...formData, checkOut: e.target.value })} />
+              </FormGroup>
 
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-earth uppercase mb-2">Guests</label>
-                  <input type="number" value={formData.guests || "2"} onChange={e => setFormData({ ...formData, guests: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-earth uppercase mb-2">Total Price</label>
-                  <input type="text" value={formData.totalPrice || ""} onChange={e => setFormData({ ...formData, totalPrice: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" placeholder="$5,000" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-earth uppercase mb-2">Deposit Paid</label>
-                  <input type="text" value={formData.depositPaid || ""} onChange={e => setFormData({ ...formData, depositPaid: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" placeholder="$2,500" />
-                </div>
-              </div>
+              <FormGroup>
+                <FormInput label="Guests" name="guests" type="number" value={formData.guests || "2"} onChange={e => setFormData({ ...formData, guests: e.target.value })} />
+                <FormInput label="Total Price" name="totalPrice" value={formData.totalPrice || ""} onChange={e => setFormData({ ...formData, totalPrice: e.target.value })} placeholder="$5,000" />
+                <FormInput label="Deposit Paid" name="depositPaid" value={formData.depositPaid || ""} onChange={e => setFormData({ ...formData, depositPaid: e.target.value })} placeholder="$2,500" />
+              </FormGroup>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-earth uppercase mb-2">Deposit Method</label>
-                  <select value={formData.depositMethod || ""} onChange={e => setFormData({ ...formData, depositMethod: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm">
-                    <option value="">Select method...</option>
-                    <option value="swift">SWIFT / Wire Transfer</option>
-                    <option value="credit_card">Credit Card</option>
-                    <option value="bank_transfer">Bank Transfer</option>
-                    <option value="cash">Cash</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-earth uppercase mb-2">SWIFT Confirmation Code</label>
-                  <input type="text" value={formData.swiftCode || ""} onChange={e => setFormData({ ...formData, swiftCode: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" placeholder="e.g. SFTRO12345" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-earth uppercase mb-2">Deposit Notes</label>
-                <textarea value={formData.depositNotes || ""} onChange={e => setFormData({ ...formData, depositNotes: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" rows={2} placeholder="SWIFT reference, payment instructions, notes..." />
-              </div>
+              <FormGroup>
+                <FormSelect label="Deposit Method" name="depositMethod" value={formData.depositMethod || ""} onChange={e => setFormData({ ...formData, depositMethod: e.target.value })}
+                  placeholder="Select method..."
+                  options={[
+                    { value: "swift", label: "SWIFT / Wire Transfer" },
+                    { value: "credit_card", label: "Credit Card" },
+                    { value: "bank_transfer", label: "Bank Transfer" },
+                    { value: "cash", label: "Cash" },
+                    { value: "other", label: "Other" },
+                  ]}
+                />
+                <FormInput label="SWIFT Code" name="swiftCode" value={formData.swiftCode || ""} onChange={e => setFormData({ ...formData, swiftCode: e.target.value })} placeholder="e.g. SFTRO12345" />
+              </FormGroup>
 
-              <div>
-                <label className="block text-xs font-medium text-earth uppercase mb-2">Status</label>
-                <select value={formData.status || "provisional"} onChange={e => setFormData({ ...formData, status: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm">
-                  {Object.entries(STATUS_STYLES).map(([key, s]) => (
-                    <option key={key} value={key}>{s.label}</option>
-                  ))}
-                </select>
-              </div>
+              <FormTextarea label="Deposit Notes" name="depositNotes" value={formData.depositNotes || ""} onChange={e => setFormData({ ...formData, depositNotes: e.target.value })} rows={2} placeholder="SWIFT reference, payment instructions, notes..." />
 
-              <div>
-                <label className="block text-xs font-medium text-earth uppercase mb-2">Special Requests</label>
-                <textarea value={formData.specialRequests || ""} onChange={e => setFormData({ ...formData, specialRequests: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" rows={2} />
-              </div>
+              <FormSelect label="Status" name="status" value={formData.status || "provisional"} onChange={e => setFormData({ ...formData, status: e.target.value })} options={STATUS_OPTIONS} />
+
+              <FormTextarea label="Special Requests" name="specialRequests" value={formData.specialRequests || ""} onChange={e => setFormData({ ...formData, specialRequests: e.target.value })} rows={2} />
             </div>
 
             <div className="flex gap-3 px-6 py-4 border-t border-sand-light flex-shrink-0">
-              <button onClick={() => setShowModal(false)} className="flex-1 px-4 py-2.5 border border-sand-light text-earth text-sm">Cancel</button>
-              <button onClick={editBooking ? handleEdit : handleAdd} className="flex-1 px-4 py-2.5 bg-gold text-soft-black text-sm font-medium">
+              <button onClick={() => setShowModal(false)} className="flex-1 px-4 py-2.5 border border-sand-light text-earth text-sm transition-colors hover:bg-warm-white">Cancel</button>
+              <button onClick={editBooking ? handleEdit : handleAdd} className="flex-1 px-4 py-2.5 bg-gold text-soft-black text-sm font-medium hover:bg-gold-dark transition-colors">
                 {editBooking ? "Save Changes" : "Create Booking"}
               </button>
             </div>
@@ -486,6 +542,7 @@ export default function AdminBookings() {
         )}
       </AnimatePresence>
 
+      {/* ─── Delete Confirmation ────────────────────── */}
       <AnimatePresence>
         {deleteConfirm && (
           <motion.div
@@ -501,8 +558,8 @@ export default function AdminBookings() {
               <h3 className="text-lg font-bold text-soft-black mb-2">Confirm Delete</h3>
               <p className="text-sm text-earth mb-6">Delete this booking?</p>
               <div className="flex gap-3">
-                <button onClick={() => setDeleteConfirm(null)} className="flex-1 px-4 py-2.5 border border-sand-light text-earth text-sm">Cancel</button>
-                <button onClick={() => handleDelete(deleteConfirm)} className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm font-medium">Delete</button>
+                <button onClick={() => setDeleteConfirm(null)} className="flex-1 px-4 py-2.5 border border-sand-light text-earth text-sm transition-colors hover:bg-warm-white">Cancel</button>
+                <button onClick={() => handleDelete(deleteConfirm)} className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition-colors">Delete</button>
               </div>
             </motion.div>
           </motion.div>

@@ -43,12 +43,13 @@ export function CuratedJourneys() {
               transition={{ duration: 0.7, delay: index * 0.15, ease: [0.22, 1, 0.36, 1] }}
               className="group"
             >
-              <Link href={`/packages#${pkg.id}`} className="block">
+              <Link href={`/packages/${pkg.id}`} className="block">
                 <div className="relative overflow-hidden bg-warm-white-dark aspect-[16/10]">
                   <Image
                     src={pkg.image}
                     alt={pkg.title}
                     fill
+                    loading="lazy"
                     className="object-cover transition-transform duration-700 group-hover:scale-105"
                     sizes="(max-width: 768px) 100vw, 33vw"
                   />

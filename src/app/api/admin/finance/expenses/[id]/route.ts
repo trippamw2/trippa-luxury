@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { mapKeysToCamel, mapKeysToSnake } from "@/lib/api-helpers";
+import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 
 const TABLE = "expenses";
 const SELECT_WITH_CATEGORY = "*, expense_categories!left(name, slug)";
@@ -18,6 +19,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   let id: string;
   try { id = (await params).id; } catch { return NextResponse.json({ error: "Invalid id" }, { status: 400 }); }
   try {
+    await requireAdmin();
     const supabase = createAdminClient();
     const { data, error } = await supabase
       .from(TABLE)
@@ -35,6 +37,9 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
     return NextResponse.json(mapRow(data));
   } catch (err: any) {
+    if (err instanceof AdminAuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
     console.error(`Error in GET /api/admin/${TABLE}/${id}:`, err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
@@ -44,6 +49,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   let id: string;
   try { id = (await params).id; } catch { return NextResponse.json({ error: "Invalid id" }, { status: 400 }); }
   try {
+    await requireAdmin();
     const body = await request.json();
     const supabase = createAdminClient();
 
@@ -76,6 +82,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     return NextResponse.json(mapRow(data));
   } catch (err: any) {
+    if (err instanceof AdminAuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
     console.error(`Error in PUT /api/admin/${TABLE}/${id}:`, err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
@@ -85,6 +94,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
   let id: string;
   try { id = (await params).id; } catch { return NextResponse.json({ error: "Invalid id" }, { status: 400 }); }
   try {
+    await requireAdmin();
     const supabase = createAdminClient();
     const { error } = await supabase.from(TABLE).delete().eq("id", id);
 
@@ -95,6 +105,9 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
 
     return NextResponse.json({ success: true });
   } catch (err: any) {
+    if (err instanceof AdminAuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
     console.error(`Error in DELETE /api/admin/${TABLE}/${id}:`, err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

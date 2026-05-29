@@ -2,8 +2,11 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { DollarSign, TrendingUp, TrendingDown, Plus, Search, X, Check, AlertCircle, Trash2, Edit2 } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, Plus, X, Trash2 } from "lucide-react";
 import { useApiData } from "@/lib/use-api-data";
+import { useToast } from "@/app/admin/components/Toast";
+import { SkeletonText } from "@/app/admin/components/Skeleton";
+import { FormInput, FormSelect } from "@/app/admin/components/FormField";
 
 interface Transaction {
   id: string; date: string; description: string; bookingRef?: string;
@@ -64,8 +67,7 @@ function mapExp(item: any): Expense {
 }
 function mapExpToApi(item: Partial<Expense>): any {
   return {
-    category: item.category, // API converts name → category_id
-    description: item.description, amount: item.amount,
+    category: item.category, description: item.description, amount: item.amount,
     expense_date: item.date, receipt_url: item.receipt,
   };
 }
@@ -81,21 +83,22 @@ const invoiceStatusConfig: Record<string, { label: string; color: string; bg: st
 
 type Tab = "transactions" | "invoices" | "payouts" | "expenses";
 
+const EXPENSE_CATEGORIES = ["Marketing", "Operations", "Staff", "Travel", "Technology"];
+const PAYMENT_METHODS = ["Stripe", "Bank Transfer", "PayPal", "Credit Card"];
+
 export default function AdminFinance() {
   const { data: transactions, loading: loadTx, create: createTx, update: updateTx, remove: removeTx } = useApiData<Transaction>("finance/transactions", { mapFromApi: mapTrans, mapToApi: mapTransToApi });
   const { data: invoices, loading: loadInv, create: createInv, update: updateInv, remove: removeInv } = useApiData<Invoice>("finance/invoices", { mapFromApi: mapInv, mapToApi: mapInvToApi });
   const { data: expenses, loading: loadExp, create: createExp, update: updateExp, remove: removeExp } = useApiData<Expense>("finance/expenses", { mapFromApi: mapExp, mapToApi: mapExpToApi });
 
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<Tab>("transactions");
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState<Tab>("transactions");
   const [editItem, setEditItem] = useState<any>(null);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [formData, setFormData] = useState<any>({});
 
   const loading = loadTx || loadInv || loadExp;
-
-  const showToast = (message: string, type: "success" | "error") => { setToast({ message, type }); setTimeout(() => setToast(null), 3000); };
 
   const tabs: { id: Tab; label: string }[] = [
     { id: "transactions", label: "Transactions" },
@@ -129,17 +132,17 @@ export default function AdminFinance() {
     if (modalType === "invoices") {
       const payload = { ...formData, amount: parseFloat(formData.amount) || 0 };
       const result = editItem ? await updateInv(editItem.id, payload) : await createInv(payload);
-      if (result) { showToast("Invoice saved", "success"); setShowModal(false); } else showToast("Failed to save invoice", "error");
+      if (result) { toast("Invoice saved", "success"); setShowModal(false); } else toast("Failed to save invoice", "error");
     } else if (modalType === "expenses") {
       const payload = { ...formData, amount: parseFloat(formData.amount) || 0 };
       const result = editItem ? await updateExp(editItem.id, payload) : await createExp(payload);
-      if (result) { showToast("Expense saved", "success"); setShowModal(false); } else showToast("Failed to save expense", "error");
+      if (result) { toast("Expense saved", "success"); setShowModal(false); } else toast("Failed to save expense", "error");
     } else if (modalType === "transactions") {
       const payload = { ...formData, amount: parseFloat(formData.amount) || 0, date: new Date().toISOString().split("T")[0] };
       const result = editItem ? await updateTx(editItem.id, payload) : await createTx(payload);
-      if (result) { showToast("Transaction saved", "success"); setShowModal(false); } else showToast("Failed to save transaction", "error");
+      if (result) { toast("Transaction saved", "success"); setShowModal(false); } else toast("Failed to save transaction", "error");
     } else {
-      showToast("Payouts saved locally", "success");
+      toast("Payouts saved locally", "success");
       setShowModal(false);
     }
   };
@@ -150,58 +153,79 @@ export default function AdminFinance() {
     else if (type === "expenses") ok = await removeExp(id);
     else if (type === "transactions") ok = await removeTx(id);
     else ok = true;
-    if (ok) showToast("Deleted successfully", "success");
-    else showToast("Failed to delete", "error");
+    if (ok) toast("Deleted successfully", "success");
+    else toast("Failed to delete", "error");
   };
 
   return (
     <div className="min-h-screen">
-      <AnimatePresence>{toast && (<motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className={`fixed top-6 right-6 px-5 py-3 rounded-lg shadow-lg z-50 flex items-center gap-3 ${toast.type === "success" ? "bg-emerald-50 text-emerald-800 border border-emerald-200" : "bg-red-50 text-red-800 border border-red-200"}`}>{toast.type === "success" ? <Check className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}<span className="text-sm font-medium">{toast.message}</span></motion.div>)}</AnimatePresence>
-
       <div className="flex items-center justify-between mb-6">
         <div><h1 className="text-2xl font-heading font-bold text-soft-black">Finance</h1><p className="text-earth mt-1">Manage transactions, invoices, and expenses</p></div>
-        <button onClick={() => openAddModal(activeTab)} className="flex items-center gap-2 px-4 py-2 bg-gold text-soft-black font-medium rounded hover:bg-gold/90"><Plus className="w-4 h-4" />Add {activeTab === "invoices" ? "Invoice" : activeTab === "payouts" ? "Payout" : activeTab === "expenses" ? "Expense" : "Transaction"}</button>
+        <button onClick={() => openAddModal(activeTab)} className="flex items-center gap-2 px-4 py-2 bg-gold text-soft-black font-medium rounded hover:bg-gold/90 transition-colors">
+          <Plus className="w-4 h-4" />Add {activeTab === "invoices" ? "Invoice" : activeTab === "payouts" ? "Payout" : activeTab === "expenses" ? "Expense" : "Transaction"}
+        </button>
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-20"><div className="text-earth text-sm">Loading finance data...</div></div>
+        <div className="space-y-4"><SkeletonText className="w-full h-20" /><SkeletonText className="w-full h-64" /></div>
       ) : (
       <>
-      <div className="grid grid-cols-4 gap-4 mb-6">{getStats().map(stat => (<div key={stat.label} className="bg-white p-4 border border-sand-light"><p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p><p className="text-xs text-earth">{stat.label}</p></div>))}</div>
+        <div className="grid grid-cols-4 gap-4 mb-6">
+          {getStats().map(stat => (
+            <div key={stat.label} className="bg-white p-4 border border-sand-light">
+              <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
+              <p className="text-xs text-earth">{stat.label}</p>
+            </div>
+          ))}
+        </div>
 
-      <div className="flex gap-2 mb-6 border-b border-sand-light pb-2">
-        {tabs.map(tab => (<button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`px-4 py-2 text-sm font-medium rounded ${activeTab === tab.id ? "bg-soft-black text-cream" : "text-earth hover:bg-sand-light"}`}>{tab.label}</button>))}
-      </div>
+        <div className="flex gap-2 mb-6 border-b border-sand-light pb-2">
+          {tabs.map(tab => (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-2 text-sm font-medium rounded transition-colors ${activeTab === tab.id ? "bg-soft-black text-cream" : "text-earth hover:bg-sand-light"}`}>
+              {tab.label}
+            </button>
+          ))}
+        </div>
 
-      <div className="bg-white border border-sand-light overflow-hidden">
-        {activeTab === "transactions" && (
-          <table className="w-full text-sm"><thead className="bg-warm-white border-b border-sand-light"><tr><th className="text-left px-4 py-3 font-medium text-earth">Date</th><th className="text-left px-4 py-3 font-medium text-earth">Description</th><th className="text-left px-4 py-3 font-medium text-earth">Method</th><th className="text-left px-4 py-3 font-medium text-earth">Amount</th><th className="text-right px-4 py-3 font-medium text-earth">Actions</th></tr></thead><tbody className="divide-y divide-sand-light">{transactions.map(t => (<tr key={t.id} className="hover:bg-warm-white"><td className="px-4 py-3 text-earth">{t.date}</td><td className="px-4 py-3 text-soft-black">{t.description}</td><td className="px-4 py-3 text-earth">{t.method}</td><td className={`px-4 py-3 font-medium ${t.type === "credit" ? "text-emerald-600" : "text-red-600"}`}>{t.type === "credit" ? "+" : "-"}${(t.amount || 0).toLocaleString()}</td><td className="px-4 py-3 text-right"><button onClick={() => { setEditItem(t); setFormData({ ...t, amount: t.amount.toString(), date: t.date }); setModalType("transactions"); setShowModal(true); }} className="text-xs text-gold mr-3">Edit</button><button onClick={() => handleDelete("transactions", t.id)} className="text-xs text-red-500">Delete</button></td></tr>))}</tbody></table>
-        )}
-        {activeTab === "invoices" && (
-          <table className="w-full text-sm"><thead className="bg-warm-white border-b border-sand-light"><tr><th className="text-left px-4 py-3 font-medium text-earth">Invoice #</th><th className="text-left px-4 py-3 font-medium text-earth">Client</th><th className="text-left px-4 py-3 font-medium text-earth">Amount</th><th className="text-left px-4 py-3 font-medium text-earth">Due Date</th><th className="text-left px-4 py-3 font-medium text-earth">Status</th><th className="text-right px-4 py-3 font-medium text-earth">Actions</th></tr></thead><tbody className="divide-y divide-sand-light">{invoices.map(inv => (<tr key={inv.id} className="hover:bg-warm-white"><td className="px-4 py-3 font-medium text-soft-black">{inv.number}</td><td className="px-4 py-3 text-earth">{inv.client}</td><td className="px-4 py-3 font-medium text-soft-black">${(inv.amount || 0).toLocaleString()}</td><td className="px-4 py-3 text-earth">{inv.dueDate}</td><td className="px-4 py-3"><span className={`px-2 py-1 text-xs rounded ${invoiceStatusConfig[inv.status]?.bg || "bg-gray-50"} ${invoiceStatusConfig[inv.status]?.color || "text-gray-600"}`}>{invoiceStatusConfig[inv.status]?.label || inv.status}</span></td><td className="px-4 py-3 text-right"><button onClick={() => { setEditItem(inv); setFormData({ ...inv, amount: inv.amount.toString() }); setModalType("invoices"); setShowModal(true); }} className="text-xs text-gold mr-3">Edit</button><button onClick={() => handleDelete("invoices", inv.id)} className="text-xs text-red-500">Delete</button></td></tr>))}</tbody></table>
-        )}
-        {activeTab === "payouts" && (
-          <div className="p-8 text-center text-earth text-sm">Payouts are managed through the Suppliers module. Go to Suppliers to manage supplier payments.</div>
-        )}
-        {activeTab === "expenses" && (
-          <table className="w-full text-sm"><thead className="bg-warm-white border-b border-sand-light"><tr><th className="text-left px-4 py-3 font-medium text-earth">Category</th><th className="text-left px-4 py-3 font-medium text-earth">Description</th><th className="text-left px-4 py-3 font-medium text-earth">Amount</th><th className="text-left px-4 py-3 font-medium text-earth">Date</th><th className="text-left px-4 py-3 font-medium text-earth">Status</th><th className="text-right px-4 py-3 font-medium text-earth">Actions</th></tr></thead><tbody className="divide-y divide-sand-light">{expenses.map(e => (<tr key={e.id} className="hover:bg-warm-white"><td className="px-4 py-3"><span className="px-2 py-1 text-xs bg-amber-50 text-amber-700 rounded">{e.category}</span></td><td className="px-4 py-3 text-soft-black">{e.description}</td><td className="px-4 py-3 font-medium text-soft-black">${(e.amount || 0).toLocaleString()}</td><td className="px-4 py-3 text-earth">{e.date}</td><td className="px-4 py-3"><span className={`px-2 py-1 text-xs rounded ${e.status === "approved" ? "bg-emerald-50 text-emerald-700" : e.status === "pending" ? "bg-amber-50 text-amber-700" : "bg-red-50 text-red-700"}`}>{e.status}</span></td><td className="px-4 py-3 text-right"><button onClick={() => { setEditItem(e); setFormData({ ...e, amount: e.amount.toString(), date: e.date }); setModalType("expenses"); setShowModal(true); }} className="text-xs text-gold mr-3">Edit</button><button onClick={() => handleDelete("expenses", e.id)} className="text-xs text-red-500">Delete</button></td></tr>))}</tbody></table>
-        )}
-      </div>
+        <div className="bg-white border border-sand-light overflow-hidden">
+          {activeTab === "transactions" && (
+            <table className="w-full text-sm"><thead className="bg-warm-white border-b border-sand-light"><tr><th className="text-left px-4 py-3 font-medium text-earth">Date</th><th className="text-left px-4 py-3 font-medium text-earth">Description</th><th className="text-left px-4 py-3 font-medium text-earth">Method</th><th className="text-left px-4 py-3 font-medium text-earth">Amount</th><th className="text-right px-4 py-3 font-medium text-earth">Actions</th></tr></thead><tbody className="divide-y divide-sand-light">{transactions.map(t => (<tr key={t.id} className="hover:bg-warm-white"><td className="px-4 py-3 text-earth">{t.date}</td><td className="px-4 py-3 text-soft-black">{t.description}</td><td className="px-4 py-3 text-earth">{t.method}</td><td className={`px-4 py-3 font-medium ${t.type === "credit" ? "text-emerald-600" : "text-red-600"}`}>{t.type === "credit" ? "+" : "-"}${(t.amount || 0).toLocaleString()}</td><td className="px-4 py-3 text-right"><button onClick={() => { setEditItem(t); setFormData({ ...t, amount: t.amount.toString(), date: t.date }); setModalType("transactions"); setShowModal(true); }} className="text-xs text-gold mr-3 hover:underline">Edit</button><button onClick={() => handleDelete("transactions", t.id)} className="text-xs text-red-500 hover:underline">Delete</button></td></tr>))}</tbody></table>
+          )}
+          {activeTab === "invoices" && (
+            <table className="w-full text-sm"><thead className="bg-warm-white border-b border-sand-light"><tr><th className="text-left px-4 py-3 font-medium text-earth">Invoice #</th><th className="text-left px-4 py-3 font-medium text-earth">Client</th><th className="text-left px-4 py-3 font-medium text-earth">Amount</th><th className="text-left px-4 py-3 font-medium text-earth">Due Date</th><th className="text-left px-4 py-3 font-medium text-earth">Status</th><th className="text-right px-4 py-3 font-medium text-earth">Actions</th></tr></thead><tbody className="divide-y divide-sand-light">{invoices.map(inv => (<tr key={inv.id} className="hover:bg-warm-white"><td className="px-4 py-3 font-medium text-soft-black">{inv.number}</td><td className="px-4 py-3 text-earth">{inv.client}</td><td className="px-4 py-3 font-medium text-soft-black">${(inv.amount || 0).toLocaleString()}</td><td className="px-4 py-3 text-earth">{inv.dueDate}</td><td className="px-4 py-3"><span className={`px-2 py-1 text-xs rounded ${invoiceStatusConfig[inv.status]?.bg || "bg-gray-50"} ${invoiceStatusConfig[inv.status]?.color || "text-gray-600"}`}>{invoiceStatusConfig[inv.status]?.label || inv.status}</span></td><td className="px-4 py-3 text-right"><button onClick={() => { setEditItem(inv); setFormData({ ...inv, amount: inv.amount.toString() }); setModalType("invoices"); setShowModal(true); }} className="text-xs text-gold mr-3 hover:underline">Edit</button><button onClick={() => handleDelete("invoices", inv.id)} className="text-xs text-red-500 hover:underline">Delete</button></td></tr>))}</tbody></table>
+          )}
+          {activeTab === "payouts" && (
+            <div className="p-8 text-center text-earth text-sm">Payouts are managed through the Suppliers module. Go to Suppliers to manage supplier payments.</div>
+          )}
+          {activeTab === "expenses" && (
+            <table className="w-full text-sm"><thead className="bg-warm-white border-b border-sand-light"><tr><th className="text-left px-4 py-3 font-medium text-earth">Category</th><th className="text-left px-4 py-3 font-medium text-earth">Description</th><th className="text-left px-4 py-3 font-medium text-earth">Amount</th><th className="text-left px-4 py-3 font-medium text-earth">Date</th><th className="text-left px-4 py-3 font-medium text-earth">Status</th><th className="text-right px-4 py-3 font-medium text-earth">Actions</th></tr></thead><tbody className="divide-y divide-sand-light">{expenses.map(e => (<tr key={e.id} className="hover:bg-warm-white"><td className="px-4 py-3"><span className="px-2 py-1 text-xs bg-amber-50 text-amber-700 rounded">{e.category}</span></td><td className="px-4 py-3 text-soft-black">{e.description}</td><td className="px-4 py-3 font-medium text-soft-black">${(e.amount || 0).toLocaleString()}</td><td className="px-4 py-3 text-earth">{e.date}</td><td className="px-4 py-3"><span className={`px-2 py-1 text-xs rounded ${e.status === "approved" ? "bg-emerald-50 text-emerald-700" : e.status === "pending" ? "bg-amber-50 text-amber-700" : "bg-red-50 text-red-700"}`}>{e.status}</span></td><td className="px-4 py-3 text-right"><button onClick={() => { setEditItem(e); setFormData({ ...e, amount: e.amount.toString(), date: e.date }); setModalType("expenses"); setShowModal(true); }} className="text-xs text-gold mr-3 hover:underline">Edit</button><button onClick={() => handleDelete("expenses", e.id)} className="text-xs text-red-500 hover:underline">Delete</button></td></tr>))}</tbody></table>
+          )}
+        </div>
       </>
       )}
 
+      {/* ─── Modal ──────────────────────────────────── */}
       <AnimatePresence>
         {showModal && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-40 p-4" onClick={() => setShowModal(false)}>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-40 p-4"
+            onClick={() => setShowModal(false)}>
             <motion.div initial={{ scale: 0.95 }} className="bg-cream border border-sand-light w-full max-w-md max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
-              <div className="flex items-center justify-between px-6 py-4 border-b border-sand-light flex-shrink-0"><h2 className="text-xl font-bold text-soft-black">{editItem ? "Edit" : "Add"} {modalType === "invoices" ? "Invoice" : modalType === "payouts" ? "Payout" : modalType === "expenses" ? "Expense" : "Transaction"}</h2><button onClick={() => setShowModal(false)}><X className="w-5 h-5 text-earth" /></button></div>
-              <div className="flex-1 overflow-y-auto p-6 space-y-4 min-h-0">
-                {modalType === "invoices" && (<><div><label className="block text-xs font-medium text-earth uppercase mb-2">Invoice Number</label><input type="text" value={formData.number || ""} onChange={e => setFormData({ ...formData, number: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" /></div><div><label className="block text-xs font-medium text-earth uppercase mb-2">Client Name</label><input type="text" value={formData.client || ""} onChange={e => setFormData({ ...formData, client: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" /></div><div><label className="block text-xs font-medium text-earth uppercase mb-2">Amount</label><input type="number" value={formData.amount || ""} onChange={e => setFormData({ ...formData, amount: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" /></div><div><label className="block text-xs font-medium text-earth uppercase mb-2">Due Date</label><input type="date" value={formData.dueDate || ""} onChange={e => setFormData({ ...formData, dueDate: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" /></div><div><label className="block text-xs font-medium text-earth uppercase mb-2">Status</label><select value={formData.status || "draft"} onChange={e => setFormData({ ...formData, status: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm"><option value="draft">Draft</option><option value="sent">Sent</option><option value="partial">Partial</option><option value="paid">Paid</option></select></div></>)}
-                {modalType === "payouts" && (<><div><label className="block text-xs font-medium text-earth uppercase mb-2">Supplier</label><input type="text" value={formData.supplier || ""} onChange={e => setFormData({ ...formData, supplier: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" /></div><div><label className="block text-xs font-medium text-earth uppercase mb-2">Amount</label><input type="number" value={formData.amount || ""} onChange={e => setFormData({ ...formData, amount: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" /></div><div><label className="block text-xs font-medium text-earth uppercase mb-2">Date</label><input type="date" value={formData.date || ""} onChange={e => setFormData({ ...formData, date: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" /></div></>)}
-                {modalType === "expenses" && (<><div><label className="block text-xs font-medium text-earth uppercase mb-2">Category</label><select value={formData.category || "Marketing"} onChange={e => setFormData({ ...formData, category: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm"><option>Marketing</option><option>Operations</option><option>Staff</option><option>Travel</option><option>Technology</option></select></div><div><label className="block text-xs font-medium text-earth uppercase mb-2">Description</label><input type="text" value={formData.description || ""} onChange={e => setFormData({ ...formData, description: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" /></div><div><label className="block text-xs font-medium text-earth uppercase mb-2">Amount</label><input type="number" value={formData.amount || ""} onChange={e => setFormData({ ...formData, amount: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" /></div><div><label className="block text-xs font-medium text-earth uppercase mb-2">Date</label><input type="date" value={formData.date || ""} onChange={e => setFormData({ ...formData, date: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" /></div></>)}
-                {modalType === "transactions" && (<><div><label className="block text-xs font-medium text-earth uppercase mb-2">Description</label><input type="text" value={formData.description || ""} onChange={e => setFormData({ ...formData, description: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" /></div><div><label className="block text-xs font-medium text-earth uppercase mb-2">Amount</label><input type="number" value={formData.amount || ""} onChange={e => setFormData({ ...formData, amount: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm" /></div><div className="grid grid-cols-2 gap-4"><div><label className="block text-xs font-medium text-earth uppercase mb-2">Type</label><select value={formData.type || "credit"} onChange={e => setFormData({ ...formData, type: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm"><option value="credit">Credit</option><option value="debit">Debit</option></select></div><div><label className="block text-xs font-medium text-earth uppercase mb-2">Method</label><select value={formData.method || "Stripe"} onChange={e => setFormData({ ...formData, method: e.target.value })} className="w-full px-4 py-2.5 border border-sand-light text-sm"><option>Stripe</option><option>Bank Transfer</option><option>PayPal</option><option>Credit Card</option></select></div></div></>)}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-sand-light flex-shrink-0">
+                <h2 className="text-xl font-bold text-soft-black">{editItem ? "Edit" : "Add"} {modalType === "invoices" ? "Invoice" : modalType === "payouts" ? "Payout" : modalType === "expenses" ? "Expense" : "Transaction"}</h2>
+                <button onClick={() => setShowModal(false)}><X className="w-5 h-5 text-earth" /></button>
               </div>
-              <div className="flex gap-3 px-6 py-4 border-t border-sand-light flex-shrink-0"><button onClick={() => setShowModal(false)} className="flex-1 px-5 py-2.5 border border-sand-light text-earth text-sm">Cancel</button><button onClick={handleSave} className="flex-1 px-5 py-2.5 bg-gold text-soft-black text-sm font-medium">Save</button></div>
+              <div className="flex-1 overflow-y-auto p-6 space-y-4 min-h-0">
+                {modalType === "invoices" && (<><FormInput label="Invoice Number" name="number" value={formData.number || ""} onChange={e => setFormData({ ...formData, number: e.target.value })} /><FormInput label="Client Name" name="client" value={formData.client || ""} onChange={e => setFormData({ ...formData, client: e.target.value })} /><FormInput label="Amount" name="amount" type="number" value={formData.amount || ""} onChange={e => setFormData({ ...formData, amount: e.target.value })} /><FormInput label="Due Date" name="dueDate" type="date" value={formData.dueDate || ""} onChange={e => setFormData({ ...formData, dueDate: e.target.value })} /><FormSelect label="Status" name="status" value={formData.status || "draft"} onChange={e => setFormData({ ...formData, status: e.target.value })} options={[{ value: "draft", label: "Draft" }, { value: "sent", label: "Sent" }, { value: "partial", label: "Partial" }, { value: "paid", label: "Paid" }]} /></>)}
+                {modalType === "payouts" && (<><FormInput label="Supplier" name="supplier" value={formData.supplier || ""} onChange={e => setFormData({ ...formData, supplier: e.target.value })} /><FormInput label="Amount" name="amount" type="number" value={formData.amount || ""} onChange={e => setFormData({ ...formData, amount: e.target.value })} /><FormInput label="Date" name="date" type="date" value={formData.date || ""} onChange={e => setFormData({ ...formData, date: e.target.value })} /></>)}
+                {modalType === "expenses" && (<><FormSelect label="Category" name="category" value={formData.category || "Marketing"} onChange={e => setFormData({ ...formData, category: e.target.value })} options={EXPENSE_CATEGORIES.map(c => ({ value: c, label: c }))} /><FormInput label="Description" name="description" value={formData.description || ""} onChange={e => setFormData({ ...formData, description: e.target.value })} /><FormInput label="Amount" name="amount" type="number" value={formData.amount || ""} onChange={e => setFormData({ ...formData, amount: e.target.value })} /><FormInput label="Date" name="date" type="date" value={formData.date || ""} onChange={e => setFormData({ ...formData, date: e.target.value })} /></>)}
+                {modalType === "transactions" && (<><FormInput label="Description" name="description" value={formData.description || ""} onChange={e => setFormData({ ...formData, description: e.target.value })} /><FormInput label="Amount" name="amount" type="number" value={formData.amount || ""} onChange={e => setFormData({ ...formData, amount: e.target.value })} /><div className="grid grid-cols-2 gap-4"><FormSelect label="Type" name="type" value={formData.type || "credit"} onChange={e => setFormData({ ...formData, type: e.target.value })} options={[{ value: "credit", label: "Credit" }, { value: "debit", label: "Debit" }]} /><FormSelect label="Method" name="method" value={formData.method || "Stripe"} onChange={e => setFormData({ ...formData, method: e.target.value })} options={PAYMENT_METHODS.map(m => ({ value: m, label: m }))} /></div></>)}
+              </div>
+              <div className="flex gap-3 px-6 py-4 border-t border-sand-light flex-shrink-0">
+                <button onClick={() => setShowModal(false)} className="flex-1 px-5 py-2.5 border border-sand-light text-earth text-sm hover:bg-warm-white transition-colors">Cancel</button>
+                <button onClick={handleSave} className="flex-1 px-5 py-2.5 bg-gold text-soft-black text-sm font-medium hover:bg-gold-dark transition-colors">Save</button>
+              </div>
             </motion.div>
           </motion.div>
         )}

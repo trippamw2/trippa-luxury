@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail, newBookingNotification, paymentReceiptEmail, reminderEmail, paymentLinkEmail } from "@/lib/email";
 import { mapKeysToCamel } from "@/lib/api-helpers";
+import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    await requireAdmin();
     const { id } = await params;
     const body = await request.json();
     const { type, paymentUrl } = body; // type: "confirmation" | "receipt" | "reminder" | "payment-link"
@@ -95,6 +97,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     return NextResponse.json({ success: true, messageId: result.messageId });
   } catch (err: any) {
+    if (err instanceof AdminAuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
     console.error("Send booking email error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

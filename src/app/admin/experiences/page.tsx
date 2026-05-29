@@ -2,8 +2,15 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Search, X, Check, AlertCircle } from "lucide-react";
+import { Plus, X, Sparkles } from "lucide-react";
 import { useApiData } from "@/lib/use-api-data";
+import { useToast } from "@/app/admin/components/Toast";
+import { DataTable, type Column } from "@/app/admin/components/DataTable";
+import { SkeletonTable } from "@/app/admin/components/Skeleton";
+import { EmptyState } from "@/app/admin/components/EmptyState";
+import { FormInput, FormTextarea, FormSelect, FormGroup } from "@/app/admin/components/FormField";
+import { RichTextEditor } from "@/app/admin/components/RichTextEditor";
+import { ImageUpload } from "@/app/admin/components/ImageUpload";
 
 interface Experience {
   id: string;
@@ -40,22 +47,11 @@ export default function AdminExperiences() {
       is_active: item.isActive !== false,
     }),
   });
-  const [searchQuery, setSearchQuery] = useState("");
+  const { toast } = useToast();
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<Experience | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [formData, setFormData] = useState({ title: "", description: "", image: "", category: "Romance", sortOrder: "0" });
-
-  const showToast = (message: string, type: "success" | "error") => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
-
-  const filtered = experiences.filter(e =>
-    e.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    e.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   const resetForm = () => setFormData({ title: "", description: "", image: "", category: "Romance", sortOrder: "0" });
 
@@ -64,9 +60,9 @@ export default function AdminExperiences() {
     if (result) {
       setShowModal(false);
       resetForm();
-      showToast("Experience created successfully", "success");
+      toast("Experience created successfully", "success");
     } else {
-      showToast("Failed to create experience", "error");
+      toast("Failed to create experience", "error");
     }
   };
 
@@ -76,9 +72,9 @@ export default function AdminExperiences() {
     if (result) {
       setEditing(null);
       setShowModal(false);
-      showToast("Experience updated successfully", "success");
+      toast("Experience updated successfully", "success");
     } else {
-      showToast("Failed to update experience", "error");
+      toast("Failed to update experience", "error");
     }
   };
 
@@ -86,134 +82,116 @@ export default function AdminExperiences() {
     const ok = await remove(id);
     if (ok) {
       setDeleteConfirm(null);
-      showToast("Experience deleted successfully", "success");
+      toast("Experience deleted", "success");
     } else {
-      showToast("Failed to delete experience", "error");
+      toast("Failed to delete experience", "error");
     }
   };
 
+  const openAddModal = () => { setEditing(null); resetForm(); setShowModal(true); };
+  const openEditModal = (exp: Experience) => { setEditing(exp); setFormData({ title: exp.title, description: exp.description, image: exp.image, category: exp.category, sortOrder: exp.sortOrder.toString() }); setShowModal(true); };
+
+  const columns: Column<Experience>[] = [
+    { key: "sortOrder", header: "Order", className: "text-earth text-xs", render: (e) => e.sortOrder },
+    { key: "title", header: "Title", render: (e) => <span className="font-medium text-soft-black">{e.title}</span> },
+    {
+      key: "category", header: "Category",
+      render: (e) => <span className="text-xs bg-warm-white text-earth px-2 py-0.5 border border-sand-light">{e.category}</span>,
+    },
+    {
+      key: "status", header: "Status", sortable: true,
+      render: (e) => e.isActive
+        ? <span className="text-[10px] uppercase tracking-wider text-emerald-600 font-medium bg-emerald-50 px-2 py-0.5">Active</span>
+        : <span className="text-[10px] uppercase tracking-wider text-earth font-medium bg-warm-white px-2 py-0.5">Inactive</span>,
+    },
+    {
+      key: "actions", header: "", headerClassName: "text-right", className: "text-right", sortable: false,
+      render: (e) => (
+        <div className="flex items-center justify-end gap-3">
+          <button onClick={() => openEditModal(e)} className="text-xs text-gold hover:text-gold-dark font-medium">Edit</button>
+          <button onClick={() => setDeleteConfirm(e.id)} className="text-xs text-red-500 hover:text-red-700 font-medium">Delete</button>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="min-h-screen">
-      <AnimatePresence>
-        {toast && (
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
-            className={`fixed top-6 right-6 px-5 py-3 rounded-lg shadow-lg z-50 flex items-center gap-3 ${
-              toast.type === "success" ? "bg-emerald-50 text-emerald-800 border border-emerald-200" : "bg-red-50 text-red-800 border border-red-200"
-            }`}>
-            {toast.type === "success" ? <Check className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-            <span className="text-sm font-medium">{toast.message}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-soft-black">Experiences</h1>
           <p className="text-sm text-earth mt-1">Manage signature experiences shown on the homepage.</p>
         </div>
-        <button onClick={() => { setEditing(null); resetForm(); setShowModal(true); }}
+        <button onClick={openAddModal}
           className="inline-flex items-center gap-2 px-5 py-2.5 bg-gold text-soft-black text-sm font-medium tracking-widest uppercase hover:bg-gold-dark transition-all">
           <Plus className="w-4 h-4" /> Add Experience
         </button>
       </div>
 
-      <div className="bg-white border border-sand-light p-4 mb-6">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-earth" />
-          <input type="text" placeholder="Search experiences..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-cream/50" />
-        </div>
-      </div>
+      <DataTable
+        columns={columns}
+        data={experiences}
+        keyField="id"
+        searchable
+        searchPlaceholder="Search experiences..."
+        loading={loading}
+        exportable
+        exportFilename="kivara-experiences"
+        emptyState={
+          <EmptyState
+            icon={Sparkles}
+            title="No experiences yet"
+            description="Add your first signature experience to showcase on the homepage."
+            action={{ label: "Add Experience", onClick: openAddModal }}
+          />
+        }
+      />
 
-      {loading ? (
-        <div className="flex items-center justify-center py-20"><div className="text-earth text-sm">Loading experiences...</div></div>
-      ) : (
-      <div className="bg-white border border-sand-light overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-warm-white border-b border-sand-light">
-            <tr>
-              <th className="text-left px-4 py-3 font-medium text-earth text-xs uppercase tracking-wider">Order</th>
-              <th className="text-left px-4 py-3 font-medium text-earth text-xs uppercase tracking-wider">Title</th>
-              <th className="text-left px-4 py-3 font-medium text-earth text-xs uppercase tracking-wider">Category</th>
-              <th className="text-left px-4 py-3 font-medium text-earth text-xs uppercase tracking-wider">Status</th>
-              <th className="text-right px-4 py-3 font-medium text-earth text-xs uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-sand-light/50">
-            {filtered.map((exp) => (
-              <tr key={exp.id} className="hover:bg-warm-white transition-colors">
-                <td className="px-4 py-3 text-earth text-xs">{exp.sortOrder}</td>
-                <td className="px-4 py-3 font-medium text-soft-black">{exp.title}</td>
-                <td className="px-4 py-3">
-                  <span className="text-xs bg-warm-white text-earth px-2 py-0.5 border border-sand-light">{exp.category}</span>
-                </td>
-                <td className="px-4 py-3">
-                  {exp.isActive ? (
-                    <span className="text-[10px] uppercase tracking-wider text-emerald-600 font-medium bg-emerald-50 px-2 py-0.5">Active</span>
-                  ) : (
-                    <span className="text-[10px] uppercase tracking-wider text-earth font-medium bg-warm-white px-2 py-0.5">Inactive</span>
-                  )}
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <button onClick={() => { setEditing(exp); setFormData({ title: exp.title, description: exp.description, image: exp.image, category: exp.category, sortOrder: exp.sortOrder.toString() }); setShowModal(true); }}
-                    className="text-xs text-gold hover:text-gold-dark mr-4 font-medium">Edit</button>
-                  <button onClick={() => setDeleteConfirm(exp.id)} className="text-xs text-red-500 hover:text-red-700 font-medium">Delete</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {filtered.length === 0 && <div className="p-12 text-center text-earth">No experiences found.</div>}
-      </div>
-      )}
-
+      {/* ─── Modal ──────────────────────────────────── */}
       <AnimatePresence>
         {showModal && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-40 p-4" onClick={() => setShowModal(false)}>
-            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-cream border border-sand-light w-full max-w-lg max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-40 p-4"
+            onClick={() => setShowModal(false)}>
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-cream border border-sand-light w-full max-w-lg max-h-[90vh] flex flex-col"
+              onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between px-6 py-4 border-b border-sand-light flex-shrink-0">
                 <h2 className="text-xl font-bold text-soft-black">{editing ? "Edit Experience" : "Add Experience"}</h2>
                 <button onClick={() => setShowModal(false)} className="text-earth hover:text-soft-black"><X className="w-5 h-5" /></button>
               </div>
               <div className="flex-1 overflow-y-auto p-6 space-y-4 min-h-0">
-                <div><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Title</label>
-                  <input type="text" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})}
-                    className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" placeholder="Private Beach Dining" /></div>
-                <div><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Category</label>
-                  <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}
-                    className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white">
-                    {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select></div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Sort Order</label>
-                    <input type="number" min="0" value={formData.sortOrder} onChange={e => setFormData({...formData, sortOrder: e.target.value})}
-                      className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" /></div>
-                </div>
-                <div><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Image URL</label>
-                  <input type="url" value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})}
-                    className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" placeholder="/images/dining.jpg" /></div>
-                <div><label className="block text-xs font-medium text-earth uppercase tracking-wider mb-2">Description</label>
-                  <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})}
-                    className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white" rows={3} placeholder="Describe this experience..." /></div>
+                <FormInput label="Title" name="title" value={formData.title} onChange={e => setFormData(p => ({ ...p, title: e.target.value }))} placeholder="Private Beach Dining" required />
+                <FormSelect label="Category" name="category" value={formData.category} onChange={e => setFormData(p => ({ ...p, category: e.target.value }))} options={CATEGORIES.map(c => ({ value: c, label: c }))} />
+                <FormGroup>
+                  <FormInput label="Sort Order" name="sortOrder" type="number" min="0" value={formData.sortOrder} onChange={e => setFormData(p => ({ ...p, sortOrder: e.target.value }))} />
+                </FormGroup>
+                <ImageUpload label="Image" value={formData.image} onChange={(url) => setFormData(p => ({ ...p, image: url }))} />
+                <RichTextEditor label="Description" value={formData.description} onChange={(html) => setFormData(p => ({ ...p, description: html }))} minH="200px" placeholder="Describe this experience..." />
               </div>
               <div className="flex gap-3 px-6 py-4 border-t border-sand-light flex-shrink-0">
-                <button onClick={() => setShowModal(false)} className="flex-1 px-5 py-2.5 border border-sand-light text-earth text-sm hover:bg-warm-white">Cancel</button>
-                <button onClick={editing ? handleEdit : handleAdd} className="flex-1 px-5 py-2.5 bg-gold text-soft-black text-sm font-medium hover:bg-gold-dark">{editing ? "Save Changes" : "Create Experience"}</button>
+                <button onClick={() => setShowModal(false)} className="flex-1 px-5 py-2.5 border border-sand-light text-earth text-sm hover:bg-warm-white transition-colors">Cancel</button>
+                <button onClick={editing ? handleEdit : handleAdd} className="flex-1 px-5 py-2.5 bg-gold text-soft-black text-sm font-medium hover:bg-gold-dark transition-colors">{editing ? "Save Changes" : "Create Experience"}</button>
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
+      {/* ─── Delete Confirmation ────────────────────── */}
       <AnimatePresence>
         {deleteConfirm && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-50 p-4" onClick={() => setDeleteConfirm(null)}>
-            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} className="bg-cream border border-sand-light p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setDeleteConfirm(null)}>
+            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }}
+              className="bg-cream border border-sand-light p-6 w-full max-w-sm"
+              onClick={(e) => e.stopPropagation()}>
               <h3 className="text-lg font-bold text-soft-black mb-2">Delete Experience</h3>
               <p className="text-sm text-earth mb-6">Are you sure you want to delete this experience?</p>
               <div className="flex gap-3">
-                <button onClick={() => setDeleteConfirm(null)} className="flex-1 px-4 py-2.5 border border-sand-light text-earth text-sm hover:bg-warm-white">Cancel</button>
-                <button onClick={() => handleDelete(deleteConfirm)} className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm font-medium hover:bg-red-600">Delete</button>
+                <button onClick={() => setDeleteConfirm(null)} className="flex-1 px-4 py-2.5 border border-sand-light text-earth text-sm hover:bg-warm-white transition-colors">Cancel</button>
+                <button onClick={() => handleDelete(deleteConfirm)} className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition-colors">Delete</button>
               </div>
             </motion.div>
           </motion.div>

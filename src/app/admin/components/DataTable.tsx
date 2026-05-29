@@ -5,6 +5,7 @@ import { Search, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Dow
 import { cn } from "@/lib/utils";
 import { SkeletonTable } from "./Skeleton";
 import { exportToCsv } from "@/lib/csv-export";
+import { ImportCsv } from "./ImportCsv";
 
 export interface Column<T> {
   key: string;
@@ -27,6 +28,8 @@ interface DataTableProps<T> {
   onRowClick?: (item: T) => void;
   exportable?: boolean;
   exportFilename?: string;
+  importable?: boolean;
+  importTable?: string;
 }
 
 export function DataTable<T extends Record<string, any>>({
@@ -41,6 +44,8 @@ export function DataTable<T extends Record<string, any>>({
   onRowClick,
   exportable = false,
   exportFilename = "export",
+  importable = false,
+  importTable,
 }: DataTableProps<T>) {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortKey, setSortKey] = useState<string | null>(null);
@@ -112,16 +117,21 @@ export function DataTable<T extends Record<string, any>>({
             />
           </div>
         )}
-        {exportable && !loading && sorted.length > 0 && (
-          <button
-            onClick={() => exportToCsv(sorted, columns, exportFilename)}
-            className="ml-auto inline-flex items-center gap-1.5 px-3 py-2.5 border border-sand-light text-sm text-earth hover:bg-warm-white hover:text-soft-black transition-colors"
-            title="Export CSV"
-          >
-            <Download className="w-4 h-4" />
-            <span className="hidden sm:inline">Export CSV</span>
-          </button>
-        )}
+        <div className="ml-auto flex items-center gap-2">
+          {importable && importTable && (
+            <ImportCsv table={importTable} />
+          )}
+          {exportable && !loading && sorted.length > 0 && (
+            <button
+              onClick={() => exportToCsv(sorted, columns, exportFilename)}
+              className="inline-flex items-center gap-1.5 px-3 py-2.5 border border-sand-light text-sm text-earth hover:bg-warm-white hover:text-soft-black transition-colors"
+              title="Export CSV"
+            >
+              <Download className="w-4 h-4" />
+              <span className="hidden sm:inline">Export CSV</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Table */}

@@ -137,6 +137,8 @@ export default function AdminExperiences() {
         loading={loading}
         exportable
         exportFilename="kivara-experiences"
+        importable
+        importTable="experiences"
         emptyState={
           <EmptyState
             icon={Sparkles}

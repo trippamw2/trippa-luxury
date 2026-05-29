@@ -9,6 +9,9 @@ import { RichTextEditor } from "@/app/admin/components/RichTextEditor";
 import { ImageUpload } from "@/app/admin/components/ImageUpload";
 import { TagInput } from "@/app/admin/components/TagInput";
 import { JsonEditor } from "@/app/admin/components/JsonEditor";
+import { ImportCsv } from "@/app/admin/components/ImportCsv";
+import { Download } from "lucide-react";
+import { exportToCsv } from "@/lib/csv-export";
 
 interface PropertyRef {
   id: string;
@@ -238,8 +241,26 @@ export default function DestinationsPage() {
           <h1 className="text-2xl font-heading font-bold text-soft-black">Destinations</h1>
           <p className="text-earth mt-1">Manage destination content, images, and seasons</p>
         </div>
-        <button onClick={handleAdd} className="px-4 py-2 bg-gold text-soft-black font-medium rounded hover:bg-gold/90 transition-colors">+ Add Destination</button>
-      </div>
+        <div className="flex items-center gap-2">
+          <ImportCsv table="destinations" />
+          {apiDestinations && apiDestinations.length > 0 && (
+            <button
+              onClick={() => exportToCsv(apiDestinations, [
+                { key: "name", header: "Name" },
+                { key: "slug", header: "Slug" },
+                { key: "propertyCount", header: "Properties" },
+                { key: "subtitle", header: "Subtitle" },
+              ], "kivara-destinations")}
+              className="inline-flex items-center gap-1.5 px-3 py-2.5 border border-sand-light text-sm text-earth hover:bg-warm-white hover:text-soft-black transition-colors"
+              title="Export CSV"
+            >
+              <Download className="w-4 h-4" />
+              <span className="hidden sm:inline">Export</span>
+            </button>
+          )}
+          <button onClick={handleAdd} className="px-4 py-2 bg-gold text-soft-black font-medium rounded hover:bg-gold/90 transition-colors">+ Add Destination</button>
+          </div>
+        </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-20"><div className="text-earth text-sm">Loading destinations...</div></div>

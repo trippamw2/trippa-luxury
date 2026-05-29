@@ -8,6 +8,9 @@ import { useApiData } from "@/lib/use-api-data";
 import { useToast } from "@/app/admin/components/Toast";
 import { SkeletonText } from "@/app/admin/components/Skeleton";
 import { EmptyState } from "@/app/admin/components/EmptyState";
+import { ImportCsv } from "@/app/admin/components/ImportCsv";
+import { Download } from "lucide-react";
+import { exportToCsv } from "@/lib/csv-export";
 import { FormInput, FormTextarea, FormGroup } from "@/app/admin/components/FormField";
 import { RichTextEditor } from "@/app/admin/components/RichTextEditor";
 import { ImageUpload } from "@/app/admin/components/ImageUpload";
@@ -170,9 +173,28 @@ export default function AdminPackages() {
           <h1 className="text-2xl font-heading font-bold text-soft-black">Packages</h1>
           <p className="text-earth mt-1">Create and manage holiday packages</p>
         </div>
-        <button onClick={openAddModal} className="flex items-center gap-2 px-4 py-2 bg-gold text-soft-black font-medium rounded hover:bg-gold/90 transition-colors">
-          <Plus className="w-4 h-4" />Add Package
-        </button>
+        <div className="flex items-center gap-2">
+          <ImportCsv table="packages" />
+          {packages && packages.length > 0 && (
+            <button
+              onClick={() => exportToCsv(packages, [
+                { key: "title", header: "Title" },
+                { key: "subtitle", header: "Subtitle" },
+                { key: "duration", header: "Duration" },
+                { key: "price", header: "Price" },
+                { key: "destinations", header: "Destinations" },
+              ], "kivara-packages")}
+              className="inline-flex items-center gap-1.5 px-3 py-2.5 border border-sand-light text-sm text-earth hover:bg-warm-white hover:text-soft-black transition-colors"
+              title="Export CSV"
+            >
+              <Download className="w-4 h-4" />
+              <span className="hidden sm:inline">Export</span>
+            </button>
+          )}
+          <button onClick={openAddModal} className="flex items-center gap-2 px-4 py-2 bg-gold text-soft-black font-medium rounded hover:bg-gold/90 transition-colors">
+            <Plus className="w-4 h-4" />Add Package
+          </button>
+        </div>
       </div>
 
       {/* Search */}

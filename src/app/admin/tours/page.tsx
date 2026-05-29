@@ -8,6 +8,9 @@ import { formatDestination } from "@/lib/utils";
 import { useApiData } from "@/lib/use-api-data";
 import { useToast } from "@/app/admin/components/Toast";
 import { SkeletonText } from "@/app/admin/components/Skeleton";
+import { ImportCsv } from "@/app/admin/components/ImportCsv";
+import { Download } from "lucide-react";
+import { exportToCsv } from "@/lib/csv-export";
 import { EmptyState } from "@/app/admin/components/EmptyState";
 import { FormInput, FormTextarea, FormSelect, FormGroup } from "@/app/admin/components/FormField";
 import { RichTextEditor } from "@/app/admin/components/RichTextEditor";
@@ -228,7 +231,28 @@ export default function AdminTours() {
     <div className="min-h-screen">
       <div className="flex items-center justify-between mb-6">
         <div><h1 className="text-2xl font-heading font-bold text-soft-black">Tours & Experiences</h1><p className="text-earth mt-1">Create and manage tours, activities, and experiences</p></div>
-        <button onClick={openAddModal} className="inline-flex items-center gap-2 px-5 py-2.5 bg-gold text-soft-black text-sm font-medium tracking-widest uppercase hover:bg-gold-dark transition-all"><Plus className="w-4 h-4" />New Tour</button>
+        <div className="flex items-center gap-2">
+          <ImportCsv table="tours" />
+          {tours && tours.length > 0 && (
+            <button
+              onClick={() => exportToCsv(tours, [
+                { key: "title", header: "Title" },
+                { key: "category", header: "Category" },
+                { key: "destination", header: "Destination" },
+                { key: "durationDays", header: "Duration (Days)" },
+                { key: "pricingFrom", header: "Price From" },
+                { key: "status", header: "Status" },
+                { key: "rating", header: "Rating" },
+              ], "kivara-tours")}
+              className="inline-flex items-center gap-1.5 px-3 py-2.5 border border-sand-light text-sm text-earth hover:bg-warm-white hover:text-soft-black transition-colors"
+              title="Export CSV"
+            >
+              <Download className="w-4 h-4" />
+              <span className="hidden sm:inline">Export</span>
+            </button>
+          )}
+          <button onClick={openAddModal} className="inline-flex items-center gap-2 px-5 py-2.5 bg-gold text-soft-black text-sm font-medium tracking-widest uppercase hover:bg-gold-dark transition-all"><Plus className="w-4 h-4" />New Tour</button>
+        </div>
       </div>
 
       {/* Stats */}

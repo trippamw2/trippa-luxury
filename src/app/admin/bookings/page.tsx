@@ -461,6 +461,8 @@ export default function AdminBookings() {
         loading={loading}
         exportable
         exportFilename="kivara-bookings"
+        importable
+        importTable="bookings"
         emptyState={
           <EmptyState
             icon={Calendar}

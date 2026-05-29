@@ -8,6 +8,9 @@ import { useApiData } from "@/lib/use-api-data";
 import { useToast } from "@/app/admin/components/Toast";
 import { RichTextEditor } from "@/app/admin/components/RichTextEditor";
 import { ImageUpload } from "@/app/admin/components/ImageUpload";
+import { ImportCsv } from "@/app/admin/components/ImportCsv";
+import { Download } from "lucide-react";
+import { exportToCsv } from "@/lib/csv-export";
 
 interface Room {
   name: string;
@@ -359,27 +362,48 @@ export default function AdminProperties() {
           <h1 className="text-2xl font-bold text-soft-black">Properties</h1>
           <p className="text-sm text-earth mt-1">Manage your luxury property collection.</p>
         </div>
-        <button
-          onClick={() => { setEditingProperty(null); resetForm(); setActiveTab("basic"); setShowModal(true); }}
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-gold text-soft-black text-sm font-medium tracking-widest uppercase hover:bg-gold-dark transition-all"
-        >
-          <Plus className="w-4 h-4" />
-          Add Property
-        </button>
-      </div>
-
-      <div className="bg-white border border-sand-light p-4 mb-6">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-earth" />
-          <input
-            type="text"
-            placeholder="Search properties by name or location..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-cream/50"
-          />
+        <div className="flex items-center gap-2">
+          <ImportCsv table="properties" />
+          {properties && properties.length > 0 && (
+            <button
+              onClick={() => exportToCsv(properties, [
+                { key: "name", header: "Name" },
+                { key: "slug", header: "Slug" },
+                { key: "destination", header: "Destination" },
+                { key: "location", header: "Location" },
+                { key: "priceRange", header: "Price Range" },
+                { key: "rating", header: "Rating" },
+                { key: "tagline", header: "Tagline" },
+              ], "kivara-properties")}
+              className="inline-flex items-center gap-1.5 px-3 py-2.5 border border-sand-light text-sm text-earth hover:bg-warm-white hover:text-soft-black transition-colors"
+              title="Export CSV"
+            >
+              <Download className="w-4 h-4" />
+              <span className="hidden sm:inline">Export</span>
+            </button>
+          )}
+          <button
+            onClick={() => { setEditingProperty(null); resetForm(); setActiveTab("basic"); setShowModal(true); }}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gold text-soft-black text-sm font-medium tracking-widest uppercase hover:bg-gold-dark transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            Add Property
+          </button>
+          </div>
         </div>
-      </div>
+
+        <div className="bg-white border border-sand-light p-4 mb-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-earth" />
+            <input
+              type="text"
+              placeholder="Search properties by name or location..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold bg-cream/50"
+            />
+          </div>
+        </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-20"><div className="text-earth text-sm">Loading properties...</div></div>

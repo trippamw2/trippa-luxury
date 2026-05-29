@@ -34,11 +34,13 @@ function mapUser(item: any): AdminUser {
 }
 
 function mapUserToApi(item: Partial<AdminUser>): any {
+  const pwd = (item as any).password;
   return {
     full_name: item.name,
     email: item.email,
     role: item.role,
     is_active: item.status === "active",
+    ...(pwd ? { password: pwd } : {}),
   };
 }
 
@@ -74,9 +76,9 @@ export default function AdminUsers() {
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [formData, setFormData] = useState({ name: "", email: "", role: "editor" as "admin" | "editor" | "agent", status: "active" as "active" | "invited" | "suspended" });
+  const [formData, setFormData] = useState({ name: "", email: "", role: "editor" as "admin" | "editor" | "agent", status: "active" as "active" | "invited" | "suspended", password: "" });
 
-  const resetForm = () => setFormData({ name: "", email: "", role: "editor", status: "active" });
+  const resetForm = () => setFormData({ name: "", email: "", role: "editor", status: "active", password: "" });
 
   const handleAdd = async () => {
     const result = await create(formData);
@@ -112,7 +114,7 @@ export default function AdminUsers() {
   };
 
   const openAddModal = () => { setEditingUser(null); resetForm(); setShowModal(true); };
-  const openEditModal = (u: AdminUser) => { setEditingUser(u); setFormData({ name: u.name, email: u.email, role: u.role, status: u.status }); setShowModal(true); };
+  const openEditModal = (u: AdminUser) => { setEditingUser(u); setFormData({ name: u.name, email: u.email, role: u.role, status: u.status, password: "" }); setShowModal(true); };
 
   return (
     <div className="min-h-screen">
@@ -166,6 +168,9 @@ export default function AdminUsers() {
               <div className="flex-1 overflow-y-auto p-6 space-y-4 min-h-0">
                 <FormInput label="Name" name="name" value={formData.name} onChange={e => setFormData(p => ({ ...p, name: e.target.value }))} required />
                 <FormInput label="Email" name="email" type="email" value={formData.email} onChange={e => setFormData(p => ({ ...p, email: e.target.value }))} required />
+                {!editingUser && (
+                  <FormInput label="Password" name="password" type="password" value={formData.password} onChange={e => setFormData(p => ({ ...p, password: e.target.value }))} required placeholder="Min. 6 characters" />
+                )}
                 <FormSelect label="Role" name="role" value={formData.role} onChange={e => setFormData(p => ({ ...p, role: e.target.value as any }))} options={ROLES} />
                 <FormSelect label="Status" name="status" value={formData.status} onChange={e => setFormData(p => ({ ...p, status: e.target.value as any }))} options={STATUSES} />
               </div>

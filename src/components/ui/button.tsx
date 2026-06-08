@@ -5,7 +5,7 @@ interface ButtonProps {
   children: React.ReactNode;
   href?: string;
   onClick?: () => void;
-  variant?: "primary" | "secondary" | "outline" | "ghost" | "gold";
+  variant?: "primary" | "secondary" | "outline" | "outlineLight" | "ghost" | "gold";
   size?: "sm" | "md" | "lg";
   className?: string;
   type?: "button" | "submit";

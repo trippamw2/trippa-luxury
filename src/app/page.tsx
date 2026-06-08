@@ -26,14 +26,14 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     siteName: "Kivara Luxury Travel",
-    images: [{ url: "/images/kivara-og.jpg", width: 1200, height: 630, alt: "Kivara Luxury Travel" }],
+    images: [{ url: "/images/hero-poster.jpg", width: 1200, height: 630, alt: "Kivara Luxury Travel" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Kivara: Africa's Ultimate Romance Sanctuary | Luxury Couples Travel",
     description:
       "Where your love story meets the wild. African romance escapes for couples who seek beauty, intimacy, and wonder: Lake Malawi, South Luangwa, and Zanzibar.",
-    images: ["/images/kivara-og.jpg"],
+    images: ["/images/hero-poster.jpg"],
   },
 };
 

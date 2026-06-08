@@ -10,6 +10,7 @@ import { PropertyCard } from "@/components/ui/property-card";
 import { Button } from "@/components/ui/button";
 import { IMAGES } from "@/lib/constants";
 import { useProperties, usePackages, useDestinations } from "@/lib/use-public-data";
+import { FaqJsonLd } from "@/components/seo/FaqJsonLd";
 import { cn } from "@/lib/utils";
 
 const DESTINATION_SLUG = "zanzibar";
@@ -72,18 +73,31 @@ export default function ZanzibarPage() {
 
   const properties = useProperties().filter((p) => p.destination === "zanzibar");
   const packages = usePackages().filter((p) => p.destinations.includes("zanzibar"));
+  const faqs = [
+    { question: "What is the best time to visit Zanzibar?", answer: "Zanzibar enjoys year-round tropical weather, but the best time is June to October during the dry season when days are sunny and humidity is lower. The short rains (November-December) bring brief afternoon showers and lush landscapes. January-February is hot and dry with excellent beach weather. The long rains (March-May) see fewer visitors and lower rates, ideal for couples seeking solitude, though some activities may be limited." },
+    { question: "How do I get to Zanzibar?", answer: "International visitors fly directly into Abeid Amani Karume International Airport (ZNZ) from major hubs including Johannesburg, Nairobi, Doha, Istanbul, and several European cities. Alternatively, fly into Julius Nyerere International Airport in Dar es Salaam (DAR) and take a 15-minute light aircraft or 2-hour ferry to Zanzibar. Kivara handles all transfers including airport Meet & Greet, private road transfers, and seaplane connections." },
+    { question: "What makes Zanzibar romantic for couples?", answer: "Zanzibar offers an intoxicating blend of pristine beaches, world-class luxury resorts, and rich cultural heritage. Couples can explore the ancient alleyways of Stone Town together, sail on traditional dhows at sunset, enjoy private sandbank dining surrounded by turquoise waters, and indulge in couples' spa treatments using indigenous Zanzibari ingredients. The island's spice plantations, historic architecture, and warm Swahili hospitality create an atmosphere that is both exotic and deeply romantic." },
+    { question: "Which luxury resorts are in Zanzibar?", answer: "Kivara curates five exceptional Zanzibar properties: Baraza Resort & Spa (Zanzibar's most awarded Swahili palace), Xanadu Villas (private villa sanctuary with personal butlers), Kilindi Zanzibar (iconic white-domed pavilions by Elewana), The Palms (intimate six-villa hideaway), and The Residence Zanzibar (sprawling beachfront estate with private pools). Each offers a distinct expression of Zanzibar's unique romance." },
+    { question: "What activities can couples do in Zanzibar?", answer: "Zanzibar offers extraordinary variety for couples: spice plantation tours, Stone Town heritage walks, sunset dhow cruises with champagne, private sandbank dining, world-class snorkeling and diving at Mnemba Atoll, deep-sea fishing, couples spa rituals, cooking classes featuring Swahili cuisine, and visits to Jozani Forest to see red colobus monkeys. The island's compact size means you can experience both cultural Zanzibar and beach paradise in a single trip." },
+    { question: "How many days should we spend in Zanzibar?", answer: "We recommend 5-7 nights for a pure beach escape at a single resort, or 7-10 nights to combine two properties (e.g., a beach resort on the northeast coast plus a heritage stay in Stone Town). Most couples find that a week allows ample time for relaxation, adventure, and cultural exploration without feeling rushed." },
+  ];
+
   return (
     <>
+      <FaqJsonLd items={faqs} />
       {/* Hero Section */}
       <section className="relative h-screen w-full overflow-hidden bg-soft-black">
-        <Image
-          src={IMAGES.zanzibarHero}
-          alt="Zanzibar"
-          fill
-          className="object-cover"
-          priority
-          sizes="100vw"
-        />
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          poster={IMAGES.zanzibarRomanceHero}
+          className="absolute inset-0 w-full h-full object-cover"
+          preload="auto"
+        >
+          <source src="/videos/kivara-zanzibar-aerial.mp4" type="video/mp4" />
+        </video>
         <div className="absolute inset-0 bg-gradient-to-br from-soft-black/80 via-sand-dark/40 to-gold/20" />
         <div className="absolute inset-0 bg-gradient-to-t from-soft-black/50 via-transparent to-soft-black/30" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full opacity-[0.06]"
@@ -463,6 +477,44 @@ export default function ZanzibarPage() {
           </Container>
         </section>
       )}
+
+      {/* FAQ Section */}
+      <section className="py-24 md:py-32 bg-warm-white">
+        <Container>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            className="max-w-3xl mx-auto text-center mb-16"
+          >
+            <span className="inline-block text-xs font-medium tracking-[0.2em] uppercase text-gold mb-4">
+              Frequently Asked Questions
+            </span>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-medium text-soft-black leading-tight">
+              Planning Your
+              <br />
+              <span className="italic text-earth">Zanzibar Escape</span>
+            </h2>
+          </motion.div>
+
+          <div className="max-w-3xl mx-auto space-y-4">
+            {faqs.map((faq, index) => (
+              <motion.div
+                key={faq.question}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: index * 0.05 }}
+                className="bg-cream border border-sand-light/30 p-6 md:p-8"
+              >
+                <h3 className="text-base font-heading font-medium text-soft-black mb-3">{faq.question}</h3>
+                <p className="text-sm text-earth leading-relaxed">{faq.answer}</p>
+              </motion.div>
+            ))}
+          </div>
+        </Container>
+      </section>
 
       {/* Inquiry Section */}
       <section id="inquiry" className="py-24 md:py-32 bg-cream">

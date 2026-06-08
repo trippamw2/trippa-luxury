@@ -9,6 +9,7 @@
 export const IMAGES = {
   // Lake Malawi (updated with images from Green Safaris)
   lakeMalawiHero: "/images/kaya-mawa-beach-swing.jpg",
+  lakeMalawiRomanceHero: "/images/kaya-mawa-mainja-dinner-on-terrace.jpg",
   lakeMalawiAerial: "/images/likoma-scuba.jpg",
   lakeMalawiSunset: "/images/likoma-paddleboard-view.jpg",
   lakeMalawiBeach: "/images/likoma-snorkelling.jpg",
@@ -17,6 +18,7 @@ export const IMAGES = {
 
   // South Luangwa
   southLuangwaHero: "/images/puku-ridge-5.jpg",
+  southLuangwaRomanceHero: "/images/cz-romance-02.jpg",
   southLuangwaElephant: "/images/south-luangwa-elephant.jpg",
   southLuangwaLeopard: "/images/south-luangwa-camp.jpg",
   southLuangwaSunset: "/images/south-luangwa-sunset.jpg",
@@ -25,6 +27,7 @@ export const IMAGES = {
 
   // Zanzibar
   zanzibarHero: "/images/zanzibar-hero.jpg",
+  zanzibarRomanceHero: "/images/baraza-beach.jpg",
   zanzibarBeach: "/images/zanzibar-beach.jpg",
   zanzibarAerial: "/images/zanzibar-stonetown.jpg",
   zanzibarDhow: "/images/zanzibar-dhow.jpg",
@@ -170,7 +173,7 @@ export const DESTINATIONS = [
       "Lake Malawi. Africa's third largest lake holds crystal waters, shores untouched by mass tourism, and an atmosphere of such profound serenity that couples find themselves recalibrating to a slower, more meaningful rhythm.",
     positioning:
       "An infinity of water and sky. Kayak at dawn across coves discovered only by those who know. Dine beneath constellations on a private beach where the only footsteps in the sand are your own. Kaya Mawa, Pumulani, Blue Zebra Island Lodge, and The Makokola Retreat : each a chapter in a love story that few will ever read. Africa's hidden luxury beach escape. Reserved for those who know where to look.",
-    heroImage: IMAGES.lakeMalawiHero,
+    heroImage: IMAGES.lakeMalawiRomanceHero,
     slug: "lake-malawi",
     properties: ["kaya-mawa", "pumulani-lodge", "blue-zebra-island-lodge", "makokola-retreat"],
     experiences: [
@@ -210,7 +213,7 @@ export const DESTINATIONS = [
       "South Luangwa. The birthplace of the walking safari. An unfiltered communion with wilderness that strips away everything unnecessary and leaves only what matters : you, your partner, and Africa in its purest form.",
     positioning:
       "Africa as it was before fences, before crowds, before compromise. Here, luxury means falling asleep to the rumble of lions and waking to the call of fish eagles, knowing you are among a fortunate few who will ever know this silence. Four remarkable properties : Time+Tide Chinzombo, Puku Ridge Camp, Shawa Luangwa Camp, and Luangwa River Camp : each offers a different window into this ancient world. From award winning riverside villas to silent electric safaris, this is safari luxury for those who seek not just to see Africa but to be remade by it.",
-    heroImage: IMAGES.southLuangwaHero,
+    heroImage: IMAGES.southLuangwaRomanceHero,
     slug: "south-luangwa",
     properties: ["chinzombo", "puku-ridge-camp", "shawa-luangwa", "luangwa-river-camp"],
     experiences: [
@@ -250,7 +253,7 @@ export const DESTINATIONS = [
       "Zanzibar. A love letter written in cinnamon and clove. Stone Town's ancient corridors lead to beaches of impossible beauty. The Indian Ocean trades in shades of turquoise reserved for those with the discernment to find them.",
     positioning:
       "Culture and coastline intertwined. Spice scented corridors, dhows sailing into fiery sunsets, and five peerless properties : Xanadu Luxury Villas & Retreat, Kilindi Zanzibar, Baraza Resort & Spa, The Palms Zanzibar, and The Residence Zanzibar : each a sanctuary of romance known only to those who seek the remarkable. From the white domed pavilions of Kilindi to the Swahili grandeur of Baraza, from the artistic vision of Xanadu to the sweeping beachfront estate of The Residence. Tropical elegance, refined to perfection, reserved for the discerning.",
-    heroImage: IMAGES.zanzibarHero,
+    heroImage: IMAGES.zanzibarRomanceHero,
     slug: "zanzibar",
     properties: ["xanadu-villas", "kilindi-zanzibar", "baraza-resort-spa", "the-palms-zanzibar", "the-residence-zanzibar"],
     experiences: [

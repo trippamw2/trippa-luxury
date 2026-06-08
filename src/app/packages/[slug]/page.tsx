@@ -9,6 +9,8 @@ import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { SITE_CONFIG } from "@/lib/constants";
 import { usePackages, useProperties } from "@/lib/use-public-data";
+import { ProductJsonLd } from "@/components/seo/ProductJsonLd";
+import { TouristTripJsonLd } from "@/components/seo/TouristTripJsonLd";
 import { cn } from "@/lib/utils";
 
 export default function PackageDetailPage() {
@@ -30,8 +32,24 @@ export default function PackageDetailPage() {
 
   const packageProperties = properties.filter((p) => pkg.properties.includes(p.id));
 
+  const destNames = pkg.destinations.map(d => d === "lake-malawi" ? "Lake Malawi" : d === "south-luangwa" ? "South Luangwa" : "Zanzibar");
+
   return (
     <>
+      <ProductJsonLd
+        name={pkg.title}
+        description={pkg.subtitle || pkg.description}
+        image={pkg.image || undefined}
+        category="Luxury Safari Package"
+      />
+      <TouristTripJsonLd
+        name={pkg.title}
+        description={pkg.subtitle || pkg.description}
+        duration={pkg.duration}
+        image={pkg.image || undefined}
+        itinerary={pkg.itinerary}
+        destination={destNames}
+      />
       {/* Hero */}
       <section className="relative h-[70vh] min-h-[500px] w-full overflow-hidden bg-soft-black">
         {pkg.image && (

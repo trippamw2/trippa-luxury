@@ -1,14 +1,23 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
 import { ArrowRightIcon } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import { IMAGES } from "@/lib/constants";
 
+const HERO_VIDEOS = [
+  { src: "/videos/kivara-safari-aerial.mp4", label: "safari" },
+  { src: "/videos/kivara-zanzibar-aerial.mp4", label: "zanzibar" },
+];
+
+const VIDEO_INTERVAL = 10000; // 10 seconds per video
+
 export function HeroSection() {
   const sectionRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start start", "end start"],
@@ -18,24 +27,43 @@ export function HeroSection() {
   const videoOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0.3]);
   const contentY = useTransform(scrollYProgress, [0, 1], [0, 120]);
 
+  // Cycle between videos
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % HERO_VIDEOS.length);
+    }, VIDEO_INTERVAL);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <section ref={sectionRef} className="relative h-screen w-full overflow-hidden bg-soft-black">
-      {/* Hero video background */}
+      {/* Dual-video carousel background */}
       <motion.div
         className="absolute inset-0"
         style={{ scale: videoScale, opacity: videoOpacity }}
       >
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          poster={IMAGES.heroPoster}
-          className="absolute inset-0 w-full h-full object-cover"
-          preload="auto"
-        >
-          <source src="/videos/kivara-hero.mp4" type="video/mp4" />
-        </video>
+        {/* Video layers with crossfade */}
+        {HERO_VIDEOS.map((video, index) => (
+          <motion.div
+            key={video.label}
+            className="absolute inset-0"
+            animate={{ opacity: index === activeIndex ? 1 : 0 }}
+            transition={{ duration: 1.5, ease: "easeInOut" }}
+          >
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              poster={IMAGES.heroPoster}
+              className="absolute inset-0 w-full h-full object-cover"
+              preload="auto"
+            >
+              <source src={video.src} type="video/mp4" />
+            </video>
+          </motion.div>
+        ))}
+
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-soft-black/60 via-soft-black/30 to-soft-black/70" />
         {/* Cinematic gold glow */}
@@ -144,6 +172,22 @@ export function HeroSection() {
           </motion.div>
         </motion.div>
       </motion.div>
+
+      {/* Video carousel indicator dots */}
+      <div className="absolute bottom-28 md:bottom-32 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2">
+        {HERO_VIDEOS.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => setActiveIndex(index)}
+            className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full transition-all duration-700 ${
+              index === activeIndex
+                ? "bg-cream w-4 md:w-5"
+                : "bg-cream/30 hover:bg-cream/50"
+            }`}
+            aria-label={`Show ${index === 0 ? "safari" : "beach"} video`}
+          />
+        ))}
+      </div>
 
       {/* Scroll indicator */}
       <motion.div

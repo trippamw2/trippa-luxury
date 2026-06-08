@@ -10,6 +10,7 @@ import { PropertyCard } from "@/components/ui/property-card";
 import { Button } from "@/components/ui/button";
 import { IMAGES } from "@/lib/constants";
 import { useProperties, usePackages, useDestinations } from "@/lib/use-public-data";
+import { FaqJsonLd } from "@/components/seo/FaqJsonLd";
 import { cn } from "@/lib/utils";
 
 const DESTINATION_SLUG = "south-luangwa";
@@ -70,18 +71,31 @@ export default function SouthLuangwaPage() {
 
   const properties = useProperties().filter((p) => p.destination === "south-luangwa");
   const packages = usePackages().filter((p) => p.destinations.includes("south-luangwa"));
+  const faqs = [
+    { question: "What is the best time to visit South Luangwa?", answer: "The dry season from May to October is the prime time for wildlife viewing in South Luangwa, as animals concentrate around the Luangwa River and vegetation thins. June through August offers exceptional game viewing with cool mornings and mild days. The emerald season (November to April) transforms the valley into a lush paradise, ideal for photographers and couples seeking solitude, though some camps close during the peak wet months of January and February." },
+    { question: "What makes South Luangwa special for couples?", answer: "South Luangwa is the birthplace of the walking safari, offering couples an intimacy with the African wilderness that no vehicle-based safari can match. With a maximum of 6-12 suites per camp and vast private concessions, you often have the bush entirely to yourselves. The combination of expert guides, exceptional wildlife concentrations, and ultra-luxury camps creates a safari experience that is both thrilling and deeply romantic." },
+    { question: "What is a walking safari?", answer: "A walking safari is the original form of safari — exploring the bush on foot with an expert armed guide and tracker. South Luangwa pioneered this experience, and it remains the most intimate way to encounter Africa's wildlife. You track animals, learn about tracks and plants, and feel the raw energy of the bush. It is safe, profoundly moving, and arguably the most romantic way to experience the African wilderness together." },
+    { question: "Which luxury camps are in South Luangwa?", answer: "Kivara curates four exceptional South Luangwa properties: Time+Tide Chinzombo (six avant-garde riverfront villas with private plunge pools), Puku Ridge Camp (six hilltop suites with star bed towers overlooking the floodplain), Shawa Luangwa Camp (six eco-luxury tented suites with solar-powered safaris), and Luangwa River Camp (five intimate riverside suites). Each offers a distinct experience across the spectrum of South Luangwa luxury." },
+    { question: "How do I get to South Luangwa?", answer: "International visitors fly into Kenneth Kaunda International Airport in Lusaka (LUN) or Harry Mwanga Nkumbula International Airport in Livingstone (LVI). From Lusaka, it's a 1.5-hour light aircraft flight to Mfuwe Airport, followed by a 30-60 minute game-drive transfer to your camp. Kivara arranges all internal flights and transfers for a seamless journey." },
+    { question: "What wildlife can we see in South Luangwa?", answer: "South Luangwa is renowned for its extraordinary concentration of wildlife, including large herds of elephants, Thornicroft's giraffe (endemic to the region), leopards, lions, wild dogs, hippos, crocodiles, and over 400 bird species. The park is particularly famous for its leopard sightings — many consider it the best place in Africa to see these elusive cats. Night drives reveal a completely different world of nocturnal wildlife." },
+  ];
+
   return (
     <>
+      <FaqJsonLd items={faqs} />
       {/* Hero Section */}
       <section className="relative h-screen w-full overflow-hidden bg-soft-black">
-        <Image
-          src={IMAGES.southLuangwaHero}
-          alt="South Luangwa"
-          fill
-          className="object-cover"
-          priority
-          sizes="100vw"
-        />
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          poster={IMAGES.southLuangwaRomanceHero}
+          className="absolute inset-0 w-full h-full object-cover"
+          preload="auto"
+        >
+          <source src="/videos/kivara-safari-aerial.mp4" type="video/mp4" />
+        </video>
         <div className="absolute inset-0 bg-gradient-to-br from-soft-black/80 via-soft-black/60 to-earth/40" />
         <div className="absolute inset-0 bg-gradient-to-t from-soft-black/70 via-transparent to-soft-black/20" />
         <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] rounded-full opacity-[0.06]"
@@ -471,6 +485,44 @@ export default function SouthLuangwaPage() {
           </Container>
         </section>
       )}
+
+      {/* FAQ Section */}
+      <section className="py-24 md:py-32 bg-warm-white">
+        <Container>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            className="max-w-3xl mx-auto text-center mb-16"
+          >
+            <span className="inline-block text-xs font-medium tracking-[0.2em] uppercase text-gold mb-4">
+              Frequently Asked Questions
+            </span>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-medium text-soft-black leading-tight">
+              Planning Your
+              <br />
+              <span className="italic text-earth">South Luangwa Safari</span>
+            </h2>
+          </motion.div>
+
+          <div className="max-w-3xl mx-auto space-y-4">
+            {faqs.map((faq, index) => (
+              <motion.div
+                key={faq.question}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: index * 0.05 }}
+                className="bg-cream border border-sand-light/30 p-6 md:p-8"
+              >
+                <h3 className="text-base font-heading font-medium text-soft-black mb-3">{faq.question}</h3>
+                <p className="text-sm text-earth leading-relaxed">{faq.answer}</p>
+              </motion.div>
+            ))}
+          </div>
+        </Container>
+      </section>
 
       {/* Inquiry Section */}
       <section id="inquiry" className="py-24 md:py-32 bg-cream">

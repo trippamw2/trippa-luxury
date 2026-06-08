@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     description:
       "Reach out to Kivara's concierge team. Let us craft your African romance escape: a bespoke itinerary designed around your love story.",
     url: canonical,
-    images: [{ url: "/images/kivara-og.jpg", width: 1200, height: 630, alt: "Kivara Luxury Travel" }],
+    images: [{ url: "/images/hero-poster.jpg", width: 1200, height: 630, alt: "Kivara Luxury Travel" }],
     type: "website",
     locale: "en_US",
     siteName: "Kivara Luxury Travel",
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     title: "Contact: Begin Your Journey | Kivara Luxury Travel",
     description:
       "Reach out to Kivara's concierge team. Let us craft your African romance escape: a bespoke itinerary designed around your love story.",
-    images: ["/images/kivara-og.jpg"],
+    images: ["/images/hero-poster.jpg"],
   },
 };
 

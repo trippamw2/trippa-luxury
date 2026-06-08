@@ -58,7 +58,7 @@ export function generateQuoteDocument(journey: CuratedJourney, meta: {
     ${documentHeader({ title: "Journey Proposal", reference: meta.reference, clientName: journey.guestProfile.name })}
     ${documentBody(`
       <h1>Dear ${journey.guestProfile.name},</h1>
-      <p>It is our privilege to present this personally curated journey for you. Every element has been selected with care — from the properties that will host you to the moments waiting to be discovered.</p>
+      <p>It is our privilege to present this personally curated journey for you. Every element has been selected with care : from the properties that will host you to the moments waiting to be discovered.</p>
 
       ${refBox("Quote Reference", meta.reference)}
 

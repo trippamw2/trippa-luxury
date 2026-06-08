@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   return {
-    title: `${pkg.title} — Luxury Travel Package | Kivara`,
+    title: `${pkg.title}: Luxury Travel Package | Kivara`,
     description: pkg.subtitle || pkg.description,
     alternates: {
       canonical: `${SITE_URL}/packages/${pkg.id}`,

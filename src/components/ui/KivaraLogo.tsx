@@ -37,7 +37,7 @@ export function KivaraLogo({
       aria-label="Kivara"
       role="img"
     >
-      {/* ─── Horizon Symbol — tapered calligraphic arcs ───────── */}
+      {/* ─── Horizon Symbol : tapered calligraphic arcs ───────── */}
       {/* Each curve is a filled shape: thickest in the middle,     */}
       {/* tapering to sharp points at ends. Upper arches down,      */}
       {/* lower arches up. Span from above I to above R.            */}
@@ -53,7 +53,7 @@ export function KivaraLogo({
         opacity={variant === "light" ? 0.8 : 1}
       />
 
-      {/* ─── Wordmark — KIVARA ──────────────────────────────── */}
+      {/* ─── Wordmark : KIVARA ──────────────────────────────── */}
       <text
         x="200"
         y="88"
@@ -67,13 +67,13 @@ export function KivaraLogo({
         KIVARA
       </text>
 
-      {/* ─── Tagline — BUSH • BEACH • ROMANCE ───────────────── */}
+      {/* ─── Tagline : BUSH • BEACH • ROMANCE ───────────────── */}
       {showTagline && (
         <text
           x="200"
           y="120"
           textAnchor="middle"
-          fontFamily="'Montserrat','Helvetica Neue',Arial,sans-serif"
+          fontFamily="'Inter','Helvetica Neue',Arial,sans-serif"
           fontSize="7"
           fontWeight="300"
           fill={c.tagline}

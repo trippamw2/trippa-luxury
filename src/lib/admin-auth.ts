@@ -32,7 +32,7 @@ export async function requireAdmin() {
   const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
 
   if (sessionError || !sessionData.session) {
-    throw new AdminAuthError("Unauthorized — no valid session");
+    throw new AdminAuthError("Unauthorized : no valid session");
   }
 
   // Use service-role client to bypass the self-referencing RLS policy
@@ -45,11 +45,11 @@ export async function requireAdmin() {
     .single();
 
   if (profileError || !profile) {
-    throw new AdminAuthError("Forbidden — not an admin user", 403);
+    throw new AdminAuthError("Forbidden : not an admin user", 403);
   }
 
   if (!["admin", "editor"].includes(profile.role)) {
-    throw new AdminAuthError("Forbidden — insufficient role permissions", 403);
+    throw new AdminAuthError("Forbidden : insufficient role permissions", 403);
   }
 
   return {

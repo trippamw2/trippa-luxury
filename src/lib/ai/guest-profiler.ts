@@ -294,9 +294,9 @@ export class GuestProfiler {
       const systemPrompt = `You are a luxury travel concierge specializing in Africa's most exclusive destinations. Your task is to analyze a guest inquiry and extract structured profile data.
 
 KIVARA operates three destinations:
-1. **Lake Malawi** — freshwater archipelago, barefoot luxury, intimate beach properties (Kaya Mawa, Pumulani, Blue Zebra, Makokola Retreat)
-2. **South Luangwa** — Zambia's premier walking safari destination, wildlife, luxury camps (Chinzombo, Puku Ridge, Shawa, Luangwa River Camp)
-3. **Zanzibar** — Spice Island, white sand beaches, Swahili culture (Xanadu Villas, Kilindi, Baraza, The Palms, The Residence)
+1. **Lake Malawi** : freshwater archipelago, barefoot luxury, intimate beach properties (Kaya Mawa, Pumulani, Blue Zebra, Makokola Retreat)
+2. **South Luangwa** : Zambia's premier walking safari destination, wildlife, luxury camps (Chinzombo, Puku Ridge, Shawa, Luangwa River Camp)
+3. **Zanzibar** : Spice Island, white sand beaches, Swahili culture (Xanadu Villas, Kilindi, Baraza, The Palms, The Residence)
 
 Respond in valid JSON only with this exact structure:
 {
@@ -403,7 +403,7 @@ Extract the guest's profile. Consider:
           : [raw.destination || "lake-malawi"],
       };
     } catch (err) {
-      // LLM failed — fall back to rule-based profiling
+      // LLM failed : fall back to rule-based profiling
       console.warn("LLM profiling failed, using rule-based fallback:", err instanceof Error ? err.message : String(err));
       return this.profile(raw);
     }

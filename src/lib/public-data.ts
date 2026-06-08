@@ -28,7 +28,7 @@ const PROPERTY_MERGE_FIELDS = [
   "reviews", "isFeatured", "isActive",
 ] as const;
 
-/** Merge constant properties with Supabase overrides — DB wins on all fields */
+/** Merge constant properties with Supabase overrides : DB wins on all fields */
 export async function getMergedProperties() {
   try {
     const supabase = createAdminClient();
@@ -263,7 +263,7 @@ const DESTINATION_MERGE_FIELDS = [
   "isFeatured",
 ] as const;
 
-/** Merge constant destinations with Supabase overrides — DB wins on all fields */
+/** Merge constant destinations with Supabase overrides : DB wins on all fields */
 export async function getMergedDestinations() {
   try {
     const supabase = createAdminClient();

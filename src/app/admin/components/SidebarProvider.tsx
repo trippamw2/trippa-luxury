@@ -108,12 +108,12 @@ export function Sidebar() {
 
   return (
     <>
-      {/* Desktop sidebar — always visible */}
+      {/* Desktop sidebar : always visible */}
       <aside className="hidden lg:flex lg:flex-col w-64 min-h-screen bg-soft-black text-cream fixed left-0 top-0 bottom-0 overflow-y-auto z-30">
         {sidebarContent}
       </aside>
 
-      {/* Mobile sidebar — drawer overlay */}
+      {/* Mobile sidebar : drawer overlay */}
       {isOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
           {/* Backdrop */}

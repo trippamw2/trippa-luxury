@@ -6,12 +6,12 @@ const canonical = `${SITE_URL}/journal`;
 export const metadata: Metadata = {
   title: "Journal | Kivara Luxury Travel",
   description:
-    "Kivara's Journal — inspiration for discerning travelers. Destination guides, romantic itineraries, and stories from Africa's most extraordinary escapes. Lake Malawi, South Luangwa, and Zanzibar.",
+    "Kivara's Journal: inspiration for discerning travelers. Destination guides, romantic itineraries, and stories from Africa's most remarkable escapes. Lake Malawi, South Luangwa, and Zanzibar.",
   alternates: { canonical },
   openGraph: {
     title: "Journal | Kivara Luxury Travel",
     description:
-      "Kivara's Journal — inspiration for discerning travelers. Destination guides, romantic itineraries, and stories from Africa's most extraordinary escapes.",
+      "Kivara's Journal: inspiration for discerning travelers. Destination guides, romantic itineraries, and stories from Africa's most remarkable escapes.",
     url: canonical,
     type: "website",
     locale: "en_US",

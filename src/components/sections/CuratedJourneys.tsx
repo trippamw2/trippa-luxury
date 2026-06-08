@@ -3,7 +3,8 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Clock, MapPin } from "lucide-react";
+import { ArrowRightIcon, ClockIcon, MapPinIcon } from "@/components/ui/icons";
+import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { usePackages } from "@/lib/use-public-data";
 
@@ -70,11 +71,11 @@ export function CuratedJourneys() {
                     <p className="text-sm text-cream/70 mb-3">{pkg.subtitle}</p>
                     <div className="flex items-center gap-4 text-xs text-cream/60">
                       <span className="flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5" />
+                        <ClockIcon className="w-3.5 h-3.5" />
                         {pkg.duration}
                       </span>
                       <span className="flex items-center gap-1.5">
-                        <MapPin className="w-3.5 h-3.5" />
+                        <MapPinIcon className="w-3.5 h-3.5" />
                         {pkg.destinations.length} destinations
                       </span>
                     </div>
@@ -89,10 +90,10 @@ export function CuratedJourneys() {
                     {pkg.description}
                   </p>
                   <div className="mt-3 flex items-center justify-between">
-                    <span className="text-xs text-gold font-medium">{pkg.price}</span>
+                    <span className="text-xs text-gold/70 font-medium">Enquire Within</span>
                     <span className="inline-flex items-center gap-1 text-xs text-soft-black tracking-widest uppercase group-hover:text-gold-dark transition-colors">
                       View Details
-                      <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-1" />
+                      <ArrowRightIcon className="w-3 h-3 transition-transform group-hover:translate-x-1" />
                     </span>
                   </div>
                 </div>
@@ -108,13 +109,14 @@ export function CuratedJourneys() {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="mt-12 text-center"
         >
-          <Link
-            href="/packages"
-            className="inline-flex items-center gap-2 px-8 py-4 border border-soft-black text-soft-black text-sm font-medium tracking-[0.15em] uppercase hover:bg-soft-black hover:text-cream transition-all duration-500"
-          >
+          <Button
+              href="/packages"
+              variant="outline"
+              size="lg"
+            >
             View All Journeys
-            <ArrowRight className="w-4 h-4" />
-          </Link>
+                    <ArrowRightIcon className="w-4 h-4" />
+          </Button>
         </motion.div>
       </Container>
     </section>

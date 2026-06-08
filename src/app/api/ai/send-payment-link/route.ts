@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     // 3. Send email
     const result = await sendEmail({
       to: [{ email: clientEmail, name: clientName }],
-      subject: `${typeLabel} Required — ${bookingRef} — Kivara Luxury Travel`,
+      subject: `${typeLabel} Required : ${bookingRef} : Kivara Luxury Travel`,
       htmlContent: html,
     });
 

@@ -57,13 +57,13 @@ const ACCOMMODATION_BRAND: Record<string, string> = {
 };
 
 const ACTIVITY_SENSORY: Record<string, string> = {
-  safari: "The golden light of dawn spills across the plains as the bush stirs to life — a quiet communion with the wild",
+  safari: "The golden light of dawn spills across the plains as the bush stirs to life : a quiet communion with the wild",
   "water-sports": "The lake shimmers in the midday sun, inviting you into its crystalline embrace",
   cultural: "The rhythm of an ancient culture unfolds before you, whispered through song, dance, and story",
   spa: "Stillness descends as skilled hands work away the residue of the world beyond",
-  dining: "Under a canopy of stars, dinner becomes a ceremony — each course a celebration of place",
+  dining: "Under a canopy of stars, dinner becomes a ceremony : each course a celebration of place",
   relaxation: "Time slows. The world recedes. You surrender to the gentle rhythm of Africa",
-  adventure: "The path less travelled beckons —每一步 a discovery, every vista a revelation",
+  adventure: "The path less travelled beckons :每一步 a discovery, every vista a revelation",
   wellness: "Breathe. Stretch. Surrender. Here, wellness is not an activity but a way of being",
   other: "A moment crafted to linger in memory",
 };
@@ -161,7 +161,7 @@ function generateActivities(
     acts.push({
       time: "Afternoon",
       title: "Arrival & Welcome",
-      description: `Arrive at ${property.name}, ${ambiance} in the heart of ${property.location}. A welcome awaits — cool towels, a gentle orientation, and the first breath of your new surroundings.`,
+      description: `Arrive at ${property.name}, ${ambiance} in the heart of ${property.location}. A welcome awaits : cool towels, a gentle orientation, and the first breath of your new surroundings.`,
       duration: "2 hours",
       included: true,
       type: "relaxation",
@@ -170,7 +170,7 @@ function generateActivities(
       acts.push({
         time: "Evening",
         title: "Welcome Dinner",
-        description: `A private dinner at ${property.name} — the first of many evenings where cuisine becomes ceremony, and the African night enfolds you.`,
+        description: `A private dinner at ${property.name} : the first of many evenings where cuisine becomes ceremony, and the African night enfolds you.`,
         duration: "2 hours",
         included: true,
         type: "dining",
@@ -179,7 +179,7 @@ function generateActivities(
       acts.push({
         time: "Evening",
         title: "Evening Orientation",
-        description: `Settle in with a sundowner as your concierge walks you through the days ahead — a gentle beginning to your journey.`,
+        description: `Settle in with a sundowner as your concierge walks you through the days ahead : a gentle beginning to your journey.`,
         duration: "1 hour",
         included: true,
         type: "dining",
@@ -192,7 +192,7 @@ function generateActivities(
     acts.push({
       time: "Morning",
       title: "Final Breakfast",
-      description: "One last morning in this place. Breakfast lingers as you absorb the atmosphere — a quiet farewell before your next chapter.",
+      description: "One last morning in this place. Breakfast lingers as you absorb the atmosphere : a quiet farewell before your next chapter.",
       duration: "1.5 hours",
       included: true,
       type: "dining",
@@ -355,7 +355,7 @@ function generateAirTransfer(
   if (isExit) {
     return {
       from: `${fromName} (${fromCode})`,
-      to: `${toName} (${toCode}) — International Departure`,
+      to: `${toName} (${toCode}) : International Departure`,
       mode: "flight",
       duration: "~45–60 minutes",
       cost,
@@ -420,7 +420,7 @@ function buildArrivalTransfers(
     const isSame = poe.name === currentLocal.name;
     if (!isSame) {
       transfers.push(generateAirTransfer(
-        `${poe.name} (${poe.code}) — International Arrival`,
+        `${poe.name} (${poe.code}) : International Arrival`,
         poe.code,
         currentLocal.name,
         currentLocal.code,
@@ -791,7 +791,7 @@ export class JourneyEngine {
         alternatives.push({
           type: "property-swap",
           title: `Experience ${alternative.name}`,
-          description: `An alternative retreat awaits — ${alternative.tagline}`,
+          description: `An alternative retreat awaits : ${alternative.tagline}`,
           impact: alternative.priceRange ? `Investment: ${alternative.priceRange}` : "A different atmosphere",
           journey: altJourney,
         });
@@ -836,7 +836,7 @@ export class JourneyEngine {
     const accomSub = journey.pricing.subtotal - xfTotal;
     const lines = [
       "═══════════════════════════════════════",
-      "  KIVARA LUXURY TRAVEL — JOURNEY PROPOSAL",
+      "  KIVARA LUXURY TRAVEL : JOURNEY PROPOSAL",
       "═══════════════════════════════════════",
       "",
       `  ${journey.title}`,
@@ -905,10 +905,10 @@ export class JourneyEngine {
         };
       });
 
-      const systemPrompt = `You are Kivara's lead journey curator — a master of African luxury travel design. You craft bespoke itineraries for discerning couples.
+      const systemPrompt = `You are Kivara's lead journey curator : a master of African luxury travel design. You craft bespoke itineraries for discerning couples.
 
 KIVARA BRAND VOICE:
-- Tone: Warm, sophisticated, intimate. Not transactional — evocative.
+- Tone: Warm, sophisticated, intimate. Not transactional : evocative.
 - Language: "sanctuary" not "hotel", "journey" not "trip", "investment" not "price", "discover" not "visit"
 - Spirit: Africa's most coveted romance sanctuary. We occupy the space between Aman's serenity and &Beyond's wilderness.
 
@@ -1089,7 +1089,7 @@ Property selection guidelines:
         status: "draft",
       };
     } catch (err) {
-      // LLM failed — fall back to rule-based generation
+      // LLM failed : fall back to rule-based generation
       console.warn(
         "LLM journey generation failed, using rule-based fallback:",
         err instanceof Error ? err.message : String(err)

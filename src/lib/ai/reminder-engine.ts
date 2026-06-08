@@ -56,7 +56,7 @@ function emailHtml(bodyContent: string): string {
         ${bodyContent}
       </div>
       <div style="background: #EDE5DA; padding: 16px 40px; text-align: center;">
-        <p style="font-size: 10px; color: #8B7D6B; margin: 0;">Kivara Luxury Travel — concierge@kivara.luxury</p>
+        <p style="font-size: 10px; color: #8B7D6B; margin: 0;">Kivara Luxury Travel : concierge@kivara.luxury</p>
       </div>
     </div>`;
 }
@@ -71,7 +71,7 @@ export class ReminderEngine {
   ): ReminderContent {
     const templates: Record<ReminderSchedule["type"], { subject: string; body: string }> = {
       "n30": {
-        subject: `Your Kivara Journey — ${destination} Awaits`,
+        subject: `Your Kivara Journey : ${destination} Awaits`,
         body: `
           <h2 style="font-family: 'Times New Roman', serif; font-size: 20px; color: #1A1A1A; margin: 0 0 16px;">Your journey approaches, ${clientName}</h2>
           <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 16px;">${preTrip30(clientName, destination).replace(/^Dear [^,]*, /, "")}</p>
@@ -83,7 +83,7 @@ export class ReminderEngine {
         `,
       },
       "n14": {
-        subject: `${destination} — Your Journey Takes Shape`,
+        subject: `${destination} : Your Journey Takes Shape`,
         body: `
           <h2 style="font-family: 'Times New Roman', serif; font-size: 20px; color: #1A1A1A; margin: 0 0 16px;">Two weeks until ${destination}, ${clientName}</h2>
           <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 16px;">${preTrip14(clientName, destination).replace(/^Dear [^,]*, /, "")}</p>
@@ -121,7 +121,7 @@ export class ReminderEngine {
         `,
       },
       "day-of": {
-        subject: `Welcome to ${destination} — Your Kivara Journey Begins`,
+        subject: `Welcome to ${destination} : Your Kivara Journey Begins`,
         body: `
           <h2 style="font-family: 'Times New Roman', serif; font-size: 20px; color: #1A1A1A; margin: 0 0 16px;">Welcome to ${destination}, ${clientName}</h2>
           <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 16px;">${dayOfTravel(clientName, destination).replace(/^Dear [^,]*, /, "")}</p>

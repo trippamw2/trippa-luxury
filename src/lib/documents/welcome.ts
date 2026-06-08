@@ -12,7 +12,7 @@ export function generateWelcomeDocument(clientName: string, bookingRef: string, 
       <div style="text-align: center; margin: 32px 0;">
         <div style="font-size: 42px; color: #C9A96E; margin-bottom: 8px;">✦</div>
         <p style="font-size: 14px; color: #8B7D6B; font-style: italic; max-width: 400px; margin: 0 auto;">
-          "${destination} awaits — a world of wonder, intimacy, and discovery."
+          "${destination} awaits : a world of wonder, intimacy, and discovery."
         </p>
       </div>
 

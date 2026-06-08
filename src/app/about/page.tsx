@@ -22,13 +22,13 @@ const values = [
     icon: Sparkles,
     title: "Wellness & Restoration",
     description:
-      "Wellness restores you so romance can flourish. Slow mornings, spa rituals, healing environments — space to surrender to stillness together.",
+      "Wellness restores you so romance can flourish. Slow mornings, spa rituals, healing environments: space to surrender to stillness together.",
   },
   {
     icon: Leaf,
     title: "Emotional Curation",
     description:
-      "We are your romantic travel concierge. Every detail — every transfer, every experience, every surprise — designed so you feel nothing but connection.",
+      "We are your romantic travel concierge. Every detail: every transfer, every experience, every surprise: designed so you feel nothing but connection.",
   },
 ];
 
@@ -87,7 +87,7 @@ export default function AboutPage() {
               </h2>
               <p className="text-base md:text-lg text-earth leading-relaxed max-w-3xl mx-auto">
                 The most luxurious travel touches your heart. 
-                We are not a booking platform — we are architects of romance, curators of moments, 
+                We are not a booking platform: we are architects of romance, curators of moments, 
                 and storytellers of Africa&apos;s most beautiful places.
               </p>
             </motion.div>
@@ -116,11 +116,11 @@ export default function AboutPage() {
                 </h3>
                 <p className="text-base text-earth leading-relaxed mb-4">
                   Africa gets under your skin. The warmth of its people, the vastness of its landscapes, 
-                  the intimacy of its wildlife — nowhere makes you feel so alive.
+                  the intimacy of its wildlife: nowhere makes you feel so alive.
                 </p>
                 <p className="text-base text-earth leading-relaxed mb-4">
                   Kivara exists for couples seeking something deeper than a vacation. A journey that 
-                  becomes part of who you are. That changes how you see the world — and each other.
+                  becomes part of who you are. That changes how you see the world: and each other.
                 </p>
                 <p className="text-base text-earth leading-relaxed">
                   Every itinerary, every property, every experience answers one question: will this move you?
@@ -149,7 +149,7 @@ export default function AboutPage() {
                 </p>
                 <p className="text-base text-earth leading-relaxed mb-4">
                   &ldquo;We found that couples weren&apos;t looking for another vacation. They were 
-                  seeking a container for their connection — a space where the noise of daily life 
+                  seeking a container for their connection: a space where the noise of daily life 
                   fell away and they could remember why they chose each other.&rdquo;
                 </p>
                 <p className="text-base text-earth leading-relaxed">

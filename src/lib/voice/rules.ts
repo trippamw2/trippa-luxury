@@ -4,9 +4,9 @@
 //
 // BRAND POSITIONING: Romance is the primary pillar. Nature and Wellness support it.
 // Core proposition: "Luxury journeys designed for deep connection."
-// Voice should feel like a luxury love story — sensual, elegant, cinematic, emotionally intelligent.
+// Voice should feel like a luxury love story : sensual, elegant, cinematic, emotionally intelligent.
 
-/** Luxury-appropriate vocabulary — prefer these words */
+/** Luxury-appropriate vocabulary : prefer these words */
 export const PREFERRED_VOCABULARY: Record<string, string[]> = {
   accommodation: ["residence", "retreat", "sanctuary", "lodge", "camp", "villa", "haven", "hideaway"],
   journey: ["journey", "escape", "sojourn", "expedition", "pilgrimage", "odyssey", "romance"],

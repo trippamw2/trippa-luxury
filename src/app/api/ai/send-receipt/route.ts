@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
 
     const result = await sendEmail({
       to: [{ email: clientEmail, name: clientName }],
-      subject: `Payment Receipt — ${receipt.receiptRef} — Kivara Luxury Travel`,
+      subject: `Payment Receipt : ${receipt.receiptRef} : Kivara Luxury Travel`,
       htmlContent: html,
     });
 

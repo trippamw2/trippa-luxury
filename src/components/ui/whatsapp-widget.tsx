@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { MessageCircle, X } from "lucide-react";
+import { XIcon } from "@/components/ui/icons";
+import { MessageCircle } from "lucide-react";
 import { SITE_CONFIG } from "@/lib/constants";
 
 export function WhatsAppWidget() {
@@ -45,7 +46,7 @@ export function WhatsAppWidget() {
         className="w-14 h-14 bg-green-600 text-white rounded-full shadow-lg hover:bg-green-700 transition-all duration-300 flex items-center justify-center hover:scale-105 active:scale-95"
         aria-label="WhatsApp Concierge"
       >
-        {open ? <X className="w-6 h-6" /> : <MessageCircle className="w-6 h-6" />}
+        {open ? <XIcon className="w-6 h-6" /> : <MessageCircle className="w-6 h-6" />}
       </button>
     </div>
   );

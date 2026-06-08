@@ -93,7 +93,8 @@ export default function SouthLuangwaPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1.2, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
           >
-            <span className="inline-block text-xs md:text-sm font-medium tracking-[0.25em] uppercase text-gold-light mb-4 md:mb-6">
+            <div className="w-16 h-px bg-accent-amber mx-auto mb-4"></div>
+            <span className="inline-block text-xs md:text-sm font-medium tracking-[0.25em] uppercase text-accent-amber mb-4 md:mb-6">
               {destination.subtitle}
             </span>
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-heading font-medium text-cream leading-tight">
@@ -155,10 +156,10 @@ export default function SouthLuangwaPage() {
                 as if welcoming you into their world.
               </p>
               <p className="text-base text-earth leading-relaxed">
-                This is not a theme park — it is the real Africa. Untamed, intimate, and deeply 
+                This is not a theme park: it is the real Africa. Untamed, intimate, and deeply 
                 moving. You walk ancient paths together, with nothing but the sounds of the bush 
                 around you. You fall asleep to the rumble of lions and wake to the call of fish 
-                eagles, knowing you are among a privileged few who will ever know this silence. 
+                eagles, knowing you are among a fortunate few who will ever know this silence. 
                 Here, your love story finds its wildest, most beautiful chapter.
               </p>
               <p className="text-base text-earth leading-relaxed">
@@ -204,7 +205,7 @@ export default function SouthLuangwaPage() {
               <div className="absolute inset-0 bg-gradient-to-t from-soft-black/50 via-transparent to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-8">
                 <p className="text-cream/90 font-heading text-lg italic">&ldquo;The Valley of the Leopard&rdquo;</p>
-                <p className="text-cream/60 text-sm mt-1">— Norman Carr</p>
+                <p className="text-cream/60 text-sm mt-1">: Norman Carr</p>
               </div>
             </motion.div>
           </div>
@@ -455,7 +456,7 @@ export default function SouthLuangwaPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <span className="text-xs text-earth/60">{pkg.duration}</span>
-                      <span className="text-xs text-gold font-medium ml-4">{pkg.price}</span>
+                      <span className="text-xs text-gold/70 font-medium ml-4">Enquire Within</span>
                     </div>
                     <Link
                       href={`/packages#${pkg.id}`}

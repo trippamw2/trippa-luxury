@@ -64,7 +64,7 @@ export default function ContactPage() {
               Begin Your Journey
             </h1>
             <p className="mt-4 text-base md:text-lg text-cream/60 max-w-xl mx-auto">
-              Your personal luxury concierge is ready to craft the perfect escape.
+              Your personal luxury concierge is ready to craft your escape.
             </p>
           </motion.div>
         </div>
@@ -92,7 +92,7 @@ export default function ContactPage() {
               </h2>
               <p className="text-sm text-earth leading-relaxed mb-10">
                 Whether you&apos;re dreaming of a specific journey or need guidance discovering 
-                the perfect escape, our concierge team is here to bring your vision to life.
+                your escape, our concierge team is here to bring your vision to life.
               </p>
 
               <div className="space-y-6">
@@ -189,7 +189,7 @@ export default function ContactPage() {
                     <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-4" />
                     <h3 className="text-xl font-heading font-medium text-soft-black mb-2">Thank You</h3>
                     <p className="text-sm text-earth leading-relaxed max-w-sm mx-auto">
-                      Your inquiry has been received. Our concierge team will reach out within 24 hours to craft your perfect escape.
+                      Your inquiry has been received. Our concierge team will reach out within 24 hours to craft your escape.
                     </p>
                   </div>
                 ) : (
@@ -239,7 +239,7 @@ export default function ContactPage() {
 
                     <div>
                       <label className="block text-xs font-medium tracking-widest uppercase text-earth mb-1.5">Your Message *</label>
-                      <textarea name="message" rows={5} required className="w-full px-4 py-3 bg-cream border border-sand-light/50 text-soft-black text-sm focus:outline-none focus:border-gold transition-colors resize-none" placeholder="Tell us about your dream escape — what experiences, properties, and style of travel appeal to you..." />
+                      <textarea name="message" rows={5} required className="w-full px-4 py-3 bg-cream border border-sand-light/50 text-soft-black text-sm focus:outline-none focus:border-gold transition-colors resize-none" placeholder="Tell us about your dream escape: what experiences, properties, and style of travel appeal to you..." />
                     </div>
 
                     <button

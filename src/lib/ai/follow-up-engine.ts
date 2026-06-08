@@ -1,5 +1,5 @@
 // ─── Kivara Follow-up Engine (Brand Voice) ───────────────────────────────
-// Post-trip client engagement — check-in, NPS, referral requests.
+// Post-trip client engagement : check-in, NPS, referral requests.
 // All prose uses the KIVARA brand voice for emotional warmth and gratitude.
 
 import {
@@ -33,8 +33,8 @@ export function generateFollowUpSchedules(travelEnd: string): ExtendedFollowUpSc
 
   return [
     { type: "d1", label: "Day 1 Check-in", delayDays: 1, sent: false },
-    { type: "d7", label: "Day 7 — NPS Survey", delayDays: 7, sent: false },
-    { type: "d30", label: "Day 30 — Referral Request", delayDays: 30, sent: false },
+    { type: "d7", label: "Day 7 : NPS Survey", delayDays: 7, sent: false },
+    { type: "d30", label: "Day 30 : Referral Request", delayDays: 30, sent: false },
   ].map((s) => {
     const dueDate = new Date(end);
     dueDate.setDate(dueDate.getDate() + s.delayDays);
@@ -56,7 +56,7 @@ function emailHtml(bodyContent: string): string {
         ${bodyContent}
       </div>
       <div style="background: #EDE5DA; padding: 16px 40px; text-align: center;">
-        <p style="font-size: 10px; color: #8B7D6B; margin: 0;">Kivara Luxury Travel — concierge@kivara.luxury</p>
+        <p style="font-size: 10px; color: #8B7D6B; margin: 0;">Kivara Luxury Travel : concierge@kivara.luxury</p>
       </div>
     </div>`;
 }
@@ -69,7 +69,7 @@ export class FollowUpEngine {
   ): FollowUpContent {
     const templates: Record<FollowUpType, { subject: string; body: string }> = {
       d1: {
-        subject: `Welcome Home, ${clientName} — How Was Your Journey?`,
+        subject: `Welcome Home, ${clientName} : How Was Your Journey?`,
         body: `
           <h2 style="font-family: 'Times New Roman', serif; font-size: 20px; color: #1A1A1A; margin: 0 0 16px;">Welcome home, ${clientName}</h2>
           <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 16px;">${postTripDay1(clientName, destination).replace(/^Dear [^,]*, /, "")}</p>
@@ -78,7 +78,7 @@ export class FollowUpEngine {
         `,
       },
       d7: {
-        subject: `Share Your Kivara Experience — A Thoughtful Request`,
+        subject: `Share Your Kivara Experience : A Thoughtful Request`,
         body: `
           <h2 style="font-family: 'Times New Roman', serif; font-size: 20px; color: #1A1A1A; margin: 0 0 16px;">We value your perspective, ${clientName}</h2>
           <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 16px;">${postTripDay7(clientName, destination).replace(/^Dear [^,]*, /, "")}</p>

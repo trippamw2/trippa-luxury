@@ -11,7 +11,7 @@ export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
   const [checking, setChecking] = useState(true);
 
-  // Login page has its own layout — skip auth check there
+  // Login page has its own layout : skip auth check there
   const isLoginPage = pathname === "/admin/login";
 
   useEffect(() => {

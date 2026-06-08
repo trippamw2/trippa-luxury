@@ -39,7 +39,7 @@ export function generateReceiptDocument(data: ReceiptDocumentData): string {
         ${data.balanceRemaining ? `<tr><td style="padding: 10px 0; font-size: 12px; color: #8B7D6B; border-bottom: 1px solid #EDE5DA;">Balance Remaining</td><td style="padding: 10px 0; font-size: 14px; border-bottom: 1px solid #EDE5DA;">${data.currency} ${data.balanceRemaining.toLocaleString()}</td></tr>` : ""}
       </table>
 
-      <p>Your journey is one step closer. Our concierge team is curating every detail to ensure your experience is extraordinary.</p>
+      <p>Your journey is one step closer. Our concierge team is curating every detail to ensure your experience is remarkable.</p>
       <p style="margin-top: 16px;">Warmest regards,<br><strong style="color: #C9A96E;">The Kivara Team</strong></p>
     `)}
     ${documentFooter()}

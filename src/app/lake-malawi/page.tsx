@@ -97,7 +97,8 @@ export default function LakeMalawiPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1.2, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
           >
-            <span className="inline-block text-xs md:text-sm font-medium tracking-[0.25em] uppercase text-gold-light mb-4 md:mb-6">
+            <div className="w-16 h-px bg-accent-teal mx-auto mb-4"></div>
+            <span className="inline-block text-xs md:text-sm font-medium tracking-[0.25em] uppercase text-accent-teal mb-4 md:mb-6">
               {destination.subtitle}
             </span>
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-heading font-medium text-cream leading-tight">
@@ -153,7 +154,7 @@ export default function LakeMalawiPage() {
                 <span className="italic text-earth">Where Freshwater Meets Paradise</span>
               </h2>
               <p className="text-base text-earth leading-relaxed mb-4">
-                Lake Malawi is not merely a destination — it is a feeling. Known as the Lake of Stars, 
+                Lake Malawi is not merely a destination: it is a feeling. Known as the Lake of Stars, 
                 this ancient freshwater sea has cradled lovers for centuries. You wake to the gentle 
                 lap of water against the shore, spend your days exploring deserted islands hand in hand, 
                 and dine beneath constellations on a private beach where the only footsteps in the sand 
@@ -198,7 +199,7 @@ export default function LakeMalawiPage() {
               <div className="absolute inset-0 bg-gradient-to-t from-soft-black/50 via-transparent to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-8">
                 <p className="text-cream/90 font-heading text-lg italic">&ldquo;The Lake of Stars&rdquo;</p>
-                <p className="text-cream/60 text-sm mt-1">— David Livingstone</p>
+                <p className="text-cream/60 text-sm mt-1">: David Livingstone</p>
               </div>
             </motion.div>
           </div>
@@ -449,7 +450,7 @@ export default function LakeMalawiPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <span className="text-xs text-earth/60">{pkg.duration}</span>
-                      <span className="text-xs text-gold font-medium ml-4">{pkg.price}</span>
+                      <span className="text-xs text-gold/70 font-medium ml-4">Enquire Within</span>
                     </div>
                     <Link
                       href={`/packages#${pkg.id}`}

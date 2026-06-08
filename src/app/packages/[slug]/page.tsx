@@ -62,7 +62,7 @@ export default function PackageDetailPage() {
             transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
           >
             <span className="inline-block text-xs font-medium tracking-[0.2em] uppercase text-gold-light mb-4">
-              {pkg.duration} &middot; {pkg.price}
+              {pkg.duration} &middot; Enquire Within
             </span>
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-heading font-medium text-cream leading-tight">
               {pkg.title}
@@ -136,7 +136,7 @@ export default function PackageDetailPage() {
 
                 <div>
                   <span className="text-xs text-earth/60">Price</span>
-                  <p className="text-lg font-heading text-gold-dark font-medium mt-1">{pkg.price}</p>
+                  <p className="text-lg font-heading text-gold-dark/70 font-medium mt-1">Enquire Within</p>
                 </div>
 
                 <div>

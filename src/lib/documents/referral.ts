@@ -14,7 +14,7 @@ export function generateReferralDocument(clientName: string, bookingRef: string)
       <p>Dear ${clientName},</p>
       <p>We hope the memories of your Kivara journey are settling beautifully into your everyday life. It was a privilege to curate your African escape.</p>
 
-      <p>If you know someone who would treasure a Kivara journey — a couple celebrating their love, friends seeking adventure, or family in need of renewal — we would be honored by an introduction.</p>
+      <p>If you know someone who would treasure a Kivara journey : a couple celebrating their love, friends seeking adventure, or family in need of renewal : we would be honored by an introduction.</p>
 
       <div style="background: #F5F0EB; padding: 24px; text-align: center; margin: 32px 0;">
         <p style="font-size: 11px; color: #8B7D6B; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px;">Referral Reward</p>

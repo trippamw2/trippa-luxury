@@ -7,7 +7,7 @@ export default function NotFound() {
         <h1 className="text-8xl font-heading font-light text-gold mb-4">404</h1>
         <h2 className="text-2xl font-heading text-soft-black mb-3">The horizon you seek has drifted</h2>
         <p className="text-earth text-sm mb-8 leading-relaxed">
-          This page has slipped beyond the edge of our curated world. Perhaps it never existed — or perhaps it awaits discovery elsewhere.
+          This page has slipped beyond the edge of our curated world. Perhaps it never existed: or perhaps it awaits discovery elsewhere.
         </p>
         <div className="flex items-center justify-center gap-4">
           <Link

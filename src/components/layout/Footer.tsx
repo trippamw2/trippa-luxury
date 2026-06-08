@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SITE_CONFIG } from "@/lib/constants";
-import { Camera, Play, Globe, Image as ImageIcon, Heart, Mail, Phone, MapPin } from "lucide-react";
+import { HeartIcon } from "@/components/ui/icons";
+import { Mail, Phone, MapPin, Camera, Play, Globe, Image as ImageIcon } from "lucide-react";
 import { KivaraLogo } from "@/components/ui/KivaraLogo";
 
 const footerLinks = {
@@ -170,7 +171,7 @@ export function Footer() {
               rel="noopener noreferrer"
               className="mt-8 inline-flex items-center gap-2 px-5 py-3 border border-gold/50 text-gold-light text-sm tracking-widest uppercase hover:bg-gold/10 transition-all duration-300"
             >
-              <Heart className="w-4 h-4" />
+                <HeartIcon className="w-4 h-4" />
               Chat with Concierge
             </a>
           </div>
@@ -194,7 +195,7 @@ export function Footer() {
               FAQ
             </Link>
             <span className="flex items-center gap-1">
-              Made with <Heart className="w-3 h-3 text-gold" /> in Africa
+              Made with <HeartIcon className="w-3 h-3 text-gold" /> in Africa
             </span>
           </div>
         </div>

@@ -143,7 +143,7 @@ export default function MediaPage() {
           // (the create/refresh pattern would double-call)
           successCount++;
         } else if (result?.url) {
-          // Upload worked but no auto-record — create one manually
+          // Upload worked but no auto-record : create one manually
           const newItem = await create({
             filename: file.name,
             url: result.url,
@@ -314,7 +314,7 @@ export default function MediaPage() {
               <span className="text-gold font-medium">Click to upload</span> or drag & drop images
             </p>
             <p className="text-xs text-earth/60">
-              PNG, JPG, WebP — multiple files supported — auto-converts to WebP
+              PNG, JPG, WebP : multiple files supported : auto-converts to WebP
             </p>
           </>
         )}
@@ -577,7 +577,7 @@ export default function MediaPage() {
             >
               <div className="flex items-center justify-between px-6 py-4 border-b border-sand-light flex-shrink-0">
                 <h3 className="text-lg font-bold text-soft-black">
-                  Bulk Edit Alt Text — {CATEGORY_LABELS[activeCategory]}
+                  Bulk Edit Alt Text : {CATEGORY_LABELS[activeCategory]}
                 </h3>
                 <button onClick={() => setShowBulkAlt(false)}>
                   <X className="w-5 h-5 text-earth" />

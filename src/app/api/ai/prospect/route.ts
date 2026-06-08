@@ -1,6 +1,6 @@
 // ─── Kivara Prospect Profiling API ───────────────────────────────────────
 // Standalone guest profiling + lead scoring from raw inquiry text.
-// POST  /api/ai/prospect  — Profile a guest and score their lead
+// POST  /api/ai/prospect  : Profile a guest and score their lead
 
 import { NextResponse } from "next/server";
 import { guestProfiler, type RawInquiry, type ProfiledGuest } from "@/lib/ai/guest-profiler";

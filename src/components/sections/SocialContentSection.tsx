@@ -100,7 +100,7 @@ export function SocialContentSection() {
                 )}
               </div>
 
-              {/* Overlay at bottom — always visible with subtle treatment */}
+              {/* Overlay at bottom: always visible with subtle treatment */}
               <div className="absolute inset-0 bg-gradient-to-t from-soft-black/70 via-transparent to-transparent">
                 <div className="absolute bottom-0 left-0 right-0 p-4">
                   <div className="flex items-center gap-2 text-cream/80">

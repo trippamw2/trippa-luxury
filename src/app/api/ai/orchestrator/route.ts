@@ -1,6 +1,6 @@
 // ─── Kivara AI Orchestrator API ─────────────────────────────────────────
 // Coordinates full inquiry-to-quote pipeline via the AI orchestrator.
-// POST  /api/ai/orchestrator  — Process inquiry end-to-end (profile → curate → quote → persist)
+// POST  /api/ai/orchestrator  : Process inquiry end-to-end (profile → curate → quote → persist)
 
 import { NextResponse } from "next/server";
 import { orchestrator } from "@/lib/ai/orchestrator";

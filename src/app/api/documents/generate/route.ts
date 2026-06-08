@@ -1,6 +1,6 @@
 // ─── Kivara Document Generation API ─────────────────────────────────────
 // Generates branded HTML documents (print-to-PDF ready).
-// POST  /api/documents/generate  — Generate a document by type and data
+// POST  /api/documents/generate  : Generate a document by type and data
 
 import { NextResponse } from "next/server";
 import { generateQuoteDocument } from "@/lib/documents/quote";

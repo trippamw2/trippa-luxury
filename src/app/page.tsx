@@ -14,14 +14,14 @@ import { SocialContentSection } from "@/components/sections/SocialContentSection
 import { NewsletterSection } from "@/components/sections/NewsletterSection";
 
 export const metadata: Metadata = {
-  title: "Kivara — Africa's Ultimate Romance Sanctuary | Luxury Couples Travel",
+  title: "Kivara: Africa's Ultimate Romance Sanctuary | Luxury Couples Travel",
   description:
-    "Where your love story meets the wild. Handcrafted African romance escapes for couples who refuse to compromise — private island villas on Lake Malawi, award-winning safari camps, and Zanzibar beachfront hideaways.",
+    "Where your love story meets the wild. Handcrafted African romance escapes for couples who refuse to compromise: private island villas on Lake Malawi, award winning safari camps, and Zanzibar beachfront hideaways.",
   alternates: { canonical: SITE_URL },
   openGraph: {
-    title: "Kivara — Africa's Ultimate Romance Sanctuary | Luxury Couples Travel",
+    title: "Kivara: Africa's Ultimate Romance Sanctuary | Luxury Couples Travel",
     description:
-      "Where your love story meets the wild. African romance escapes for couples who seek beauty, intimacy, and the extraordinary — Lake Malawi, South Luangwa, and Zanzibar.",
+      "Where your love story meets the wild. African romance escapes for couples who seek beauty, intimacy, and wonder: Lake Malawi, South Luangwa, and Zanzibar.",
     url: SITE_URL,
     type: "website",
     locale: "en_US",
@@ -30,9 +30,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Kivara — Africa's Ultimate Romance Sanctuary | Luxury Couples Travel",
+    title: "Kivara: Africa's Ultimate Romance Sanctuary | Luxury Couples Travel",
     description:
-      "Where your love story meets the wild. African romance escapes for couples who seek beauty, intimacy, and the extraordinary — Lake Malawi, South Luangwa, and Zanzibar.",
+      "Where your love story meets the wild. African romance escapes for couples who seek beauty, intimacy, and wonder: Lake Malawi, South Luangwa, and Zanzibar.",
     images: ["/images/kivara-og.jpg"],
   },
 };

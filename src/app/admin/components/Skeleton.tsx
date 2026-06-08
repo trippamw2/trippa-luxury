@@ -16,7 +16,7 @@ export function Skeleton({ className }: SkeletonProps) {
   );
 }
 
-/** Text line placeholders — mimics 1-3 lines of text */
+/** Text line placeholders : mimics 1-3 lines of text */
 export function SkeletonText({ lines = 2, className }: { lines?: number; className?: string }) {
   return (
     <div className={cn("space-y-2", className)}>
@@ -41,7 +41,7 @@ export function SkeletonCard({ className }: { className?: string }) {
   );
 }
 
-/** Table row skeleton — n columns of varying width */
+/** Table row skeleton : n columns of varying width */
 export function SkeletonTable({ rows = 5, cols = 5 }: { rows?: number; cols?: number }) {
   return (
     <div className="space-y-1">

@@ -120,7 +120,7 @@ export class SalesFunnel {
     const metrics = this.calculateMetrics(entries);
     const lines = [
       "═══════════════════════════════════════",
-      "  KIVARA LUXURY TRAVEL — SALES FUNNEL REPORT",
+      "  KIVARA LUXURY TRAVEL : SALES FUNNEL REPORT",
       "═══════════════════════════════════════",
       "",
       `  Total Leads: ${metrics.totalLeads}`,

@@ -37,31 +37,31 @@ export function PhilosophySection() {
             <p className="mt-6 text-base md:text-lg text-earth-light leading-relaxed">
               Kivara exists for love. Every journey is designed to deepen intimacy, 
               create emotional moments, and elevate your shared story. Nature becomes 
-              the setting — the golden light over Luangwa, the silence of a Lake Malawi 
-              sunrise — and wellness restores you. But romance is always the heart.
+              the setting: the golden light over Luangwa, the silence of a Lake Malawi 
+              sunrise: and wellness restores you. But romance is always the heart.
             </p>
             <p className="mt-4 text-base text-earth leading-relaxed">
-              We believe the most profound journeys weave bush, beach, and intimacy together — 
+              We believe the most profound journeys weave bush, beach, and intimacy together: 
               an immersion into worlds where every moment is crafted for connection.
             </p>
 
-            {/* Philosophy pillars — Romance is Primary */}
+            {/* Philosophy pillars : Romance is Primary */}
             <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-6">
               {[
                 {
                   icon: Sparkles,
                   title: "Romance",
-                  desc: "The foundation of every journey. Private beach dinners, sunset cruises, couple spa rituals — each moment designed for intimacy and reconnection.",
+                  desc: "The foundation of every journey. Private beach dinners, sunset cruises, couple spa rituals: each moment designed for intimacy and reconnection.",
                 },
                 {
                   icon: TreePine,
                   title: "Nature",
-                  desc: "The setting for your love story. Secluded beaches, safari wilderness, islands, and lakes — where peace, privacy, and awe become yours.",
+                  desc: "The setting for your love story. Secluded beaches, safari wilderness, islands, and lakes: where peace, privacy, and awe become yours.",
                 },
                 {
                   icon: Waves,
                   title: "Wellness",
-                  desc: "Emotional and romantic restoration. Slow mornings, spa immersion, healing environments — space to surrender to stillness together.",
+                  desc: "Emotional and romantic restoration. Slow mornings, spa immersion, healing environments: space to surrender to stillness together.",
                 },
               ].map((pillar, i) => (
                 <motion.div

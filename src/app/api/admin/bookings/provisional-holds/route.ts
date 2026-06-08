@@ -8,7 +8,7 @@ import { mapKeysToCamel } from "@/lib/api-helpers";
  * Returns bookings that are stuck in "provisional" status beyond the hold duration (default 48h).
  *
  * Query params:
- *   - older_than_hours (number, default 48) — age threshold in hours
+ *   - older_than_hours (number, default 48) : age threshold in hours
  */
 export async function GET(request: NextRequest) {
   try {
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
  *
  * Body:
  *   - older_than_hours (number, default 48)
- *   - dry_run (boolean, default true) — if true, only count matches without cancelling
+ *   - dry_run (boolean, default true) : if true, only count matches without cancelling
  */
 export async function POST(request: NextRequest) {
   try {
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
       .from("bookings")
       .update({
         status: "cancelled",
-        cancellation_reason: "Auto-released — provisional hold expired",
+        cancellation_reason: "Auto-released : provisional hold expired",
         cancelled_at: new Date().toISOString(),
       })
       .eq("status", "provisional")

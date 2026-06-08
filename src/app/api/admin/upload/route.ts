@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
     const variants: { width: number; url: string; path: string }[] = [];
 
     for (const width of SIZES) {
-      if (width >= originalWidth) continue; // skip upscaling — use original for largest
+      if (width >= originalWidth) continue; // skip upscaling : use original for largest
 
       try {
         const variantPath = `admin-uploads/${baseName}_${width}.webp`;

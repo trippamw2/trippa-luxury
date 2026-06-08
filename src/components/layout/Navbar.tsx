@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { MenuIcon, XIcon, ChevronDownIcon } from "@/components/ui/icons";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { SITE_CONFIG } from "@/lib/constants";
@@ -65,7 +65,7 @@ export function Navbar() {
         <div className="flex items-center justify-between h-20 md:h-24">
           {/* Logo */}
           <Link href="/" className="relative z-10 block shrink-0">
-            {/* Dark logo — shown when scrolled (light background) */}
+            {/* Dark logo : shown when scrolled (light background) */}
             <KivaraLogo
               variant="dark"
               className={cn(
@@ -73,7 +73,7 @@ export function Navbar() {
                 isScrolled ? "opacity-100" : "opacity-0 absolute"
               )}
             />
-            {/* Light logo — shown on hero (dark background) */}
+            {/* Light logo : shown on hero (dark background) */}
             <KivaraLogo
               variant="light"
               className={cn(
@@ -102,7 +102,7 @@ export function Navbar() {
                     )}
                   >
                     {item.label}
-                    <ChevronDown className="w-3 h-3" />
+                    <ChevronDownIcon className="w-3 h-3" />
                   </button>
                   <AnimatePresence>
                     {isDropdownOpen && (
@@ -184,7 +184,7 @@ export function Navbar() {
             )}
             aria-label="Toggle menu"
           >
-            {isMobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {isMobileOpen ? <XIcon className="w-6 h-6" /> : <MenuIcon className="w-6 h-6" />}
           </button>
         </div>
       </nav>

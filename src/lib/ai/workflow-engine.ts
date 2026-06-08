@@ -3,7 +3,7 @@
 // Each "agent" is an automated step that transitions the state.
 
 export type ConciergeState =
-  | "new"              // Enquiry received — auto-triggered
+  | "new"              // Enquiry received : auto-triggered
   | "qualifying"       // Concierge reviewing needs
   | "curating"         // AI generating journey
   | "quoted"           // Quote sent to client
@@ -76,7 +76,7 @@ const TRANSITIONS: StateTransition[] = [
   { from: ["new"], to: "qualifying", agent: "human-concierge", automatic: false, description: "Concierge reviews enquiry and assigns themselves" },
   { from: ["qualifying"], to: "curating", agent: "ai-curator", automatic: true, description: "AI generates personalized journey from guest profile" },
   { from: ["curating"], to: "quoted", agent: "human-concierge", automatic: false, description: "Concierge reviews AI draft, adjusts, sends quote to client" },
-  { from: ["quoted"], to: "reviewing", agent: "email-agent", automatic: true, description: "Email delivery confirmed — client is reviewing" },
+  { from: ["quoted"], to: "reviewing", agent: "email-agent", automatic: true, description: "Email delivery confirmed : client is reviewing" },
   { from: ["reviewing"], to: "provisional", agent: "human-concierge", automatic: false, description: "Client approved quote verbally or in writing" },
   { from: ["reviewing", "quoted"], to: "quoted", agent: "quote-agent", automatic: false, description: "Quote revised and resent" },
   { from: ["provisional"], to: "deposit-paid", agent: "payment-agent", automatic: true, description: "Deposit payment received via payment link" },

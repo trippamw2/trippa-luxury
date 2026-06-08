@@ -39,7 +39,7 @@ export default function PackagesPage() {
               Romantic Journeys
             </h1>
             <p className="mt-4 text-base md:text-lg text-cream/60 max-w-2xl mx-auto">
-              Handcrafted itineraries designed for couples seeking the extraordinary.
+              Handcrafted itineraries designed for couples seeking the remarkable.
             </p>
           </motion.div>
         </div>
@@ -93,7 +93,7 @@ export default function PackagesPage() {
                         <MapPin className="w-4 h-4 text-gold" />
                         {pkg.destinations.length} {pkg.destinations.length === 1 ? "destination" : "destinations"}
                       </div>
-                      <span className="text-lg font-heading text-gold-dark font-medium">{pkg.price}</span>
+                      <span className="text-lg font-heading text-gold-dark/70 font-medium">Enquire Within</span>
                     </div>
 
                     {/* Inclusions */}

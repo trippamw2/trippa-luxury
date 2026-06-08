@@ -12,13 +12,13 @@ export function generateThankYouDocument(clientName: string, bookingRef: string,
         <p style="font-size: 15px; color: #8B7D6B; font-style: italic;">Your journey with Kivara has been a privilege.</p>
       </div>
 
-      <p>We hope your time in ${destination} was everything you dreamed of — and more. It has been our honor to curate this experience for you, and we trust you will carry the memories with you always.</p>
+      <p>We hope your time in ${destination} was everything you dreamed of : and more. It has been our honor to curate this experience for you, and we trust you will carry the memories with you always.</p>
 
       <div style="background: #F5F0EB; padding: 24px; text-align: center; margin: 32px 0;">
         <p style="font-size: 14px; color: #1A1A1A; font-style: italic; margin-bottom: 8px;">
           "Travel is the only thing you buy that makes you richer."
         </p>
-        <p style="font-size: 12px; color: #8B7D6B; margin: 0;">— We hope Africa has enriched your soul.</p>
+        <p style="font-size: 12px; color: #8B7D6B; margin: 0;">: We hope Africa has enriched your soul.</p>
       </div>
 
       <p>We would be honored if you would share your experience with others who might treasure a Kivara journey. Your voice is our greatest endorsement.</p>

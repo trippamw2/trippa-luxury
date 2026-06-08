@@ -92,7 +92,7 @@ export async function POST(request: Request) {
       }
     } catch (aiError) {
       console.error("AI profiling error:", aiError);
-      // Don't fail the request — still send emails and save inquiry
+      // Don't fail the request : still send emails and save inquiry
     }
 
     // ── 3. Send notification email to concierge team ──

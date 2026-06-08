@@ -38,8 +38,10 @@ export function Button({
       "bg-cream text-soft-black hover:bg-warm-white",
     outline:
       "border border-soft-black text-soft-black hover:bg-soft-black hover:text-cream",
+    outlineLight:
+      "border border-cream/30 text-cream hover:bg-cream/10",
     gold:
-      "bg-gold text-soft-black hover:bg-gold-dark",
+      "cta-luxury bg-gold text-soft-black hover:bg-gold-dark",
     ghost:
       "text-soft-black hover:text-gold-dark",
   };

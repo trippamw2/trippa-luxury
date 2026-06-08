@@ -96,7 +96,7 @@ export default function AdminSettings() {
         {!useApi && (
           <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
             <AlertCircle className="w-3 h-3" />
-            Settings saved locally only — connect Supabase for server-side persistence.
+            Settings saved locally only : connect Supabase for server-side persistence.
           </p>
         )}
       </div>

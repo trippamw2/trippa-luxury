@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-/** Canonical domain — all traffic redirects here */
+/** Canonical domain : all traffic redirects here */
 const CANONICAL_HOST = "kivarajourneys.com";
 
 /** Domains that should redirect to the canonical host */
@@ -30,7 +30,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // ── Admin page protection ──────────────────────────────────────────
-  // Only protect admin pages (not API routes — those use requireAdmin())
+  // Only protect admin pages (not API routes : those use requireAdmin())
   // Exclude the login page itself and static assets under /admin/
   if (
     pathname.startsWith("/admin") &&
@@ -47,7 +47,7 @@ export async function proxy(request: NextRequest) {
             return request.cookies.getAll();
           },
           setAll() {
-            // Read-only in the proxy — we only check, never set cookies here
+            // Read-only in the proxy : we only check, never set cookies here
           },
         },
       }

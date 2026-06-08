@@ -58,8 +58,8 @@ export function NewsletterSection() {
             Join the Inner Circle
           </h2>
           <p className="text-base text-earth-light leading-relaxed mb-8">
-            Receive exclusive travel inspiration, curated offers, and love stories from Africa&apos;s 
-            most romantic destinations — delivered to your inbox.
+            Receive travel inspiration, curated offers, and love stories from Africa&apos;s 
+            most romantic destinations: delivered to your inbox.
           </p>
 
           <form onSubmit={handleSubmit} className="max-w-md mx-auto">

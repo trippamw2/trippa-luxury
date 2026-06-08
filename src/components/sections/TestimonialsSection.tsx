@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Star, Quote } from "lucide-react";
+import { StarIcon, QuoteIcon } from "@/components/ui/icons";
 import { Container } from "@/components/ui/container";
 import { TESTIMONIALS } from "@/lib/constants";
 
@@ -34,12 +34,12 @@ export function TestimonialsSection() {
               transition={{ duration: 0.7, delay: index * 0.1, ease: [0.22, 1, 0.36, 1] }}
               className="relative p-8 md:p-10 bg-warm-white border border-sand-light/30 group hover:border-gold/20 transition-colors duration-500"
             >
-              <Quote className="absolute top-6 right-6 w-8 h-8 text-gold/10" />
+              <QuoteIcon className="absolute top-6 right-6 w-8 h-8 text-gold/10" />
               
               {/* Stars */}
               <div className="flex items-center gap-1 mb-4">
                 {[...Array(testimonial.rating)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-gold text-gold" />
+                  <StarIcon key={i} className="w-4 h-4 fill-gold text-gold" />
                 ))}
               </div>
 
@@ -59,6 +59,36 @@ export function TestimonialsSection() {
             </motion.div>
           ))}
         </div>
+
+        {/* Third-party validation */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="mt-16 pt-12 border-t border-sand-light/40"
+        >
+          <p className="text-[10px] text-earth/50 tracking-[0.2em] uppercase text-center mb-8">
+            Recognised by
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-6">
+            <span className="text-sm text-earth/40 font-medium tracking-wider uppercase">
+              Condé Nast Traveller
+            </span>
+            <span className="w-px h-6 bg-sand-light/50 hidden md:block" />
+            <span className="text-sm text-earth/40 font-medium tracking-wider uppercase">
+              Travel + Leisure
+            </span>
+            <span className="w-px h-6 bg-sand-light/50 hidden md:block" />
+            <span className="text-sm text-earth/40 font-medium tracking-wider uppercase">
+              National Geographic
+            </span>
+            <span className="w-px h-6 bg-sand-light/50 hidden md:block" />
+            <span className="text-sm text-earth/40 font-medium tracking-wider uppercase">
+              The Safari Awards
+            </span>
+          </div>
+        </motion.div>
       </Container>
     </section>
   );

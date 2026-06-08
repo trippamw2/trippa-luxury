@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { X } from "lucide-react";
+import { XIcon } from "@/components/ui/icons";
 
 export function CookieConsent() {
   const [visible, setVisible] = useState(false);
@@ -72,7 +72,7 @@ export function CookieConsent() {
                   className="p-2 text-cream/40 hover:text-cream transition-colors"
                   aria-label="Dismiss"
                 >
-                  <X className="w-4 h-4" />
+                  <XIcon className="w-4 h-4" />
                 </button>
               </div>
             </div>

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRightIcon } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
 interface DestinationCardProps {
@@ -60,7 +60,7 @@ export function DestinationCard({
           className="inline-flex items-center gap-2 text-sm tracking-widest uppercase text-cream border-b border-cream/30 pb-1 group-hover:border-cream transition-all duration-500"
         >
           Explore Destination
-          <ArrowRight className="w-4 h-4 transition-transform duration-500 group-hover:translate-x-1" />
+          <ArrowRightIcon className="w-4 h-4 transition-transform duration-500 group-hover:translate-x-1" />
         </Link>
       </div>
 

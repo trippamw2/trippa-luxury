@@ -27,7 +27,7 @@ export function FeaturedDestinations() {
           </h2>
           <p className="mt-4 text-base text-earth leading-relaxed">
             From the pristine shores of Lake Malawi to the wild heart of South Luangwa and the 
-            spice-scented breezes of Zanzibar — each destination is a world unto itself.
+            spice-scented breezes of Zanzibar: each destination is a world unto itself.
           </p>
         </motion.div>
 

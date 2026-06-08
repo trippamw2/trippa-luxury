@@ -1,5 +1,5 @@
 /* KIVARA — Brand Typography */
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Montserrat:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @import "tailwindcss";
 
@@ -16,6 +16,11 @@
   --color-sunset-gold: #C2A46D;
   --color-sunset-gold-light: #D4BC8A;
   --color-sunset-gold-dark: #B08A4D;
+
+  /* Destination accent colors */
+  --color-accent-teal: #2C6E6B;
+  --color-accent-amber: #C2865C;
+  --color-accent-coral: #C2756B;
 
   /* KIVARA unified color aliases */
   --color-cream: var(--color-warm-ivory);
@@ -34,7 +39,7 @@
 
   /* KIVARA Fonts — Cormorant Garamond loaded via Google Fonts for reliable luxury serif */
   --font-heading: "Cormorant Garamond", "Trajan Pro", "Cinzel", "Playfair Display", serif;
-  --font-body: "Montserrat", "Inter", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Inter", "Helvetica Neue", Arial, sans-serif;
 
   /* KIVARA Typographic Scale */
   --text-xs: 0.688rem;
@@ -62,9 +67,20 @@
 
   /* Skeleton shimmer */
   --animate-shimmer: shimmer 2s ease-in-out infinite;
+
+  /* Destination accent colors */
+  --accent-teal: #2C6E6B;
+  --accent-teal-light: #4A9E9A;
+  --accent-teal-dark: #1E4E4C;
+  --accent-amber: #C2865C;
+  --accent-amber-light: #D9A882;
+  --accent-amber-dark: #A06A44;
+  --accent-coral: #C2756B;
+  --accent-coral-light: #D9958D;
+  --accent-coral-dark: #A05950;
 }
 
-/* Montserrat loaded via Google Fonts */
+/* Inter loaded via Google Fonts — refined sans-serif for body copy */
 /* Trajan Pro — system/Adobe font with luxury serif fallbacks */
 
 /* Smooth scrolling */

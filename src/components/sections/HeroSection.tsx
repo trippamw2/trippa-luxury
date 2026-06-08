@@ -2,9 +2,9 @@
 
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight } from "lucide-react";
+import { ArrowRightIcon } from "@/components/ui/icons";
+import { Button } from "@/components/ui/button";
 import { IMAGES } from "@/lib/constants";
 
 export function HeroSection() {
@@ -52,7 +52,7 @@ export function HeroSection() {
       <div className="absolute inset-0 opacity-0 pointer-events-none">
         <Image
           src={IMAGES.heroPoster}
-          alt="" /* decorative fallback — hidden while video loads */
+          alt="" /* decorative fallback: hidden while video loads */
           fill
           className="object-cover"
           priority
@@ -74,7 +74,7 @@ export function HeroSection() {
           transition={{ duration: 1.2, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
           className="max-w-5xl"
         >
-          {/* Tagline — brand positioning */}
+          {/* Tagline: brand positioning */}
           <motion.span
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -115,8 +115,8 @@ export function HeroSection() {
             transition={{ duration: 0.8, delay: 1 }}
             className="mt-6 md:mt-8 text-base md:text-lg text-cream/70 max-w-2xl mx-auto leading-relaxed font-light"
           >
-            Private island villas, award-winning safari camps, and beachfront hideaways — 
-            crafted for couples who seek beauty, intimacy, and the extraordinary.
+            Private island villas, award-winning safari camps, and beachfront hideaways: 
+            crafted for couples who seek beauty, intimacy, and wonder.
           </motion.p>
 
           {/* CTA */}
@@ -126,19 +126,21 @@ export function HeroSection() {
             transition={{ duration: 0.8, delay: 1.3 }}
             className="mt-10 md:mt-12 flex flex-col sm:flex-row items-center justify-center gap-4"
           >
-            <Link
+            <Button
               href="/packages"
-              className="cta-luxury group inline-flex items-center gap-3 px-8 py-4 bg-gold text-soft-black text-sm font-medium tracking-[0.15em] uppercase hover:bg-gold-dark transition-all duration-500"
+              variant="gold"
+              size="lg"
             >
               Begin Your Journey
-              <ArrowRight className="w-4 h-4 transition-transform duration-500 group-hover:translate-x-1" />
-            </Link>
-            <Link
+              <ArrowRightIcon className="w-4 h-4 transition-transform duration-500 group-hover:translate-x-1" />
+            </Button>
+            <Button
               href="/lake-malawi"
-              className="cta-luxury inline-flex items-center gap-2 px-8 py-4 border border-cream/30 text-cream text-sm font-medium tracking-[0.15em] uppercase hover:bg-cream/10 transition-all duration-500"
+              variant="outlineLight"
+              size="lg"
             >
               Explore Destinations
-            </Link>
+            </Button>
           </motion.div>
         </motion.div>
       </motion.div>

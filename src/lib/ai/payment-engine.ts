@@ -57,11 +57,11 @@ export class PaymentEngine {
         <div style="text-align: center; margin-bottom: 24px;">
           <a href="${link.paymentUrl}" style="display: inline-block; padding: 14px 40px; background: #1A1A1A; color: #FAF7F2; text-decoration: none; font-size: 11px; text-transform: uppercase; letter-spacing: 2px;">Complete Your Reservation</a>
         </div>
-        <p style="font-size: 13px; color: #8B7D6B; line-height: 1.6; margin: 0;">Should you have any questions, your concierge is here to assist — simply reply to this email.</p>
+        <p style="font-size: 13px; color: #8B7D6B; line-height: 1.6; margin: 0;">Should you have any questions, your concierge is here to assist : simply reply to this email.</p>
         <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 16px 0 0;">With warmest regards,<br><strong style="color: #C9A96E;">Your Kivara Concierge</strong></p>
       </div>
       <div style="background: #EDE5DA; padding: 20px 40px; text-align: center;">
-        <p style="font-size: 10px; color: #8B7D6B; margin: 0;">Kivara Luxury Travel — concierge@kivara.luxury</p>
+        <p style="font-size: 10px; color: #8B7D6B; margin: 0;">Kivara Luxury Travel : concierge@kivara.luxury</p>
       </div>
     </div>`;
   }
@@ -97,7 +97,7 @@ export class PaymentEngine {
           <tr><td style="padding: 8px 0; font-size: 12px; color: #8B7D6B; border-top: 1px solid #EDE5DA;">Date</td><td style="padding: 8px 0; font-size: 14px; text-align: right; border-top: 1px solid #EDE5DA;">${new Date(receipt.paidAt).toLocaleDateString()}</td></tr>
           ${receipt.balanceRemaining ? `<tr><td style="padding: 8px 0; font-size: 12px; color: #8B7D6B; border-top: 1px solid #EDE5DA;">Balance Remaining</td><td style="padding: 8px 0; font-size: 14px; text-align: right; border-top: 1px solid #EDE5DA;">${receipt.currency} ${receipt.balanceRemaining.toLocaleString()}</td></tr>` : ""}
         </table>
-        <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0;">Your journey is one step closer. Our team is curating every detail to ensure your experience is nothing short of extraordinary.</p>
+        <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0;">Your journey is one step closer. Our team is curating every detail to ensure your experience is nothing short of remarkable.</p>
         <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 16px 0 0;">With warmest regards,<br><strong style="color: #C9A96E;">Your Kivara Concierge</strong></p>
       </div>
       <div style="background: #EDE5DA; padding: 20px 40px; text-align: center;">

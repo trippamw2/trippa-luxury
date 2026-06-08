@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Star, MapPin, ArrowRight } from "lucide-react";
+import { StarIcon, ArrowRightIcon } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
 interface PropertyCardProps {
@@ -65,15 +65,15 @@ export function PropertyCard({
           {/* Content */}
           <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
             <div className="flex items-center gap-2 mb-2">
-              <Star className="w-4 h-4 fill-gold text-gold" />
+              <StarIcon className="w-4 h-4 fill-gold text-gold" />
               <span className="text-sm text-cream/90">{rating.toFixed(1)}</span>
             </div>
             <h3 className="text-xl md:text-2xl font-heading font-medium text-cream mb-1">
               {name}
             </h3>
             <p className="text-sm text-cream/70 mb-2">{location}</p>
-            <div className="flex items-center gap-1 text-xs text-gold-light tracking-widest uppercase">
-              <span>{priceRange}</span>
+            <div className="flex items-center gap-1 text-xs text-gold-light/60 tracking-widest uppercase">
+              <span>By Enquiry</span>
             </div>
           </div>
 

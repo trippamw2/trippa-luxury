@@ -1,8 +1,8 @@
 // ─── Kivara Workflow API (Supabase-backed) ───────────────────────────────
-// Manages the full client lifecycle — state transitions, search, CRUD.
-// GET    /api/ai/workflow  — List journeys with filters
-// POST   /api/ai/workflow  — Create journey or transition state
-// DELETE /api/ai/workflow  — Delete a journey
+// Manages the full client lifecycle : state transitions, search, CRUD.
+// GET    /api/ai/workflow  : List journeys with filters
+// POST   /api/ai/workflow  : Create journey or transition state
+// DELETE /api/ai/workflow  : Delete a journey
 
 import { NextRequest, NextResponse } from "next/server";
 import { workflowEngine, type ClientJourney, type ConciergeState, type WorkflowAction } from "@/lib/ai/workflow-engine";

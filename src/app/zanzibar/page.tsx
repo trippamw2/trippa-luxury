@@ -95,7 +95,8 @@ export default function ZanzibarPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1.2, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
           >
-            <span className="inline-block text-xs md:text-sm font-medium tracking-[0.25em] uppercase text-gold-light mb-4 md:mb-6">
+            <div className="w-16 h-px bg-accent-coral mx-auto mb-4"></div>
+            <span className="inline-block text-xs md:text-sm font-medium tracking-[0.25em] uppercase text-accent-coral mb-4 md:mb-6">
               {destination.subtitle}
             </span>
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-heading font-medium text-cream leading-tight">
@@ -159,7 +160,7 @@ export default function ZanzibarPage() {
                 Here, Swahili culture meets coastal elegance. You spend your days exploring spice 
                 plantations hand in hand, sailing on traditional dhows at sunset, and dining on 
                 freshly caught seafood under a canopy of stars. Zanzibar is not just a destination 
-                — it is the setting for your most beautiful memories. Where every experience, from 
+                : it is the setting for your most beautiful memories. Where every experience, from 
                 the scent of cloves in Stone Town to the turquoise embrace of the Indian Ocean, 
                 is crafted to bring you closer.
               </p>
@@ -447,7 +448,7 @@ export default function ZanzibarPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <span className="text-xs text-earth/60">{pkg.duration}</span>
-                      <span className="text-xs text-gold font-medium ml-4">{pkg.price}</span>
+                      <span className="text-xs text-gold/70 font-medium ml-4">Enquire Within</span>
                     </div>
                     <Link
                       href={`/packages#${pkg.id}`}

@@ -1,0 +1,20 @@
+{
+  "name": "Luangwa Safari House",
+  "tagline": "The ultimate private safari residence — your own wilderness estate",
+  "description": "An exclusive-use private safari house on the banks of the Luangwa River. Luangwa Safari House offers the ultimate in privacy and personalized service — a fully staffed residence with four en-suite bedrooms, a private pool, and an open-plan living area that opens onto the river. Your own private safari camp, exactly as you imagine it.",
+  "longDescription": "Luangwa Safari House is an exclusive-use property that redefines the safari experience. Set within a private concession along the Luangwa River, this elegant residence accommodates up to eight guests in four spacious en-suite bedrooms. The house is designed for indoor-outdoor living: a central lounge and dining area opens onto a wide verandah with a private infinity pool overlooking the river. A dedicated team — including a private guide, chef, and butler — ensures every moment is tailored to your preferences. Game drives and walking safaris depart directly from the house, led by expert guides who bring the bush to life. Sundowners on the deck, bush dinners by lantern light, and the sounds of the African night create an intimacy that only an exclusive-use property can deliver.\n\nThe house features a master suite with a king-size bed, en-suite bathroom with indoor and outdoor showers, and direct views of the river. Three additional guest bedrooms each offer king or twin configuration with private facilities. The main living area includes a well-stocked bar, a library of safari books, and a fireplace for cool evenings.",
+  "heroImage": "/images/lrc-hero.jpg",
+  "gallery": ["/images/lrc-hero.jpg","/images/lrc-lodge.jpg","/images/lrc-pool.jpg","/images/lrc-dining.jpg","/images/lrc-river-view.jpg","/images/lrc-aerial.jpg","/images/lrc-bush-walk.jpg","/images/lrc-wetu-00.jpg","/images/lrc-wetu-01.jpg","/images/lrc-wetu-02.jpg","/images/lrc-wetu-03.jpg"],
+  "priceRange": "$2,000 to $5,000 per night (exclusive-use, up to 8 guests)",
+  "roomTypes": ["Master Suite","Guest Suite","Guest Suite","Guest Suite"],
+  "amenities": ["Exclusive-use property (you and your party only)","Private infinity pool overlooking the Luangwa River","Dedicated private guide, chef, and butler","Morning and afternoon game drives","Guided walking safaris","Night drives","Bush dining under the stars","Open-plan living and dining area","Well-stocked bar","Library of safari books","Sundowner deck","Complimentary WiFi","Laundry and valet service","Airport transfers from Mfuwe"],
+  "rating": 5.0,
+  "romanticHighlights": ["Your own private villa on the river — complete privacy","Private chef preparing candlelit dinners on your deck","Sundowners as hippos surface in the river below","Exclusive game drives — just the two of you with a private guide","Stargazing from your private pool after the bush settles"],
+  "reviews": [{"name":"Guest, Luangwa Safari House","text":"An extraordinary experience. Having an entire house, staff, and private guide made this the most special safari of our lives.","location":"Robin Pope Safaris Guest"}],
+  "rooms": [
+    {"name":"Master Suite","images":["/images/lrc-wetu-00.jpg","/images/lrc-wetu-04.jpg"],"sleeps":2,"description":"A spacious master bedroom with a king-size bed, en-suite bathroom with indoor and outdoor showers, and panoramic river views from your private deck."},
+    {"name":"Guest Suite","images":["/images/lrc-wetu-01.jpg","/images/lrc-wetu-02.jpg"],"sleeps":2,"description":"Elegant guest bedrooms with king or twin configuration, en-suite facilities, and garden or river views. Each room opens onto the central verandah."}
+  ],
+  "isActive": true,
+  "isFeatured": false
+}

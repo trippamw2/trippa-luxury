@@ -79,14 +79,14 @@ export function bookingToICalEvent(booking: {
   const endExclusive = new Date(end);
   endExclusive.setDate(endExclusive.getDate() + 1);
 
-  const location = [booking.destination, booking.propertyName].filter(Boolean).join(" — ");
+  const location = [booking.destination, booking.propertyName].filter(Boolean).join(" : ");
   const ref = booking.bookingReference || booking.id.slice(0, 8).toUpperCase();
 
   return {
     uid: `${booking.id}@kivara.luxury`,
     start,
     end: endExclusive,
-    summary: `${booking.clientName} — ${ref}`,
+    summary: `${booking.clientName} : ${ref}`,
     description: `Kivara Luxury Travel Booking\nReference: ${ref}\nClient: ${booking.clientName}\nDestination: ${location}`,
     location: location || "TBD",
     organizer: booking.clientEmail,

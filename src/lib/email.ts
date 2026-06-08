@@ -115,7 +115,7 @@ export function newInquiryEmail(data: {
   message: string;
 }) {
   return {
-    subject: `New Inquiry from ${data.fullName} — Kivara Luxury Travel`,
+    subject: `New Inquiry from ${data.fullName} : Kivara Luxury Travel`,
     htmlContent: emailShell("New Inquiry Received", `
       <h2 style="font-family: 'Times New Roman', serif; font-size: 20px; color: #1A1A1A; margin: 0 0 24px;">A new traveler has reached out</h2>
       <table style="width: 100%; border-collapse: collapse;">
@@ -142,11 +142,11 @@ export function inquiryConfirmationEmail(data: {
   destination?: string;
 }) {
   return {
-    subject: "Your Inquiry Has Been Received with Care — Kivara Luxury Travel",
+    subject: "Your Inquiry Has Been Received with Care : Kivara Luxury Travel",
     htmlContent: emailShell("Your Journey Begins", `
       <h2 style="font-family: 'Times New Roman', serif; font-size: 20px; color: #1A1A1A; margin: 0 0 16px;">${data.fullName},</h2>
       <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 16px;">Thank you for reaching out to Kivara. Your inquiry has been received with the attention it deserves, and our concierge team is already beginning to understand the contours of your perfect escape.</p>
-      ${data.destination ? `<p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 16px;">We are delighted that you are considering <strong style="color: #C9A96E;">${formatDestination(data.destination)}</strong> — a choice that promises memories to treasure for a lifetime.</p>` : ""}
+      ${data.destination ? `<p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 16px;">We are delighted that you are considering <strong style="color: #C9A96E;">${formatDestination(data.destination)}</strong> : a choice that promises memories to treasure for a lifetime.</p>` : ""}
       <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 24px;">You can expect a thoughtfully curated response from your personal concierge within <strong>24 hours</strong>, complete with a first glimpse of what your journey could hold.</p>
       <div style="background: #F5F0EB; padding: 24px; border-left: 3px solid #C9A96E; margin-bottom: 24px;">
         <p style="font-size: 11px; color: #8B7D6B; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 8px;">In the meantime</p>
@@ -165,7 +165,7 @@ export function newBookingNotification(data: {
   totalAmount?: string;
 }) {
   return {
-    subject: `New Booking ${data.bookingRef} — ${data.clientName}`,
+    subject: `New Booking ${data.bookingRef} : ${data.clientName}`,
     htmlContent: emailShell("New Booking Confirmed", `
       <h2 style="font-family: 'Times New Roman', serif; font-size: 20px; color: #1A1A1A; margin: 0 0 8px;">New Booking: ${data.bookingRef}</h2>
       <p style="font-size: 14px; color: #4A4A4A; margin: 0 0 24px;">A new journey has been thoughtfully reserved.</p>
@@ -185,11 +185,11 @@ export function newBookingNotification(data: {
 
 export function newsletterWelcomeEmail() {
   return {
-    subject: "Welcome to Kivara — Africa's Finest Curated Journeys",
+    subject: "Welcome to Kivara : Africa's Finest Curated Journeys",
     htmlContent: emailShell("Welcome to the Journey", `
       <h2 style="font-family: 'Times New Roman', serif; font-size: 20px; color: #1A1A1A; margin: 0 0 16px;">Welcome to Kivara</h2>
-      <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 16px;">Thank you for subscribing. You are now part of an intimate community of travelers who seek the extraordinary — those who understand that the finest journeys are felt, not merely seen.</p>
-      <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 16px;">Expect curated stories, exclusive insights, and a glimpse into Africa's most soul-stirring escapes delivered to your inbox.</p>
+      <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 16px;">Thank you for subscribing. You are now part of an intimate community of travelers who seek the remarkable : those who understand that the finest journeys are felt, not merely seen.</p>
+      <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 16px;">Expect curated stories, behind-the-scenes insights, and a glimpse into Africa's most soul-stirring escapes delivered to your inbox.</p>
       <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0;">With warmest regards,<br><strong style="color: #C9A96E;">The Kivara Team</strong></p>
     `),
   };
@@ -201,7 +201,7 @@ export function quoteEmail(data: {
   htmlContent: string;
 }) {
   return {
-    subject: `Your Curated Journey — ${data.quoteRef} — Kivara Luxury Travel`,
+    subject: `Your Curated Journey : ${data.quoteRef} : Kivara Luxury Travel`,
     htmlContent: data.htmlContent,
   };
 }
@@ -215,14 +215,14 @@ export function paymentLinkEmail(data: {
 }) {
   const label = data.type === "deposit" ? "deposit" : data.type === "balance" ? "balance" : "full";
   return {
-    subject: `Payment Reserved — ${data.bookingRef} — Kivara Luxury Travel`,
+    subject: `Payment Reserved : ${data.bookingRef} : Kivara Luxury Travel`,
     htmlContent: emailShell("Payment Reserved", `
       <h2 style="font-family: 'Times New Roman', serif; font-size: 20px; color: #1A1A1A; margin: 0 0 16px;">${data.clientName},</h2>
       <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 16px;">Your journey proposal for booking <strong>${data.bookingRef}</strong> remains reserved pending a ${label} payment of <strong style="color: #C9A96E; font-size: 18px;">${data.amount}</strong>. Once received, we will proceed with finalising every element of your itinerary.</p>
       <div style="text-align: center; margin: 24px 0;">
         <a href="${data.paymentUrl}" style="display: inline-block; padding: 14px 40px; background: #1A1A1A; color: #FAF7F2; text-decoration: none; font-size: 11px; text-transform: uppercase; letter-spacing: 2px;">Complete Your Reservation</a>
       </div>
-      <p style="font-size: 13px; color: #8B7D6B; line-height: 1.6; margin: 0;">Should you have any questions, your concierge is here to assist — simply reply to this email.</p>
+      <p style="font-size: 13px; color: #8B7D6B; line-height: 1.6; margin: 0;">Should you have any questions, your concierge is here to assist : simply reply to this email.</p>
       <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 16px 0 0;">With warmest regards,<br><strong style="color: #C9A96E;">Your Kivara Concierge</strong></p>
     `),
   };
@@ -257,7 +257,7 @@ export function paymentReceiptEmail(data: {
   paymentMethod?: string;
 }) {
   return {
-    subject: `Payment Gracefully Received — ${data.bookingRef} — Kivara`,
+    subject: `Payment Gracefully Received : ${data.bookingRef} : Kivara`,
     htmlContent: emailShell("Payment Received", `
       <div style="text-align: center; margin-bottom: 24px;">
         <div style="width: 60px; height: 60px; background: #D4BC8A; border-radius: 50%; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;">
@@ -268,7 +268,7 @@ export function paymentReceiptEmail(data: {
       </div>
       <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 24px;">We have received your payment of <strong style="color: #C9A96E; font-size: 18px;">${data.amount}</strong> for booking <strong>${data.bookingRef}</strong>.</p>
       ${data.paymentMethod ? `<p style="font-size: 13px; color: #8B7D6B; margin: 0 0 24px;">Payment method: ${data.paymentMethod}</p>` : ""}
-      <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0;">Your journey is one step closer. Our team is curating every detail to ensure your experience is nothing short of extraordinary.</p>
+      <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0;">Your journey is one step closer. Our team is curating every detail to ensure your experience is nothing short of remarkable.</p>
       <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 16px 0 0;">With warmest regards,<br><strong style="color: #C9A96E;">Your Kivara Concierge</strong></p>
     `),
   };

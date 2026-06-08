@@ -333,7 +333,7 @@ const QuotePDF: React.FC<QuotePDFProps> = ({
           <Text style={styles.greeting}>Dear {journey.guestProfile.name},</Text>
           <Text style={styles.paragraph}>
             It is our privilege to present this personally curated journey for you. Every
-            element has been selected with care — from the properties that will host you to
+            element has been selected with care : from the properties that will host you to
             the moments waiting to be discovered.
           </Text>
 

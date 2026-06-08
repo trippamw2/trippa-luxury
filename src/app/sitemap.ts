@@ -45,7 +45,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  // Journal routes — fetch from DB
+  // Journal routes : fetch from DB
   const journalPosts = await getMergedBlogPosts();
   const journalRoutes = journalPosts.map((post) => ({
     url: `${siteUrl}/journal/${post.id}`,

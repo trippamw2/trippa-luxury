@@ -200,7 +200,7 @@ export default function PropertyDetailPage() {
                 {/* Price */}
                 <div>
                   <span className="text-xs text-earth/60">Price Range</span>
-                  <p className="text-lg font-heading text-gold-dark font-medium">{property.priceRange}</p>
+                  <p className="text-lg font-heading text-gold-dark/70 font-medium">By Enquiry</p>
                 </div>
 
                 {/* Location */}
@@ -268,7 +268,7 @@ export default function PropertyDetailPage() {
         </Container>
       </section>
 
-      {/* Gallery — 15 property-specific images */}
+      {/* Gallery : 15 property-specific images */}
       <section className="py-24 bg-warm-white">
         <Container>
           <motion.div
@@ -301,7 +301,7 @@ export default function PropertyDetailPage() {
               >
                 <Image
                   src={imgPath}
-                  alt={`${property.name} — ${item === 0 ? "hero view" : item <= 3 ? "suite interior" : item <= 6 ? "pool & grounds" : item <= 9 ? "bath & details" : "activities & dining"}`}
+                  alt={`${property.name} : ${item === 0 ? "hero view" : item <= 3 ? "suite interior" : item <= 6 ? "pool & grounds" : item <= 9 ? "bath & details" : "activities & dining"}`}
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-700"
                   sizes="(max-width: 768px) 50vw, 25vw"
@@ -359,7 +359,7 @@ export default function PropertyDetailPage() {
                       <div key={`${imgPath}-${idx}`} className="relative aspect-[4/3] overflow-hidden group">
                         <Image
                           src={imgPath}
-                          alt={`${room.name} — image ${idx + 1}`}
+                          alt={`${room.name} : image ${idx + 1}`}
                           fill
                           className="object-cover group-hover:scale-105 transition-transform duration-700"
                           sizes="(max-width: 768px) 50vw, 25vw"
@@ -534,7 +534,7 @@ export default function PropertyDetailPage() {
                   disabled={inquiryStatus === "loading"}
                   className="w-full px-8 py-4 bg-soft-black text-cream text-sm font-medium tracking-[0.15em] uppercase hover:bg-soft-black-light transition-all duration-500 disabled:opacity-50"
                 >
-                  {inquiryStatus === "loading" ? "Sending..." : inquiryStatus === "success" ? "Sent ✓" : inquiryStatus === "error" ? "Failed — Try Again" : "Send Availability Request"}
+                  {inquiryStatus === "loading" ? "Sending..." : inquiryStatus === "success" ? "Sent ✓" : inquiryStatus === "error" ? "Failed : Try Again" : "Send Availability Request"}
                 </button>
               </div>
             </motion.form>

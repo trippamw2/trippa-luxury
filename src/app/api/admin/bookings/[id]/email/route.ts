@@ -59,7 +59,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       case "reminder": {
         const reminder = reminderEmail({
           clientName,
-          subject: `A Gentle Reminder — ${bookingRef} — Kivara Luxury Travel`,
+          subject: `A Gentle Reminder : ${bookingRef} : Kivara Luxury Travel`,
           htmlContent: `
             <h2 style="font-family: 'Times New Roman', serif; font-size: 20px; color: #1A1A1A; margin: 0 0 16px;">${clientName},</h2>
             <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 16px;">This is a gentle reminder regarding the outstanding balance for booking <strong>${bookingRef}</strong>.</p>

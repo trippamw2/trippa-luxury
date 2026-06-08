@@ -32,7 +32,7 @@ export function ExperiencesSection() {
             <span className="italic text-gold-light">Breath Away</span>
           </h2>
           <p className="mt-4 text-base text-earth-light leading-relaxed">
-            From dining under the stars to sleeping beside wild rivers — each experience is 
+            From dining under the stars to sleeping beside wild rivers: each experience is 
             designed to create memories that last a lifetime.
           </p>
         </motion.div>

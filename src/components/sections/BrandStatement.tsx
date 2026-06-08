@@ -2,25 +2,25 @@
 
 import { motion } from "framer-motion";
 import { Container } from "@/components/ui/container";
-import { Heart, Globe, Moon, ArrowRight } from "lucide-react";
-import Link from "next/link";
+import { HeartIcon, ArrowRightIcon, GlobeIcon, MoonIcon } from "@/components/ui/icons";
+import { Button } from "@/components/ui/button";
 import { BRAND_POSITIONING } from "@/lib/constants";
 
 const values = [
   {
-    icon: Heart,
+    icon: HeartIcon,
     title: "Curated for Romance",
     description:
       "Every journey is designed for two. From private beach dinners to couples spa rituals, every moment is crafted for connection.",
   },
   {
-    icon: Globe,
+    icon: GlobeIcon,
     title: "Modern African Luxury",
     description:
-      "African luxury reimagined through a contemporary lens — where authentic experiences meet world-class sophistication. For those who seek the extraordinary.",
+      "African luxury reimagined through a contemporary lens: where authentic experiences meet world-class sophistication. For those who seek the remarkable.",
   },
   {
-    icon: Moon,
+    icon: MoonIcon,
     title: "Emotional Storytelling",
     description:
       "Your escapes are stories waiting to be lived. Each destination, each experience, each moment becomes part of your love story.",
@@ -96,12 +96,13 @@ export function BrandStatement() {
             &ldquo;{betweenAmanAndBeyond}&rdquo;
           </p>
           <div className="mt-8">
-            <Link
+            <Button
               href="/about"
-              className="inline-flex items-center gap-2 text-xs tracking-widest uppercase text-soft-black border-b border-soft-black/30 pb-1 hover:border-soft-black transition-all duration-500"
+              variant="ghost"
+              size="sm"
             >
-              Discover Your Journey <ArrowRight className="w-3 h-3" />
-            </Link>
+              Discover Your Journey <ArrowRightIcon className="w-3 h-3" />
+            </Button>
           </div>
         </motion.div>
       </Container>

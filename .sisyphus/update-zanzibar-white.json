@@ -1,0 +1,23 @@
+{
+  "name": "Zanzibar White Sand Villas",
+  "tagline": "Barefoot elegance on the Spice Island — private villas, endless ocean",
+  "description": "A collection of exclusive beachfront villas on Zanzibar's pristine Michamvi Peninsula. Zanzibar White Sand Villas combines Swahili architectural heritage with contemporary luxury, offering private pools, personal butler service, and direct access to a powdery white sand beach that stretches as far as the eye can see.",
+  "longDescription": "Zanzibar White Sand Villas is an intimate collection of beachfront properties that embody the spirit of the Spice Island. Each villa is individually designed, blending traditional Swahili architecture — coral stone walls, palm-thatched roofs, carved Zanzibari doors — with clean contemporary lines and modern amenities. The resort occupies a pristine stretch of Michamvi's eastern coastline, where turquoise waters lap against coral sand beaches shaded by coconut palms.\n\nEach villa features a private infinity pool, an outdoor shower set within a tropical garden, and a rooftop terrace perfect for sundowners. The interiors are a celebration of Zanzibari craftsmanship: four-poster beds draped in mosquito nets, hand-carved furnishings, and local textiles in indigo and ochre. A personal butler attends to every detail — from arranging spice tours in Stone Town to serving breakfast on your private terrace at dawn.\n\nThe oceanfront restaurant serves freshly caught seafood infused with the island's famous spices — cinnamon, clove, nutmeg, and vanilla. The beachfront bar is the perfect place to watch the sun sink into the Indian Ocean, a cocktail in hand and the warm Zanzibar breeze on your skin. Watersports, dhow cruises, and visits to Stone Town complete the experience.",
+  "heroImage": "/images/zanzibar-hero.jpg",
+  "gallery": ["/images/zanzibar-hero.jpg","/images/zanzibar-beach.jpg","/images/zanzibar-aerial.jpg","/images/zanzibar-dhow.jpg","/images/zanzibar-spa.jpg","/images/zanzibar-stonetown.jpg","/images/the-palms.jpg","/images/palms-1.jpg","/images/palms-3.jpg","/images/palms-5.jpg","/images/palms-7.jpg","/images/palms-9.jpg","/images/palms-11.jpg","/images/palms-13.jpg"],
+  "priceRange": "$600 to $2,000 per night",
+  "roomTypes": ["One Bedroom Beach Villa","Two Bedroom Family Villa","Presidential Villa"],
+  "amenities": ["Private infinity pool per villa","Personal butler service","Direct beach access","Oceanfront restaurant and bar","Spa treatments on request","Dhow sunset cruises","Snorkelling and kayaking","Spice tours and Stone Town excursions","Complimentary WiFi","Air conditioning","Airport transfers","Laundry service"],
+  "rating": 4.6,
+  "romanticHighlights": ["Private candlelit dinner on the beach for two","Sunset dhow cruise with champagne","Couples spa treatment in your villa","Breakfast served on your private terrace overlooking the ocean","Stargazing from your rooftop terrace"],
+  "reviews": [
+    {"name":"James and Olivia Harper","text":"A hidden paradise. The villa, the beach, the service — everything was exceptional. We felt like the only people on the island.","location":"London, UK"},
+    {"name":"Guest, Zanzibar White Sand","text":"Beautiful villas with stunning beach access. The staff went above and beyond. A truly romantic escape.","location":"Verified Guest"}
+  ],
+  "rooms": [
+    {"name":"One Bedroom Beach Villa","images":["/images/the-palms.jpg","/images/palms-1.jpg","/images/palms-3.jpg"],"sleeps":2,"description":"A spacious beachfront villa with a king-size four-poster bed, en-suite bathroom with outdoor shower, private infinity pool, and a terrace overlooking the Indian Ocean. Personal butler included."},
+    {"name":"Two Bedroom Family Villa","images":["/images/palms-5.jpg","/images/palms-7.jpg","/images/palms-9.jpg"],"sleeps":4,"description":"Two en-suite bedrooms with a shared living area, larger private pool, and expanded terrace. Ideal for couples traveling with friends or family."}
+  ],
+  "isActive": true,
+  "isFeatured": false
+}

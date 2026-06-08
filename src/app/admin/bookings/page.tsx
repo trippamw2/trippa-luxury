@@ -426,7 +426,7 @@ export default function AdminBookings() {
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-amber-600" />
             <p className="text-sm text-amber-800">
-              <strong>{staleProvisionals}</strong> provisional booking{staleProvisionals !== 1 ? "s" : ""} older than 48 hours — pending release.
+              <strong>{staleProvisionals}</strong> provisional booking{staleProvisionals !== 1 ? "s" : ""} older than 48 hours : pending release.
             </p>
           </div>
           <button

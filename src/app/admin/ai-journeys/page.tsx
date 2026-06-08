@@ -164,7 +164,7 @@ export default function AIJourneysPage() {
         const accomSub = journey.pricing.subtotal - xfTotal;
         const lines = [
           "═══════════════════════════════════════",
-          "  KIVARA LUXURY TRAVEL — JOURNEY PROPOSAL",
+          "  KIVARA LUXURY TRAVEL : JOURNEY PROPOSAL",
           "═══════════════════════════════════════",
           "",
           `  ${journey.title}`,
@@ -249,7 +249,7 @@ export default function AIJourneysPage() {
 
   const handleSendToClient = () => {
     if (!journey) return;
-    const subject = encodeURIComponent(`Your Kivara Journey Proposal — ${journey.title}`);
+    const subject = encodeURIComponent(`Your Kivara Journey Proposal : ${journey.title}`);
     const body = encodeURIComponent(
       `Dear ${journey.guestProfile.name},\n\n` +
       `Thank you for allowing Kivara to curate your African journey.\n\n` +

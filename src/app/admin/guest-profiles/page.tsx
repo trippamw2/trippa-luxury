@@ -378,7 +378,7 @@ export default function AdminGuestProfiles() {
 
                     {selected.specialOccasion && (
                       <div className="bg-gold/5 p-3 border border-gold/10">
-                        <p className="text-xs font-medium text-gold-dark flex items-center gap-1"><Heart className="w-3 h-3" /> {selected.specialOccasion}{selected.specialOccasionDate ? ` — ${selected.specialOccasionDate}` : ""}</p>
+                        <p className="text-xs font-medium text-gold-dark flex items-center gap-1"><Heart className="w-3 h-3" /> {selected.specialOccasion}{selected.specialOccasionDate ? ` : ${selected.specialOccasionDate}` : ""}</p>
                       </div>
                     )}
 

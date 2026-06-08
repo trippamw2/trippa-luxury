@@ -9,11 +9,11 @@ import { SITE_URL } from "@/lib/constants";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Kivara — Africa's Most Coveted Romance Sanctuary",
+    default: "Kivara: Africa's Most Coveted Romance Sanctuary",
     template: "%s | Kivara",
   },
   description:
-    "Where your love story meets the wild. Handcrafted African romance escapes for couples who refuse to compromise — private island villas on Lake Malawi, award-winning safari camps, and Zanzibar beachfront hideaways.",
+    "Where your love story meets the wild. Handcrafted African romance escapes for couples who refuse to compromise: private island villas on Lake Malawi, award winning safari camps, and Zanzibar beachfront hideaways.",
   keywords: [
     "luxury African travel",
     "romantic safari",
@@ -28,16 +28,16 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     siteName: "Kivara",
-    title: "Kivara — Africa's Most Coveted Romance Sanctuary",
+    title: "Kivara: Africa's Most Coveted Romance Sanctuary",
     description:
-      "Where your love story meets the wild. African romance escapes for couples who seek beauty, intimacy, and the extraordinary — Lake Malawi, South Luangwa, and Zanzibar.",
+      "Where your love story meets the wild. African romance escapes for couples who seek beauty, intimacy, and wonder: Lake Malawi, South Luangwa, and Zanzibar.",
     images: [{ url: "/images/kivara-og.jpg", width: 1200, height: 630, alt: "Kivara Luxury Travel" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Kivara — Africa's Most Coveted Romance Sanctuary",
+    title: "Kivara: Africa's Most Coveted Romance Sanctuary",
     description:
-      "Where your love story meets the wild — exclusive African escapes for couples who refuse to compromise on beauty, intimacy, or refinement.",
+      "Where your love story meets the wild: African escapes for couples who refuse to compromise on beauty, intimacy, or refinement.",
     images: ["/images/kivara-og.jpg"],
   },
   robots: {

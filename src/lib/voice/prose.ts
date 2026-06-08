@@ -32,6 +32,7 @@ export function accommodationDescription(propertyName: string, location: string,
 }
 
 /** Activity description with romantic sensory focus */
+export function activityDescription(title: string, sensoryNote: string): string {
   return `${title}: ${sensoryNote}. A moment suspended in time, crafted to linger in your memory long after you return home.`;
 }
 

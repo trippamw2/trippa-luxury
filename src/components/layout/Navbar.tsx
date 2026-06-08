@@ -208,7 +208,7 @@ export function Navbar() {
                       className="flex items-center justify-between w-full py-5 text-2xl font-heading text-soft-black"
                     >
                       {item.label}
-                      <ChevronDown
+                      <ChevronDownIcon
                         className={cn(
                           "w-5 h-5 transition-transform duration-300",
                           mobileDropdownOpen && "rotate-180"

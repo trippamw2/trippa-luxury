@@ -4,7 +4,12 @@ import L from "leaflet";
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import Link from "next/link";
-import { MOVEMENT_LABELS, type RouteStop } from "@/lib/journey-routes";
+import {
+  DESTINATION_LABELS,
+  MOVEMENT_LABELS,
+  NETWORK_STOPS,
+  type RouteStop,
+} from "@/lib/journey-routes";
 
 const GOLD = "#C2A46D";
 const GOLD_DARK = "#8F6B35";
@@ -48,12 +53,40 @@ function stopIcon(stop: RouteStop, index: number): L.DivIcon {
   });
 }
 
-export function JourneyRouteMap({ stops }: { stops: RouteStop[] }) {
+/** Muted marker for the network context layer : airports as small planes, properties as dots. */
+function contextIcon(stop: RouteStop): L.DivIcon {
+  const isAirport = stop.kind === "gateway";
+  const size = isAirport ? 26 : 16;
+  const html = isAirport
+    ? `<div style="width:${size}px;height:${size}px;border-radius:9999px;background:rgba(247,241,227,0.9);border:1.5px solid rgba(194,164,109,0.75);display:flex;align-items:center;justify-content:center;font-size:11px;color:rgba(143,107,53,0.85);box-shadow:0 2px 6px rgba(0,0,0,0.3);">&#9992;</div>`
+    : `<div style="width:${size}px;height:${size}px;border-radius:9999px;background:rgba(194,164,109,0.9);border:1.5px solid rgba(247,241,227,0.85);box-shadow:0 2px 6px rgba(0,0,0,0.3);"></div>`;
+  return L.divIcon({
+    className: "",
+    html,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+    popupAnchor: [0, -size / 2],
+  });
+}
+
+interface JourneyRouteMapProps {
+  stops: RouteStop[];
+  /** Muted context layer shown under the active route ; defaults to the full airport + property network. */
+  contextStops?: RouteStop[];
+}
+
+export function JourneyRouteMap({
+  stops,
+  contextStops = NETWORK_STOPS,
+}: JourneyRouteMapProps) {
   if (stops.length < 2) return null;
 
+  const activeIds = new Set(stops.map((s) => s.id));
+  const context = contextStops.filter((s) => !activeIds.has(s.id));
+
   const bounds = L.latLngBounds(
-    stops.map((s) => [s.lat, s.lng] as [number, number])
-  );
+    [...context, ...stops].map((s) => [s.lat, s.lng] as [number, number])
+  ).pad(0.12);
 
   return (
     <MapContainer
@@ -65,6 +98,43 @@ export function JourneyRouteMap({ stops }: { stops: RouteStop[] }) {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
+      {/* Network context layer : every airport and property, muted. */}
+      {context.map((stop) => (
+        <Marker
+          key={`ctx-${stop.id}`}
+          position={[stop.lat, stop.lng]}
+          icon={contextIcon(stop)}
+          zIndexOffset={-1000}
+        >
+          <Popup>
+            <div className="text-left" style={{ minWidth: 170 }}>
+              <span className="block text-[10px] font-medium uppercase tracking-widest text-[#B08A4D]">
+                {stop.destination
+                  ? (DESTINATION_LABELS[stop.destination] ?? "Destination")
+                  : stop.kind === "gateway"
+                    ? "Airport"
+                    : "Property"}
+              </span>
+              <span className="block font-heading text-[14px] font-medium text-[#1E1B16] mt-0.5">
+                {stop.label}
+              </span>
+              {stop.sublabel && (
+                <span className="block text-xs text-[#7A6F5D] mt-0.5">
+                  {stop.sublabel}
+                </span>
+              )}
+              {stop.href && (
+                <Link
+                  href={stop.href}
+                  className="mt-2 inline-block text-xs font-medium uppercase tracking-widest text-[#B08A4D] hover:text-[#8F6B35] transition-colors"
+                >
+                  View Property
+                </Link>
+              )}
+            </div>
+          </Popup>
+        </Marker>
+      ))}
       <Polyline
         positions={stops.map((s) => [s.lat, s.lng] as [number, number])}
         pathOptions={{
@@ -79,6 +149,7 @@ export function JourneyRouteMap({ stops }: { stops: RouteStop[] }) {
           key={stop.id}
           position={[stop.lat, stop.lng]}
           icon={stopIcon(stop, index)}
+          zIndexOffset={1000}
         >
           <Popup>
             <div className="text-left" style={{ minWidth: 190 }}>

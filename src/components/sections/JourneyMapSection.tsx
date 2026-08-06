@@ -58,6 +58,8 @@ interface JourneyMapSectionProps {
   title: string;
   description?: string;
   stops: RouteStop[];
+  /** Muted context layer under the active route ; defaults to the full airport + property network. */
+  contextStops?: RouteStop[];
   /** Dark band is the default (matches the site's cinematic map treatment). */
   variant?: "dark" | "light";
   heightClass?: string;
@@ -68,6 +70,7 @@ export function JourneyMapSection({
   title,
   description,
   stops,
+  contextStops,
   variant = "dark",
   heightClass = "h-[440px] md:h-[520px]",
 }: JourneyMapSectionProps) {
@@ -118,7 +121,7 @@ export function JourneyMapSection({
             dark ? "border-cream/10" : "border-sand-light/30"
           }`}
         >
-          <JourneyRouteMap stops={stops} />
+          <JourneyRouteMap stops={stops} contextStops={contextStops} />
         </motion.div>
 
         <MovementLegend stops={stops} />

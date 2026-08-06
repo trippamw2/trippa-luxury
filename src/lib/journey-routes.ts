@@ -20,6 +20,8 @@ export interface RouteStop {
   href?: string;
   /** How the traveller arrives at this stop from the previous one. */
   arrival?: MovementMode;
+  /** Destination slug the point belongs to (shown on network context layers). */
+  destination?: string;
 }
 
 export interface DestinationRoute {
@@ -94,6 +96,7 @@ function stayStop(propertyId: string): RouteStop | null {
     lng: p.coordinates.lng,
     kind: "stay",
     href: `/properties/${p.id}`,
+    destination: p.destination,
   };
 }
 
@@ -197,3 +200,68 @@ export function buildExperienceStops(experience: { id: string }): RouteStop[] {
 
   return stops;
 }
+
+/**
+ * Every arrival airport across the portfolio. Rendered as the context layer
+ * on every journey map so guests always see the full network of airports.
+ * Defined after the stop builders : module-scope evaluation calls stayStop.
+ */
+export const ALL_AIRPORTS: RouteStop[] = [
+  {
+    id: "llw",
+    label: "Lilongwe",
+    sublabel: "Kamuzu International Airport (LLW)",
+    lat: -13.789,
+    lng: 33.781,
+    kind: "gateway",
+    destination: "lake-malawi",
+  },
+  {
+    id: "chileka",
+    label: "Blantyre",
+    sublabel: "Chileka International Airport (BLZ)",
+    lat: -15.679,
+    lng: 34.968,
+    kind: "gateway",
+    destination: "lake-malawi",
+  },
+  {
+    id: "likoma",
+    label: "Likoma Island",
+    sublabel: "Likoma Airstrip",
+    lat: -12.052,
+    lng: 34.736,
+    kind: "gateway",
+    destination: "lake-malawi",
+  },
+  {
+    id: "mfu",
+    label: "Mfuwe",
+    sublabel: "Mfuwe Airport (MFU)",
+    lat: -13.255,
+    lng: 31.936,
+    kind: "gateway",
+    destination: "south-luangwa",
+  },
+  {
+    id: "znz",
+    label: "Zanzibar",
+    sublabel: "Abeid Amani Karume International Airport (ZNZ)",
+    lat: -6.222,
+    lng: 39.225,
+    kind: "gateway",
+    destination: "zanzibar",
+  },
+];
+
+/**
+ * The full network : every airport and every property across all three
+ * destinations. Rendered as a muted context layer under the active route
+ * on every journey map, so all locations are always visible.
+ */
+export const NETWORK_STOPS: RouteStop[] = [
+  ...ALL_AIRPORTS,
+  ...PROPERTIES.filter((p) => p.coordinates)
+    .map((p) => stayStop(p.id))
+    .filter((s): s is RouteStop => Boolean(s)),
+];

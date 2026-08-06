@@ -1,0 +1,21 @@
+# Build artifacts
+.next
+node_modules
+
+# Git
+.git
+.gitignore
+
+# Environment - provided via Vercel project settings
+.env
+.env.*
+!.env.example
+
+# Vercel
+.vercel
+
+# Logs
+*.log
+
+# Local tooling
+.omo

@@ -7,6 +7,8 @@ import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { SITE_CONFIG, JOURNEY_COLLECTIONS, PROPERTIES } from "@/lib/constants";
 import { usePackages } from "@/lib/use-public-data";
+import { JourneyMapSection } from "@/components/sections/JourneyMapSection";
+import { buildCollectionRoutes } from "@/lib/journey-routes";
 
 /** Runtime shape for the image fallback chain — DB-merged packages may lack an image. */
 type JourneyImageSource = {
@@ -215,6 +217,17 @@ export default function PackagesPage() {
                       </motion.div>
                     ))}
                   </div>
+
+                  {/* How you'll move : one map per destination covered by the collection */}
+                  {buildCollectionRoutes(collection.id, packages).map((route) => (
+                    <JourneyMapSection
+                      key={route.destination}
+                      eyebrow={`The Route \u00B7 ${route.destinationLabel}`}
+                      title={`How You'll Move Through ${route.destinationLabel}`}
+                      description="From the arrival gateway to every sanctuary in this collection : one map, every location, and the seamless movement between them."
+                      stops={route.stops}
+                    />
+                  ))}
                 </div>
               );
             })}

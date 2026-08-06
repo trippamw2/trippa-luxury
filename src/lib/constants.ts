@@ -1374,6 +1374,8 @@ export const EXPERIENCES = [
     description: "An intimate dinner beneath the stars with your toes in the sand. A table for two, candlelight, and the rhythm of waves as your soundtrack. The ultimate expression of romance.",
     image: IMAGES.dining,
     category: "Romance",
+    destination: "lake-malawi",
+    coordinates: { lat: -12.059, lng: 34.734 },
   },
   {
     id: "walking-safari",
@@ -1381,6 +1383,8 @@ export const EXPERIENCES = [
     description: "Follow in the footsteps of explorers on a guided walking safari. Feel the earth beneath your feet and connect with Africa on its own terms. There is no more intimate way to experience the wild.",
     image: IMAGES.walking,
     category: "Safari",
+    destination: "south-luangwa",
+    coordinates: { lat: -13.017, lng: 31.767 },
   },
   {
     id: "sunset-dhow",
@@ -1388,6 +1392,8 @@ export const EXPERIENCES = [
     description: "Sail into the golden hour on a traditional dhow. Champagne in hand, the sky painted in amber and rose. A moment you will carry in your heart forever.",
     image: IMAGES.dhow,
     category: "Romance",
+    destination: "zanzibar",
+    coordinates: { lat: -6.15, lng: 39.483 },
   },
   {
     id: "couples-spa",
@@ -1395,6 +1401,8 @@ export const EXPERIENCES = [
     description: "Side by side treatments in open air pavilions overlooking the ocean or bush. Ancient techniques meet modern wellness. Connection deepens with every breath.",
     image: IMAGES.spa,
     category: "Wellness",
+    destination: "zanzibar",
+    coordinates: { lat: -6.367, lng: 39.517 },
   },
   {
     id: "star-bed",
@@ -1402,6 +1410,8 @@ export const EXPERIENCES = [
     description: "Sleep beneath a canopy of African stars on a raised platform in the wilderness. The ultimate romantic safari experience. You and the universe. Nothing between.",
     image: IMAGES.starbed,
     category: "Romance",
+    destination: "south-luangwa",
+    coordinates: { lat: -12.983, lng: 31.7 },
   },
   {
     id: "bush-dining",
@@ -1409,6 +1419,8 @@ export const EXPERIENCES = [
     description: "A table set in the wilderness, surrounded by lanterns and the sounds of the African night. Fine dining meets raw nature. An evening you will never forget.",
     image: IMAGES.bushDining,
     category: "Dining",
+    destination: "south-luangwa",
+    coordinates: { lat: -13.02, lng: 31.77 },
   },
 ];
 

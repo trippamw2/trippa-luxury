@@ -28,11 +28,18 @@ const NAV_ITEMS = [
     ],
   },
   {
-    label: "Collections",
+    label: "Journeys",
     href: "#",
-    children: COLLECTION_CHILDREN,
+    children: [
+      ...COLLECTION_CHILDREN,
+      {
+        label: "All Journeys",
+        href: "/packages",
+        description: "Every curated journey across Africa, in one place",
+        image: "/images/hero-poster.jpg",
+      },
+    ],
   },
-  { label: "Journeys", href: "/packages" },
   { label: "About", href: "/about" },
   { label: "Journal", href: "/journal" },
   { label: "Contact", href: "/contact" },

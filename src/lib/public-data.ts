@@ -229,7 +229,18 @@ export async function getMergedExperiences() {
       dbMap.set(String(camel.slug || camel.id), camel);
     }
 
-    const merged = CONSTANT_EXPERIENCES.map((constant) => {
+    // DB rows override constant fields; destination/coordinates may be absent
+    // for DB-only experiences, so they stay optional on the merged shape.
+    type MergedExperience = {
+      id: string;
+      title: string;
+      description: string;
+      image: string;
+      category: string;
+      destination?: string;
+      coordinates?: { lat: number; lng: number };
+    };
+    const merged: MergedExperience[] = CONSTANT_EXPERIENCES.map((constant) => {
       const dbRecord = dbMap.get(constant.id);
       if (!dbRecord) return constant;
       return {

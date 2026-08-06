@@ -12,6 +12,8 @@ import { usePackages, useProperties } from "@/lib/use-public-data";
 import { ProductJsonLd } from "@/components/seo/ProductJsonLd";
 import { TouristTripJsonLd } from "@/components/seo/TouristTripJsonLd";
 import { cn } from "@/lib/utils";
+import { JourneyMapSection } from "@/components/sections/JourneyMapSection";
+import { buildPackageStops } from "@/lib/journey-routes";
 
 export default function PackageDetailPage() {
   const params = useParams();
@@ -259,6 +261,14 @@ export default function PackageDetailPage() {
           </div>
         </Container>
       </section>
+
+      {/* Route : how you move through the journey */}
+      <JourneyMapSection
+        eyebrow="Your Route"
+        title="How You'll Move"
+        description="From arrival gateway to every stay : the movement between each chapter of your journey, composed and seamless."
+        stops={buildPackageStops(pkg)}
+      />
 
       {/* CTA */}
       <section className="py-24 bg-soft-black relative overflow-hidden">

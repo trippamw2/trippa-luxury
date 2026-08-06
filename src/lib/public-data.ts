@@ -33,6 +33,7 @@ export async function getMergedProperties() {
     const { data: dbProperties, error } = await supabase
       .from("properties")
       .select("*")
+      .eq("is_active", true)
       .order("name");
 
     if (error || !dbProperties) {

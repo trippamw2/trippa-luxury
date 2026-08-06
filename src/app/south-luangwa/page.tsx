@@ -8,8 +8,9 @@ import Image from "next/image";
 import { Container } from "@/components/ui/container";
 import { PropertyCard } from "@/components/ui/property-card";
 import { Button } from "@/components/ui/button";
-import { IMAGES } from "@/lib/constants";
+import { IMAGES, DESTINATION_COORDINATES } from "@/lib/constants";
 import { useProperties, usePackages, useDestinations } from "@/lib/use-public-data";
+import { MapEmbed } from "@/components/maps/MapEmbed";
 import { FaqJsonLd } from "@/components/seo/FaqJsonLd";
 import { cn } from "@/lib/utils";
 
@@ -258,6 +259,47 @@ export default function SouthLuangwaPage() {
               />
             ))}
           </div>
+        </Container>
+      </section>
+
+      {/* Region Map Section */}
+      <section className="py-24 md:py-32 bg-soft-black">
+        <Container>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            className="max-w-3xl mx-auto text-center mb-16"
+          >
+            <span className="inline-block text-xs font-medium tracking-[0.2em] uppercase text-gold-light mb-4">
+              Explore the Region
+            </span>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-medium text-cream leading-tight">
+              The Luangwa Valley,
+              <br />
+              <span className="italic text-cream/80">on the Map</span>
+            </h2>
+            <p className="mt-5 text-cream/60 max-w-xl mx-auto text-sm leading-relaxed">
+              South Luangwa is one of Africa&apos;s greatest wildlife sanctuaries, its meandering Luangwa River drawing elephant, leopard and wild dog to the floodplain. Our camps perch on the river&apos;s edge, where the wilderness begins at your door.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            className="relative aspect-[4/3] md:aspect-[21/10] overflow-hidden rounded-xl border border-cream/10 shadow-2xl"
+          >
+            <MapEmbed
+              lat={DESTINATION_COORDINATES["south-luangwa"].lat}
+              lng={DESTINATION_COORDINATES["south-luangwa"].lng}
+              zoom={DESTINATION_COORDINATES["south-luangwa"].zoom}
+              title="Map of South Luangwa properties"
+              className="h-full"
+            />
+          </motion.div>
         </Container>
       </section>
 

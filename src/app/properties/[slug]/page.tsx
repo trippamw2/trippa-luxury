@@ -8,8 +8,9 @@ import Image from "next/image";
 import { Star, MapPin, Wifi, Waves, Car, Utensils, Sparkles, Heart, MessageCircle, Check, ChevronLeft } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
-import { SITE_CONFIG, SITE_URL } from "@/lib/constants";
+import { SITE_CONFIG, SITE_URL, DESTINATION_COORDINATES } from "@/lib/constants";
 import { useProperties, useDestinations } from "@/lib/use-public-data";
+import { MapEmbed } from "@/components/maps/MapEmbed";
 import { cn } from "@/lib/utils";
 
 const amenityIcons: Record<string, React.ReactNode> = {
@@ -29,6 +30,9 @@ export default function PropertyDetailPage() {
   const [inquiryForm, setInquiryForm] = useState({ fullName: "", email: "", phone: "", preferredDates: "", message: "" });
   const [inquiryStatus, setInquiryStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const property = properties.find((p) => p.id === params.slug);
+
+  const regionCoords = property ? DESTINATION_COORDINATES[property.destination] : undefined;
+  const mapCoords = property?.coordinates ?? regionCoords ?? { lat: -12.8, lng: 34.6 };
 
   if (!property) {
     return (
@@ -264,6 +268,45 @@ export default function PropertyDetailPage() {
               </div>
             </motion.div>
           </div>
+
+          {/* Location Map */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8 }}
+            className="mt-16 md:mt-20"
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 lg:gap-16 items-center">
+              <div className="lg:col-span-2">
+                <span className="text-xs font-medium tracking-[0.2em] uppercase text-gold mb-3 block">
+                  Find Us on the Map
+                </span>
+                <h3 className="text-2xl md:text-3xl font-heading font-medium text-soft-black leading-tight mb-4">
+                  Where {property.name} Awaits
+                </h3>
+                <div className="flex items-start gap-3 mb-4">
+                  <MapPin className="w-5 h-5 text-gold shrink-0 mt-0.5" />
+                  <p className="text-sm text-soft-black">{property.location}</p>
+                </div>
+                <p className="text-sm text-earth/70 leading-relaxed mb-6">
+                  Our concierge team will arrange every leg of your journey : private transfers, scenic flights and helicopter charters to bring you here with ease.
+                </p>
+                <Button href="/contact" variant="outline">Plan Your Journey</Button>
+              </div>
+              <div className="lg:col-span-3">
+                <div className="relative aspect-[16/10] overflow-hidden rounded-lg border border-sand-light/40 shadow-xl">
+                  <MapEmbed
+                    lat={mapCoords.lat}
+                    lng={mapCoords.lng}
+                    zoom={12}
+                    title={`Map showing the location of ${property.name}`}
+                    className="h-full"
+                  />
+                </div>
+              </div>
+            </div>
+          </motion.div>
         </Container>
       </section>
 

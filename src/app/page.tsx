@@ -7,6 +7,7 @@ import { FeaturedDestinations } from "@/components/sections/FeaturedDestinations
 import { PhilosophySection } from "@/components/sections/PhilosophySection";
 import { CuratedJourneys } from "@/components/sections/CuratedJourneys";
 import { FeaturedProperties } from "@/components/sections/FeaturedProperties";
+import { MapSection } from "@/components/sections/MapSection";
 import { TestimonialsSection } from "@/components/sections/TestimonialsSection";
 import { ExperiencesSection } from "@/components/sections/ExperiencesSection";
 import { InspirationSection } from "@/components/sections/InspirationSection";
@@ -47,6 +48,7 @@ export default function HomePage() {
       <PhilosophySection />
       <CuratedJourneys />
       <FeaturedProperties />
+      <MapSection />
       <TestimonialsSection />
       <ExperiencesSection />
       <InspirationSection />

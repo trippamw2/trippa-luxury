@@ -269,6 +269,7 @@ export const PROPERTIES = [
     name: "Kaya Mawa",
     destination: "lake-malawi",
     location: "Likoma Island, Lake Malawi",
+    coordinates: { lat: -12.059, lng: 34.734 },
     awards: ["Green Safaris : 100% renewable energy pioneer"],
     tagline: "Barefoot luxury on a private island sanctuary",
     description:
@@ -391,6 +392,7 @@ export const PROPERTIES = [
     name: "Pumulani Lodge",
     destination: "lake-malawi",
     location: "Nankumba Peninsula, Lake Malawi",
+    coordinates: { lat: -14.013, lng: 34.832 },
     tagline: "Where the lake meets the sky in perfect stillness",
     description:
       "Set on a private peninsula on the Nankumba Peninsula, Pumulani Lodge offers ten secluded villas with sweeping views across Lake Malawi. One of Robin Pope Safaris' finest properties : a place of serene beauty where high net worth couples rediscover each other far from the world's gaze.",
@@ -483,6 +485,7 @@ export const PROPERTIES = [
     name: "The Makokola Retreat",
     destination: "lake-malawi",
     location: "Southern Shore, Lake Malawi",
+    coordinates: { lat: -14.283, lng: 35.167 },
     tagline: "Where the lake's ancient rhythm meets unhurried grace",
     description:
       "On Lake Malawi's sun bleached southern shore, Makokola Retreat is a world unto itself. Palm-fringed, white-sanded, and wrapped in the unhurried rhythm of lakeside days. Here, the Lake Suites offer an adult only enclave with private infinity pools suspended above the water : your own crystalline corner of Africa.",
@@ -558,6 +561,7 @@ export const PROPERTIES = [
     name: "Time + Tide Chinzombo",
     destination: "south-luangwa",
     location: "South Luangwa National Park, Zambia",
+    coordinates: { lat: -13.017, lng: 31.767 },
     awards: ["Best New Property in Africa 2014", "Best New Property in Africa 2015"],
     tagline: "The most awarded safari camp on the Luangwa River",
     description:
@@ -632,6 +636,7 @@ export const PROPERTIES = [
     name: "Puku Ridge Camp",
     destination: "south-luangwa",
     location: "South Luangwa National Park, Zambia",
+    coordinates: { lat: -12.983, lng: 31.7 },
     awards: ["Award winning guiding team : Chiawa Safaris"],
     tagline: "Where the floodplain becomes your private wilderness",
     description:
@@ -704,6 +709,7 @@ export const PROPERTIES = [
     name: "Xanadu Luxury Villas & Retreat",
     destination: "zanzibar",
     location: "Michamvi, East Coast, Zanzibar",
+    coordinates: { lat: -6.15, lng: 39.483 },
     tagline: "Where dreams meet the Indian Ocean",
     description:
       "Nine uncompromising villas on a stretch of pristine white sand beach on Zanzibar's east coast. Each villa a private sanctuary with plunge pool, butler service, and an indulgence where every detail is anticipated : crafted for the discerning couple.",
@@ -788,6 +794,7 @@ export const PROPERTIES = [
     name: "Baraza Resort & Spa",
     destination: "zanzibar",
     location: "Bwejuu, South-East Coast, Zanzibar",
+    coordinates: { lat: -6.367, lng: 39.517 },
     awards: ["Condé Nast Traveller : Top 30 Beaches in the World"],
     tagline: "Swahili elegance on one of the world's finest beaches",
     description:
@@ -1322,6 +1329,12 @@ export const JOURNEY_COLLECTIONS = [
     image: IMAGES.xanadu,
   },
 ];
+
+export const DESTINATION_COORDINATES: Record<string, { lat: number; lng: number; zoom: number }> = {
+  "lake-malawi": { lat: -12.8, lng: 34.6, zoom: 8 },
+  "south-luangwa": { lat: -13.0, lng: 31.75, zoom: 10 },
+  "zanzibar": { lat: -6.2, lng: 39.4, zoom: 10 },
+};
 
 export const TESTIMONIALS = [
   {

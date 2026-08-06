@@ -7,6 +7,14 @@ import { MenuIcon, XIcon, ChevronDownIcon } from "@/components/ui/icons";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { KivaraLogo } from "@/components/ui/KivaraLogo";
+import { JOURNEY_COLLECTIONS } from "@/lib/constants";
+
+const COLLECTION_CHILDREN = JOURNEY_COLLECTIONS.map((collection) => ({
+  label: collection.title,
+  href: `/packages#${collection.id}`,
+  description: collection.description,
+  image: collection.image,
+}));
 
 const NAV_ITEMS = [
   { label: "Home", href: "/" },
@@ -19,6 +27,11 @@ const NAV_ITEMS = [
       { label: "Zanzibar", href: "/zanzibar", description: "Tropical romantic elegance", image: "/images/zanzibar-beach.jpg" },
     ],
   },
+  {
+    label: "Collections",
+    href: "#",
+    children: COLLECTION_CHILDREN,
+  },
   { label: "Journeys", href: "/packages" },
   { label: "About", href: "/about" },
   { label: "Journal", href: "/journal" },
@@ -28,8 +41,8 @@ const NAV_ITEMS = [
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [openMobileDropdown, setOpenMobileDropdown] = useState<string | null>(null);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
@@ -89,8 +102,8 @@ export function Navbar() {
                 <div
                   key={item.label}
                   className="relative"
-                  onMouseEnter={() => setIsDropdownOpen(true)}
-                  onMouseLeave={() => setIsDropdownOpen(false)}
+                  onMouseEnter={() => setOpenDropdown(item.label)}
+                  onMouseLeave={() => setOpenDropdown(null)}
                 >
                   <button
                     className={cn(
@@ -104,15 +117,23 @@ export function Navbar() {
                     <ChevronDownIcon className="w-3 h-3" />
                   </button>
                   <AnimatePresence>
-                    {isDropdownOpen && (
+                    {openDropdown === item.label && (
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 10 }}
                         transition={{ duration: 0.3 }}
-                        className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[580px] bg-cream shadow-xl border border-sand-light/30 p-5"
+                        className={cn(
+                          "absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-cream shadow-xl border border-sand-light/30 p-5",
+                          item.children.length >= 4 ? "w-[820px]" : "w-[580px]"
+                        )}
                       >
-                        <div className="grid grid-cols-3 gap-4">
+                        <div
+                          className={cn(
+                            "grid gap-4",
+                            item.children.length >= 4 ? "grid-cols-4" : "grid-cols-3"
+                          )}
+                        >
                           {item.children.map((child: { label: string; href: string; description: string; image?: string }) => (
                             <Link
                               key={child.href}
@@ -203,19 +224,19 @@ export function Navbar() {
                 item.children ? (
                   <div key={item.label} className="border-b border-sand-light/30">
                     <button
-                      onClick={() => setMobileDropdownOpen(!mobileDropdownOpen)}
+                      onClick={() => setOpenMobileDropdown(openMobileDropdown === item.label ? null : item.label)}
                       className="flex items-center justify-between w-full py-5 text-2xl font-heading text-soft-black"
                     >
                       {item.label}
                       <ChevronDownIcon
                         className={cn(
                           "w-5 h-5 transition-transform duration-300",
-                          mobileDropdownOpen && "rotate-180"
+                          openMobileDropdown === item.label && "rotate-180"
                         )}
                       />
                     </button>
                     <AnimatePresence>
-                      {mobileDropdownOpen && (
+                      {openMobileDropdown === item.label && (
                         <motion.div
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: "auto", opacity: 1 }}

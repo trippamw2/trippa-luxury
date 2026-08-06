@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
     const altText = formData.get("altText") as string | null;
     const tagsRaw = formData.get("tags") as string | null;
 
-    let record: Record<string, any> | null = null;
+    let record: Record<string, unknown> | null = null;
     if (category || altText) {
       const { data: newRecord, error: recError } = await supabase
         .from("media_assets")
@@ -148,11 +148,12 @@ export async function POST(request: NextRequest) {
       fileSize: file.size,
       record,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof AdminAuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
     }
     console.error("Upload error:", err);
-    return NextResponse.json({ error: err.message || "Upload failed" }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Upload failed";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

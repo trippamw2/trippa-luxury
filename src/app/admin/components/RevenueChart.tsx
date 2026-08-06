@@ -51,7 +51,7 @@ export function RevenueChart({ data }: Props) {
                 borderRadius: "8px",
                 fontSize: "12px",
               }}
-              formatter={(value: any) => [`$${(Number(value) || 0).toLocaleString()}`, "Revenue"]}
+              formatter={(value) => [`$${(Number(value) || 0).toLocaleString()}`, "Revenue"]}
               labelFormatter={(label) => `Month ${label}`}
             />
             <Bar dataKey="revenue" fill="#C9A96E" radius={[4, 4, 0, 0]} maxBarSize={40} />

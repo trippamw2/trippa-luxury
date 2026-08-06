@@ -7,6 +7,26 @@ import type { ClientJourney, ConciergeState } from "@/lib/ai/workflow-engine";
 
 type SupabaseClient = ReturnType<typeof createAdminClient>;
 
+/** Fields from the bookings table consumed when mapping rows to journeys. */
+type BookingRow = {
+  id: string;
+  client_name?: string | null;
+  client_email?: string | null;
+  client_phone?: string | null;
+  status?: string | null;
+  assigned_to?: string | null;
+  created_at?: string | null;
+  destination?: string | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  guests_count?: number | null;
+  internal_notes?: string | null;
+  total_amount?: number | null;
+  deposit_amount?: number | null;
+  balance_amount?: number | null;
+  updated_at?: string | null;
+};
+
 export interface WorkflowFilters {
   state?: ConciergeState | "all";
   search?: string;
@@ -17,18 +37,25 @@ export interface WorkflowFilters {
   offset?: number;
 }
 
-export class WorkflowPersistence {
-  private db: SupabaseClient;
+let sharedAdminDb: SupabaseClient | null = null;
 
-  constructor() {
-    this.db = createAdminClient();
+export class WorkflowPersistence {
+  /**
+   * Lazily create the admin client on first use so importing this module
+   * never throws when env vars are missing (build/SSR safe).
+   */
+  private getDb(): SupabaseClient {
+    if (!sharedAdminDb) {
+      sharedAdminDb = createAdminClient();
+    }
+    return sharedAdminDb;
   }
 
   /**
    * List journeys with optional filters.
    */
   async list(filters: WorkflowFilters = {}): Promise<{ data: ClientJourney[]; count: number }> {
-    let query = this.db
+    let query = this.getDb()
       .from("bookings")
       .select("*, inquiries(*)")
       .order("created_at", { ascending: false });
@@ -69,7 +96,7 @@ export class WorkflowPersistence {
     }
 
     return {
-      data: (data || []).map((item: any) => this.mapBookingToJourney(item)),
+      data: (data || []).map((item) => this.mapBookingToJourney(item)),
       count: count || 0,
     };
   }
@@ -78,7 +105,7 @@ export class WorkflowPersistence {
    * Get a single journey by booking ID.
    */
   async get(id: string): Promise<ClientJourney | null> {
-    const { data, error } = await this.db
+    const { data, error } = await this.getDb()
       .from("bookings")
       .select("*, inquiries(*)")
       .eq("id", id)
@@ -106,7 +133,7 @@ export class WorkflowPersistence {
     notes?: string
   ): Promise<ClientJourney | null> {
     // First check if the inquiry already has a booking
-    const { data: existing, error: checkError } = await this.db
+    const { data: existing } = await this.getDb()
       .from("bookings")
       .select("id")
       .eq("inquiry_id", inquiryId)
@@ -116,7 +143,7 @@ export class WorkflowPersistence {
       return this.get(existing.id);
     }
 
-    const { data, error } = await this.db
+    const { data, error } = await this.getDb()
       .from("bookings")
       .insert({
         inquiry_id: inquiryId,
@@ -146,9 +173,9 @@ export class WorkflowPersistence {
   async transition(
     id: string,
     newState: ConciergeState,
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
   ): Promise<ClientJourney | null> {
-    const updateData: Record<string, any> = {
+    const updateData: Record<string, unknown> = {
       status: newState,
     };
 
@@ -179,7 +206,7 @@ export class WorkflowPersistence {
       updateData.internal_notes = metadata.internalNotes;
     }
 
-    const { data, error } = await this.db
+    const { data, error } = await this.getDb()
       .from("bookings")
       .update(updateData)
       .eq("id", id)
@@ -200,7 +227,7 @@ export class WorkflowPersistence {
   async markReminderSent(bookingId: string, reminderType: string): Promise<boolean> {
     // We store reminders JSON in the booking's internal_notes or a separate field
     // For simplicity, we append to internal_notes
-    const { data: current } = await this.db
+    const { data: current } = await this.getDb()
       .from("bookings")
       .select("internal_notes")
       .eq("id", bookingId)
@@ -210,7 +237,7 @@ export class WorkflowPersistence {
     reminders.reminders = reminders.reminders || [];
     reminders.reminders.push({ type: reminderType, sentAt: new Date().toISOString() });
 
-    const { error } = await this.db
+    const { error } = await this.getDb()
       .from("bookings")
       .update({ internal_notes: JSON.stringify(reminders) })
       .eq("id", bookingId);
@@ -221,7 +248,7 @@ export class WorkflowPersistence {
   /**
    * Map a Supabase booking row to a ClientJourney.
    */
-  private mapBookingToJourney(row: any): ClientJourney {
+  private mapBookingToJourney(row: BookingRow): ClientJourney {
     return {
       id: row.id,
       clientName: row.client_name || "",

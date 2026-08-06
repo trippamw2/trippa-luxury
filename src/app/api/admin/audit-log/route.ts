@@ -42,11 +42,12 @@ export async function GET(request: NextRequest) {
       data: mapKeysToCamel(data || []),
       count: count || 0,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof AdminAuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
     }
     console.error("Error in GET /api/admin/audit-log:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

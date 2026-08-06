@@ -20,7 +20,7 @@ const galleryItems = [
   { label: "Pumulani's lakeside villas overlooking the water", image: IMAGES.pumulani },
   { label: "The Lake of Stars at golden hour", image: IMAGES.lakeMalawiSunset },
   { label: "Snorkelling with tropical cichlids in crystal coves", image: IMAGES.kayaMawaSnorkel },
-  { label: "Blue Zebra Island's private paradise", image: IMAGES.blueZebra },
+  { label: "The lake's hidden coves at golden hour", image: IMAGES.lakeMalawiAerial },
   { label: "Makokola Retreat's lakeside elegance", image: IMAGES.makokolaRetreat },
   { label: "Sailing and kayaking through untouched coves", image: IMAGES.lakeMalawiIsland },
   { label: "Scenic aerial views of Likoma's coastline", image: IMAGES.lakeMalawiAerial },
@@ -77,7 +77,7 @@ export default function LakeMalawiPage() {
     { question: "What is the best time to visit Lake Malawi?", answer: "The best time to visit Lake Malawi is from May to October during the dry season when you'll enjoy warm, sunny days and calm lake conditions. June through August offers the clearest skies for stargazing — the 'Lake of Stars' effect is at its most magical. The green season (November to April) brings lush landscapes, fewer crowds, and excellent value for couples seeking solitude." },
     { question: "How do I get to Lake Malawi?", answer: "International visitors fly into Lilongwe (LLW) via Johannesburg, Nairobi, or Addis Ababa. From Lilongwe, it's a scenic 45-minute light aircraft charter to Likoma Island or a 4-hour drive to the lakeshore resorts. Kivara handles all transfers including private charters, road transfers, and connections from your international flight — ensuring a seamless journey from arrival to your suite." },
     { question: "What makes Lake Malawi a romantic destination for couples?", answer: "Lake Malawi offers an intimacy that no beach destination can match. With private island escapes, deserted beaches where the only footsteps are your own, candlelit dinners on the shore under the Lake of Stars, and suites that open directly onto the freshwater lake, it is Africa's most understated romantic sanctuary. The complete absence of crowds, combined with warm year-round weather and the natural beauty of the lake, creates an atmosphere where couples can truly disconnect and reconnect." },
-    { question: "Which luxury lodges are on Lake Malawi?", answer: "Kivara curates five exceptional Lake Malawi properties: Kaya Mawa on Likoma Island (the iconic barefoot luxury beach resort), Pumulani (colonial-chic lakeside villas), Blue Zebra Island Lodge (private island escape), Makokola Retreat (intimate lakehouse elegance), and the soon-to-launch Bua River Lodge. Each offers a distinct expression of Lake Malawi luxury, from adventure-focused escapes to pure relaxation." },
+    { question: "Which luxury lodges are on Lake Malawi?", answer: "Kivara curates three peerless Lake Malawi properties: Kaya Mawa on Likoma Island (the iconic barefoot luxury beach resort), Pumulani (colonial-chic lakeside villas), and The Makokola Retreat (intimate lakehouse elegance). Each offers a distinct expression of Lake Malawi luxury, from adventure-focused escapes to pure relaxation." },
     { question: "What activities can couples enjoy on Lake Malawi?", answer: "Lake Malawi offers an extraordinary range of couples' experiences: snorkeling with tropical cichlids in crystal-clear coves, sunset dhow cruises, kayaking through golden hour light, private picnics on deserted islands, scuba diving, paddleboarding, village cultural visits, and simply lounging on pristine beaches. The lake's calm, crystal-clear waters make it one of Africa's safest and most accessible water playgrounds." },
     { question: "How many days should we spend on Lake Malawi?", answer: "We recommend 5-7 nights at a single property to fully immerse in the Lake Malawi rhythm, or 7-10 nights to combine two lodges (e.g., Kaya Mawa on Likoma Island followed by Pumulani on the mainland shore). Most couples find that a week allows the perfect balance of adventure, relaxation, and romance." },
   ];
@@ -253,10 +253,8 @@ export default function LakeMalawiPage() {
                 tagline={property.tagline}
                 location={property.location}
                 image={property.heroImage}
-                priceRange={property.priceRange}
                 rating={property.rating}
                 slug={property.id}
-                destination={property.destination}
                 index={index}
               />
             ))}

@@ -6,8 +6,8 @@ type AuditEntry = {
   tableName: string;
   recordId?: string;
   action: AuditAction;
-  oldData?: Record<string, any> | null;
-  newData?: Record<string, any> | null;
+  oldData?: Record<string, unknown> | null;
+  newData?: Record<string, unknown> | null;
   performedBy?: string;
   ipAddress?: string;
 };
@@ -38,9 +38,9 @@ export async function createAuditLog(entry: AuditEntry): Promise<void> {
  * Strip sensitive/irrelevant fields from data before logging.
  * Keeps the record identifiable without storing large blobs.
  */
-export function sanitizeForAudit(
-  data: Record<string, any> | null | undefined
-): Record<string, any> | null {
+export function sanitizeForAudit<T extends object>(
+  data: T | null | undefined
+): Record<string, unknown> | null {
   if (!data) return null;
   const excluded = [
     "id",
@@ -51,7 +51,7 @@ export function sanitizeForAudit(
     "token",
     "secret",
   ];
-  const result: Record<string, any> = {};
+  const result: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(data)) {
     if (!excluded.includes(key)) {
       result[key] = value;

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { DollarSign, TrendingUp, TrendingDown, Plus, X, Trash2 } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { useApiData } from "@/lib/use-api-data";
 import { useToast } from "@/app/admin/components/Toast";
 import { SkeletonText } from "@/app/admin/components/Skeleton";
@@ -16,24 +16,84 @@ interface Invoice {
   id: string; number: string; client: string; amount: number;
   status: string; dueDate: string; items?: string[];
 }
-interface Payout {
-  id: string; supplier: string; amount: number; date: string;
-  status: string; reference?: string;
-}
 interface Expense {
   id: string; category: string; description: string; amount: number;
   date: string; status: string; receipt?: string;
 }
 
-function mapTrans(item: any): Transaction {
+/** Raw row shape returned by the transactions admin API (camelCase DB columns). */
+interface ApiTransaction {
+  id?: string | null;
+  transactionDate?: string | null;
+  description?: string | null;
+  notes?: string | null;
+  bookingId?: string | null;
+  amount?: number | null;
+  transactionType?: string | null;
+  paymentMethod?: string | null;
+  status?: string | null;
+}
+/** Raw row shape returned by the invoices admin API (camelCase DB columns). */
+interface ApiInvoice {
+  id?: string | null;
+  invoiceNumber?: string | null;
+  client?: string | null;
+  bookingId?: string | null;
+  totalAmount?: number | null;
+  amount?: number | null;
+  status?: string | null;
+  dueDate?: string | null;
+  lineItems?: { description?: string }[] | null;
+}
+/** Raw row shape returned by the expenses admin API (camelCase + joined category). */
+interface ApiExpense {
+  id?: string | null;
+  category?: string | null;
+  categorySlug?: string | null;
+  description?: string | null;
+  amount?: number | null;
+  expenseDate?: string | null;
+  status?: string | null;
+  receiptUrl?: string | null;
+}
+
+/** Payload for creating/updating a transaction (snake_case DB column keys). */
+interface TransactionApiPayload {
+  transaction_date?: string;
+  notes?: string;
+  amount?: number;
+  transaction_type?: string;
+  payment_method?: string;
+  status?: string;
+}
+/** Payload for creating/updating an invoice (snake_case DB column keys). */
+interface InvoiceApiPayload {
+  invoice_number?: string;
+  total_amount?: number;
+  status?: string;
+  due_date?: string;
+  line_items?: { description: string; quantity: number; unit_price: number; total: number }[];
+  issue_date?: string;
+  subtotal?: number;
+}
+/** Payload for creating/updating an expense (snake_case DB column keys). */
+interface ExpenseApiPayload {
+  category?: string;
+  description?: string;
+  amount?: number;
+  expense_date?: string;
+  receipt_url?: string;
+}
+
+function mapTrans(item: ApiTransaction): Transaction {
   return {
-    id: item.id, date: item.transactionDate?.split("T")[0] || item.date || "", description: item.description || item.notes || "",
+    id: item.id || "", date: item.transactionDate?.split("T")[0] || "", description: item.description || item.notes || "",
     bookingRef: item.bookingId || "", amount: item.amount || 0,
     type: item.transactionType === "refund" || item.transactionType === "partial_refund" ? "debit" : "credit",
     method: item.paymentMethod || "", status: item.status || "completed",
   };
 }
-function mapTransToApi(item: Partial<Transaction>): any {
+function mapTransToApi(item: Partial<Transaction>): TransactionApiPayload {
   return {
     transaction_date: item.date, notes: item.description, amount: item.amount,
     transaction_type: item.type === "debit" ? "refund" : "deposit",
@@ -41,14 +101,14 @@ function mapTransToApi(item: Partial<Transaction>): any {
   };
 }
 
-function mapInv(item: any): Invoice {
+function mapInv(item: ApiInvoice): Invoice {
   return {
-    id: item.id, number: item.invoiceNumber || "", client: item.client || item.bookingId || "",
+    id: item.id || "", number: item.invoiceNumber || "", client: item.client || item.bookingId || "",
     amount: item.totalAmount || item.amount || 0, status: item.status || "draft",
-    dueDate: item.dueDate || "", items: (item.lineItems || []).map((li: any) => li.description || ""),
+    dueDate: item.dueDate || "", items: (item.lineItems || []).map(li => li.description || ""),
   };
 }
-function mapInvToApi(item: Partial<Invoice>): any {
+function mapInvToApi(item: Partial<Invoice>): InvoiceApiPayload {
   return {
     invoice_number: item.number, total_amount: item.amount, status: item.status,
     due_date: item.dueDate, line_items: (item.items || []).map(d => ({ description: d, quantity: 1, unit_price: 0, total: 0 })),
@@ -57,15 +117,15 @@ function mapInvToApi(item: Partial<Invoice>): any {
   };
 }
 
-function mapExp(item: any): Expense {
+function mapExp(item: ApiExpense): Expense {
   return {
-    id: item.id, category: item.category || "Other",
+    id: item.id || "", category: item.category || "Other",
     description: item.description || "", amount: item.amount || 0,
-    date: item.expenseDate?.split("T")[0] || item.date || "", status: item.status || "approved",
+    date: item.expenseDate?.split("T")[0] || "", status: item.status || "approved",
     receipt: item.receiptUrl || "",
   };
 }
-function mapExpToApi(item: Partial<Expense>): any {
+function mapExpToApi(item: Partial<Expense>): ExpenseApiPayload {
   return {
     category: item.category, description: item.description, amount: item.amount,
     expense_date: item.date, receipt_url: item.receipt,
@@ -87,16 +147,16 @@ const EXPENSE_CATEGORIES = ["Marketing", "Operations", "Staff", "Travel", "Techn
 const PAYMENT_METHODS = ["Stripe", "Bank Transfer", "PayPal", "Credit Card"];
 
 export default function AdminFinance() {
-  const { data: transactions, loading: loadTx, create: createTx, update: updateTx, remove: removeTx } = useApiData<Transaction>("finance/transactions", { mapFromApi: mapTrans, mapToApi: mapTransToApi });
-  const { data: invoices, loading: loadInv, create: createInv, update: updateInv, remove: removeInv } = useApiData<Invoice>("finance/invoices", { mapFromApi: mapInv, mapToApi: mapInvToApi });
-  const { data: expenses, loading: loadExp, create: createExp, update: updateExp, remove: removeExp } = useApiData<Expense>("finance/expenses", { mapFromApi: mapExp, mapToApi: mapExpToApi });
+  const { data: transactions, loading: loadTx, create: createTx, update: updateTx, remove: removeTx } = useApiData("finance/transactions", { mapFromApi: mapTrans, mapToApi: mapTransToApi });
+  const { data: invoices, loading: loadInv, create: createInv, update: updateInv, remove: removeInv } = useApiData("finance/invoices", { mapFromApi: mapInv, mapToApi: mapInvToApi });
+  const { data: expenses, loading: loadExp, create: createExp, update: updateExp, remove: removeExp } = useApiData("finance/expenses", { mapFromApi: mapExp, mapToApi: mapExpToApi });
 
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<Tab>("transactions");
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState<Tab>("transactions");
-  const [editItem, setEditItem] = useState<any>(null);
-  const [formData, setFormData] = useState<any>({});
+  const [editItem, setEditItem] = useState<Transaction | Invoice | Expense | null>(null);
+  const [formData, setFormData] = useState<Record<string, string>>({});
 
   const loading = loadTx || loadInv || loadExp;
 
@@ -190,16 +250,16 @@ export default function AdminFinance() {
 
         <div className="bg-white border border-sand-light overflow-hidden">
           {activeTab === "transactions" && (
-            <table className="w-full text-sm"><thead className="bg-warm-white border-b border-sand-light"><tr><th className="text-left px-4 py-3 font-medium text-earth">Date</th><th className="text-left px-4 py-3 font-medium text-earth">Description</th><th className="text-left px-4 py-3 font-medium text-earth">Method</th><th className="text-left px-4 py-3 font-medium text-earth">Amount</th><th className="text-right px-4 py-3 font-medium text-earth">Actions</th></tr></thead><tbody className="divide-y divide-sand-light">{transactions.map(t => (<tr key={t.id} className="hover:bg-warm-white"><td className="px-4 py-3 text-earth">{t.date}</td><td className="px-4 py-3 text-soft-black">{t.description}</td><td className="px-4 py-3 text-earth">{t.method}</td><td className={`px-4 py-3 font-medium ${t.type === "credit" ? "text-emerald-600" : "text-red-600"}`}>{t.type === "credit" ? "+" : "-"}${(t.amount || 0).toLocaleString()}</td><td className="px-4 py-3 text-right"><button onClick={() => { setEditItem(t); setFormData({ ...t, amount: t.amount.toString(), date: t.date }); setModalType("transactions"); setShowModal(true); }} className="text-xs text-gold mr-3 hover:underline">Edit</button><button onClick={() => handleDelete("transactions", t.id)} className="text-xs text-red-500 hover:underline">Delete</button></td></tr>))}</tbody></table>
+            <table className="w-full text-sm"><thead className="bg-warm-white border-b border-sand-light"><tr><th className="text-left px-4 py-3 font-medium text-earth">Date</th><th className="text-left px-4 py-3 font-medium text-earth">Description</th><th className="text-left px-4 py-3 font-medium text-earth">Method</th><th className="text-left px-4 py-3 font-medium text-earth">Amount</th><th className="text-right px-4 py-3 font-medium text-earth">Actions</th></tr></thead><tbody className="divide-y divide-sand-light">{transactions.map(t => (<tr key={t.id} className="hover:bg-warm-white"><td className="px-4 py-3 text-earth">{t.date}</td><td className="px-4 py-3 text-soft-black">{t.description}</td><td className="px-4 py-3 text-earth">{t.method}</td><td className={`px-4 py-3 font-medium ${t.type === "credit" ? "text-emerald-600" : "text-red-600"}`}>{t.type === "credit" ? "+" : "-"}${(t.amount || 0).toLocaleString()}</td><td className="px-4 py-3 text-right"><button onClick={() => { setEditItem(t); setFormData({ id: t.id, description: t.description, amount: t.amount.toString(), type: t.type, method: t.method, status: t.status, date: t.date }); setModalType("transactions"); setShowModal(true); }} className="text-xs text-gold mr-3 hover:underline">Edit</button><button onClick={() => handleDelete("transactions", t.id)} className="text-xs text-red-500 hover:underline">Delete</button></td></tr>))}</tbody></table>
           )}
           {activeTab === "invoices" && (
-            <table className="w-full text-sm"><thead className="bg-warm-white border-b border-sand-light"><tr><th className="text-left px-4 py-3 font-medium text-earth">Invoice #</th><th className="text-left px-4 py-3 font-medium text-earth">Client</th><th className="text-left px-4 py-3 font-medium text-earth">Amount</th><th className="text-left px-4 py-3 font-medium text-earth">Due Date</th><th className="text-left px-4 py-3 font-medium text-earth">Status</th><th className="text-right px-4 py-3 font-medium text-earth">Actions</th></tr></thead><tbody className="divide-y divide-sand-light">{invoices.map(inv => (<tr key={inv.id} className="hover:bg-warm-white"><td className="px-4 py-3 font-medium text-soft-black">{inv.number}</td><td className="px-4 py-3 text-earth">{inv.client}</td><td className="px-4 py-3 font-medium text-soft-black">${(inv.amount || 0).toLocaleString()}</td><td className="px-4 py-3 text-earth">{inv.dueDate}</td><td className="px-4 py-3"><span className={`px-2 py-1 text-xs rounded ${invoiceStatusConfig[inv.status]?.bg || "bg-gray-50"} ${invoiceStatusConfig[inv.status]?.color || "text-gray-600"}`}>{invoiceStatusConfig[inv.status]?.label || inv.status}</span></td><td className="px-4 py-3 text-right"><button onClick={() => { setEditItem(inv); setFormData({ ...inv, amount: inv.amount.toString() }); setModalType("invoices"); setShowModal(true); }} className="text-xs text-gold mr-3 hover:underline">Edit</button><button onClick={() => handleDelete("invoices", inv.id)} className="text-xs text-red-500 hover:underline">Delete</button></td></tr>))}</tbody></table>
+            <table className="w-full text-sm"><thead className="bg-warm-white border-b border-sand-light"><tr><th className="text-left px-4 py-3 font-medium text-earth">Invoice #</th><th className="text-left px-4 py-3 font-medium text-earth">Client</th><th className="text-left px-4 py-3 font-medium text-earth">Amount</th><th className="text-left px-4 py-3 font-medium text-earth">Due Date</th><th className="text-left px-4 py-3 font-medium text-earth">Status</th><th className="text-right px-4 py-3 font-medium text-earth">Actions</th></tr></thead><tbody className="divide-y divide-sand-light">{invoices.map(inv => (<tr key={inv.id} className="hover:bg-warm-white"><td className="px-4 py-3 font-medium text-soft-black">{inv.number}</td><td className="px-4 py-3 text-earth">{inv.client}</td><td className="px-4 py-3 font-medium text-soft-black">${(inv.amount || 0).toLocaleString()}</td><td className="px-4 py-3 text-earth">{inv.dueDate}</td><td className="px-4 py-3"><span className={`px-2 py-1 text-xs rounded ${invoiceStatusConfig[inv.status]?.bg || "bg-gray-50"} ${invoiceStatusConfig[inv.status]?.color || "text-gray-600"}`}>{invoiceStatusConfig[inv.status]?.label || inv.status}</span></td><td className="px-4 py-3 text-right"><button onClick={() => { setEditItem(inv); setFormData({ id: inv.id, number: inv.number, client: inv.client, amount: inv.amount.toString(), status: inv.status, dueDate: inv.dueDate }); setModalType("invoices"); setShowModal(true); }} className="text-xs text-gold mr-3 hover:underline">Edit</button><button onClick={() => handleDelete("invoices", inv.id)} className="text-xs text-red-500 hover:underline">Delete</button></td></tr>))}</tbody></table>
           )}
           {activeTab === "payouts" && (
             <div className="p-8 text-center text-earth text-sm">Payouts are managed through the Suppliers module. Go to Suppliers to manage supplier payments.</div>
           )}
           {activeTab === "expenses" && (
-            <table className="w-full text-sm"><thead className="bg-warm-white border-b border-sand-light"><tr><th className="text-left px-4 py-3 font-medium text-earth">Category</th><th className="text-left px-4 py-3 font-medium text-earth">Description</th><th className="text-left px-4 py-3 font-medium text-earth">Amount</th><th className="text-left px-4 py-3 font-medium text-earth">Date</th><th className="text-left px-4 py-3 font-medium text-earth">Status</th><th className="text-right px-4 py-3 font-medium text-earth">Actions</th></tr></thead><tbody className="divide-y divide-sand-light">{expenses.map(e => (<tr key={e.id} className="hover:bg-warm-white"><td className="px-4 py-3"><span className="px-2 py-1 text-xs bg-amber-50 text-amber-700 rounded">{e.category}</span></td><td className="px-4 py-3 text-soft-black">{e.description}</td><td className="px-4 py-3 font-medium text-soft-black">${(e.amount || 0).toLocaleString()}</td><td className="px-4 py-3 text-earth">{e.date}</td><td className="px-4 py-3"><span className={`px-2 py-1 text-xs rounded ${e.status === "approved" ? "bg-emerald-50 text-emerald-700" : e.status === "pending" ? "bg-amber-50 text-amber-700" : "bg-red-50 text-red-700"}`}>{e.status}</span></td><td className="px-4 py-3 text-right"><button onClick={() => { setEditItem(e); setFormData({ ...e, amount: e.amount.toString(), date: e.date }); setModalType("expenses"); setShowModal(true); }} className="text-xs text-gold mr-3 hover:underline">Edit</button><button onClick={() => handleDelete("expenses", e.id)} className="text-xs text-red-500 hover:underline">Delete</button></td></tr>))}</tbody></table>
+            <table className="w-full text-sm"><thead className="bg-warm-white border-b border-sand-light"><tr><th className="text-left px-4 py-3 font-medium text-earth">Category</th><th className="text-left px-4 py-3 font-medium text-earth">Description</th><th className="text-left px-4 py-3 font-medium text-earth">Amount</th><th className="text-left px-4 py-3 font-medium text-earth">Date</th><th className="text-left px-4 py-3 font-medium text-earth">Status</th><th className="text-right px-4 py-3 font-medium text-earth">Actions</th></tr></thead><tbody className="divide-y divide-sand-light">{expenses.map(e => (<tr key={e.id} className="hover:bg-warm-white"><td className="px-4 py-3"><span className="px-2 py-1 text-xs bg-amber-50 text-amber-700 rounded">{e.category}</span></td><td className="px-4 py-3 text-soft-black">{e.description}</td><td className="px-4 py-3 font-medium text-soft-black">${(e.amount || 0).toLocaleString()}</td><td className="px-4 py-3 text-earth">{e.date}</td><td className="px-4 py-3"><span className={`px-2 py-1 text-xs rounded ${e.status === "approved" ? "bg-emerald-50 text-emerald-700" : e.status === "pending" ? "bg-amber-50 text-amber-700" : "bg-red-50 text-red-700"}`}>{e.status}</span></td><td className="px-4 py-3 text-right"><button onClick={() => { setEditItem(e); setFormData({ id: e.id, category: e.category, description: e.description, amount: e.amount.toString(), date: e.date, status: e.status }); setModalType("expenses"); setShowModal(true); }} className="text-xs text-gold mr-3 hover:underline">Edit</button><button onClick={() => handleDelete("expenses", e.id)} className="text-xs text-red-500 hover:underline">Delete</button></td></tr>))}</tbody></table>
           )}
         </div>
       </>

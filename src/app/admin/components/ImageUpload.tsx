@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useId } from "react";
 import Image from "next/image";
 import { Upload, X, Link as LinkIcon, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -30,7 +30,6 @@ export function ImageUpload({
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const urlInputRef = useRef<HTMLInputElement>(null);
   const [showUrlInput, setShowUrlInput] = useState(false);
 
   const handleFile = useCallback(async (file: File) => {
@@ -55,8 +54,8 @@ export function ImageUpload({
 
       if (!res.ok) throw new Error(data.error || "Upload failed");
       onChange(data.url);
-    } catch (err: any) {
-      setUploadError(err.message || "Upload failed");
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setUploading(false);
     }
@@ -76,7 +75,7 @@ export function ImageUpload({
 
   const clearImage = () => { onChange(""); setUploadError(null); };
 
-  const inputId = `img-upload-${Math.random().toString(36).slice(2, 9)}`;
+  const inputId = useId();
 
   return (
     <div className="space-y-0.5">

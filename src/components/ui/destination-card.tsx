@@ -4,7 +4,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowRightIcon } from "@/components/ui/icons";
-import { cn } from "@/lib/utils";
 
 interface DestinationCardProps {
   title: string;

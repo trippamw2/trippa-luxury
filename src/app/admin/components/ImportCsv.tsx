@@ -83,8 +83,8 @@ export function ImportCsv({ table, label = "Import CSV", fieldMapping }: Props) 
       } else {
         toast(data.error || "Import failed", "error");
       }
-    } catch (err: any) {
-      toast(`Import error: ${err.message}`, "error");
+    } catch (err) {
+      toast(`Import error: ${err instanceof Error ? err.message : "Unknown error"}`, "error");
     } finally {
       setImporting(false);
     }

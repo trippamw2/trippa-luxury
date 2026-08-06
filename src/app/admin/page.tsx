@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { DollarSign, MessageCircle, CalendarCheck, Eye, Users, Building, Plane, Receipt, ArrowRight, Plus, Luggage, MapPin } from "lucide-react";
+import { DollarSign, MessageCircle, CalendarCheck, Eye, Building, Plane, Receipt, ArrowRight, Plus, Luggage, MapPin } from "lucide-react";
 import { RevenueChart } from "./components/RevenueChart";
 import { BookingTrendsChart } from "./components/BookingTrendsChart";
 import { StatusDistributionChart } from "./components/StatusDistributionChart";

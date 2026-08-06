@@ -2,24 +2,38 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import Link from "next/link";
-import { ArrowRight, Clock, MapPin, Check, Heart, MessageCircle } from "lucide-react";
+import { Clock, MapPin, Check, Minus, Heart, MessageCircle } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
-import { SITE_CONFIG } from "@/lib/constants";
+import { SITE_CONFIG, JOURNEY_COLLECTIONS, PROPERTIES } from "@/lib/constants";
 import { usePackages } from "@/lib/use-public-data";
-import { cn } from "@/lib/utils";
+
+/** Runtime shape for the image fallback chain — DB-merged packages may lack an image. */
+type JourneyImageSource = {
+  image?: string;
+  properties?: string[];
+  collection?: string;
+};
 
 export default function PackagesPage() {
   const packages = usePackages();
+  const heroImage =
+    packages[0]?.image ||
+    JOURNEY_COLLECTIONS[0]?.image ||
+    "/images/hero-poster.jpg";
+  const journeyImage = (pkg: JourneyImageSource) =>
+    pkg.image ||
+    PROPERTIES.find((p) => p.id === pkg.properties?.[0])?.heroImage ||
+    JOURNEY_COLLECTIONS.find((c) => c.id === pkg.collection)?.image ||
+    "/images/hero-poster.jpg";
   return (
     <>
       {/* Hero */}
       <section className="relative h-[60vh] min-h-[500px] w-full overflow-hidden bg-soft-black">
-        <Image
-          src={packages[0]?.image}
-          alt="Romantic Journeys"
-          fill
+                <Image
+                  src={heroImage}
+                  alt="Kivara curated journeys"
+                  fill
           className="object-cover"
           priority
           sizes="100vw"
@@ -48,21 +62,48 @@ export default function PackagesPage() {
       {/* Packages */}
       <section className="py-24 md:py-32 bg-cream">
         <Container>
-          <div className="space-y-20">
-            {packages.map((pkg, index) => (
-              <motion.div
-                key={pkg.id}
-                id={pkg.id}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                className="scroll-mt-28"
-              >
+          <div className="space-y-24">
+            {JOURNEY_COLLECTIONS.map((collection) => {
+              const collectionPackages = packages.filter(
+                (pkg) => pkg.collection === collection.id
+              );
+              if (collectionPackages.length === 0) return null;
+              return (
+                <div key={collection.id} id={collection.id} className="scroll-mt-28">
+                  {/* Collection header */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                    className="text-center max-w-2xl mx-auto mb-14"
+                  >
+                    <span className="inline-block text-xs font-medium tracking-[0.2em] uppercase text-gold mb-3">
+                      Curated Collection
+                    </span>
+                    <h2 className="text-3xl md:text-4xl font-heading font-medium text-soft-black mb-3">
+                      {collection.title}
+                    </h2>
+                    <p className="text-sm text-earth/70 leading-relaxed">
+                      {collection.description}
+                    </p>
+                  </motion.div>
+
+                  <div className="space-y-20">
+                    {collectionPackages.map((pkg, index) => (
+                      <motion.div
+                        key={pkg.id}
+                        id={pkg.id}
+                        initial={{ opacity: 0, y: 40 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, margin: "-50px" }}
+                        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                        className="scroll-mt-28"
+                      >
                 {/* Package image */}
                 <div className="relative aspect-[21/9] overflow-hidden mb-10">
                   <Image
-                    src={pkg.image}
+                    src={journeyImage(pkg)}
                     alt={pkg.title}
                     fill
                     className="object-cover"
@@ -110,6 +151,22 @@ export default function PackagesPage() {
                         ))}
                       </div>
                     </div>
+                    {/* Excludes */}
+                    {pkg.excludes.length > 0 && (
+                      <div className="mb-8">
+                        <h4 className="text-sm font-medium tracking-widest uppercase text-soft-black mb-3">
+                          Excludes
+                        </h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {pkg.excludes.map((exc) => (
+                            <div key={exc} className="flex items-start gap-2 text-sm text-earth/70">
+                              <Minus className="w-4 h-4 text-earth/40 shrink-0 mt-0.5" />
+                              <span>{exc}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     {/* CTAs */}
                     <div className="flex flex-wrap gap-4">
@@ -155,8 +212,12 @@ export default function PackagesPage() {
                     </div>
                   </div>
                 </div>
-              </motion.div>
-            ))}
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </Container>
       </section>

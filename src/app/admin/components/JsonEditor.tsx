@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useId } from "react";
 import { cn } from "@/lib/utils";
 import { CheckCircle, AlertCircle } from "lucide-react";
 
@@ -53,7 +53,7 @@ export function JsonEditor({
     }
   };
 
-  const inputId = `json-${Math.random().toString(36).slice(2, 9)}`;
+  const inputId = useId();
 
   return (
     <div className="space-y-0.5">

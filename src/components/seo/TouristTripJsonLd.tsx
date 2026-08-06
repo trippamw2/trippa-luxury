@@ -16,7 +16,6 @@ type TouristTripJsonLdProps = {
 export function TouristTripJsonLd({
   name,
   description,
-  duration,
   image,
   itinerary,
   destination,

@@ -6,7 +6,11 @@ import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 const TABLE = "expenses";
 const SELECT_WITH_CATEGORY = "*, expense_categories!left(name, slug)";
 
-function mapRow(item: any) {
+type ExpenseRow = Record<string, unknown> & {
+  expense_categories?: { name?: string; slug?: string } | null;
+};
+
+function mapRow(item: ExpenseRow) {
   const mapped = mapKeysToCamel(item);
   return {
     ...mapped,
@@ -15,7 +19,7 @@ function mapRow(item: any) {
   };
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     await requireAdmin();
     const supabase = createAdminClient();
@@ -33,12 +37,13 @@ export async function GET(request: NextRequest) {
       data: (data || []).map(mapRow),
       count: count || 0,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof AdminAuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
     }
     console.error("Error in GET /api/admin/finance/expenses:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -74,11 +79,12 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(mapRow(data), { status: 201 });
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof AdminAuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
     }
     console.error("Error in POST /api/admin/finance/expenses:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

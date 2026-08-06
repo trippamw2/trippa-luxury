@@ -1,17 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { XIcon } from "@/components/ui/icons";
 import { MessageCircle } from "lucide-react";
 import { SITE_CONFIG } from "@/lib/constants";
 
 export function WhatsAppWidget() {
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+
   // Hide on admin pages
-  if (typeof window !== "undefined" && window.location.pathname.startsWith("/admin")) {
+  if (pathname.startsWith("/admin")) {
     return null;
   }
-
-  const [open, setOpen] = useState(false);
 
   const message = encodeURIComponent(
     "Hi Kivara! I'm dreaming of an African romance escape and would love some personalized guidance."

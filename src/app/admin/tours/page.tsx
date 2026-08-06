@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Search, Edit2, Trash2, X, Clock, MapPin, Users, Star, Copy, Image as ImageIcon, Calendar, Compass } from "lucide-react";
+import { Plus, Edit2, X, Clock, MapPin, Users, Star, Copy, Image as ImageIcon, Calendar, Compass } from "lucide-react";
 import Image from "next/image";
 import { formatDestination } from "@/lib/utils";
 import { useApiData } from "@/lib/use-api-data";
@@ -47,7 +47,30 @@ interface Tour {
   languages?: string[];
 }
 
-function mapTour(item: any): Tour {
+interface ApiTour {
+  id: string;
+  title?: string;
+  category?: string;
+  destination?: string;
+  durationDays?: number;
+  pricingFrom?: number;
+  currency?: string;
+  isActive?: boolean;
+  isFeatured?: boolean;
+  description?: string;
+  heroImage?: string;
+  image?: string;
+  itinerary?: ItineraryDay[];
+  included?: string[];
+  excluded?: string[];
+  meetingPoint?: string;
+  groupSize?: string;
+  languages?: string[];
+  bookings?: number;
+  rating?: number;
+}
+
+function mapTour(item: ApiTour): Tour {
   return {
     id: item.id,
     title: item.title || "",
@@ -71,7 +94,7 @@ function mapTour(item: any): Tour {
   };
 }
 
-function mapTourToApi(item: Partial<Tour>): any {
+function mapTourToApi(item: Partial<Tour>): Record<string, unknown> {
   return {
     title: item.title,
     category: item.category,
@@ -104,7 +127,7 @@ const DEFAULT_ITINERARY: ItineraryDay = {
 };
 
 export default function AdminTours() {
-  const { data: tours, loading, create, update, remove } = useApiData<Tour>("tours", {
+  const { data: tours, loading, create, update, remove } = useApiData("tours", {
     mapFromApi: mapTour,
     mapToApi: mapTourToApi,
   });
@@ -210,9 +233,12 @@ export default function AdminTours() {
     setFormData({ ...formData, itinerary: [...formData.itinerary, { ...DEFAULT_ITINERARY, day: formData.itinerary.length + 1 }] });
   };
 
-  const updateItineraryDay = (index: number, field: keyof ItineraryDay, value: any) => {
+  const updateItineraryDay = (index: number, field: keyof ItineraryDay, value: ItineraryDay[keyof ItineraryDay]) => {
     const updated = [...formData.itinerary];
-    (updated[index] as any)[field] = value;
+    const day = { ...updated[index] };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (day as any)[field] = value;
+    updated[index] = day;
     setFormData({ ...formData, itinerary: updated });
   };
 

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Building2, Plane, Car, Ship, MapPin, Phone, Mail, Star, Shield, Hotel, Users, Edit2, Trash2, X } from "lucide-react";
+import { Plus, Building2, Plane, Car, Ship, MapPin, Phone, Mail, Star, Shield, Hotel, Users, Edit2, X } from "lucide-react";
 import Image from "next/image";
 import { useApiData } from "@/lib/use-api-data";
 import { useToast } from "@/app/admin/components/Toast";
@@ -32,11 +32,32 @@ interface Supplier {
   notes?: string;
 }
 
-function mapSupplier(item: any): Supplier {
+interface ApiSupplier {
+  id: string;
+  name?: string;
+  category?: string;
+  city?: string;
+  address?: string;
+  country?: string;
+  contactPerson?: string;
+  email?: string;
+  phone?: string;
+  commissionRate?: number;
+  rating?: number;
+  status?: string;
+  contractOnFile?: boolean;
+  bookingsCount?: number;
+  totalRevenue?: number;
+  logo?: string;
+  website?: string;
+  notes?: string;
+}
+
+function mapSupplier(item: ApiSupplier): Supplier {
   return {
     id: item.id,
     name: item.name || "",
-    category: item.category || "lodge",
+    category: (item.category || "lodge") as SupplierCategory,
     location: item.city || item.address || "",
     country: item.country || "",
     contactPerson: item.contactPerson || "",
@@ -44,7 +65,7 @@ function mapSupplier(item: any): Supplier {
     phone: item.phone || "",
     commissionRate: item.commissionRate ?? 0,
     rating: item.rating ?? 0,
-    status: item.status || "active",
+    status: (item.status || "active") as Supplier["status"],
     contractOnFile: item.contractOnFile ?? false,
     bookingsCount: item.bookingsCount ?? 0,
     totalRevenue: item.totalRevenue ?? 0,
@@ -54,7 +75,7 @@ function mapSupplier(item: any): Supplier {
   };
 }
 
-function mapSupplierToApi(item: Partial<Supplier>): any {
+function mapSupplierToApi(item: Partial<Supplier>): Record<string, unknown> {
   return {
     name: item.name,
     category: item.category,
@@ -87,7 +108,7 @@ const categoryConfig: Record<SupplierCategory, { label: string; icon: React.Elem
 const CATEGORIES: SupplierCategory[] = ["lodge", "airline", "car-rental", "transfer", "activity", "spa", "catering"];
 
 export default function AdminSuppliers() {
-  const { data: suppliers, loading, create, update, remove } = useApiData<Supplier>("suppliers", {
+  const { data: suppliers, loading, create, update, remove } = useApiData("suppliers", {
     mapFromApi: mapSupplier,
     mapToApi: mapSupplierToApi,
   });
@@ -250,7 +271,7 @@ export default function AdminSuppliers() {
                 <FormInput label="Supplier Name" name="name" value={formData.name} onChange={(e) => setFormData(p => ({ ...p, name: e.target.value }))} placeholder="Kaya Mawa" required />
                 <FormGroup>
                   <FormSelect label="Category" name="category" value={formData.category} onChange={(e) => setFormData(p => ({ ...p, category: e.target.value as SupplierCategory }))} options={CATEGORIES.map(cat => ({ value: cat, label: categoryConfig[cat].label }))} />
-                  <FormSelect label="Status" name="status" value={formData.status} onChange={(e) => setFormData(p => ({ ...p, status: e.target.value as any }))} options={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }, { value: "blacklisted", label: "Blacklisted" }]} />
+                   <FormSelect label="Status" name="status" value={formData.status} onChange={(e) => setFormData(p => ({ ...p, status: e.target.value as Supplier["status"] }))} options={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }, { value: "blacklisted", label: "Blacklisted" }]} />
                 </FormGroup>
                 <FormGroup>
                   <FormInput label="Location" name="location" value={formData.location} onChange={(e) => setFormData(p => ({ ...p, location: e.target.value }))} placeholder="Likoma Island" />
@@ -274,7 +295,7 @@ export default function AdminSuppliers() {
                     </label>
                   </div>
                 </FormGroup>
-                <FormInput label="Image URL" name="image" type="url" value={formData.image} onChange={(e) => setFormData(p => ({ ...p, image: e.target.value }))} placeholder="/images/shawa-lodge.jpg" />
+                <FormInput label="Image URL" name="image" type="url" value={formData.image} onChange={(e) => setFormData(p => ({ ...p, image: e.target.value }))} placeholder="/images/makokola-retreat.jpg" />
                 <FormTextarea label="Notes" name="notes" value={formData.notes} onChange={(e) => setFormData(p => ({ ...p, notes: e.target.value }))} rows={2} placeholder="Additional notes..." />
               </div>
               <div className="flex gap-3 px-6 py-4 border-t border-sand-light flex-shrink-0">

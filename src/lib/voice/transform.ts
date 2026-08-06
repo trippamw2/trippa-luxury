@@ -2,7 +2,7 @@
 // Applies vocabulary replacement, tone rules, and department-specific styling.
 // Can be used as a post-processing layer or integrated at composition time.
 
-import { FORBIDDEN_WORDS, PHRASE_REPLACEMENTS, PREFERRED_VOCABULARY } from "./rules";
+import { FORBIDDEN_WORDS, PHRASE_REPLACEMENTS } from "./rules";
 
 // ─── Vocabulary Replacement ─────────────────────────────────────────
 

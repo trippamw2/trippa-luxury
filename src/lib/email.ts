@@ -5,22 +5,6 @@
 
 import { BrevoClient } from "@getbrevo/brevo";
 import { formatDestination } from "@/lib/utils";
-import {
-  inquiryReceived,
-  paymentRequest,
-  paymentConfirmed,
-  paymentReminder,
-  preTrip30,
-  preTrip14,
-  preTrip7,
-  preTrip1,
-  dayOfTravel,
-  postTripDay1,
-  postTripDay7,
-  postTripDay30,
-  signature as brandSignature,
-  salutation as brandSalutation,
-} from "@/lib/voice";
 
 let client: BrevoClient | null = null;
 
@@ -59,7 +43,7 @@ const FROM_NAME = "Kivara Concierge";
 export async function sendEmail(params: EmailParams) {
   try {
     const instance = getClient();
-    const payload: Record<string, any> = {
+    const payload: Record<string, unknown> = {
       sender: { email: FROM_EMAIL, name: FROM_NAME },
       replyTo: params.replyTo || { email: FROM_EMAIL, name: FROM_NAME },
       to: params.to,

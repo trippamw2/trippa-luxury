@@ -2,6 +2,17 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 
+type GuestAnalyticsRow = {
+  country: string | null;
+  source: string | null;
+  travel_style: string | null;
+  is_couple: boolean | null;
+  interests: string[] | null;
+  budget_range: string | null;
+  total_spent: string | null;
+  total_bookings: number | null;
+};
+
 export async function GET() {
   try {
     await requireAdmin();
@@ -30,11 +41,11 @@ export async function GET() {
       .select("country, source, travel_style, is_couple, interests, budget_range, total_spent, total_bookings, last_trip_date, created_at")
       .limit(1000);
 
-    const guestList = guests || [];
+    const guestList: GuestAnalyticsRow[] = guests || [];
 
     // ── Country distribution ──────────────────────────────────────────
     const countryCount: Record<string, number> = {};
-    guestList.forEach((g: any) => {
+    guestList.forEach((g) => {
       if (g.country) {
         countryCount[g.country] = (countryCount[g.country] || 0) + 1;
       }
@@ -46,7 +57,7 @@ export async function GET() {
 
     // ── Source distribution ───────────────────────────────────────────
     const sourceCount: Record<string, number> = {};
-    guestList.forEach((g: any) => {
+    guestList.forEach((g) => {
       const src = g.source || "unknown";
       sourceCount[src] = (sourceCount[src] || 0) + 1;
     });
@@ -56,7 +67,7 @@ export async function GET() {
 
     // ── Travel style distribution ─────────────────────────────────────
     const styleCount: Record<string, number> = {};
-    guestList.forEach((g: any) => {
+    guestList.forEach((g) => {
       if (g.travel_style) {
         styleCount[g.travel_style] = (styleCount[g.travel_style] || 0) + 1;
       }
@@ -66,12 +77,12 @@ export async function GET() {
       .map(([style, count]) => ({ style, count }));
 
     // ── Couples vs solo ───────────────────────────────────────────────
-    const couples = guestList.filter((g: any) => g.is_couple === true).length;
-    const solo = guestList.filter((g: any) => g.is_couple === false).length;
+    const couples = guestList.filter((g) => g.is_couple === true).length;
+    const solo = guestList.filter((g) => g.is_couple === false).length;
 
     // ── Interests (flatten JSONB arrays) ──────────────────────────────
     const interestCount: Record<string, number> = {};
-    guestList.forEach((g: any) => {
+    guestList.forEach((g) => {
       const interests = g.interests;
       if (Array.isArray(interests)) {
         interests.forEach((interest: string) => {
@@ -86,7 +97,7 @@ export async function GET() {
 
     // ── Budget range distribution ─────────────────────────────────────
     const budgetCount: Record<string, number> = {};
-    guestList.forEach((g: any) => {
+    guestList.forEach((g) => {
       if (g.budget_range) {
         budgetCount[g.budget_range] = (budgetCount[g.budget_range] || 0) + 1;
       }
@@ -107,17 +118,20 @@ export async function GET() {
       topInterests,
       budgetDistribution,
       avgSpentPerGuest: guestList.length > 0
-        ? guestList.reduce((s: number, g: any) => s + (parseFloat(g.total_spent) || 0), 0) / guestList.length
+        ? guestList.reduce((s: number, g) => s + (parseFloat(g.total_spent ?? "") || 0), 0) / guestList.length
         : 0,
       avgBookingsPerGuest: guestList.length > 0
-        ? guestList.reduce((s: number, g: any) => s + (g.total_bookings || 0), 0) / guestList.length
+        ? guestList.reduce((s: number, g) => s + (g.total_bookings || 0), 0) / guestList.length
         : 0,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof AdminAuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
     }
     console.error("Guest analytics error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Internal server error" },
+      { status: 500 }
+    );
   }
 }

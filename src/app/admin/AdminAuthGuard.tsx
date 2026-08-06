@@ -8,19 +8,25 @@ import { Loader2 } from "lucide-react";
 export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const supabase = createClient();
-  const [checking, setChecking] = useState(true);
 
-  // Login page has its own layout : skip auth check there
+  // Login page has its own layout: skip auth check there. `checking` starts
+  // false on the login page and is re-derived on route changes (render-phase
+  // state adjustment per React docs — no setState inside the effect body).
   const isLoginPage = pathname === "/admin/login";
+  const [checking, setChecking] = useState(!isLoginPage);
+  const [prevIsLoginPage, setPrevIsLoginPage] = useState(isLoginPage);
+  if (isLoginPage !== prevIsLoginPage) {
+    setPrevIsLoginPage(isLoginPage);
+    setChecking(!isLoginPage);
+  }
 
   useEffect(() => {
-    if (isLoginPage) {
-      setChecking(false);
-      return;
-    }
+    if (isLoginPage) return;
 
     let cancelled = false;
+    // Create client inside the effect: never during render/SSR so the
+    // build cannot crash on missing env, and no client per render.
+    const supabase = createClient();
 
     async function checkAuth() {
       const { data } = await supabase.auth.getSession();
@@ -41,7 +47,7 @@ export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [pathname, router, supabase, isLoginPage]);
+  }, [pathname, router, isLoginPage]);
 
   if (checking) {
     return (

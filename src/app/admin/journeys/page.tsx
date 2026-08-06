@@ -1,17 +1,17 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useToast } from "@/app/admin/components/Toast";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Search, Plus, Edit2, Trash2, X, Loader2, Save,
-  Eye, Send, Calendar, Users, MapPin, DollarSign, Moon, ArrowRight, Sparkles,
-  FileText, Tag, Clock, Sun, Umbrella, Plane, Car, Hotel, Activity as ActivityIcon,
-  ChevronDown, ChevronUp, Copy
+  Search, Plus, Trash2, X, Loader2, Save,
+  Calendar, MapPin, ArrowRight,
+  FileText, Sun, Plane, Car, Hotel, Activity as ActivityIcon,
+  Copy
 } from "lucide-react";
 import { useApiData } from "@/lib/use-api-data";
-import type { JourneyDay, Activity, Transfer, JourneyPricing } from "@/lib/ai/types";
+import type { JourneyDay, Activity, Transfer, JourneyPricing, AccommodationItem } from "@/lib/ai/types";
 
 interface SavedJourney {
   id: string;
@@ -30,7 +30,7 @@ interface SavedJourney {
   pricing: JourneyPricing;
   highlights: string[];
   includedExtras: string[];
-  preferences: Record<string, any>;
+  preferences: Record<string, unknown>;
   status: "draft" | "sent" | "viewed" | "modified" | "accepted" | "booked" | "archived";
   version: number;
   inquiryId: string;
@@ -41,16 +41,57 @@ interface SavedJourney {
   updatedAt: string;
 }
 
-// Extend AccommodationItem type for the editor
-interface AccommodationItem {
-  label: string;
-  nights: number;
-  ratePerNight: number;
-  ratePerNightPPPN: number;
-  subtotal: number;
+/** Raw row shape returned by the journeys admin API (DB column names). */
+interface ApiJourney {
+  id?: string | null;
+  title?: string | null;
+  subtitle?: string | null;
+  quoteRef?: string | null;
+  guestProfileId?: string | null;
+  guestName?: string | null;
+  guestEmail?: string | null;
+  guestPhone?: string | null;
+  isCouple?: boolean | null;
+  specialOccasion?: string | null;
+  destinations?: string[] | null;
+  duration?: number | null;
+  itinerary?: JourneyDay[] | null;
+  pricing?: JourneyPricing | null;
+  highlights?: string[] | null;
+  includedExtras?: string[] | null;
+  preferences?: Record<string, unknown> | null;
+  status?: SavedJourney["status"] | null;
+  version?: number | null;
+  inquiryId?: string | null;
+  bookingId?: string | null;
+  sentAt?: string | null;
+  acceptedAt?: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
 }
 
-function mapJourney(item: any): SavedJourney {
+interface JourneyApiPayload {
+  title?: string;
+  subtitle?: string;
+  guest_name?: string;
+  guest_email?: string;
+  guest_phone?: string;
+  is_couple?: boolean;
+  special_occasion?: string;
+  destinations?: string[];
+  duration?: number;
+  itinerary?: JourneyDay[];
+  pricing?: JourneyPricing;
+  highlights?: string[];
+  included_extras?: string[];
+  preferences?: Record<string, unknown>;
+  status?: SavedJourney["status"];
+  version?: number;
+  sentAt?: string;
+  acceptedAt?: string;
+}
+
+function mapJourney(item: ApiJourney): SavedJourney {
   return {
     id: item.id || "",
     title: item.title || "",
@@ -80,7 +121,7 @@ function mapJourney(item: any): SavedJourney {
   };
 }
 
-function mapJourneyToApi(item: Partial<SavedJourney>): any {
+function mapJourneyToApi(item: Partial<SavedJourney>): JourneyApiPayload {
   return {
     title: item.title,
     subtitle: item.subtitle,
@@ -149,7 +190,7 @@ export default function AdminJourneyEditor() {
   const searchParams = useSearchParams();
   const openId = searchParams.get("id");
 
-  const { data: journeys, loading, create, update, remove, refresh } = useApiData<SavedJourney>("journeys", {
+  const { data: journeys, loading, create, update, remove, refresh } = useApiData("journeys", {
     mapFromApi: mapJourney,
     mapToApi: mapJourneyToApi,
   });
@@ -165,16 +206,18 @@ export default function AdminJourneyEditor() {
 
   const { toast } = useToast();
 
-  // Auto-open from URL param
-  useEffect(() => {
-    if (openId && journeys.length > 0) {
-      const found = journeys.find((j) => j.id === openId);
-      if (found) {
-        setSelected(found);
-        setEditing(JSON.parse(JSON.stringify(found)));
-      }
+  // Auto-open from URL param. Done as a render-phase state adjustment
+  // (React-documented pattern) instead of an effect, to avoid a synchronous
+  // setState-in-effect cascade.
+  const [prevOpenId, setPrevOpenId] = useState(openId);
+  if (openId && openId !== prevOpenId && journeys.length > 0) {
+    setPrevOpenId(openId);
+    const found = journeys.find((j) => j.id === openId);
+    if (found) {
+      setSelected(found);
+      setEditing(JSON.parse(JSON.stringify(found)));
     }
-  }, [openId, journeys]);
+  }
 
   const filtered = journeys.filter((j) => {
     const matchSearch = !search ||
@@ -203,7 +246,7 @@ export default function AdminJourneyEditor() {
 
   const handleStatusChange = async (newStatus: string) => {
     if (!editing) return;
-    const payload: any = { status: newStatus };
+    const payload: JourneyApiPayload = { status: newStatus as SavedJourney["status"] };
     if (newStatus === "sent") payload.sentAt = new Date().toISOString();
     if (newStatus === "accepted") payload.acceptedAt = new Date().toISOString();
     const result = await update(editing.id, payload);
@@ -232,10 +275,10 @@ export default function AdminJourneyEditor() {
   const handleDuplicate = async () => {
     if (!editing) return;
     const copy = { ...editing };
-    delete (copy as any).id;
+    delete (copy as Partial<SavedJourney>).id;
     copy.title = `${copy.title} (Copy)`;
     copy.status = "draft";
-    const result = await create(mapJourneyToApi(copy));
+    const result = await create(copy);
     if (result) {
       toast("Journey duplicated", "success");
       refresh();
@@ -328,9 +371,9 @@ export default function AdminJourneyEditor() {
   };
 
   // Pricing helpers
-  const updateAccomItem = (idx: number, updates: Partial<{ label: string; nights: number; ratePerNight: number; ratePerNightPPPN: number }>) => {
+  const updateAccomItem = (idx: number, updates: Partial<AccommodationItem>) => {
     if (!editing) return;
-    const newAccom = [...(editing.pricing.accommodation || [])] as any[];
+    const newAccom = [...(editing.pricing.accommodation || [])];
     const current = newAccom[idx];
     const merged = { ...current, ...updates };
     // If PPPN was updated, recalc ratePerNight
@@ -407,12 +450,8 @@ export default function AdminJourneyEditor() {
     setEditing({ ...editing, pricing: recalcPricing({ ...editing.pricing, transfers: newXfers }) });
   };
 
-  // Highlights helpers
-  const [highlightInput, setHighlightInput] = useState("");
-
   return (
     <div>
-
 
       {selected && editing ? (
         /* ── Editor View ── */
@@ -711,7 +750,7 @@ export default function AdminJourneyEditor() {
                     </button>
                   </div>
                   <div className="space-y-2">
-                    {(editing.pricing.accommodation || []).map((a: any, i: number) => (
+                    {(editing.pricing.accommodation || []).map((a: AccommodationItem, i: number) => (
                       <div key={i} className="p-2 bg-gray-50 space-y-1">
                         <div className="flex items-center gap-2">
                           <input type="text" value={a.label} onChange={(e) => updateAccomItem(i, { label: e.target.value })}
@@ -956,7 +995,7 @@ export default function AdminJourneyEditor() {
             <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }}
               className="bg-white max-w-sm w-full p-6">
               <h3 className="text-lg font-bold text-soft-black mb-2">Delete Journey</h3>
-              <p className="text-sm text-earth mb-6">Permanently delete "{editing?.title}"? This cannot be undone.</p>
+              <p className="text-sm text-earth mb-6">Permanently delete &quot;{editing?.title}&quot;? This cannot be undone.</p>
               <div className="flex gap-3">
                 <button onClick={() => setShowDelete(false)}
                   className="flex-1 py-2.5 border border-gray-200 text-sm text-earth hover:border-soft-black transition-colors">

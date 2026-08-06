@@ -6,7 +6,11 @@ import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 const TABLE = "suppliers";
 const SELECT_WITH_CATEGORY = "*, supplier_categories!left(slug, name)";
 
-function mapRow(item: any) {
+type SupplierRow = Record<string, unknown> & {
+  supplier_categories?: { slug?: string; name?: string } | null;
+};
+
+function mapRow(item: SupplierRow) {
   const mapped = mapKeysToCamel(item);
   return {
     ...mapped,
@@ -35,12 +39,13 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     }
 
     return NextResponse.json(mapRow(data));
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof AdminAuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
     }
     console.error(`Error in GET /api/admin/${TABLE}/${id}:`, err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -79,12 +84,13 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     return NextResponse.json(mapRow(data));
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof AdminAuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
     }
     console.error(`Error in PUT /api/admin/${TABLE}/${id}:`, err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -102,11 +108,12 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
     }
 
     return NextResponse.json({ success: true });
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof AdminAuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
     }
     console.error(`Error in DELETE /api/admin/${TABLE}/${id}:`, err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

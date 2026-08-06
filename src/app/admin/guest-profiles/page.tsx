@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Mail, Phone, MapPin, User, Star, Heart, Tag, Award, Calendar, Plus, Edit2, Trash2, X, Check, Loader2, Globe } from "lucide-react";
+import { Search, Mail, Phone, User, Star, Heart, Tag, Plus, Edit2, Trash2, X, Check, Loader2, Globe } from "lucide-react";
 import { useApiData } from "@/lib/use-api-data";
 import { useToast } from "@/app/admin/components/Toast";
 
@@ -38,7 +38,39 @@ interface GuestProfile {
   updatedAt: string;
 }
 
-function mapProfile(item: any): GuestProfile {
+interface ApiGuestProfile {
+  id?: string;
+  fullName?: string;
+  email?: string;
+  phone?: string;
+  country?: string;
+  isCouple?: boolean;
+  travelStyle?: string;
+  accommodationStyle?: string;
+  activityLevel?: string;
+  budgetRange?: string;
+  dietaryRestrictions?: string[];
+  interests?: string[];
+  specialOccasion?: string;
+  specialOccasionDate?: string;
+  anniversaryDate?: string;
+  pastDestinations?: string[];
+  wishlist?: string[];
+  totalBookings?: number;
+  totalSpent?: number;
+  lastTripDate?: string;
+  lastContactedAt?: string;
+  source?: string;
+  referralSource?: string;
+  notes?: string;
+  isVip?: boolean;
+  emailOptIn?: boolean;
+  tags?: string[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+function mapProfile(item: ApiGuestProfile): GuestProfile {
   return {
     id: item.id || "",
     fullName: item.fullName || "",
@@ -72,7 +104,7 @@ function mapProfile(item: any): GuestProfile {
   };
 }
 
-function mapProfileToApi(item: Partial<GuestProfile>): any {
+function mapProfileToApi(item: Partial<GuestProfile>): Record<string, unknown> {
   return {
     full_name: item.fullName,
     email: item.email,
@@ -133,7 +165,7 @@ function TagInput({ values, onChange, placeholder }: { values: string[]; onChang
 }
 
 export default function AdminGuestProfiles() {
-  const { data: profiles, loading, create, update, remove } = useApiData<GuestProfile>("guest-profiles", {
+  const { data: profiles, loading, create, update, remove } = useApiData("guest-profiles", {
     mapFromApi: mapProfile,
     mapToApi: mapProfileToApi,
   });

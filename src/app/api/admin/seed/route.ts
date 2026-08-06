@@ -36,7 +36,64 @@ import {
   PACKAGES as CONSTANT_PACKAGES,
 } from "@/lib/constants";
 
-function mapPropertyToDb(p: any) {
+// Field view types for the seed mappers. The curated constant arrays omit
+// some DB columns (e.g. isFeatured, gallery, highlights), so fields the
+// mappers default with `|| []` / `?? false` are optional here; the literal
+// arrays remain assignable to these types.
+type PropertySeedSource = {
+  id: string;
+  name: string;
+  destination: string;
+  location: string;
+  tagline?: string;
+  description?: string;
+  longDescription?: string;
+  heroImage?: string;
+  gallery?: string[];
+  priceRange?: string;
+  roomTypes?: string[];
+  amenities?: string[];
+  rating?: number;
+  romanticHighlights?: string[];
+  awards?: string[];
+  reviews?: unknown[];
+  rooms?: unknown[];
+  isFeatured?: boolean;
+  isActive?: boolean;
+};
+
+type DestinationSeedSource = {
+  slug: string;
+  title: string;
+  subtitle?: string;
+  tagline?: string;
+  description?: string;
+  positioning?: string;
+  heroImage?: string;
+  gallery?: string[];
+  experiences?: string[];
+  highlights?: string[];
+  seasons?: unknown;
+};
+
+type PackageSeedSource = {
+  slug?: string;
+  id?: string;
+  title?: string;
+  name?: string;
+  subtitle?: string;
+  description?: string;
+  duration?: string;
+  price?: string;
+  destinations?: string[];
+  properties?: string[];
+  inclusions?: string[];
+  excludes?: string[];
+  itinerary?: unknown[];
+  isActive?: boolean;
+};
+
+function mapPropertyToDb(p: PropertySeedSource) {
   return {
     slug: p.id,
     name: p.name,
@@ -60,7 +117,7 @@ function mapPropertyToDb(p: any) {
   };
 }
 
-function mapDestinationToDb(d: any) {
+function mapDestinationToDb(d: DestinationSeedSource) {
   return {
     slug: d.slug,
     name: d.title,
@@ -77,7 +134,7 @@ function mapDestinationToDb(d: any) {
   };
 }
 
-function mapPackageToDb(pkg: any) {
+function mapPackageToDb(pkg: PackageSeedSource) {
   return {
     slug: pkg.slug || pkg.id,
     title: pkg.title || pkg.name || "",
@@ -109,7 +166,7 @@ export async function POST(request: Request) {
 
   try {
     const supabase = createAdminClient();
-    const results: Record<string, any> = {};
+    const results: Record<string, { error?: string; inserted?: number }> = {};
 
     // ── 1. Seed destinations ─────────────────────────────────────────────
     const destRecords = CONSTANT_DESTINATIONS.map(mapDestinationToDb);
@@ -129,7 +186,7 @@ export async function POST(request: Request) {
 
     // ── 2. Seed properties ───────────────────────────────────────────────
     const propRecords = CONSTANT_PROPERTIES.map(mapPropertyToDb);
-    const propSlugs = propRecords.map((p: any) => p.slug);
+    const propSlugs = propRecords.map((p) => p.slug);
 
     await supabase.from("properties").delete().in("slug", propSlugs);
     const { error: propError } = await supabase
@@ -145,7 +202,7 @@ export async function POST(request: Request) {
 
     // ── 3. Seed packages ─────────────────────────────────────────────────
     const pkgRecords = CONSTANT_PACKAGES.map(mapPackageToDb);
-    const pkgSlugs = pkgRecords.map((p: any) => p.slug);
+    const pkgSlugs = pkgRecords.map((p) => p.slug);
 
     await supabase.from("packages").delete().in("slug", pkgSlugs);
     const { error: pkgError } = await supabase
@@ -164,8 +221,11 @@ export async function POST(request: Request) {
       { success: !hasError, results },
       { status: hasError ? 500 : 200 }
     );
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Seed error:", err);
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: err instanceof Error ? err.message : "Unknown error" },
+      { status: 500 }
+    );
   }
 }

@@ -3,6 +3,20 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { mapKeysToCamel } from "@/lib/api-helpers";
 import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 
+type DestMeta = {
+  name?: string;
+  subtitle?: string;
+  tagline?: string;
+  description?: string;
+  positioning?: string;
+  heroImage?: string;
+  gallery?: unknown[];
+  experiences?: unknown[];
+  highlights?: unknown[];
+  seasons?: unknown[];
+  isFeatured?: boolean;
+};
+
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAdmin();
@@ -18,7 +32,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: propertiesRes.error.message }, { status: 500 });
     }
 
-    const meta = destRes.data ? mapKeysToCamel<any>(destRes.data) : {};
+    const meta = destRes.data ? mapKeysToCamel<DestMeta>(destRes.data) : {};
 
     return NextResponse.json({
       id,
@@ -37,11 +51,12 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       properties: mapKeysToCamel(propertiesRes.data || []),
       propertyCount: propertiesRes.data?.length || 0,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof AdminAuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
     }
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -52,7 +67,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const body = await request.json();
     const supabase = createAdminClient();
 
-    const updateData: Record<string, any> = {};
+    const updateData: Record<string, unknown> = {};
     if (body.name !== undefined) updateData.name = body.name;
     if (body.subtitle !== undefined) updateData.subtitle = body.subtitle;
     if (body.tagline !== undefined) updateData.tagline = body.tagline;
@@ -77,11 +92,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     return NextResponse.json({ success: true });
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof AdminAuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
     }
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -113,10 +129,11 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
     }
 
     return NextResponse.json({ success: true });
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof AdminAuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
     }
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

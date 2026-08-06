@@ -50,8 +50,9 @@ export async function POST(request: NextRequest) {
       released,
       message: `${released} provisional booking(s) auto-released.`,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Cron: release-provisional-holds error:", err);
-    return NextResponse.json({ error: err.message || "Internal error" }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Internal error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

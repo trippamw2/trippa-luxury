@@ -24,9 +24,9 @@ function usePublicData<T>(
   const [data, setData] = useState<T[]>(fallback);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // `loading` starts `true`, so the initial effect-triggered fetch needs no
+  // synchronous setState. All state updates happen in async callbacks.
   useEffect(() => {
-    setLoading(true);
-    setError(null);
     fetch(endpoint)
       .then((r) => r.json())
       .then((json) => { if (json.data) setData(json.data); })

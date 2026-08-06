@@ -28,12 +28,24 @@ interface MediaItem {
 
 interface UploadResult {
   url: string;
-  record: Record<string, any> | null;
+  record: Record<string, unknown> | null;
+}
+
+interface ApiMedia {
+  id: string;
+  filename?: string;
+  url?: string;
+  type?: string;
+  category?: string;
+  altText?: string;
+  alt_text?: string;
+  tags?: string[];
+  createdAt?: string;
 }
 
 /* ─── Mappers ─────────────────────────────────────────── */
 
-function mapMedia(item: any): MediaItem {
+function mapMedia(item: ApiMedia): MediaItem {
   return {
     id: item.id,
     filename: item.filename || "image.jpg",
@@ -46,7 +58,7 @@ function mapMedia(item: any): MediaItem {
   };
 }
 
-function mapMediaToApi(item: Partial<MediaItem>): any {
+function mapMediaToApi(item: Partial<MediaItem>): Record<string, unknown> {
   return {
     filename: item.filename,
     url: item.url,
@@ -73,7 +85,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 export default function MediaPage() {
   const { data: mediaItems, loading, refresh, create, update, remove } =
-    useApiData<MediaItem>("media", { mapFromApi: mapMedia, mapToApi: mapMediaToApi });
+    useApiData("media", { mapFromApi: mapMedia, mapToApi: mapMediaToApi });
   const { toast } = useToast();
 
   /* state */
@@ -115,7 +127,7 @@ export default function MediaPage() {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Upload failed");
         return data;
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Upload failed:", err);
         return null;
       }

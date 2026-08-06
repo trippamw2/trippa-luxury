@@ -5,7 +5,7 @@
 // DELETE /api/ai/workflow  : Delete a journey
 
 import { NextRequest, NextResponse } from "next/server";
-import { workflowEngine, type ClientJourney, type ConciergeState, type WorkflowAction } from "@/lib/ai/workflow-engine";
+import { workflowEngine, type ConciergeState, type WorkflowAction } from "@/lib/ai/workflow-engine";
 import { workflowPersistence } from "@/lib/workflow-persistence";
 
 // ─── GET: List journeys ─────────────────────────────────────────────────
@@ -45,7 +45,20 @@ export async function POST(request: NextRequest) {
     const { action, journeyId, ...payload } = body as {
       action: WorkflowAction;
       journeyId?: string;
-      [key: string]: any;
+      inquiryId?: string;
+      clientName?: string;
+      email?: string;
+      phone?: string;
+      destination?: string;
+      preferredDates?: string;
+      guests?: number;
+      notes?: string;
+      assignedTo?: string;
+      quoteAmount?: number;
+      amount?: number;
+      itineraryUrl?: string;
+      travelStart?: string;
+      travelEnd?: string;
     };
 
     // Map action to target state
@@ -69,7 +82,7 @@ export async function POST(request: NextRequest) {
     // ── CREATE: enquiry_received without journeyId → new journey ──
     if (action === "enquiry_received" && !journeyId) {
       const journey = await workflowPersistence.createFromInquiry(
-        payload.inquiryId,
+        payload.inquiryId || "",
         payload.clientName || "Unknown Client",
         payload.email || "",
         payload.phone,
@@ -109,7 +122,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Build metadata for the transition
-    const metadata: Record<string, any> = {};
+    const metadata: Record<string, unknown> = {};
     if (action === "concierge_assigned" && payload.assignedTo) {
       metadata.assignedTo = payload.assignedTo;
     }

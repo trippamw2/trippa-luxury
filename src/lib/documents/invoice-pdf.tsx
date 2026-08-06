@@ -18,7 +18,6 @@ const DARK = "#141414";
 const TEXT_PRIMARY = "#1A1A1A";
 const TEXT_SECONDARY = "#4A4A4A";
 const TEXT_MUTED = "#8B7D6B";
-const CREAM = "#FAF7F2";
 const WARM_WHITE = "#F5F0EB";
 const BORDER = "#EDE5DA";
 

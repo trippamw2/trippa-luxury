@@ -4,7 +4,7 @@
 
 import { JourneyEngine } from "./journey-engine";
 import type { GuestProfile, CuratedJourney } from "./types";
-import { journeyIntro, signature } from "@/lib/voice";
+import { journeyIntro } from "@/lib/voice";
 
 const engine = new JourneyEngine();
 
@@ -113,7 +113,7 @@ export class QuoteEngine {
             </tbody>
             <tfoot>
               ${(() => {
-                const transferCost = j.pricing.transfers.reduce((s: number, t: any) => s + t.cost, 0);
+                const transferCost = j.pricing.transfers.reduce((s, t) => s + t.cost, 0);
                 const accomSub = j.pricing.subtotal - transferCost;
                 let rows = `<tr><td colspan="3" style="text-align: right; padding: 12px 0 4px; font-size: 13px; color: #8B7D6B;">Accommodation Subtotal</td><td style="text-align: right; padding: 12px 0 4px; font-size: 14px; color: #1A1A1A;">$${accomSub.toLocaleString()}</td></tr>`;
                 if (transferCost > 0) {

@@ -5,7 +5,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Star, MapPin, Wifi, Waves, Car, Utensils, Sparkles, Heart, MessageCircle, Check, ChevronLeft } from "lucide-react";
+import { Star, MapPin, Wifi, Waves, Car, Utensils, Sparkles, Heart, MessageCircle, Check, ChevronLeft } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { SITE_CONFIG, SITE_URL } from "@/lib/constants";
@@ -26,6 +26,8 @@ export default function PropertyDetailPage() {
   const params = useParams();
   const properties = useProperties();
   const destinations = useDestinations();
+  const [inquiryForm, setInquiryForm] = useState({ fullName: "", email: "", phone: "", preferredDates: "", message: "" });
+  const [inquiryStatus, setInquiryStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const property = properties.find((p) => p.id === params.slug);
 
   if (!property) {
@@ -38,9 +40,6 @@ export default function PropertyDetailPage() {
       </div>
     );
   }
-
-  const [inquiryForm, setInquiryForm] = useState({ fullName: "", email: "", phone: "", preferredDates: "", message: "" });
-  const [inquiryStatus, setInquiryStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
   const handleInquirySubmit = async (e: React.FormEvent) => {
     e.preventDefault();

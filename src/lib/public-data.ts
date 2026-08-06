@@ -5,17 +5,15 @@ import {
   EXPERIENCES as CONSTANT_EXPERIENCES,
   DESTINATIONS as CONSTANT_DESTINATIONS,
 } from "@/lib/constants";
-import { luxury } from "@/lib/voice";
+import { luxury } from "@/lib/voice/transform";
 
-type SupabaseClient = ReturnType<typeof createAdminClient>;
-
-function mapKeysToCamel<T = any>(obj: Record<string, any>): T {
-  if (Array.isArray(obj)) return obj.map((item) => mapKeysToCamel(item)) as any;
-  if (obj === null || typeof obj !== "object") return obj as any;
-  const result: Record<string, any> = {};
+function mapKeysToCamel<T = Record<string, unknown>>(obj: unknown): T {
+  if (Array.isArray(obj)) return obj.map((item) => mapKeysToCamel(item)) as unknown as T;
+  if (obj === null || typeof obj !== "object") return obj as unknown as T;
+  const result: Record<string, unknown> = {};
   for (const key of Object.keys(obj)) {
     const camelKey = key.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
-    result[camelKey] = mapKeysToCamel(obj[key]);
+    result[camelKey] = mapKeysToCamel((obj as Record<string, unknown>)[key]);
   }
   return result as T;
 }
@@ -42,17 +40,17 @@ export async function getMergedProperties() {
       return CONSTANT_PROPERTIES;
     }
 
-    const dbMap = new Map<string, Record<string, any>>();
+    const dbMap = new Map<string, Record<string, unknown>>();
     for (const item of dbProperties) {
-      const camel = mapKeysToCamel<Record<string, any>>(item);
-      dbMap.set(camel.slug || camel.id, camel);
+      const camel = mapKeysToCamel<Record<string, unknown>>(item);
+      dbMap.set(String(camel.slug || camel.id), camel);
     }
 
     // Merge constants with selective DB overrides (skip null/undefined DB fields)
     const merged = CONSTANT_PROPERTIES.map((constant) => {
       const dbRecord = dbMap.get(constant.id);
       if (!dbRecord) return constant;
-      const result: Record<string, any> = { ...constant };
+      const result: Record<string, unknown> = { ...constant };
       for (const field of PROPERTY_MERGE_FIELDS) {
         if (dbRecord[field] !== null && dbRecord[field] !== undefined) {
           result[field] = dbRecord[field];
@@ -76,9 +74,9 @@ export async function getMergedProperties() {
           name: dbRecord.name || slug,
           destination: dbRecord.destination || "",
           location: dbRecord.location || "",
-          tagline: luxury(dbRecord.tagline || ""),
-          description: luxury(dbRecord.description || ""),
-          longDescription: luxury(dbRecord.longDescription || ""),
+          tagline: luxury(String(dbRecord.tagline || "")),
+          description: luxury(String(dbRecord.description || "")),
+          longDescription: luxury(String(dbRecord.longDescription || "")),
           heroImage: dbRecord.heroImage || "",
           gallery: dbRecord.gallery || [],
           priceRange: dbRecord.priceRange || "",
@@ -89,7 +87,7 @@ export async function getMergedProperties() {
           romanticHighlights: dbRecord.romanticHighlights || [],
           rooms: dbRecord.rooms || [],
           awards: dbRecord.awards || [],
-        } as any);
+        } as unknown as (typeof CONSTANT_PROPERTIES)[number]);
       }
     }
 
@@ -115,18 +113,18 @@ export async function getMergedBlogPosts() {
       return [];
     }
 
-    return dbPosts.map((post: Record<string, any>) => ({
-      id: post.slug,
-      slug: post.slug,
-      title: luxury(post.title || "Untitled"),
-      excerpt: luxury(post.excerpt || ""),
-      content: post.content || "",
-      category: post.category || "Travel",
-      image: post.image || "/images/hero-poster.jpg",
-      author: post.author || "Kivara Team",
-      readTime: post.read_time || "5 min read",
+    return dbPosts.map((post: Record<string, unknown>) => ({
+      id: String(post.slug || ""),
+      slug: String(post.slug || ""),
+      title: luxury(String(post.title || "Untitled")),
+      excerpt: luxury(String(post.excerpt || "")),
+      content: String(post.content || ""),
+      category: String(post.category || "Travel"),
+      image: String(post.image || "/images/hero-poster.jpg"),
+      author: String(post.author || "Kivara Team"),
+      readTime: String(post.read_time || "5 min read"),
       date: post.published_at
-        ? new Date(post.published_at).toLocaleDateString("en-US", {
+        ? new Date(String(post.published_at)).toLocaleDateString("en-US", {
             year: "numeric",
             month: "long",
             day: "numeric",
@@ -154,10 +152,10 @@ export async function getMergedPackages() {
       return CONSTANT_PACKAGES;
     }
 
-    const dbMap = new Map<string, Record<string, any>>();
+    const dbMap = new Map<string, Record<string, unknown>>();
     for (const item of dbPackages) {
-      const camel = mapKeysToCamel<Record<string, any>>(item);
-      dbMap.set(camel.slug || camel.id, camel);
+      const camel = mapKeysToCamel<Record<string, unknown>>(item);
+      dbMap.set(String(camel.slug || camel.id), camel);
     }
 
     const merged = CONSTANT_PACKAGES.map((constant) => {
@@ -165,13 +163,18 @@ export async function getMergedPackages() {
       if (!dbRecord) return constant;
       return {
         ...constant,
-        title: dbRecord.title || constant.title,
-        subtitle: luxury(dbRecord.subtitle || constant.subtitle),
-        description: luxury(dbRecord.description || constant.description),
-        duration: dbRecord.duration || constant.duration,
-        price: dbRecord.price || constant.price,
-        destinations: dbRecord.destinations || constant.destinations,
-        image: dbRecord.image || constant.image,
+        title: String(dbRecord.title || constant.title),
+        subtitle: luxury(String(dbRecord.subtitle || constant.subtitle)),
+        description: luxury(String(dbRecord.description || constant.description)),
+        duration: String(dbRecord.duration || constant.duration),
+        price: String(dbRecord.price || constant.price),
+        destinations: (dbRecord.destinations as string[]) || constant.destinations,
+        properties: (dbRecord.properties as string[]) || constant.properties,
+        inclusions: (dbRecord.inclusions as string[]) || constant.inclusions,
+        excludes: (dbRecord.excludes as string[]) || constant.excludes,
+        itinerary: (dbRecord.itinerary as (typeof constant)["itinerary"]) || constant.itinerary,
+        collection: String(dbRecord.collection || constant.collection),
+        image: String(dbRecord.image || constant.image),
       };
     });
 
@@ -181,15 +184,17 @@ export async function getMergedPackages() {
       if (!exists) {
         merged.push({
           id: slug,
-          title: luxury(dbRecord.title || "Untitled Package"),
-          subtitle: luxury(dbRecord.subtitle || ""),
-          description: luxury(dbRecord.description || ""),
-          duration: dbRecord.duration || "",
-          price: dbRecord.price || "",
-          destinations: dbRecord.destinations || [],
-          properties: [],
-          inclusions: [],
-          itinerary: [],
+          title: luxury(String(dbRecord.title || "Untitled Package")),
+          subtitle: luxury(String(dbRecord.subtitle || "")),
+          description: luxury(String(dbRecord.description || "")),
+          duration: String(dbRecord.duration || ""),
+          price: String(dbRecord.price || ""),
+          destinations: (dbRecord.destinations as string[]) || [],
+          properties: (dbRecord.properties as string[]) || [],
+          inclusions: (dbRecord.inclusions as string[]) || [],
+          excludes: (dbRecord.excludes as string[]) || [],
+          itinerary: (dbRecord.itinerary as { day: number; title: string; description: string }[]) || [],
+          collection: String(dbRecord.collection || "bespoke"),
           image: "",
         });
       }
@@ -217,10 +222,10 @@ export async function getMergedExperiences() {
       return CONSTANT_EXPERIENCES;
     }
 
-    const dbMap = new Map<string, Record<string, any>>();
+    const dbMap = new Map<string, Record<string, unknown>>();
     for (const item of dbItems) {
-      const camel = mapKeysToCamel<Record<string, any>>(item);
-      dbMap.set(camel.slug || camel.id, camel);
+      const camel = mapKeysToCamel<Record<string, unknown>>(item);
+      dbMap.set(String(camel.slug || camel.id), camel);
     }
 
     const merged = CONSTANT_EXPERIENCES.map((constant) => {
@@ -228,10 +233,10 @@ export async function getMergedExperiences() {
       if (!dbRecord) return constant;
       return {
         ...constant,
-        title: dbRecord.title || constant.title,
-        description: luxury(dbRecord.description || constant.description),
-        image: dbRecord.image || constant.image,
-        category: dbRecord.category || constant.category,
+        title: String(dbRecord.title || constant.title),
+        description: luxury(String(dbRecord.description || constant.description)),
+        image: String(dbRecord.image || constant.image),
+        category: String(dbRecord.category || constant.category),
       };
     });
 
@@ -241,10 +246,10 @@ export async function getMergedExperiences() {
       if (!exists) {
         merged.push({
           id: slug,
-          title: luxury(dbRecord.title || "Untitled"),
-          description: luxury(dbRecord.description || ""),
-          image: dbRecord.image || "",
-          category: dbRecord.category || "Romance",
+          title: luxury(String(dbRecord.title || "Untitled")),
+          description: luxury(String(dbRecord.description || "")),
+          image: String(dbRecord.image || ""),
+          category: String(dbRecord.category || "Romance"),
         });
       }
     }
@@ -277,17 +282,17 @@ export async function getMergedDestinations() {
       return CONSTANT_DESTINATIONS;
     }
 
-    const dbMap = new Map<string, Record<string, any>>();
+    const dbMap = new Map<string, Record<string, unknown>>();
     for (const item of dbItems) {
-      const camel = mapKeysToCamel<Record<string, any>>(item);
-      dbMap.set(camel.slug || camel.id, camel);
+      const camel = mapKeysToCamel<Record<string, unknown>>(item);
+      dbMap.set(String(camel.slug || camel.id), camel);
     }
 
     // Merge constants with selective DB overrides (skip null/undefined DB fields)
     const merged = CONSTANT_DESTINATIONS.map((constant) => {
       const dbRecord = dbMap.get(constant.id);
       if (!dbRecord) return constant;
-      const result: Record<string, any> = { ...constant };
+      const result: Record<string, unknown> = { ...constant };
       for (const field of DESTINATION_MERGE_FIELDS) {
         if (dbRecord[field] !== null && dbRecord[field] !== undefined) {
           result[field] = dbRecord[field];
@@ -315,8 +320,8 @@ export async function getMergedDestinations() {
           title: dbRecord.name || slug,
           subtitle: dbRecord.subtitle || "",
           tagline: dbRecord.tagline || "",
-          description: luxury(dbRecord.description || ""),
-          positioning: luxury(dbRecord.positioning || ""),
+          description: luxury(String(dbRecord.description || "")),
+          positioning: luxury(String(dbRecord.positioning || "")),
           heroImage: dbRecord.heroImage || "",
           gallery: dbRecord.gallery || [],
           experiences: dbRecord.experiences || [],
@@ -325,7 +330,7 @@ export async function getMergedDestinations() {
           isFeatured: dbRecord.isFeatured || false,
           properties: [],
           propertyCount: 0,
-        } as any);
+        } as unknown as (typeof CONSTANT_DESTINATIONS)[number]);
       }
     }
 

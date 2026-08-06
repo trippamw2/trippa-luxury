@@ -10,6 +10,16 @@ import { mapKeysToCamel } from "@/lib/api-helpers";
 
 const TABLE = "bookings";
 
+type CamelBooking = {
+  clientName?: string;
+  bookingReference?: string;
+  destination?: string;
+  startDate?: string;
+  totalAmount?: string;
+  depositAmount?: string;
+  paymentMethod?: string;
+};
+
 /**
  * Map a new booking status to the appropriate email type and template data.
  * Returns null if no email should be auto-sent for this status.
@@ -30,7 +40,7 @@ async function sendStatusEmail(
 
   if (!booking || !booking.client_email) return;
 
-  const b = mapKeysToCamel<any>(booking);
+  const b = mapKeysToCamel<CamelBooking>(booking);
   const clientName = b.clientName || "Valued Guest";
   const bookingRef = b.bookingReference || bookingId.slice(0, 8).toUpperCase();
 

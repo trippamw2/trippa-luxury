@@ -1,6 +1,6 @@
 // ─── Kivara Final Itinerary Document ───────────────────────────────────
 
-import { wrapDocument, documentHeader, documentBody, documentFooter, refBox, infoGrid, KIVARA_BRAND } from "./template";
+import { wrapDocument, documentHeader, documentBody, documentFooter, refBox, infoGrid } from "./template";
 import type { CuratedJourney } from "@/lib/ai/types";
 
 export function generateItineraryDocument(journey: CuratedJourney): string {

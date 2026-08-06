@@ -17,10 +17,10 @@ const DESTINATION_SLUG = "zanzibar";
 
 const galleryItems = [
   { label: "Xanadu's white sand paradise", image: "/images/xanadu-1.jpg" },
-  { label: "Kilindi's iconic white-domed pavilions", image: "/images/kilindi-5.webp" },
+  { label: "Xanadu's artistic villa sanctuary", image: IMAGES.xanadu },
   { label: "Spice Island heritage", image: IMAGES.zanzibarStoneTown },
   { label: "Romantic sunset dhow cruises", image: IMAGES.zanzibarDhow },
-  { label: "The Palms intimate villa sanctuary", image: "/images/palms-7.jpg" },
+  { label: "Baraza's Royal Sultan Villa", image: IMAGES.barazaRoyalVilla },
   { label: "Baraza Swahili elegance", image: IMAGES.barazaDining },
   { label: "Stone Town's ancient charm", image: IMAGES.zanzibarHero },
   { label: "Couples spa by the ocean", image: IMAGES.barazaSpa },
@@ -32,7 +32,7 @@ const experienceImages: Record<string, string> = {
   "Private sandbank dining surrounded by the Indian Ocean": IMAGES.barazaBeach,
   "Sunset dhow cruises with champagne and Swahili canapes": IMAGES.zanzibarDhow,
   "Couples spa rituals using indigenous Zanzibari ingredients": IMAGES.barazaSpa,
-  "Deep sea fishing expeditions into the Indian Ocean": IMAGES.residence,
+  "Deep sea fishing expeditions into the Indian Ocean": IMAGES.zanzibarSpa,
 };
 
 export default function ZanzibarPage() {
@@ -77,7 +77,7 @@ export default function ZanzibarPage() {
     { question: "What is the best time to visit Zanzibar?", answer: "Zanzibar enjoys year-round tropical weather, but the best time is June to October during the dry season when days are sunny and humidity is lower. The short rains (November-December) bring brief afternoon showers and lush landscapes. January-February is hot and dry with excellent beach weather. The long rains (March-May) see fewer visitors and lower rates, ideal for couples seeking solitude, though some activities may be limited." },
     { question: "How do I get to Zanzibar?", answer: "International visitors fly directly into Abeid Amani Karume International Airport (ZNZ) from major hubs including Johannesburg, Nairobi, Doha, Istanbul, and several European cities. Alternatively, fly into Julius Nyerere International Airport in Dar es Salaam (DAR) and take a 15-minute light aircraft or 2-hour ferry to Zanzibar. Kivara handles all transfers including airport Meet & Greet, private road transfers, and seaplane connections." },
     { question: "What makes Zanzibar romantic for couples?", answer: "Zanzibar offers an intoxicating blend of pristine beaches, world-class luxury resorts, and rich cultural heritage. Couples can explore the ancient alleyways of Stone Town together, sail on traditional dhows at sunset, enjoy private sandbank dining surrounded by turquoise waters, and indulge in couples' spa treatments using indigenous Zanzibari ingredients. The island's spice plantations, historic architecture, and warm Swahili hospitality create an atmosphere that is both exotic and deeply romantic." },
-    { question: "Which luxury resorts are in Zanzibar?", answer: "Kivara curates five exceptional Zanzibar properties: Baraza Resort & Spa (Zanzibar's most awarded Swahili palace), Xanadu Villas (private villa sanctuary with personal butlers), Kilindi Zanzibar (iconic white-domed pavilions by Elewana), The Palms (intimate six-villa hideaway), and The Residence Zanzibar (sprawling beachfront estate with private pools). Each offers a distinct expression of Zanzibar's unique romance." },
+    { question: "Which luxury resorts are in Zanzibar?", answer: "Kivara curates two peerless Zanzibar properties: Baraza Resort & Spa (Zanzibar's most awarded Swahili palace) and Xanadu Luxury Villas & Retreat (private villa sanctuary with personal butlers). Each offers a distinct expression of Zanzibar's unique romance." },
     { question: "What activities can couples do in Zanzibar?", answer: "Zanzibar offers extraordinary variety for couples: spice plantation tours, Stone Town heritage walks, sunset dhow cruises with champagne, private sandbank dining, world-class snorkeling and diving at Mnemba Atoll, deep-sea fishing, couples spa rituals, cooking classes featuring Swahili cuisine, and visits to Jozani Forest to see red colobus monkeys. The island's compact size means you can experience both cultural Zanzibar and beach paradise in a single trip." },
     { question: "How many days should we spend in Zanzibar?", answer: "We recommend 5-7 nights for a pure beach escape at a single resort, or 7-10 nights to combine two properties (e.g., a beach resort on the northeast coast plus a heritage stay in Stone Town). Most couples find that a week allows ample time for relaxation, adventure, and cultural exploration without feeling rushed." },
   ];
@@ -246,10 +246,8 @@ export default function ZanzibarPage() {
                 tagline={property.tagline}
                 location={property.location}
                 image={property.heroImage}
-                priceRange={property.priceRange}
                 rating={property.rating}
                 slug={property.id}
-                destination={property.destination}
                 index={index}
               />
             ))}

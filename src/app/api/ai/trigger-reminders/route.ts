@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
               journey.bookingRef || journey.id
             );
 
-            const result = await sendEmail({
+            await sendEmail({
               to: [{ email: journey.email, name: journey.clientName }],
               subject: content.subject,
               htmlContent: content.html,
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
               journey.destination || "your journey"
             );
 
-            const result = await sendEmail({
+            await sendEmail({
               to: [{ email: journey.email, name: journey.clientName }],
               subject: content.subject,
               htmlContent: content.html,
@@ -87,8 +87,9 @@ export async function POST(request: NextRequest) {
             sent.push({ type: `followup-${schedule.type}`, to: journey.email, subject: content.subject });
           }
         }
-      } catch (err: any) {
-        errors.push({ journeyId: journey.id, error: err.message });
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : "Unknown error";
+        errors.push({ journeyId: journey.id, error: message });
       }
     }
 

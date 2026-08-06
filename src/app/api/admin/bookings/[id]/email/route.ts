@@ -4,6 +4,20 @@ import { sendEmail, newBookingNotification, paymentReceiptEmail, reminderEmail, 
 import { mapKeysToCamel } from "@/lib/api-helpers";
 import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 
+type CamelBooking = {
+  id?: string;
+  clientName?: string;
+  clientEmail?: string;
+  bookingReference?: string;
+  destination?: string;
+  startDate?: string;
+  totalAmount?: string;
+  depositAmount?: string;
+  balanceAmount?: string;
+  balanceDueDate?: string;
+  paymentMethod?: string;
+};
+
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAdmin();
@@ -23,10 +37,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: "Booking not found" }, { status: 404 });
     }
 
-    const b = mapKeysToCamel<any>(booking);
+    const b = mapKeysToCamel<CamelBooking>(booking);
     const clientName = b.clientName || "Valued Guest";
     const clientEmail = b.clientEmail;
-    const bookingRef = b.bookingReference || b.id?.slice(0, 8).toUpperCase();
+    const bookingRef = b.bookingReference || b.id?.slice(0, 8).toUpperCase() || "KIVARA";
 
     if (!clientEmail) {
       return NextResponse.json({ error: "Booking has no client email" }, { status: 400 });
@@ -63,7 +77,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           htmlContent: `
             <h2 style="font-family: 'Times New Roman', serif; font-size: 20px; color: #1A1A1A; margin: 0 0 16px;">${clientName},</h2>
             <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 16px;">This is a gentle reminder regarding the outstanding balance for booking <strong>${bookingRef}</strong>.</p>
-            <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 16px;">Your remaining investment of <strong style="color: #C9A96E; font-size: 18px;">$${parseFloat(b.balanceAmount || 0).toLocaleString()}</strong> is due by <strong>${b.balanceDueDate ? new Date(b.balanceDueDate).toLocaleDateString() : "the date specified in your proposal"}</strong>.</p>
+            <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 16px;">Your remaining investment of <strong style="color: #C9A96E; font-size: 18px;">$${parseFloat(String(b.balanceAmount || 0)).toLocaleString()}</strong> is due by <strong>${b.balanceDueDate ? new Date(b.balanceDueDate).toLocaleDateString() : "the date specified in your proposal"}</strong>.</p>
             <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0;">Should you have any questions or wish to discuss payment arrangements, your concierge is here to assist.</p>
             <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 16px 0 0;">With warmest regards,<br><strong style="color: #C9A96E;">Your Kivara Concierge</strong></p>
           `,
@@ -78,7 +92,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         const pl = paymentLinkEmail({
           clientName,
           bookingRef,
-          amount: `$${parseFloat(b.totalAmount || 0).toLocaleString()}`,
+          amount: `$${parseFloat(String(b.totalAmount || 0)).toLocaleString()}`,
           paymentUrl,
           type: "full",
         });
@@ -96,11 +110,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     });
 
     return NextResponse.json({ success: true, messageId: result.messageId });
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof AdminAuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
     }
     console.error("Send booking email error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

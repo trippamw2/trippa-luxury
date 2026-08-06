@@ -63,8 +63,8 @@ export default function AdminSettings() {
         });
         const json = await res.json();
         if (!res.ok || json.error) throw new Error(json.error || `HTTP ${res.status}`);
-      } catch (err: any) {
-        setApiError(err.message);
+      } catch (err: unknown) {
+        setApiError(err instanceof Error ? err.message : `HTTP error`);
         setSaved(false);
         return;
       }

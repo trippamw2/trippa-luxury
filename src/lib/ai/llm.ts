@@ -7,7 +7,6 @@ const OPENROUTER_BASE = "https://openrouter.ai/api/v1/chat/completions";
 const DEFAULT_MODEL = "openai/gpt-4o-mini";
 const FALLBACK_MODEL = "anthropic/claude-3-haiku";
 const TIMEOUT_MS = 30_000;
-const MAX_RETRIES = 2;
 
 export interface LlmMessage {
   role: "system" | "user" | "assistant";
@@ -62,7 +61,7 @@ export async function callLlm(
   for (let attempt = 0; attempt < models.length; attempt++) {
     const currentModel = models[attempt];
     try {
-      const body: Record<string, any> = {
+      const body: Record<string, unknown> = {
         model: currentModel,
         messages,
         temperature: config.temperature ?? 0.3,
@@ -140,7 +139,7 @@ export async function callLlm(
  * Call LLM and parse the response as JSON.
  * Throws if parsing fails.
  */
-export async function callLlmJson<T = Record<string, any>>(
+export async function callLlmJson<T = Record<string, unknown>>(
   messages: LlmMessage[],
   config: LlmConfig = {}
 ): Promise<{ data: T; usage?: LlmResponse["usage"] }> {

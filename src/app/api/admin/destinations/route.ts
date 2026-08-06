@@ -17,9 +17,13 @@ export async function GET(_request: NextRequest) {
       return NextResponse.json({ error: propertiesRes.error.message }, { status: 500 });
     }
 
-    const destMeta = new Map((destinationsRes.data || []).map((d: any) => [d.slug, mapKeysToCamel(d)]));
+    const destMeta = new Map<string, Record<string, unknown>>(
+      (destinationsRes.data || []).map((d: { slug: string }) =>
+        [d.slug, mapKeysToCamel<Record<string, unknown>>(d)] as [string, Record<string, unknown>]
+      )
+    );
 
-    const grouped: Record<string, any[]> = {};
+    const grouped: Record<string, unknown[]> = {};
     for (const item of propertiesRes.data || []) {
       const dest = item.destination || "other";
       if (!grouped[dest]) grouped[dest] = [];
@@ -27,7 +31,7 @@ export async function GET(_request: NextRequest) {
     }
 
     const data = Object.entries(grouped).map(([slug, properties]) => {
-      const meta: Record<string, any> = destMeta.get(slug) || {};
+      const meta: Record<string, unknown> = destMeta.get(slug) ?? {};
       return {
         id: slug,
         slug,
@@ -48,11 +52,12 @@ export async function GET(_request: NextRequest) {
     });
 
     return NextResponse.json({ data, count: data.length });
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof AdminAuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
     }
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -85,10 +90,11 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ id: slug, slug, name: body.name }, { status: 201 });
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof AdminAuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
     }
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

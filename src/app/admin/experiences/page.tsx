@@ -6,9 +6,8 @@ import { Plus, X, Sparkles } from "lucide-react";
 import { useApiData } from "@/lib/use-api-data";
 import { useToast } from "@/app/admin/components/Toast";
 import { DataTable, type Column } from "@/app/admin/components/DataTable";
-import { SkeletonTable } from "@/app/admin/components/Skeleton";
 import { EmptyState } from "@/app/admin/components/EmptyState";
-import { FormInput, FormTextarea, FormSelect, FormGroup } from "@/app/admin/components/FormField";
+import { FormInput, FormSelect, FormGroup } from "@/app/admin/components/FormField";
 import { RichTextEditor } from "@/app/admin/components/RichTextEditor";
 import { ImageUpload } from "@/app/admin/components/ImageUpload";
 
@@ -25,25 +24,36 @@ interface Experience {
 
 const CATEGORIES = ["Romance", "Safari", "Wellness", "Dining", "Adventure", "Cultural"];
 
+interface ApiExperience {
+  id?: string;
+  slug?: string;
+  title?: string;
+  description?: string;
+  image?: string;
+  category?: string;
+  sortOrder?: number;
+  isActive?: boolean;
+}
+
 export default function AdminExperiences() {
-  const { data: experiences, loading, create, update, remove } = useApiData<Experience>("experiences", {
-    mapFromApi: (item: any) => ({
-      id: item.id,
+  const { data: experiences, loading, create, update, remove } = useApiData("experiences", {
+    mapFromApi: (item: ApiExperience) => ({
+      id: item.id ?? "",
       slug: item.slug || "",
-      title: item.title,
+      title: item.title ?? "",
       description: item.description || "",
       image: item.image || "",
       category: item.category || "",
       sortOrder: item.sortOrder ?? 0,
       isActive: item.isActive ?? true,
     }),
-    mapToApi: (item: any) => ({
+    mapToApi: (item: Partial<Experience>) => ({
       slug: item.slug || item.title?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
       title: item.title,
       description: item.description,
       image: item.image,
       category: item.category,
-      sort_order: parseInt(item.sortOrder) || 0,
+      sort_order: parseInt(String(item.sortOrder)) || 0,
       is_active: item.isActive !== false,
     }),
   });

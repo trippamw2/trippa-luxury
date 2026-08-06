@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { useApiData } from "@/lib/use-api-data";
 import { useToast } from "@/app/admin/components/Toast";
@@ -60,12 +60,35 @@ interface ApiDestination {
   id: string;
   slug: string;
   name: string;
-  properties: any[];
+  subtitle?: string;
+  tagline?: string;
+  description?: string;
+  positioning?: string;
+  heroImage?: string;
+  gallery?: string[];
+  properties?: PropertyRef[];
   propertyCount: number;
+  experiences?: string[];
+  highlights?: string[];
+  seasons?: Seasons | null;
 }
 
-function mapDestination(item: any): Destination {
-  const props = (item.properties || []).map((p: any) => ({
+interface DestinationPayload {
+  name: string;
+  slug: string;
+  subtitle: string;
+  tagline: string;
+  description: string;
+  positioning: string;
+  heroImage: string;
+  gallery: string[];
+  experiences: string[];
+  highlights: string[];
+  seasons?: Seasons;
+}
+
+function mapDestination(item: ApiDestination): Destination {
+  const props = (item.properties || []).map((p: PropertyRef) => ({
     id: p.id,
     slug: p.slug || "",
     name: p.name || "",
@@ -107,9 +130,14 @@ export default function DestinationsPage() {
     seasonsBestTime: "", seasonsClosed: "", seasonsMonths: "",
   });
 
-  useEffect(() => {
+  // Sync the local editable list when the API data changes. Done via
+  // render-phase state adjustment (React-documented pattern) instead of an
+  // effect, to avoid a synchronous setState-in-effect cascade.
+  const [prevApi, setPrevApi] = useState(apiDestinations);
+  if (apiDestinations !== prevApi) {
+    setPrevApi(apiDestinations);
     setDestinations(apiDestinations.map(mapDestination));
-  }, [apiDestinations]);
+  }
 
 
 
@@ -162,7 +190,7 @@ export default function DestinationsPage() {
       };
     }
 
-    const payload: Record<string, any> = {
+    const payload: DestinationPayload = {
       name: formData.title,
       slug,
       subtitle: formData.subtitle || "",
@@ -173,8 +201,8 @@ export default function DestinationsPage() {
       gallery: formData.gallery || [],
       experiences: formData.experiences.split("\n").map(s => s.trim()).filter(Boolean),
       highlights: formData.highlights.split("\n").map(s => s.trim()).filter(Boolean),
+      seasons,
     };
-    if (seasons) payload.seasons = seasons;
 
     let result;
     if (editingDest) {
@@ -357,7 +385,7 @@ export default function DestinationsPage() {
                     <div className="grid grid-cols-4 gap-2 mt-3">
                       {formData.gallery.map((url, i) => (
                         <div key={i} className="relative aspect-[4/3] bg-sand-light overflow-hidden group">
-                          <img src={url} alt="" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                          <Image src={url} alt="" width={320} height={240} className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} unoptimized />
                           <button type="button" onClick={() => setFormData({...formData, gallery: formData.gallery.filter((_, j) => j !== i)})}
                             className="absolute top-1 right-1 w-5 h-5 bg-red-600 text-white text-xs opacity-0 group-hover:opacity-100 flex items-center justify-center">×</button>
                         </div>

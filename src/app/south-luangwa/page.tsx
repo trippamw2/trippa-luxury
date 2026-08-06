@@ -18,17 +18,17 @@ const DESTINATION_SLUG = "south-luangwa";
 const galleryItems = [
   { label: "Chinzombo's award-winning riverfront villas", image: IMAGES.chinzomboMain },
   { label: "Golden hour on the Kakumbi floodplain", image: IMAGES.pukuRidgeSunset },
-  { label: "Shawa's eco-luxury tented suites", image: IMAGES.shawaTent },
-  { label: "Walking safaris at dawn with expert guides", image: IMAGES.shawaWalking },
-  { label: "Luangwa River Camp's riverside serenity", image: IMAGES.lrcRiverView },
+  { label: "Chinzombo's plunge pool villas at dusk", image: IMAGES.chinzombo },
+  { label: "Walking safaris at dawn with expert guides", image: IMAGES.chinzomboWildlife },
+  { label: "Puku Ridge's suites above the floodplain", image: IMAGES.pukuRidgeCamp },
   { label: "Stargazing from Puku Ridge's star bed tower", image: IMAGES.pukuRidgeStars },
 ];
 
 const experienceImages: Record<string, string> = {
-  "Guided walking safaris following ancient elephant paths": IMAGES.lrcWalking,
+  "Guided walking safaris following ancient elephant paths": IMAGES.chinzomboMain,
   "Night drives revealing the bush after dark": IMAGES.chinzomboWildlife,
   "Sundowners on the riverbank as Africa paints the sky": IMAGES.chinzombo,
-  "Bush breakfasts where zebras are your dining companions": IMAGES.shawaDining,
+  "Bush breakfasts where zebras are your dining companions": IMAGES.chinzomboCampfire,
   "Exclusive photography hides for intimate wildlife encounters": IMAGES.chinzomboMain,
   "Stargazing from raised platforms above the floodplain": IMAGES.pukuRidgeStars,
 };
@@ -75,7 +75,7 @@ export default function SouthLuangwaPage() {
     { question: "What is the best time to visit South Luangwa?", answer: "The dry season from May to October is the prime time for wildlife viewing in South Luangwa, as animals concentrate around the Luangwa River and vegetation thins. June through August offers exceptional game viewing with cool mornings and mild days. The emerald season (November to April) transforms the valley into a lush paradise, ideal for photographers and couples seeking solitude, though some camps close during the peak wet months of January and February." },
     { question: "What makes South Luangwa special for couples?", answer: "South Luangwa is the birthplace of the walking safari, offering couples an intimacy with the African wilderness that no vehicle-based safari can match. With a maximum of 6-12 suites per camp and vast private concessions, you often have the bush entirely to yourselves. The combination of expert guides, exceptional wildlife concentrations, and ultra-luxury camps creates a safari experience that is both thrilling and deeply romantic." },
     { question: "What is a walking safari?", answer: "A walking safari is the original form of safari — exploring the bush on foot with an expert armed guide and tracker. South Luangwa pioneered this experience, and it remains the most intimate way to encounter Africa's wildlife. You track animals, learn about tracks and plants, and feel the raw energy of the bush. It is safe, profoundly moving, and arguably the most romantic way to experience the African wilderness together." },
-    { question: "Which luxury camps are in South Luangwa?", answer: "Kivara curates four exceptional South Luangwa properties: Time+Tide Chinzombo (six avant-garde riverfront villas with private plunge pools), Puku Ridge Camp (six hilltop suites with star bed towers overlooking the floodplain), Shawa Luangwa Camp (six eco-luxury tented suites with solar-powered safaris), and Luangwa River Camp (five intimate riverside suites). Each offers a distinct experience across the spectrum of South Luangwa luxury." },
+    { question: "Which luxury camps are in South Luangwa?", answer: "Kivara curates two peerless South Luangwa properties: Time+Tide Chinzombo (six avant-garde riverfront villas with private plunge pools) and Puku Ridge Camp (six hilltop suites with star bed towers overlooking the floodplain). Each offers a distinct window into the Valley of the Leopard." },
     { question: "How do I get to South Luangwa?", answer: "International visitors fly into Kenneth Kaunda International Airport in Lusaka (LUN) or Harry Mwanga Nkumbula International Airport in Livingstone (LVI). From Lusaka, it's a 1.5-hour light aircraft flight to Mfuwe Airport, followed by a 30-60 minute game-drive transfer to your camp. Kivara arranges all internal flights and transfers for a seamless journey." },
     { question: "What wildlife can we see in South Luangwa?", answer: "South Luangwa is renowned for its extraordinary concentration of wildlife, including large herds of elephants, Thornicroft's giraffe (endemic to the region), leopards, lions, wild dogs, hippos, crocodiles, and over 400 bird species. The park is particularly famous for its leopard sightings — many consider it the best place in Africa to see these elusive cats. Night drives reveal a completely different world of nocturnal wildlife." },
   ];
@@ -177,12 +177,10 @@ export default function SouthLuangwaPage() {
                 Here, your love story finds its wildest, most beautiful chapter.
               </p>
               <p className="text-base text-earth leading-relaxed">
-                Our collection of four hand-selected properties spans the full spectrum of South 
+                Our collection of two hand-selected properties spans the full spectrum of South 
                 Luangwa luxury. From the award-winning architectural marvel of Time+Tide Chinzombo 
                 with its private plunge pools overlooking the river, to the hilltop grandeur of 
-                Puku Ridge Camp with its star bed towers; from the eco-conscious intimacy of 
-                Shawa Luangwa Camp and its silent solar-powered safaris, to the timeless romance 
-                of Luangwa River Camp's five-suite riverside sanctuary. Each offers a distinct 
+                Puku Ridge Camp with its star bed towers. Each offers a distinct 
                 window into the Valley of the Leopard.
               </p>
               <div className="mt-8 flex flex-wrap gap-6">
@@ -254,10 +252,8 @@ export default function SouthLuangwaPage() {
                 tagline={property.tagline}
                 location={property.location}
                 image={property.heroImage}
-                priceRange={property.priceRange}
                 rating={property.rating}
                 slug={property.id}
-                destination={property.destination}
                 index={index}
               />
             ))}

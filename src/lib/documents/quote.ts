@@ -1,7 +1,7 @@
 // ─── Kivara Quote / Proposal Document ──────────────────────────────────
 // Branded PDF-ready HTML for luxury travel quotes.
 
-import { wrapDocument, documentHeader, documentBody, documentFooter, refBox, infoGrid, KIVARA_BRAND } from "./template";
+import { wrapDocument, documentHeader, documentBody, documentFooter, refBox, KIVARA_BRAND } from "./template";
 import type { CuratedJourney } from "@/lib/ai/types";
 
 export function generateQuoteDocument(journey: CuratedJourney, meta: {

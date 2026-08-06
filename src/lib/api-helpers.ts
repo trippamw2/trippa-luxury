@@ -3,8 +3,6 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 import { createAuditLog, sanitizeForAudit, getIpFromRequest } from "@/lib/audit";
 
-type SupabaseClient = ReturnType<typeof createAdminClient>;
-
 /** Convert snake_case string to camelCase */
 export function toCamelCase(str: string): string {
   return str.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
@@ -16,25 +14,27 @@ export function toSnakeCase(str: string): string {
 }
 
 /** Deep map object keys from snake_case to camelCase */
-export function mapKeysToCamel<T = any>(obj: Record<string, any>): T {
-  if (Array.isArray(obj)) return obj.map((item) => mapKeysToCamel(item)) as any;
-  if (obj === null || typeof obj !== "object") return obj as any;
-  const result: Record<string, any> = {};
+export function mapKeysToCamel<T = Record<string, unknown>>(obj: unknown): T {
+  if (Array.isArray(obj)) {
+    return obj.map((item) => mapKeysToCamel(item)) as unknown as T;
+  }
+  if (obj === null || typeof obj !== "object") return obj as unknown as T;
+  const result: Record<string, unknown> = {};
   for (const key of Object.keys(obj)) {
     const camelKey = toCamelCase(key);
-    result[camelKey] = mapKeysToCamel(obj[key]);
+    result[camelKey] = mapKeysToCamel((obj as Record<string, unknown>)[key]);
   }
   return result as T;
 }
 
 /** Deep map object keys from camelCase to snake_case */
-export function mapKeysToSnake<T = any>(obj: Record<string, any>): T {
-  if (Array.isArray(obj)) return obj.map((item) => mapKeysToSnake(item)) as any;
-  if (obj === null || typeof obj !== "object") return obj as any;
-  const result: Record<string, any> = {};
+export function mapKeysToSnake<T = Record<string, unknown>>(obj: unknown): T {
+  if (Array.isArray(obj)) return obj.map((item) => mapKeysToSnake(item)) as unknown as T;
+  if (obj === null || typeof obj !== "object") return obj as unknown as T;
+  const result: Record<string, unknown> = {};
   for (const key of Object.keys(obj)) {
     const snakeKey = toSnakeCase(key);
-    result[snakeKey] = mapKeysToSnake(obj[key]);
+    result[snakeKey] = mapKeysToSnake((obj as Record<string, unknown>)[key]);
   }
   return result as T;
 }
@@ -43,7 +43,7 @@ type QueryOptions = {
   select?: string;
   orderBy?: { column: string; direction?: "asc" | "desc" };
   limit?: number;
-  filters?: Record<string, any>;
+  filters?: Record<string, unknown>;
   range?: { from: number; to: number };
 };
 
@@ -89,7 +89,7 @@ export async function handleGetList(
   try {
     await requireAdmin();
     const url = new URL(request.url);
-    const filters: Record<string, any> = {};
+    const filters: Record<string, unknown> = {};
     
     // Extract filter params from URL (e.g. ?status=active&destination=zanzibar)
     for (const [key, value] of url.searchParams.entries()) {
@@ -122,12 +122,13 @@ export async function handleGetList(
       data: mapKeysToCamel(data || []),
       count: count || 0,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof AdminAuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
     }
     console.error(`Error in GET /api/admin/${table}:`, err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -151,19 +152,20 @@ export async function handleGetOne(table: string, id: string) {
     }
 
     return NextResponse.json(mapKeysToCamel(data));
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof AdminAuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
     }
     console.error(`Error in GET /api/admin/${table}/${id}:`, err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
 /** Handle POST (create) for a resource */
 export async function handleCreate(
   table: string,
-  body: Record<string, any>,
+  body: Record<string, unknown>,
   request?: Request
 ) {
   try {
@@ -193,12 +195,13 @@ export async function handleCreate(
     });
 
     return NextResponse.json(mapKeysToCamel(data), { status: 201 });
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof AdminAuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
     }
     console.error(`Error in POST /api/admin/${table}:`, err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -206,7 +209,7 @@ export async function handleCreate(
 export async function handleUpdate(
   table: string,
   id: string,
-  body: Record<string, any>,
+  body: Record<string, unknown>,
   request?: Request
 ) {
   try {
@@ -248,12 +251,13 @@ export async function handleUpdate(
     });
 
     return NextResponse.json(mapKeysToCamel(data));
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof AdminAuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
     }
     console.error(`Error in PUT /api/admin/${table}/${id}:`, err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -292,11 +296,12 @@ export async function handleDelete(
     });
 
     return NextResponse.json({ success: true });
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof AdminAuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
     }
     console.error(`Error in DELETE /api/admin/${table}/${id}:`, err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

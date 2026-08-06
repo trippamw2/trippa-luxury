@@ -5,10 +5,10 @@ import {
   useContext,
   useState,
   useCallback,
-  useEffect,
   type ReactNode,
 } from "react";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { KivaraLogo } from "@/components/ui/KivaraLogo";
 
@@ -36,10 +36,14 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
 
-  // Close sidebar on route change (mobile)
-  useEffect(() => {
+  // Close sidebar on route change (mobile). Done via render-phase state
+  // adjustment (React-documented pattern) instead of an effect to avoid a
+  // synchronous setState-in-effect cascade.
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
     setIsOpen(false);
-  }, [pathname]);
+  }
 
   const toggle = useCallback(() => setIsOpen((v) => !v), []);
   const close = useCallback(() => setIsOpen(false), []);
@@ -96,12 +100,12 @@ export function Sidebar() {
         ))}
       </nav>
       <div className="p-4 border-t border-white/5">
-        <a
+        <Link
           href="/"
           className="block text-xs text-earth-light hover:text-cream transition-colors"
         >
           ← Back to Website
-        </a>
+        </Link>
       </div>
     </div>
   );

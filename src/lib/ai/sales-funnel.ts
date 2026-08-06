@@ -51,8 +51,6 @@ export class SalesFunnel {
     const active = entries.filter(e => activeStages.includes(e.stage));
     const confirmed = entries.filter(e => e.stage === "confirmed");
     const completed = entries.filter(e => e.stage === "completed");
-    const lost = entries.filter(e => e.stage === "lost");
-
     const stageBreakdown = {} as Record<FunnelStage, number>;
     for (const stage of ["inquiry", "qualified", "proposal_sent", "negotiation", "deposit_received", "confirmed", "completed", "lost"] as FunnelStage[]) {
       stageBreakdown[stage] = entries.filter(e => e.stage === stage).length;
@@ -133,7 +131,7 @@ export class SalesFunnel {
       "",
       "  ── STAGE BREAKDOWN ──",
       ...Object.entries(metrics.stageBreakdown)
-        .filter(([_, count]) => count > 0)
+        .filter(([, count]) => count > 0)
         .map(([stage, count]) => `  ${stage}: ${count}`),
       "",
       "  ── SOURCE BREAKDOWN ──",

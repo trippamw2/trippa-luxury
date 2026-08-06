@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, Shield, X, Plus, User, Mail } from "lucide-react";
+import { Users, X, Plus, User, Mail } from "lucide-react";
 import { useApiData } from "@/lib/use-api-data";
 import { useToast } from "@/app/admin/components/Toast";
 import { SkeletonText } from "@/app/admin/components/Skeleton";
@@ -21,20 +21,31 @@ interface AdminUser {
   createdAt?: string;
 }
 
-function mapUser(item: any): AdminUser {
+interface ApiAdminUser {
+  id: string;
+  fullName?: string;
+  email?: string;
+  role?: string;
+  isActive?: boolean;
+  updatedAt?: string;
+  createdAt?: string;
+  password?: string;
+}
+
+function mapUser(item: ApiAdminUser): AdminUser {
   return {
     id: item.id,
     name: item.fullName || "",
     email: item.email || "",
-    role: item.role || "editor",
+    role: (item.role || "editor") as AdminUser["role"],
     status: item.isActive ? "active" : "suspended",
     lastActive: item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : "Never",
     createdAt: item.createdAt ? item.createdAt.split("T")[0] : "",
   };
 }
 
-function mapUserToApi(item: Partial<AdminUser>): any {
-  const pwd = (item as any).password;
+function mapUserToApi(item: Partial<AdminUser & { password?: string }>): Record<string, unknown> {
+  const pwd = item.password;
   return {
     full_name: item.name,
     email: item.email,
@@ -68,7 +79,7 @@ const STATUSES = [
 ];
 
 export default function AdminUsers() {
-  const { data: users, loading, create, update, remove } = useApiData<AdminUser>("users", {
+  const { data: users, loading, create, update, remove } = useApiData("users", {
     mapFromApi: mapUser,
     mapToApi: mapUserToApi,
   });
@@ -171,8 +182,8 @@ export default function AdminUsers() {
                 {!editingUser && (
                   <FormInput label="Password" name="password" type="password" value={formData.password} onChange={e => setFormData(p => ({ ...p, password: e.target.value }))} required placeholder="Min. 6 characters" />
                 )}
-                <FormSelect label="Role" name="role" value={formData.role} onChange={e => setFormData(p => ({ ...p, role: e.target.value as any }))} options={ROLES} />
-                <FormSelect label="Status" name="status" value={formData.status} onChange={e => setFormData(p => ({ ...p, status: e.target.value as any }))} options={STATUSES} />
+                <FormSelect label="Role" name="role" value={formData.role} onChange={e => setFormData(p => ({ ...p, role: e.target.value as AdminUser["role"] }))} options={ROLES} />
+                <FormSelect label="Status" name="status" value={formData.status} onChange={e => setFormData(p => ({ ...p, status: e.target.value as AdminUser["status"] }))} options={STATUSES} />
               </div>
               <div className="flex gap-3 px-6 py-4 border-t border-sand-light flex-shrink-0">
                 <button onClick={() => setShowModal(false)} className="flex-1 px-4 py-2.5 border border-sand-light text-earth text-sm hover:bg-warm-white transition-colors">Cancel</button>

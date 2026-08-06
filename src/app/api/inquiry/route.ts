@@ -48,11 +48,11 @@ export async function POST(request: Request) {
       id: string;
       isCouple: boolean;
       specialOccasion?: string;
-      preferences: any;
+      preferences: Record<string, unknown>;
       destinations?: string[];
     } | null = null;
     let aiLeadScore: { score: number; tier: string } | null = null;
-    let aiWorkflow: any = null;
+    let aiWorkflow: { id: string } | null = null;
     try {
       const profile = await guestProfiler.llmProfile({
         fullName,

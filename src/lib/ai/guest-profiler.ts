@@ -85,6 +85,14 @@ const LEAD_SCORE_WEIGHTS = {
 
 // ─── Profiler ──────────────────────────────────────────────────────────
 
+/** Narrow a loose string to one of a fixed set of literal options. */
+function isOneOf<T extends readonly string[]>(
+  value: string | null | undefined,
+  options: T
+): value is T[number] {
+  return typeof value === "string" && options.includes(value);
+}
+
 export class GuestProfiler {
   /**
    * Extract structured guest profile from raw inquiry data.
@@ -124,7 +132,7 @@ export class GuestProfiler {
       extractedBudget: budgetRange,
     };
 
-    guest.leadScore = this.calculateLeadScore(raw, guest, text);
+    guest.leadScore = this.calculateLeadScore(raw, guest);
     guest.leadTier = this.getLeadTier(guest.leadScore);
 
     return guest;
@@ -245,7 +253,7 @@ export class GuestProfiler {
     return interests;
   }
 
-  private calculateLeadScore(raw: RawInquiry, guest: ProfiledGuest, text: string): number {
+  private calculateLeadScore(raw: RawInquiry, guest: ProfiledGuest): number {
     let score = 0;
 
     // Has destination
@@ -294,9 +302,9 @@ export class GuestProfiler {
       const systemPrompt = `You are a luxury travel concierge specializing in Africa's most exclusive destinations. Your task is to analyze a guest inquiry and extract structured profile data.
 
 KIVARA operates three destinations:
-1. **Lake Malawi** : freshwater archipelago, barefoot luxury, intimate beach properties (Kaya Mawa, Pumulani, Blue Zebra, Makokola Retreat)
-2. **South Luangwa** : Zambia's premier walking safari destination, wildlife, luxury camps (Chinzombo, Puku Ridge, Shawa, Luangwa River Camp)
-3. **Zanzibar** : Spice Island, white sand beaches, Swahili culture (Xanadu Villas, Kilindi, Baraza, The Palms, The Residence)
+1. **Lake Malawi** : freshwater archipelago, barefoot luxury, intimate beach properties (Kaya Mawa, Pumulani, The Makokola Retreat)
+2. **South Luangwa** : Zambia's premier walking safari destination, wildlife, luxury camps (Chinzombo, Puku Ridge)
+3. **Zanzibar** : Spice Island, white sand beaches, Swahili culture (Xanadu Villas, Baraza Resort & Spa)
 
 Respond in valid JSON only with this exact structure:
 {
@@ -375,25 +383,25 @@ Extract the guest's profile. Consider:
         isCouple: typeof data.isCouple === "boolean" ? data.isCouple : true,
         specialOccasion: typeof data.specialOccasion === "string" ? data.specialOccasion : undefined,
         preferences: {
-          travelStyle: validStyles.includes(data.travelStyle as any)
-            ? (data.travelStyle as GuestProfile["preferences"]["travelStyle"])
+          travelStyle: isOneOf(data.travelStyle, validStyles)
+            ? data.travelStyle
             : "mixed",
-          accommodationStyle: validAccommodation.includes(data.accommodationStyle as any)
-            ? (data.accommodationStyle as GuestProfile["preferences"]["accommodationStyle"])
+          accommodationStyle: isOneOf(data.accommodationStyle, validAccommodation)
+            ? data.accommodationStyle
             : "luxury-resort",
-          activityLevel: validActivity.includes(data.activityLevel as any)
-            ? (data.activityLevel as GuestProfile["preferences"]["activityLevel"])
+          activityLevel: isOneOf(data.activityLevel, validActivity)
+            ? data.activityLevel
             : "moderate",
-          budgetRange: validBudget.includes(data.budgetRange as any)
-            ? (data.budgetRange as GuestProfile["preferences"]["budgetRange"])
+          budgetRange: isOneOf(data.budgetRange, validBudget)
+            ? data.budgetRange
             : "premium",
           interests: Array.isArray(data.interests) ? data.interests : [],
         },
         source: "website",
         inquiryId: undefined,
         leadScore: Math.min(100, Math.max(0, typeof data.leadScore === "number" ? data.leadScore : 0)),
-        leadTier: validTiers.includes(data.leadTier as any)
-          ? (data.leadTier as "hot" | "warm" | "cold")
+        leadTier: isOneOf(data.leadTier, validTiers)
+          ? data.leadTier
           : "cold",
         extractedPreferences: Array.isArray(data.extractedPreferences) ? data.extractedPreferences : [],
         extractedBudget: typeof data.extractedBudget === "string" ? data.extractedBudget : undefined,

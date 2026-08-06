@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, X, FileText, Mail, Send, Printer, Loader2, Edit2, Trash2, Calendar, CalendarDays, AlertTriangle, RefreshCw, Download } from "lucide-react";
 import { useApiData } from "@/lib/use-api-data";
 import { useToast } from "@/app/admin/components/Toast";
 import { DataTable, type Column } from "@/app/admin/components/DataTable";
-import { Skeleton, SkeletonTable } from "@/app/admin/components/Skeleton";
 import { EmptyState } from "@/app/admin/components/EmptyState";
 import { FormInput, FormTextarea, FormSelect, FormGroup } from "@/app/admin/components/FormField";
 
@@ -33,7 +32,96 @@ interface Booking {
   depositNotes?: string;
 }
 
-function mapBooking(item: any): Booking {
+/** Raw row shape returned by the bookings admin API (DB column names). */
+interface ApiBooking {
+  id: string;
+  bookingReference?: string | null;
+  clientName?: string | null;
+  clientEmail?: string | null;
+  clientPhone?: string | null;
+  destination?: string | null;
+  propertyId?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  guestsCount?: number | null;
+  totalAmount?: number | null;
+  depositAmount?: number | null;
+  status?: string | null;
+  packageId?: string | null;
+  specialRequests?: string | null;
+  depositMethod?: string | null;
+  swiftConfirmationCode?: string | null;
+  depositNotes?: string | null;
+}
+
+interface BookingFormData {
+  clientName: string;
+  clientEmail: string;
+  clientPhone: string;
+  destination: string;
+  property: string;
+  checkIn: string;
+  checkOut: string;
+  guests: string;
+  totalPrice: string;
+  depositPaid: string;
+  status: string;
+  package: string;
+  specialRequests: string;
+  depositMethod: string;
+  swiftCode: string;
+  depositNotes: string;
+}
+
+function emptyFormData(): BookingFormData {
+  return {
+    clientName: "", clientEmail: "", clientPhone: "", destination: "", property: "",
+    checkIn: "", checkOut: "", guests: "2", totalPrice: "", depositPaid: "",
+    status: "provisional", package: "", specialRequests: "",
+    depositMethod: "", swiftCode: "", depositNotes: "",
+  };
+}
+
+function bookingToFormData(booking: Booking): BookingFormData {
+  return {
+    ...emptyFormData(),
+    clientName: booking.clientName,
+    clientEmail: booking.clientEmail,
+    clientPhone: booking.clientPhone,
+    destination: booking.destination,
+    property: booking.property,
+    checkIn: booking.checkIn,
+    checkOut: booking.checkOut,
+    guests: String(booking.guests),
+    totalPrice: booking.totalPrice,
+    depositPaid: booking.depositPaid,
+    status: booking.status,
+    package: booking.package || "",
+    specialRequests: booking.specialRequests || "",
+    depositMethod: booking.depositMethod || "",
+    swiftCode: booking.swiftCode || "",
+    depositNotes: booking.depositNotes || "",
+  };
+}
+
+interface BookingApiPayload {
+  client_name?: string;
+  client_email?: string;
+  client_phone?: string;
+  destination?: string;
+  start_date?: string;
+  end_date?: string;
+  guests_count?: number;
+  total_amount?: number;
+  deposit_amount?: number;
+  status?: string;
+  special_requests?: string;
+  deposit_method?: string | null;
+  swift_confirmation_code?: string | null;
+  deposit_notes?: string | null;
+}
+
+function mapBooking(item: ApiBooking): Booking {
   return {
     id: item.id,
     ref: item.bookingReference || `TRP-${String(item.id || "").slice(0, 4).toUpperCase()}`,
@@ -47,7 +135,7 @@ function mapBooking(item: any): Booking {
     guests: item.guestsCount || 2,
     totalPrice: item.totalAmount ? `$${(+item.totalAmount).toLocaleString()}` : "$0",
     depositPaid: item.depositAmount ? `$${(+item.depositAmount).toLocaleString()}` : "$0",
-    status: item.status || "provisional",
+    status: (item.status as BookingStatus) || "provisional",
     package: item.packageId || "",
     specialRequests: item.specialRequests || "",
     depositMethod: item.depositMethod || "",
@@ -56,7 +144,7 @@ function mapBooking(item: any): Booking {
   };
 }
 
-function mapBookingToApi(item: Partial<Booking>): any {
+function mapBookingToApi(item: Partial<Booking>): BookingApiPayload {
   return {
     client_name: item.clientName,
     client_email: item.clientEmail,
@@ -90,7 +178,7 @@ const STATUS_STYLES: Record<string, { label: string; color: string; bg: string }
 const STATUS_OPTIONS = Object.entries(STATUS_STYLES).map(([value, s]) => ({ value, label: s.label }));
 
 export default function AdminBookings() {
-  const { data: bookings, loading, create, update, remove } = useApiData<Booking>("bookings", {
+  const { data: bookings, loading, create, update, remove } = useApiData("bookings", {
     mapFromApi: mapBooking,
     mapToApi: mapBookingToApi,
   });
@@ -99,7 +187,7 @@ export default function AdminBookings() {
   const [showModal, setShowModal] = useState(false);
   const [editBooking, setEditBooking] = useState<Booking | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [formData, setFormData] = useState<any>({});
+  const [formData, setFormData] = useState<BookingFormData>(emptyFormData);
   const [docMenu, setDocMenu] = useState<string | null>(null);
   const [emailMenu, setEmailMenu] = useState<string | null>(null);
   const [sendingEmail, setSendingEmail] = useState<string | null>(null);
@@ -109,21 +197,26 @@ export default function AdminBookings() {
   const [staleProvisionals, setStaleProvisionals] = useState<number>(0);
   const [releasing, setReleasing] = useState(false);
 
-  const checkStaleProvisionals = useCallback(async () => {
-    try {
-      const res = await fetch("/api/admin/bookings/provisional-holds");
-      if (res.ok) {
-        const json = await res.json();
-        setStaleProvisionals(json.count || 0);
-      }
-    } catch {
-      // Silently fail
-    }
-  }, []);
-
   useEffect(() => {
-    checkStaleProvisionals();
-  }, [checkStaleProvisionals]);
+    let cancelled = false;
+
+    async function check() {
+      try {
+        const res = await fetch("/api/admin/bookings/provisional-holds");
+        if (res.ok) {
+          const json = await res.json();
+          if (!cancelled) setStaleProvisionals(json.count || 0);
+        }
+      } catch {
+        // Silently fail
+      }
+    }
+
+    void check();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleReleaseProvisionals = async () => {
     setReleasing(true);
@@ -216,8 +309,8 @@ export default function AdminBookings() {
       // Open download in new tab (triggers browser download)
       window.open(getDocUrl(booking, docType), "_blank");
       toast(`${docType.charAt(0).toUpperCase() + docType.slice(1)} downloaded`, "success");
-    } catch (err: any) {
-      toast(`Failed to generate ${docType}: ${err.message}`, "error");
+    } catch (err: unknown) {
+      toast(`Failed to generate ${docType}: ${err instanceof Error ? err.message : "unknown error"}`, "error");
     }
     setGeneratingDoc(null);
   };
@@ -243,20 +336,15 @@ export default function AdminBookings() {
         throw new Error(err.error || "Failed to send email");
       }
       toast(`${type === "confirmation" ? "Confirmation" : type === "receipt" ? "Receipt" : "Reminder"} sent to ${booking.clientEmail}`, "success");
-    } catch (err: any) {
-      toast(`Failed to send email: ${err.message}`, "error");
+    } catch (err: unknown) {
+      toast(`Failed to send email: ${err instanceof Error ? err.message : "unknown error"}`, "error");
     }
     setSendingEmail(null);
   };
 
-  const resetForm = () => setFormData({
-    clientName: "", clientEmail: "", clientPhone: "", destination: "", property: "",
-    checkIn: "", checkOut: "", guests: "2", totalPrice: "", depositPaid: "",
-    status: "provisional", package: "", specialRequests: "",
-    depositMethod: "", swiftCode: "", depositNotes: "",
-  });
+  const resetForm = () => setFormData(emptyFormData());
   const openAddModal = () => { setEditBooking(null); resetForm(); setShowModal(true); };
-  const openEditModal = (booking: Booking) => { setEditBooking(booking); setFormData(booking); setShowModal(true); };
+  const openEditModal = (booking: Booking) => { setEditBooking(booking); setFormData(bookingToFormData(booking)); setShowModal(true); };
 
   // ─── Table Columns ──────────────────────────────────
   const columns: Column<Booking>[] = [

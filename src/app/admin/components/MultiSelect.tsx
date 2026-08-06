@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useId } from "react";
 import { ChevronDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -59,7 +59,7 @@ export function MultiSelect({
     .map((v) => options.find((o) => o.value === v)?.label || v)
     .join(", ");
 
-  const inputId = `ms-${Math.random().toString(36).slice(2, 9)}`;
+  const inputId = useId();
 
   return (
     <div className="space-y-0.5" ref={containerRef}>

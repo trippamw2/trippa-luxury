@@ -3,8 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { StarIcon, ArrowRightIcon } from "@/components/ui/icons";
-import { cn } from "@/lib/utils";
+import { StarIcon } from "@/components/ui/icons";
 
 interface PropertyCardProps {
   name: string;
@@ -24,13 +23,11 @@ export function PropertyCard({
   tagline,
   location,
   image,
-  priceRange,
   rating,
   slug,
-  destination,
   index = 0,
   badge,
-}: PropertyCardProps) {
+}: Omit<PropertyCardProps, "priceRange" | "destination">) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 40 }}

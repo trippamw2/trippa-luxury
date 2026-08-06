@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 
 type AuditEntry = {
   id: string;
   tableName: string;
   recordId: string | null;
   action: "CREATE" | "UPDATE" | "DELETE";
-  oldData: Record<string, any> | null;
-  newData: Record<string, any> | null;
+  oldData: Record<string, unknown> | null;
+  newData: Record<string, unknown> | null;
   performedBy: { fullName: string; role: string } | null;
   ipAddress: string | null;
   createdAt: string;
@@ -31,34 +31,39 @@ export default function AuditLogPage() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const perPage = 50;
 
-  const fetchLogs = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const params = new URLSearchParams();
-      if (tableFilter) params.set("table", tableFilter);
-      if (actionFilter) params.set("action", actionFilter);
-      params.set("limit", String(perPage));
-      params.set("offset", String(page * perPage));
-
-      const res = await fetch(`/api/admin/audit-log?${params}`);
-      if (!res.ok) {
-        const body = await res.json();
-        throw new Error(body.error || "Failed to fetch audit log");
-      }
-      const json = await res.json();
-      setEntries(json.data || []);
-      setCount(json.count || 0);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [tableFilter, actionFilter, page]);
-
   useEffect(() => {
-    fetchLogs();
-  }, [fetchLogs]);
+    let cancelled = false;
+
+    async function load() {
+      try {
+        const params = new URLSearchParams();
+        if (tableFilter) params.set("table", tableFilter);
+        if (actionFilter) params.set("action", actionFilter);
+        params.set("limit", String(perPage));
+        params.set("offset", String(page * perPage));
+
+        const res = await fetch(`/api/admin/audit-log?${params}`);
+        if (!res.ok) {
+          const body = await res.json();
+          throw new Error(body.error || "Failed to fetch audit log");
+        }
+        const json = await res.json();
+        if (cancelled) return;
+        setEntries(json.data || []);
+        setCount(json.count || 0);
+      } catch (err) {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : "Failed to fetch audit log");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [tableFilter, actionFilter, page]);
 
   const totalPages = Math.ceil(count / perPage);
 

@@ -11,7 +11,7 @@ import { EmptyState } from "@/app/admin/components/EmptyState";
 import { ImportCsv } from "@/app/admin/components/ImportCsv";
 import { Download } from "lucide-react";
 import { exportToCsv } from "@/lib/csv-export";
-import { FormInput, FormTextarea, FormGroup } from "@/app/admin/components/FormField";
+import { FormInput, FormTextarea, FormSelect, FormGroup } from "@/app/admin/components/FormField";
 import { RichTextEditor } from "@/app/admin/components/RichTextEditor";
 import { ImageUpload } from "@/app/admin/components/ImageUpload";
 import { TagInput } from "@/app/admin/components/TagInput";
@@ -27,10 +27,49 @@ interface Package {
   image?: string;
   properties?: string[];
   inclusions: string[];
+  excludes: string[];
+  collection: string;
   itinerary: { day: number; title: string; description: string }[];
 }
 
-function mapPkg(item: any): Package {
+interface ApiPackage {
+  id: string;
+  title?: string;
+  subtitle?: string;
+  description?: string;
+  duration?: string;
+  destinations?: string[];
+  price?: string;
+  image?: string;
+  properties?: string[];
+  inclusions?: string[];
+  excludes?: string[];
+  collection?: string;
+  itinerary?: { day: number; title: string; description: string }[];
+}
+
+const COLLECTIONS: { value: string; label: string }[] = [
+  { value: "romance", label: "Romance Collection" },
+  { value: "safari", label: "Safari Collection" },
+  { value: "beach-island", label: "Beach & Island Collection" },
+  { value: "bespoke", label: "Bespoke Journeys" },
+];
+
+function parseItinerary(lines: string[]): { day: number; title: string; description: string }[] {
+  const trimmed = lines.map(l => l.trim()).filter(Boolean);
+  if (trimmed.length === 0) {
+    return [{ day: 1, title: "Arrival", description: "Welcome and transfer to property" }];
+  }
+  return trimmed.map((line, idx) => {
+    const sep = line.indexOf(" | ");
+    if (sep > -1) {
+      return { day: idx + 1, title: line.slice(0, sep).trim(), description: line.slice(sep + 3).trim() };
+    }
+    return { day: idx + 1, title: `Day ${idx + 1}`, description: line };
+  });
+}
+
+function mapPkg(item: ApiPackage): Package {
   return {
     id: item.id,
     title: item.title || "",
@@ -42,11 +81,13 @@ function mapPkg(item: any): Package {
     image: item.image || "",
     properties: item.properties || [],
     inclusions: item.inclusions || [],
+    excludes: item.excludes || [],
+    collection: item.collection || "bespoke",
     itinerary: item.itinerary || [],
   };
 }
 
-function mapPkgToApi(item: Partial<Package>): any {
+function mapPkgToApi(item: Partial<Package>): Record<string, unknown> {
   return {
     title: item.title,
     subtitle: item.subtitle,
@@ -57,6 +98,8 @@ function mapPkgToApi(item: Partial<Package>): any {
     image: item.image,
     properties: item.properties,
     inclusions: item.inclusions,
+    excludes: item.excludes,
+    collection: item.collection,
     itinerary: item.itinerary,
     slug: item.title?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || `pkg-${Date.now()}`,
     is_active: true,
@@ -64,7 +107,7 @@ function mapPkgToApi(item: Partial<Package>): any {
 }
 
 export default function AdminPackages() {
-  const { data: packages, loading, create, update, remove } = useApiData<Package>("packages", {
+  const { data: packages, loading, create, update, remove } = useApiData("packages", {
     mapFromApi: mapPkg,
     mapToApi: mapPkgToApi,
   });
@@ -75,7 +118,7 @@ export default function AdminPackages() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     title: "", subtitle: "", description: "", duration: "", destinations: "",
-    price: "", image: "", properties: "", inclusions: "", itinerary: "",
+    price: "", image: "", properties: "", inclusions: "", excludes: "", collection: "bespoke", itinerary: "",
   });
 
   const filtered = packages.filter(p =>
@@ -85,7 +128,7 @@ export default function AdminPackages() {
 
   const resetForm = () => setFormData({
     title: "", subtitle: "", description: "", duration: "", destinations: "",
-    price: "", image: "", properties: "", inclusions: "", itinerary: "",
+    price: "", image: "", properties: "", inclusions: "", excludes: "", collection: "bespoke", itinerary: "",
   });
 
   const openAddModal = () => { setEditingPackage(null); resetForm(); setShowModal(true); };
@@ -102,13 +145,14 @@ export default function AdminPackages() {
       image: pkg.image || "",
       properties: (pkg.properties || []).join(", "),
       inclusions: (pkg.inclusions || []).join("\n"),
-      itinerary: (pkg.itinerary || []).map(i => i.description).join("\n"),
+      excludes: (pkg.excludes || []).join("\n"),
+      collection: pkg.collection || "bespoke",
+      itinerary: (pkg.itinerary || []).map(i => `${i.title} | ${i.description}`).join("\n"),
     });
     setShowModal(true);
   };
 
   const handleAdd = async () => {
-    const itineraryLines = formData.itinerary.split("\n").map(l => l.trim()).filter(Boolean);
     const result = await create({
       title: formData.title,
       subtitle: formData.subtitle,
@@ -119,9 +163,9 @@ export default function AdminPackages() {
       image: formData.image || "",
       properties: formData.properties.split(",").map(p => p.trim()).filter(Boolean),
       inclusions: formData.inclusions.split("\n").map(i => i.trim()).filter(Boolean),
-      itinerary: itineraryLines.length > 0
-        ? itineraryLines.map((line, idx) => ({ day: idx + 1, title: `Day ${idx + 1}`, description: line }))
-        : [{ day: 1, title: "Arrival", description: "Welcome and transfer to property" }],
+      excludes: formData.excludes ? formData.excludes.split("\n").map(e => e.trim()).filter(Boolean) : [],
+      collection: formData.collection || "bespoke",
+      itinerary: parseItinerary(formData.itinerary.split("\n")),
     });
     if (result) {
       setShowModal(false);
@@ -144,7 +188,9 @@ export default function AdminPackages() {
       image: formData.image,
       properties: formData.properties.split(",").map(p => p.trim()).filter(Boolean),
       inclusions: formData.inclusions ? formData.inclusions.split("\n").map(i => i.trim()).filter(Boolean) : [],
-      itinerary: formData.itinerary ? formData.itinerary.split("\n").map((line, idx) => ({ day: idx + 1, title: `Day ${idx + 1}`, description: line })) : [],
+      excludes: formData.excludes ? formData.excludes.split("\n").map(e => e.trim()).filter(Boolean) : [],
+      collection: formData.collection || "bespoke",
+      itinerary: formData.itinerary ? parseItinerary(formData.itinerary.split("\n")) : [],
     });
     if (result) {
       setEditingPackage(null);
@@ -290,7 +336,9 @@ export default function AdminPackages() {
                 <ImageUpload label="Image" value={formData.image} onChange={(url) => setFormData(p => ({ ...p, image: url }))} />
                 <TagInput label="Properties" value={formData.properties ? formData.properties.split(",").map(s => s.trim()).filter(Boolean) : []} onChange={(tags) => setFormData(p => ({ ...p, properties: tags.join(", ") }))} placeholder="kaya-mawa, chinzombo" />
                 <FormTextarea label="Inclusions (one per line)" name="inclusions" value={formData.inclusions} onChange={e => setFormData(p => ({ ...p, inclusions: e.target.value }))} rows={3} placeholder="Luxury accommodation&#10;All meals&#10;Private transfers" />
-                <FormTextarea label="Itinerary (one description per line)" name="itinerary" value={formData.itinerary} onChange={e => setFormData(p => ({ ...p, itinerary: e.target.value }))} rows={3} placeholder="Welcome and transfer to property&#10;Sunset cruise on the lake" />
+                <FormTextarea label="Excludes (one per line)" name="excludes" value={formData.excludes} onChange={e => setFormData(p => ({ ...p, excludes: e.target.value }))} rows={3} placeholder="International flights&#10;Visa fees&#10;Travel insurance" />
+                <FormSelect label="Collection" name="collection" value={formData.collection} onChange={e => setFormData(p => ({ ...p, collection: e.target.value }))} options={COLLECTIONS} />
+                <FormTextarea label="Itinerary (one per line : Day Title | Description)" name="itinerary" value={formData.itinerary} onChange={e => setFormData(p => ({ ...p, itinerary: e.target.value }))} rows={4} placeholder="Arrival in Lilongwe | Private transfer to your hotel&#10;Island Discovery | Kayak hidden coves and snorkel" />
               </div>
               <div className="flex gap-3 px-6 py-4 border-t border-sand-light flex-shrink-0">
                 <button onClick={() => setShowModal(false)} className="flex-1 px-4 py-2.5 border border-sand-light text-earth text-sm hover:bg-warm-white transition-colors">Cancel</button>

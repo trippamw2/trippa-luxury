@@ -4,8 +4,8 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { generateQuoteDocument } from "@/lib/documents/quote";
-import { generateInvoiceDocument } from "@/lib/documents/invoice";
-import { generateReceiptDocument } from "@/lib/documents/receipt";
+import { generateInvoiceDocument, type InvoiceData } from "@/lib/documents/invoice";
+import { generateReceiptDocument, type ReceiptDocumentData } from "@/lib/documents/receipt";
 import { generateItineraryDocument } from "@/lib/documents/itinerary";
 import { generateWelcomeDocument } from "@/lib/documents/welcome";
 import { generateTravelBrief, type TravelBriefData } from "@/lib/documents/travel-brief";
@@ -13,18 +13,27 @@ import { generatePaymentReminderDocument } from "@/lib/documents/payment-reminde
 import { generateThankYouDocument } from "@/lib/documents/thank-you";
 import { generateReferralDocument } from "@/lib/documents/referral";
 import { generateFeedbackDocument } from "@/lib/documents/feedback";
+import type { CuratedJourney } from "@/lib/ai/types";
 
-const generators: Record<string, (data: any) => string> = {
-  quote: (d: any) => generateQuoteDocument(d.journey, d.meta),
-  invoice: generateInvoiceDocument,
-  receipt: generateReceiptDocument,
-  itinerary: generateItineraryDocument,
-  welcome: (d: any) => generateWelcomeDocument(d.clientName, d.bookingRef, d.destination),
-  "travel-brief": (d: any) => generateTravelBrief(d as TravelBriefData),
-  "payment-reminder": generatePaymentReminderDocument,
-  "thank-you": (d: any) => generateThankYouDocument(d.clientName, d.bookingRef, d.destination),
-  referral: (d: any) => generateReferralDocument(d.clientName, d.bookingRef),
-  feedback: (d: any) => generateFeedbackDocument(d.clientName, d.bookingRef, d.destination),
+const generators: Record<string, (data: Record<string, unknown>) => string> = {
+  quote: (d) =>
+    generateQuoteDocument(
+      d.journey as CuratedJourney,
+      d.meta as Parameters<typeof generateQuoteDocument>[1]
+    ),
+  invoice: (d) => generateInvoiceDocument(d as unknown as InvoiceData),
+  receipt: (d) => generateReceiptDocument(d as unknown as ReceiptDocumentData),
+  itinerary: (d) => generateItineraryDocument(d as unknown as CuratedJourney),
+  welcome: (d) =>
+    generateWelcomeDocument(d.clientName as string, d.bookingRef as string, d.destination as string),
+  "travel-brief": (d) => generateTravelBrief(d as unknown as TravelBriefData),
+  "payment-reminder": (d) =>
+    generatePaymentReminderDocument(d as unknown as Parameters<typeof generatePaymentReminderDocument>[0]),
+  "thank-you": (d) =>
+    generateThankYouDocument(d.clientName as string, d.bookingRef as string, d.destination as string),
+  referral: (d) => generateReferralDocument(d.clientName as string, d.bookingRef as string),
+  feedback: (d) =>
+    generateFeedbackDocument(d.clientName as string, d.bookingRef as string, d.destination as string),
 };
 
 export async function GET(request: NextRequest) {
@@ -49,7 +58,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Build data object from query params
-    const data: Record<string, any> = {};
+    const data: Record<string, unknown> = {};
     for (const [key, value] of url.searchParams.entries()) {
       if (key !== "type") {
         data[key] = value;
@@ -66,10 +75,10 @@ export async function GET(request: NextRequest) {
         "Content-Disposition": `attachment; filename="${filename}"`,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Document download error:", error);
     return NextResponse.json(
-      { error: `Failed to generate document: ${error.message}` },
+      { error: `Failed to generate document: ${error instanceof Error ? error.message : "Unknown error"}` },
       { status: 500 }
     );
   }

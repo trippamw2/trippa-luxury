@@ -12,7 +12,7 @@ export async function GET() {
       .select("key, value");
 
     const settingsMap: Record<string, string> = {};
-    (settings || []).forEach((s: any) => { settingsMap[s.key] = s.value; });
+    (settings || []).forEach((s: { key: string; value: string }) => { settingsMap[s.key] = s.value; });
 
     return NextResponse.json({
       siteName: settingsMap.site_name || "Kivara",
@@ -23,11 +23,12 @@ export async function GET() {
       supabaseConfigured: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
       brevoConfigured: !!process.env.NEXT_BREVO_KEY,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof AdminAuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
     }
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -51,10 +52,11 @@ export async function PUT(request: NextRequest) {
     }
 
     return NextResponse.json({ ok: true });
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof AdminAuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
     }
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

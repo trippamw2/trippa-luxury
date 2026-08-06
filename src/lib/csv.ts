@@ -5,7 +5,7 @@
 /**
  * Escape a value for CSV (handles commas, quotes, and newlines).
  */
-function escapeCsv(value: any): string {
+function escapeCsv(value: unknown): string {
   if (value === null || value === undefined) return "";
   const str = String(value);
   if (str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r")) {
@@ -20,7 +20,7 @@ function escapeCsv(value: any): string {
  * @param columns Optional column definitions (key and label). If omitted, uses object keys.
  */
 export function toCsv(
-  data: Record<string, any>[],
+  data: Record<string, unknown>[],
   columns?: { key: string; label: string }[]
 ): string {
   if (!data || data.length === 0) return "";

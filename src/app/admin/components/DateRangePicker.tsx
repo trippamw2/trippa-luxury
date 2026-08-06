@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import { cn } from "@/lib/utils";
 
 /* ─── Props ───────────────────────────────────────────── */
@@ -20,7 +21,7 @@ export function DateRangePicker({
   startPlaceholder = "Start date", endPlaceholder = "End date",
   disabled,
 }: DateRangePickerProps) {
-  const inputId = `drp-${Math.random().toString(36).slice(2, 9)}`;
+  const inputId = useId();
 
   return (
     <div className="space-y-0.5">

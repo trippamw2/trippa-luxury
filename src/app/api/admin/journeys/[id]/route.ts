@@ -1,6 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
-import { handleGetOne, handleUpdate, handleDelete, mapKeysToCamel, mapKeysToSnake } from "@/lib/api-helpers";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { NextRequest } from "next/server";
+import { handleGetOne, handleUpdate, handleDelete } from "@/lib/api-helpers";
 
 const TABLE = "saved_journeys";
 
@@ -14,7 +13,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   const body = await request.json();
 
   // Handle status transitions (also set timestamps)
-  const updates: Record<string, any> = { ...body };
+  const updates: Record<string, unknown> = { ...body };
   if (body.status === "sent" && !body.sentAt) updates.sent_at = new Date().toISOString();
   if (body.status === "accepted" && !body.acceptedAt) updates.accepted_at = new Date().toISOString();
   if (body.version) updates.version = body.version;

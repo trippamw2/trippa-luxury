@@ -36,12 +36,13 @@ export async function GET(request: NextRequest) {
       data: mapKeysToCamel(data || []),
       count: count || 0,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof AdminAuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
     }
     console.error("Error in GET provisional-holds:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Actually release: cancel stale provisionals
-    const { data, error, count } = await supabase
+    const { data, error } = await supabase
       .from("bookings")
       .update({
         status: "cancelled",
@@ -100,11 +101,12 @@ export async function POST(request: NextRequest) {
       affectedCount: data?.length || 0,
       message: `${data?.length || 0} provisional bookings released.`,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof AdminAuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
     }
     console.error("Error in POST provisional-holds:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

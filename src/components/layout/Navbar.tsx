@@ -6,7 +6,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MenuIcon, XIcon, ChevronDownIcon } from "@/components/ui/icons";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { SITE_CONFIG } from "@/lib/constants";
 import { KivaraLogo } from "@/components/ui/KivaraLogo";
 
 const NAV_ITEMS = [

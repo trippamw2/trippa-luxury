@@ -36,16 +36,18 @@ interface AdminShellProps {
 /* ─── Component ───────────────────────────────────────── */
 export function AdminShell({ children }: AdminShellProps) {
   const pathname = usePathname();
-  const supabase = createClient();
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  // Create the client inside the effect: never during render/SSR so the
+  // build cannot crash on missing env, and no client per render. The client
+  // is memoized, so a new one is created on demand instead of held in state.
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
+    createClient().auth.getUser().then(({ data }: { data: { user: SupabaseUser | null } }) => {
       if (data.user) setUser(data.user);
     });
-  }, [supabase]);
+  }, []);
 
   // Close menu on click outside
   useEffect(() => {
@@ -61,7 +63,7 @@ export function AdminShell({ children }: AdminShellProps) {
   const { toggle } = useSidebar();
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    createClient().auth.signOut();
     window.location.href = "/admin/login";
   };
 

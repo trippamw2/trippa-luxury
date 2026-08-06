@@ -4,6 +4,21 @@ import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 import { generateInvoicePDFBuffer } from "@/lib/documents/invoice-pdf";
 import { mapKeysToCamel } from "@/lib/api-helpers";
 
+type InvoiceBooking = {
+  bookingReference?: string;
+  clientName?: string;
+  clientEmail?: string;
+};
+
+type InvoiceLineItem = {
+  description?: string;
+  quantity?: number | string;
+  qty?: number | string;
+  unit_price?: number | string;
+  unitPrice?: number | string;
+  total?: number | string;
+};
+
 /**
  * GET /api/admin/finance/invoices/[id]/pdf
  *
@@ -34,8 +49,8 @@ export async function GET(
       );
     }
 
-    const booking = mapKeysToCamel<any>(invoice.bookings);
-    const lineItems = (invoice.line_items as any[]) || [];
+    const booking = mapKeysToCamel<InvoiceBooking>(invoice.bookings);
+    const lineItems = (invoice.line_items as InvoiceLineItem[]) || [];
     const currency = invoice.currency || "USD";
 
     const pdfData = {
@@ -61,11 +76,11 @@ export async function GET(
             day: "numeric",
           })
         : "N/A",
-      lineItems: lineItems.map((item: any) => ({
+      lineItems: lineItems.map((item: InvoiceLineItem) => ({
         description: item.description || "Service",
-        quantity: item.quantity || item.qty || 1,
-        unitPrice: parseFloat(item.unit_price || item.unitPrice || 0),
-        total: parseFloat(item.total || 0),
+        quantity: Number(item.quantity || item.qty || 1),
+        unitPrice: parseFloat(String(item.unit_price || item.unitPrice || 0)),
+        total: parseFloat(String(item.total || 0)),
       })),
       subtotal: parseFloat(invoice.subtotal || 0),
       taxRate: parseFloat(invoice.tax_rate || 0),
@@ -90,13 +105,14 @@ export async function GET(
         "Content-Length": pdfBytes.length.toString(),
       },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof AdminAuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
     }
     console.error("Invoice PDF generation error:", err);
+    const message = err instanceof Error ? err.message : "Failed to generate invoice PDF";
     return NextResponse.json(
-      { error: err.message || "Failed to generate invoice PDF" },
+      { error: message },
       { status: 500 }
     );
   }

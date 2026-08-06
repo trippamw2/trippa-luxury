@@ -5,13 +5,16 @@
 import { guestProfiler, type RawInquiry, type ProfiledGuest } from "./guest-profiler";
 import { JourneyEngine } from "./journey-engine";
 import { QuoteEngine } from "./quote-engine";
-import { PaymentEngine, type PaymentLinkData, type ReceiptData } from "./payment-engine";
-import { ReminderEngine, generateReminderSchedules } from "./reminder-engine";
-import { FollowUpEngine, generateFollowUpSchedules } from "./follow-up-engine";
-import { workflowEngine } from "./workflow-engine";
-import { salesFunnel } from "./sales-funnel";
+import { PaymentEngine, type PaymentLinkData } from "./payment-engine";
+import { ReminderEngine, generateReminderSchedules, type ReminderContent } from "./reminder-engine";
+import { FollowUpEngine, generateFollowUpSchedules, type FollowUpContent } from "./follow-up-engine";
+import { salesFunnel, type FunnelEntry } from "./sales-funnel";
 import type { CuratedJourney, GuestProfile } from "./types";
 import type { ConciergeState } from "./workflow-engine";
+
+// Schedule item types derived from the schedule generators.
+type ReminderScheduleItem = ReturnType<typeof generateReminderSchedules>[number];
+type FollowUpScheduleItem = ReturnType<typeof generateFollowUpSchedules>[number];
 
 // ─── Types ─────────────────────────────────────────────────────────────
 
@@ -77,14 +80,14 @@ export class AIOrchestrator {
     try {
       profiled = await guestProfiler.llmProfile(raw);
       completedTasks.push("guest_profiling");
-    } catch (err: any) {
+    } catch (err: unknown) {
       return {
         journeyId: `error-${Date.now()}`,
-        guestProfile: null as any,
+        guestProfile: null as unknown as ProfiledGuest,
         state: "new",
         completedTasks: [],
         pendingTasks: [],
-        errors: [`Guest profiling failed: ${err.message}`],
+        errors: [`Guest profiling failed: ${err instanceof Error ? err.message : String(err)}`],
         documentsGenerated: [],
         emailsSent: [],
       };
@@ -105,8 +108,8 @@ export class AIOrchestrator {
         };
         journey = await journeyEngine.llmGenerate(profile);
         completedTasks.push("journey_curation");
-      } catch (err: any) {
-        errors.push(`Journey curation failed: ${err.message}`);
+      } catch (err: unknown) {
+        errors.push(`Journey curation failed: ${err instanceof Error ? err.message : String(err)}`);
         pendingTasks.push("journey_curation");
       }
     } else {
@@ -116,11 +119,11 @@ export class AIOrchestrator {
     // Step 3: Generate quote (if auto-quote enabled and journey exists)
     if (options?.autoQuote !== false && journey) {
       try {
-        const quote = quoteEngine.generateQuote(profiled as any);
+        const quote = quoteEngine.generateQuote(profiled);
         completedTasks.push("quote_generation");
         documentsGenerated.push(`quote_${quote.quoteRef}`);
-      } catch (err: any) {
-        errors.push(`Quote generation failed: ${err.message}`);
+      } catch (err: unknown) {
+        errors.push(`Quote generation failed: ${err instanceof Error ? err.message : String(err)}`);
         pendingTasks.push("quote_generation");
       }
     } else {
@@ -187,9 +190,12 @@ export class AIOrchestrator {
     destination?: string;
     bookingRef?: string;
     remindersSent: { type: string; sentAt: string }[];
-  }): { dueReminders: any[]; dueFollowUps: any[] } {
-    const dueReminders: any[] = [];
-    const dueFollowUps: any[] = [];
+  }): {
+    dueReminders: { schedule: ReminderScheduleItem; content: ReminderContent }[];
+    dueFollowUps: { schedule: FollowUpScheduleItem; content: FollowUpContent }[];
+  } {
+    const dueReminders: { schedule: ReminderScheduleItem; content: ReminderContent }[] = [];
+    const dueFollowUps: { schedule: FollowUpScheduleItem; content: FollowUpContent }[] = [];
 
     if (journey.travelStart && (journey.state === "confirmed" || journey.state === "itinerary-sent")) {
       const schedules = generateReminderSchedules(journey.travelStart);
@@ -227,7 +233,7 @@ export class AIOrchestrator {
   /**
    * Generate a lead report for analytics.
    */
-  generateAnalytics(entries: any[]) {
+  generateAnalytics(entries: FunnelEntry[]) {
     return salesFunnel.calculateMetrics(entries);
   }
 

@@ -95,7 +95,6 @@ export default function FAQPage() {
               <h2 className="text-xl font-heading font-medium text-soft-black mb-4">{category.category}</h2>
               <div className="space-y-2">
                 {category.questions.map((item, idx) => {
-                  const globalIdx = `${category.category}-${idx}`;
                   const isOpen = openIndex === idx;
                   return (
                     <motion.div key={item.q} className="border border-sand-light/30 bg-warm-white overflow-hidden">

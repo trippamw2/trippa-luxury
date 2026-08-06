@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, ReactNode } from "react";
+import { useState, useMemo, ReactNode, Key } from "react";
 import { Search, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SkeletonTable } from "./Skeleton";
@@ -32,7 +32,12 @@ interface DataTableProps<T> {
   importTable?: string;
 }
 
-export function DataTable<T extends Record<string, any>>({
+/** Read a field by string key from a row of any object type. */
+function getField<T extends object>(item: T, key: string): unknown {
+  return (item as Record<string, unknown>)[key];
+}
+
+export function DataTable<T extends object>({
   columns,
   data,
   keyField = "id",
@@ -58,7 +63,7 @@ export function DataTable<T extends Record<string, any>>({
     const q = searchQuery.toLowerCase();
     return data.filter((item) =>
       columns.some((col) => {
-        const val = item[col.key];
+        const val = getField(item, col.key);
         return val != null && String(val).toLowerCase().includes(q);
       })
     );
@@ -68,8 +73,8 @@ export function DataTable<T extends Record<string, any>>({
   const sorted = useMemo(() => {
     if (!sortKey) return filtered;
     return [...filtered].sort((a, b) => {
-      const aVal = a[sortKey];
-      const bVal = b[sortKey];
+      const aVal = getField(a, sortKey);
+      const bVal = getField(b, sortKey);
       if (aVal == null) return 1;
       if (bVal == null) return -1;
       const cmp = String(aVal).localeCompare(String(bVal), undefined, { numeric: true });
@@ -183,7 +188,7 @@ export function DataTable<T extends Record<string, any>>({
               <tbody className="divide-y divide-sand-light/60">
                 {paged.map((item, i) => (
                   <tr
-                    key={item[keyField] ?? i}
+                    key={(getField(item, keyField) ?? i) as Key}
                     className={cn(
                       "transition-colors",
                       onRowClick ? "cursor-pointer hover:bg-warm-white" : "hover:bg-warm-white/50"
@@ -192,7 +197,7 @@ export function DataTable<T extends Record<string, any>>({
                   >
                     {columns.map((col) => (
                       <td key={col.key} className={cn("px-4 py-3 text-soft-black", col.className)}>
-                        {col.render ? col.render(item) : item[col.key] ?? "—"}
+                        {col.render ? col.render(item) : (getField(item, col.key) as ReactNode) ?? "—"}
                       </td>
                     ))}
                   </tr>

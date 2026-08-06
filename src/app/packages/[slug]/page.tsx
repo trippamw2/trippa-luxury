@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ArrowRight, Check, Clock, MapPin, Heart, MessageCircle, ChevronLeft, Star } from "lucide-react";
+import { ArrowRight, Check, Clock, MapPin, MessageCircle, ChevronLeft, Star } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { SITE_CONFIG } from "@/lib/constants";

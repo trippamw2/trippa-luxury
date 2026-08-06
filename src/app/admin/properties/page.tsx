@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Edit2, Trash2, X, Search, MapPin, Star, GripVertical, ChevronDown, ChevronRight } from "lucide-react";
+import { Plus, X, Search, MapPin, Star, ChevronDown, ChevronRight } from "lucide-react";
 import { formatDestination } from "@/lib/utils";
+import Image from "next/image";
 import { useApiData } from "@/lib/use-api-data";
 import { useToast } from "@/app/admin/components/Toast";
 import { RichTextEditor } from "@/app/admin/components/RichTextEditor";
@@ -60,6 +61,29 @@ function slugify(text: string) {
   return text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 }
 
+interface ApiProperty {
+  id: string;
+  slug?: string;
+  name?: string;
+  destination?: string;
+  location?: string;
+  tagline?: string;
+  description?: string;
+  longDescription?: string;
+  priceRange?: string;
+  rating?: number;
+  heroImage?: string;
+  gallery?: string[];
+  roomTypes?: string[];
+  rooms?: Room[];
+  amenities?: string[];
+  romanticHighlights?: string[];
+  awards?: string[];
+  reviews?: Review[];
+  isFeatured?: boolean;
+  isActive?: boolean;
+}
+
 function TagInput({ label, value, onChange, placeholder }: {
   label: string; value: string[]; onChange: (v: string[]) => void; placeholder?: string;
 }) {
@@ -110,7 +134,7 @@ function GalleryInput({ value, onChange }: { value: string[]; onChange: (v: stri
         <div className="grid grid-cols-3 gap-2">
           {value.map((url, i) => (
             <div key={i} className="relative group aspect-[4/3] bg-warm-white border border-sand-light overflow-hidden">
-              <img src={url} alt="" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+              <Image src={url} alt="" fill className="object-cover" unoptimized onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
               <button type="button" onClick={() => onChange(value.filter((_, j) => j !== i))}
                 className="absolute top-1 right-1 w-5 h-5 bg-red-600 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <X className="w-3 h-3" />
@@ -130,7 +154,7 @@ function RoomsEditor({ value, onChange }: { value: Room[]; onChange: (v: Room[])
     onChange([...value, { name: "", description: "", images: [], sleeps: 2 }]);
     setExpanded(value.length);
   };
-  const updateRoom = (idx: number, field: keyof Room, val: any) => {
+  const updateRoom = (idx: number, field: keyof Room, val: string | number | string[]) => {
     const updated = value.map((r, i) => i === idx ? { ...r, [field]: val } : r);
     onChange(updated);
   };
@@ -226,11 +250,11 @@ function ReviewsEditor({ value, onChange }: { value: Review[]; onChange: (v: Rev
 }
 
 export default function AdminProperties() {
-  const { data: properties, loading, create, update, remove } = useApiData<Property>("properties", {
-    mapFromApi: (item: any) => ({
+  const { data: properties, loading, create, update, remove } = useApiData("properties", {
+    mapFromApi: (item: ApiProperty) => ({
       id: item.id,
       slug: item.slug || "",
-      name: item.name,
+      name: item.name ?? "",
       destination: item.destination || "lake-malawi",
       location: item.location || "",
       tagline: item.tagline || "",
@@ -249,8 +273,8 @@ export default function AdminProperties() {
       isFeatured: item.isFeatured ?? false,
       isActive: item.isActive ?? true,
     }),
-    mapToApi: (item: any) => ({
-      slug: item.slug || slugify(item.name),
+    mapToApi: (item: Partial<Property>) => ({
+      slug: item.slug || slugify(item.name ?? ""),
       name: item.name,
       destination: item.destination,
       location: item.location,
@@ -258,7 +282,7 @@ export default function AdminProperties() {
       description: item.description,
       longDescription: item.longDescription,
       priceRange: item.priceRange,
-      rating: item.rating ? parseFloat(item.rating) : 0,
+      rating: item.rating ? Number(item.rating) : 0,
       heroImage: item.heroImage,
       gallery: item.gallery || [],
       roomTypes: item.roomTypes || [],

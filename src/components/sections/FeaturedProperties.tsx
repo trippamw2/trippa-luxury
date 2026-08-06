@@ -52,10 +52,8 @@ export function FeaturedProperties() {
               tagline={property.tagline}
               location={property.location}
               image={property.heroImage}
-              priceRange={property.priceRange}
               rating={property.rating}
               slug={property.id}
-              destination={property.destination}
               index={index}
               badge={PROPERTY_BADGES[property.id]}
             />

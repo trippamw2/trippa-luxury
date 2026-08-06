@@ -1,13 +1,13 @@
 "use client";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useId } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import ImageExtension from "@tiptap/extension-image";
 import LinkExtension from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import {
-  Bold, Italic, Heading1, Heading2, List, ListOrdered, Quote, Link, Image, Undo, Redo,
+  Bold, Italic, Heading1, Heading2, List, ListOrdered, Quote, Link, Image as ImageIcon, Undo, Redo,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -76,12 +76,16 @@ export function RichTextEditor({
     },
   });
 
-  /* Expose imperative setContent for external updates */
-  const prevValue = useRef(value);
-  if (value !== prevValue.current && editor && editor.getHTML() !== value) {
-    prevValue.current = value;
-    editor.commands.setContent(value || "");
-  }
+  const id = useId();
+
+  /* Sync external `value` updates into the editor (e.g. switching records).
+     Comparing against the editor's current HTML avoids feedback loops:
+     typing updates `value` via onUpdate, so getHTML() === value and no reset. */
+  useEffect(() => {
+    if (editor && editor.getHTML() !== value) {
+      editor.commands.setContent(value || "");
+    }
+  }, [editor, value]);
 
   const setLink = useCallback(() => {
     if (!editor) return;
@@ -98,8 +102,6 @@ export function RichTextEditor({
   }, [editor]);
 
   if (!editor) return null;
-
-  const id = `rte-${Math.random().toString(36).slice(2, 9)}`;
 
   return (
     <div className="space-y-0.5">
@@ -147,7 +149,7 @@ export function RichTextEditor({
             <Link className="w-4 h-4" />
           </ToolBtn>
           <ToolBtn onClick={addImage} label="Image">
-            <Image className="w-4 h-4" />
+            <ImageIcon className="w-4 h-4" />
           </ToolBtn>
           <div className="flex-1" />
           <ToolBtn onClick={() => editor.chain().focus().undo().run()} label="Undo">

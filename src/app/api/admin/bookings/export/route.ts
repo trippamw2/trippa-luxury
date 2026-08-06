@@ -49,11 +49,12 @@ export async function GET(request: NextRequest) {
         "Content-Disposition": `attachment; filename="${csvFilename("kivara-bookings")}"`,
       },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof AdminAuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
     }
     console.error("Bookings export error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

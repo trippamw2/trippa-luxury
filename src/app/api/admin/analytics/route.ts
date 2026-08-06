@@ -2,6 +2,17 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 
+/** Parse a DB value into a number (0 when absent/non-numeric) */
+function toNumber(value: unknown): number {
+  if (typeof value === "number") return value;
+  return parseFloat(String(value ?? "")) || 0;
+}
+
+/** Stringify a DB value, dropping null/undefined */
+function toString(value: unknown): string {
+  return value == null ? "" : String(value);
+}
+
 export async function GET() {
   try {
     await requireAdmin();
@@ -29,13 +40,17 @@ export async function GET() {
       .select("status, total_amount, start_date, end_date");
 
     const activeStatuses = ["provisional", "deposit_paid", "confirmed", "balance_due", "paid", "in_progress"];
-    const activeBookings = (allBookings || []).filter((b: any) => activeStatuses.includes(b.status));
+    const activeBookings = (allBookings || []).filter(
+      (b: Record<string, unknown>) =>
+        typeof b.status === "string" && activeStatuses.includes(b.status)
+    );
 
-    const revenueBookings = (allBookings || []).filter((b: any) =>
-      ["confirmed", "deposit_paid", "paid"].includes(b.status)
+    const revenueBookings = (allBookings || []).filter(
+      (b: Record<string, unknown>) =>
+        typeof b.status === "string" && ["confirmed", "deposit_paid", "paid"].includes(b.status)
     );
     const totalRevenue = revenueBookings.reduce(
-      (sum: number, b: any) => sum + (parseFloat(b.total_amount) || 0),
+      (sum: number, b: Record<string, unknown>) => sum + toNumber(b.total_amount),
       0
     );
 
@@ -79,19 +94,22 @@ export async function GET() {
       .not("tour_id", "is", null);
 
     const tourMap = new Map<string, { bookings: number; revenue: number }>();
-    (tourBookingsData || []).forEach((b: any) => {
-      const tid = b.tour_id;
+    (tourBookingsData || []).forEach((b: Record<string, unknown>) => {
+      const tid = toString(b.tour_id);
+      if (!tid) return;
       if (!tourMap.has(tid)) tourMap.set(tid, { bookings: 0, revenue: 0 });
       const entry = tourMap.get(tid)!;
       entry.bookings += 1;
-      entry.revenue += parseFloat(b.total_amount) || 0;
+      entry.revenue += toNumber(b.total_amount);
     });
 
-    const tourSummary = (toursList || []).map((t: any) => ({
-      name: t.title,
-      bookings: tourMap.get(t.id)?.bookings || 0,
-      revenue: tourMap.get(t.id)?.revenue || 0,
-    })).sort((a: any, b: any) => b.bookings - a.bookings);
+    const tourSummary = (toursList || [])
+      .map((t: Record<string, unknown>) => ({
+        name: toString(t.title),
+        bookings: tourMap.get(toString(t.id))?.bookings || 0,
+        revenue: tourMap.get(toString(t.id))?.revenue || 0,
+      }))
+      .sort((a, b) => b.bookings - a.bookings);
 
     // ── Supplier summary ──────────────────────────────────────────────
     const { data: suppliersList } = await supabase
@@ -104,28 +122,38 @@ export async function GET() {
       .from("supplier_categories")
       .select("id, name");
 
-    const catMap = new Map((supplierCategories || []).map((c: any) => [c.id, c.name]));
+    const catMap = new Map<string, string>(
+      (supplierCategories || []).map((c: Record<string, unknown>) => [
+        toString(c.id),
+        toString(c.name),
+      ])
+    );
     const { data: supplierBookings } = await supabase
       .from("booking_suppliers")
       .select("supplier_id, cost")
       .not("supplier_id", "is", null);
 
     const supRevMap = new Map<string, number>();
-    (supplierBookings || []).forEach((s: any) => {
-      supRevMap.set(s.supplier_id, (supRevMap.get(s.supplier_id) || 0) + (parseFloat(s.cost) || 0));
+    (supplierBookings || []).forEach((s: Record<string, unknown>) => {
+      const sid = toString(s.supplier_id);
+      if (!sid) return;
+      supRevMap.set(sid, (supRevMap.get(sid) || 0) + toNumber(s.cost));
     });
 
-    const supplierSummary = (suppliersList || []).map((s: any) => ({
-      name: s.name,
-      type: catMap.get(s.category_id) || "Unknown",
-      commission: s.commission_rate,
-      revenue: supRevMap.get(s.id) || 0,
-    })).sort((a: any, b: any) => b.revenue - a.revenue);
+    const supplierSummary = (suppliersList || [])
+      .map((s: Record<string, unknown>) => ({
+        name: toString(s.name),
+        type: catMap.get(toString(s.category_id)) || "Unknown",
+        commission: toNumber(s.commission_rate),
+        revenue: supRevMap.get(toString(s.id)) || 0,
+      }))
+      .sort((a, b) => b.revenue - a.revenue);
 
     // ── Booking status distribution ───────────────────────────────────
     const bookingStatusDistribution = (allBookings || []).reduce(
-      (acc: Record<string, number>, b: any) => {
-        acc[b.status] = (acc[b.status] || 0) + 1;
+      (acc: Record<string, number>, b: Record<string, unknown>) => {
+        const status = toString(b.status);
+        acc[status] = (acc[status] || 0) + 1;
         return acc;
       },
       {} as Record<string, number>
@@ -134,10 +162,11 @@ export async function GET() {
     // ── Monthly revenue trends (last 12 months) ────────────────────────
     const twelveMonthsAgo = new Date();
     twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
-    const cutoffDate = twelveMonthsAgo.toISOString();
 
-    const revenueBookingsAll = (allBookings || []).filter((b: any) =>
-      ["confirmed", "deposit_paid", "paid", "completed"].includes(b.status)
+    const revenueBookingsAll = (allBookings || []).filter(
+      (b: Record<string, unknown>) =>
+        typeof b.status === "string" &&
+        ["confirmed", "deposit_paid", "paid", "completed"].includes(b.status)
     );
 
     const monthlyRevenue: { month: string; revenue: number }[] = [];
@@ -146,13 +175,13 @@ export async function GET() {
       d.setMonth(d.getMonth() - i);
       const yearMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
       const monthTotal = revenueBookingsAll
-        .filter((b: any) => {
-          const created = b.created_at || b.start_date;
+        .filter((b: Record<string, unknown>) => {
+          const created = toString(b.created_at ?? b.start_date);
           if (!created) return false;
           const bMonth = created.slice(0, 7);
           return bMonth === yearMonth;
         })
-        .reduce((sum: number, b: any) => sum + (parseFloat(b.total_amount) || 0), 0);
+        .reduce((sum: number, b: Record<string, unknown>) => sum + toNumber(b.total_amount), 0);
       monthlyRevenue.push({
         month: yearMonth,
         revenue: monthTotal,
@@ -165,8 +194,8 @@ export async function GET() {
       const d = new Date();
       d.setMonth(d.getMonth() - i);
       const yearMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-      const monthCount = (allBookings || []).filter((b: any) => {
-        const created = b.created_at || b.start_date;
+      const monthCount = (allBookings || []).filter((b: Record<string, unknown>) => {
+        const created = toString(b.created_at ?? b.start_date);
         if (!created) return false;
         return created.slice(0, 7) === yearMonth;
       }).length;
@@ -184,19 +213,19 @@ export async function GET() {
       activeBookings: activeBookings.length,
       totalRevenue,
       upcomingCheckins: upcomingCheckins || 0,
-      recentInquiries: (recentInquiries || []).map((i: any) => ({
-        name: i.full_name,
-        email: i.email,
-        destination: i.destination,
-        date: i.created_at,
-        status: i.status,
+      recentInquiries: (recentInquiries || []).map((i: Record<string, unknown>) => ({
+        name: toString(i.full_name),
+        email: toString(i.email),
+        destination: toString(i.destination),
+        date: toString(i.created_at),
+        status: toString(i.status),
       })),
-      upcomingBookings: (upcomingBookings || []).map((b: any) => ({
-        ref: b.booking_reference,
-        client: b.client_name,
-        destination: b.destination,
-        checkIn: b.start_date,
-        status: b.status,
+      upcomingBookings: (upcomingBookings || []).map((b: Record<string, unknown>) => ({
+        ref: toString(b.booking_reference),
+        client: toString(b.client_name),
+        destination: toString(b.destination),
+        checkIn: toString(b.start_date),
+        status: toString(b.status),
       })),
       tourSummary,
       supplierSummary,
@@ -204,10 +233,11 @@ export async function GET() {
       monthlyRevenue,
       monthlyBookings,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof AdminAuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
     }
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

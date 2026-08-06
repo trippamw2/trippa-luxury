@@ -5,7 +5,7 @@
 import { NextResponse } from "next/server";
 import { orchestrator } from "@/lib/ai/orchestrator";
 import { workflowPersistence } from "@/lib/workflow-persistence";
-import { createAdminClient } from "@/lib/supabase/admin";
+import type { ConciergeState } from "@/lib/ai/workflow-engine";
 
 export async function POST(request: Request) {
   try {
@@ -55,7 +55,8 @@ export async function POST(request: Request) {
 
       const action = transitionMap[result.state];
       if (action && journey) {
-        const updated = await workflowPersistence.transition(journey.id, result.state as any, {
+        const currentState = result.state as ConciergeState;
+        const updated = await workflowPersistence.transition(journey.id, currentState, {
           quoteAmount: result.journey?.pricing?.total,
         });
         if (updated) journey = updated;

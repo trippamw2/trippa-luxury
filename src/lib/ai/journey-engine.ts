@@ -3,7 +3,7 @@
 // generates day-by-day itineraries, and calculates pricing.
 // All guest-facing prose uses the KIVARA brand vocabulary and tone.
 
-import { PROPERTIES, DESTINATIONS, PACKAGES } from "../constants";
+import { PROPERTIES, DESTINATIONS } from "../constants";
 import type {
   GuestProfile,
   CuratedJourney,
@@ -13,17 +13,12 @@ import type {
   Transfer,
   JourneyAlternative,
 } from "./types";
-import { luxury } from "@/lib/voice";
 import { callLlmJson, type LlmMessage } from "./llm";
 
 // ── Helpers ─────────────────────────────────────────────────────────────
 
 function generateId(): string {
   return `JRN-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
-}
-
-function randomItem<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
 }
 
 function pick<T>(arr: T[], count: number): T[] {
@@ -272,7 +267,7 @@ const AIRPORTS: Record<string, {
       { name: "Chileka International Airport", code: "BLZ" },
     ],
     local: [
-      { name: "Likoma Airport", code: "LIX", propertyIds: ["kaya-mawa", "blue-zebra-island-lodge"] },
+      { name: "Likoma Airport", code: "LIX", propertyIds: ["kaya-mawa"] },
       { name: "Makokola Airfield", code: "MAK", propertyIds: ["makokola-retreat", "pumulani-lodge"] },
     ],
   },
@@ -282,7 +277,7 @@ const AIRPORTS: Record<string, {
       { name: "Kamuzu International Airport", code: "LLW" },
     ],
     local: [
-      { name: "Mfuwe International Airport", code: "MFU", propertyIds: ["chinzombo", "puku-ridge-camp", "shawa-luangwa", "luangwa-river-camp"] },
+      { name: "Mfuwe International Airport", code: "MFU", propertyIds: ["chinzombo", "puku-ridge-camp"] },
     ],
   },
   zanzibar: {
@@ -290,7 +285,7 @@ const AIRPORTS: Record<string, {
       { name: "Abeid Amani Karume International Airport", code: "ZNZ" },
     ],
     local: [
-      { name: "Abeid Amani Karume International Airport", code: "ZNZ", propertyIds: ["xanadu-villas", "kilindi-zanzibar", "baraza-resort-spa", "the-palms-zanzibar", "the-residence-zanzibar"] },
+      { name: "Abeid Amani Karume International Airport", code: "ZNZ", propertyIds: ["xanadu-villas", "baraza-resort-spa"] },
     ],
   },
 };
@@ -649,7 +644,7 @@ export class JourneyEngine {
       const targetNights = guest.desiredNights || totalBase;
 
       // Distribute nights proportionally, ensure minimum 2 per destination
-      let allocated = destNights.map((d) => Math.max(2, Math.round((d.base / totalBase) * targetNights)));
+      const allocated = destNights.map((d) => Math.max(2, Math.round((d.base / totalBase) * targetNights)));
       const allocatedTotal = allocated.reduce((s, n) => s + n, 0);
       let diff = targetNights - allocatedTotal;
       while (diff !== 0) {
@@ -673,7 +668,6 @@ export class JourneyEngine {
       }
     }
 
-    const today = new Date();
     const itinerary: JourneyDay[] = [];
     let dayCounter = 1;
 

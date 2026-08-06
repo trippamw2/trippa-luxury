@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Mail, Phone, MapPin, Calendar, Send, CheckCircle, X, AlertCircle, MessageSquare, Edit2, Trash2 } from "lucide-react";
+import { Search, Mail, Phone, MapPin, Calendar, Send, CheckCircle, X, AlertCircle, Trash2 } from "lucide-react";
 import { useApiData } from "@/lib/use-api-data";
 
 interface Inquiry {
@@ -18,7 +18,20 @@ interface Inquiry {
   repliedAt?: string;
 }
 
-function mapInquiry(item: any): Inquiry {
+interface ApiInquiry {
+  id: string;
+  fullName?: string;
+  email?: string;
+  phone?: string;
+  destination?: string;
+  createdAt?: string;
+  status?: string;
+  message?: string;
+  adminNotes?: string;
+  lastContactedAt?: string;
+}
+
+function mapInquiry(item: ApiInquiry): Inquiry {
   return {
     id: item.id,
     name: item.fullName || "",
@@ -26,14 +39,14 @@ function mapInquiry(item: any): Inquiry {
     phone: item.phone || "",
     destination: item.destination || "",
     date: item.createdAt ? item.createdAt.split("T")[0] : "",
-    status: item.status || "new",
+    status: (item.status || "new") as Inquiry["status"],
     message: item.message || "",
     notes: item.adminNotes || "",
     repliedAt: item.lastContactedAt || undefined,
   };
 }
 
-function mapInquiryToApi(item: Partial<Inquiry>): any {
+function mapInquiryToApi(item: Partial<Inquiry>): Record<string, unknown> {
   return {
     full_name: item.name,
     email: item.email,
@@ -55,7 +68,7 @@ const STATUS_STYLES: Record<string, { label: string; color: string; bg: string }
 };
 
 export default function AdminInquiries() {
-  const { data: inquiries, loading, update, remove } = useApiData<Inquiry>("inquiries", {
+  const { data: inquiries, loading, update, remove } = useApiData("inquiries", {
     mapFromApi: mapInquiry,
     mapToApi: mapInquiryToApi,
   });

@@ -8,7 +8,7 @@
  * @param columns - Column definitions with key and header for each column
  * @param filename - The exported filename (without extension)
  */
-export function exportToCsv<T extends Record<string, any>>(
+export function exportToCsv<T extends object>(
   data: T[],
   columns: { key: string; header: string }[],
   filename: string = "export"
@@ -19,7 +19,7 @@ export function exportToCsv<T extends Record<string, any>>(
   const headerRow = columns.map((c) => escapeCsvField(c.header)).join(",");
   const dataRows = data.map((item) =>
     columns.map((col) => {
-      const val = item[col.key];
+      const val: unknown = (item as Record<string, unknown>)[col.key];
       return escapeCsvField(val);
     }).join(",")
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, KeyboardEvent } from "react";
+import { useState, useRef, useId, KeyboardEvent } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -50,7 +50,7 @@ export function TagInput({
     (s) => !value.includes(s) && s.toLowerCase().includes(input.toLowerCase()),
   );
 
-  const inputId = `tag-input-${Math.random().toString(36).slice(2, 9)}`;
+  const inputId = useId();
 
   return (
     <div className="space-y-0.5">

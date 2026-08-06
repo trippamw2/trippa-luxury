@@ -41,7 +41,7 @@ export function StatusDistributionChart({ data }: Props) {
   if (!data || Object.keys(data).length === 0) return null;
 
   const chartData = Object.entries(data)
-    .filter(([_, count]) => count > 0)
+    .filter((entry) => entry[1] > 0)
     .map(([status, count]) => ({
       name: STATUS_LABELS[status] || status,
       value: count,

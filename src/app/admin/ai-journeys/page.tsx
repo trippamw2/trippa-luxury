@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Send, Eye, ArrowRight, Loader2, AlertCircle, Check, RefreshCw, X, Moon, Save, Database, MapPin, Hotel } from "lucide-react";
+import { Sparkles, Send, Eye, ArrowRight, Loader2, AlertCircle, Check, RefreshCw, X, Moon, Save, Database, MapPin } from "lucide-react";
 import type { CuratedJourney, GuestProfile, JourneyDay, DestinationAssignment } from "@/lib/ai/types";
 
 // Available destinations with their properties
@@ -13,7 +13,6 @@ const DESTINATIONS_META = [
     properties: [
       { id: "kaya-mawa", name: "Kaya Mawa" },
       { id: "pumulani-lodge", name: "Pumulani Lodge" },
-      { id: "blue-zebra-island-lodge", name: "Blue Zebra Island Lodge" },
       { id: "makokola-retreat", name: "Makokola Retreat" },
     ],
   },
@@ -23,8 +22,6 @@ const DESTINATIONS_META = [
     properties: [
       { id: "chinzombo", name: "Chinzombo" },
       { id: "puku-ridge-camp", name: "Puku Ridge Camp" },
-      { id: "shawa-luangwa", name: "Shawa Luangwa" },
-      { id: "luangwa-river-camp", name: "Luangwa River Camp" },
     ],
   },
   {
@@ -32,10 +29,7 @@ const DESTINATIONS_META = [
     label: "Zanzibar",
     properties: [
       { id: "xanadu-villas", name: "Xanadu Villas" },
-      { id: "kilindi-zanzibar", name: "Kilindi Zanzibar" },
       { id: "baraza-resort-spa", name: "Baraza Resort & Spa" },
-      { id: "the-palms-zanzibar", name: "The Palms Zanzibar" },
-      { id: "the-residence-zanzibar", name: "The Residence Zanzibar" },
     ],
   },
 ];
@@ -507,7 +501,7 @@ export default function AIJourneysPage() {
                   <span className="w-24 text-right">Subtotal</span>
                 </div>
                 {journey.pricing.accommodation.map((a, i) => {
-                  const pppn = (a as any).ratePerNightPPPN || Math.round(a.ratePerNight / (journey.guestProfile.isCouple ? 2 : 1));
+                  const pppn = ("ratePerNightPPPN" in a ? (a as { ratePerNightPPPN?: number }).ratePerNightPPPN : undefined) || Math.round(a.ratePerNight / (journey.guestProfile.isCouple ? 2 : 1));
                   return (
                     <div key={i} className="flex items-center gap-3 text-sm py-2 border-b border-gray-50 last:border-b-0">
                       <span className="flex-[2] text-earth">{a.label}</span>

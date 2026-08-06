@@ -29,7 +29,20 @@ interface BlogPost {
 
 const CATEGORIES = ["Romance", "Safari", "Travel", "Travel Guide", "Sustainability", "Wellness"];
 
-function mapPost(item: any): BlogPost {
+interface ApiBlogPost {
+  id: string;
+  title?: string;
+  category?: string;
+  publishedAt?: string;
+  createdAt?: string;
+  author?: string;
+  excerpt?: string;
+  image?: string;
+  content?: string;
+  isPublished?: boolean;
+}
+
+function mapPost(item: ApiBlogPost): BlogPost {
   return {
     id: item.id,
     title: item.title || "",
@@ -43,7 +56,7 @@ function mapPost(item: any): BlogPost {
   };
 }
 
-function mapPostToApi(item: Partial<BlogPost>): any {
+function mapPostToApi(item: Partial<BlogPost>): Record<string, unknown> {
   return {
     title: item.title,
     category: item.category,
@@ -58,7 +71,7 @@ function mapPostToApi(item: Partial<BlogPost>): any {
 }
 
 export default function AdminBlog() {
-  const { data: posts, loading, create, update, remove } = useApiData<BlogPost>("blog", {
+  const { data: posts, loading, create, update, remove } = useApiData("blog", {
     mapFromApi: mapPost,
     mapToApi: mapPostToApi,
   });

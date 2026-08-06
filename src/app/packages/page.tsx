@@ -1,14 +1,25 @@
 "use client";
 
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import { Clock, MapPin, Check, Minus, Heart, MessageCircle } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { SITE_CONFIG, JOURNEY_COLLECTIONS, PROPERTIES } from "@/lib/constants";
 import { usePackages } from "@/lib/use-public-data";
-import { JourneyMapSection } from "@/components/sections/JourneyMapSection";
-import { buildCollectionRoutes } from "@/lib/journey-routes";
+import { buildPackageStops } from "@/lib/journey-routes";
+
+const JourneyRouteMap = dynamic(
+  () =>
+    import("@/components/sections/JourneyRouteMap").then(
+      (m) => m.JourneyRouteMap
+    ),
+  {
+    ssr: false,
+    loading: () => <div className="h-full w-full bg-warm-white animate-pulse" />,
+  }
+);
 
 /** Runtime shape for the image fallback chain — DB-merged packages may lack an image. */
 type JourneyImageSource = {
@@ -212,22 +223,22 @@ export default function PackagesPage() {
                         ))}
                       </div>
                     </div>
+
+                    {/* Route map : this journey's movement through the collection */}
+                    <div className="mt-6">
+                      <h4 className="text-sm font-medium tracking-widest uppercase text-soft-black mb-3 flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-gold" />
+                        Your Route
+                      </h4>
+                      <div className="h-56 md:h-72 rounded-lg overflow-hidden border border-sand-light/30">
+                        <JourneyRouteMap stops={buildPackageStops(pkg)} />
+                      </div>
+                    </div>
                   </div>
                 </div>
                       </motion.div>
                     ))}
                   </div>
-
-                  {/* How you'll move : one map per destination covered by the collection */}
-                  {buildCollectionRoutes(collection.id, packages).map((route) => (
-                    <JourneyMapSection
-                      key={route.destination}
-                      eyebrow={`The Route \u00B7 ${route.destinationLabel}`}
-                      title={`How You'll Move Through ${route.destinationLabel}`}
-                      description="From the arrival gateway to every sanctuary in this collection : one map, every location, and the seamless movement between them."
-                      stops={route.stops}
-                    />
-                  ))}
                 </div>
               );
             })}

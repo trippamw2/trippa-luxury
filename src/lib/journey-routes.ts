@@ -6,7 +6,7 @@ import { PROPERTIES, EXPERIENCES } from "@/lib/constants";
  * each tagged with the transport mode used to ARRIVE at it from the previous stop.
  */
 
-export type RouteStopKind = "gateway" | "stay" | "experience";
+export type RouteStopKind = "gateway" | "stay" | "experience" | "departure";
 export type MovementMode = "fly" | "drive" | "boat";
 
 export interface RouteStop {
@@ -175,7 +175,9 @@ export function buildExperienceStops(experience: { id: string }): RouteStop[] {
   if (!exp?.destination || !exp.coordinates) return [];
 
   const dest = exp.destination;
-  const stops: RouteStop[] = [{ ...ARRIVAL_GATEWAYS[dest] }];
+  const gateway = ARRIVAL_GATEWAYS[dest];
+  if (!gateway) return [];
+  const stops: RouteStop[] = [{ ...gateway }];
 
   const destProperties = PROPERTIES.filter(
     (p) => p.destination === dest && p.coordinates
@@ -196,6 +198,17 @@ export function buildExperienceStops(experience: { id: string }): RouteStop[] {
     kind: "experience",
     href: `/${dest}`,
     arrival: STAY_TO_STAY[dest] ?? "drive",
+  });
+
+  // Point of departure : back to the arrival gateway for the international flight out.
+  stops.push({
+    id: `dep-${gateway.id}`,
+    label: gateway.label,
+    sublabel: gateway.sublabel,
+    lat: gateway.lat,
+    lng: gateway.lng,
+    kind: "departure",
+    arrival: "fly",
   });
 
   return stops;

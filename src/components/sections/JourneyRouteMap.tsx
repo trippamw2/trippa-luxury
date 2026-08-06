@@ -16,6 +16,12 @@ const GOLD_DARK = "#8F6B35";
 const CREAM = "#F7F1E3";
 const INK = "#1E1B16";
 
+/** Southern & eastern Africa viewport : the map can never zoom out to show the whole continent. */
+const SOUTH_EAST_AFRICA: [[number, number], [number, number]] = [
+  [-35, 18],
+  [5, 46],
+];
+
 /** Marker per route stop : numbered, styled by kind. */
 function stopIcon(stop: RouteStop, index: number): L.DivIcon {
   const number = String(index + 1);
@@ -23,6 +29,7 @@ function stopIcon(stop: RouteStop, index: number): L.DivIcon {
     gateway: { bg: CREAM, border: GOLD, color: GOLD_DARK, shape: "circle" },
     stay: { bg: GOLD, border: CREAM, color: INK, shape: "circle" },
     experience: { bg: INK, border: GOLD, color: GOLD, shape: "diamond" },
+    departure: { bg: CREAM, border: INK, color: GOLD_DARK, shape: "circle" },
   };
   const style = kindStyle[stop.kind] ?? kindStyle.stay;
 
@@ -36,7 +43,8 @@ function stopIcon(stop: RouteStop, index: number): L.DivIcon {
       ? "transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;"
       : "display:flex;align-items:center;justify-content:center;";
 
-  const glyph = stop.kind === "gateway" ? "&#9992;" : number; // ✈ for gateways
+  const glyph =
+    stop.kind === "gateway" || stop.kind === "departure" ? "&#9992;" : number; // ✈ for airports
 
   return L.divIcon({
     className: "",
@@ -84,13 +92,18 @@ export function JourneyRouteMap({
   const activeIds = new Set(stops.map((s) => s.id));
   const context = contextStops.filter((s) => !activeIds.has(s.id));
 
+  // Fit the map to the ACTIVE ROUTE (arrival → locations → departure) so it stays
+  // zoomed on the region ; the network context stays on the map but is pannable.
   const bounds = L.latLngBounds(
-    [...context, ...stops].map((s) => [s.lat, s.lng] as [number, number])
+    stops.map((s) => [s.lat, s.lng] as [number, number])
   ).pad(0.12);
 
   return (
     <MapContainer
       bounds={bounds}
+      minZoom={6}
+      maxBounds={SOUTH_EAST_AFRICA}
+      maxBoundsViscosity={0.8}
       scrollWheelZoom={false}
       className="h-full w-full z-0"
     >
@@ -156,9 +169,11 @@ export function JourneyRouteMap({
               <span className="block text-[10px] font-medium uppercase tracking-widest text-[#B08A4D]">
                 {stop.kind === "gateway"
                   ? "Arrival Gateway"
-                  : stop.kind === "experience"
-                    ? "Signature Experience"
-                    : `Stay ${String(index + 1).padStart(2, "0")}`}
+                  : stop.kind === "departure"
+                    ? "Departure Point"
+                    : stop.kind === "experience"
+                      ? "Signature Experience"
+                      : `Stay ${String(index + 1).padStart(2, "0")}`}
               </span>
               <span className="block font-heading text-[15px] font-medium text-[#1E1B16] mt-0.5">
                 {stop.label}
@@ -170,7 +185,8 @@ export function JourneyRouteMap({
               )}
               {stop.arrival && (
                 <span className="block text-xs text-[#7A6F5D] mt-1">
-                  Arrive by {MOVEMENT_LABELS[stop.arrival]}
+                  {stop.kind === "departure" ? "Depart by " : "Arrive by "}
+                  {MOVEMENT_LABELS[stop.arrival]}
                 </span>
               )}
               {stop.href && (

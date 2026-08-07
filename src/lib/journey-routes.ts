@@ -9,6 +9,20 @@ import { PROPERTIES, EXPERIENCES } from "@/lib/constants";
 export type RouteStopKind = "gateway" | "stay" | "experience" | "departure";
 export type MovementMode = "fly" | "drive" | "boat";
 
+/** IATA-style airport codes used across the portfolio's transfer network. */
+export type AirportCode = "llw" | "blz" | "cmk" | "lix" | "mfu" | "lun" | "znz";
+
+export interface Airport {
+  code: AirportCode;
+  /** Legacy marker id used by the map context layer. */
+  id: string;
+  label: string;
+  sublabel: string;
+  lat: number;
+  lng: number;
+  destination: string;
+}
+
 export interface RouteStop {
   id: string;
   label: string;
@@ -36,6 +50,77 @@ export const DESTINATION_LABELS: Record<string, string> = {
   "zanzibar": "Zanzibar",
 };
 
+/**
+ * Single source of truth for every airport in the transfer network.
+ * Keyed by IATA-style code; declared in ALL_AIRPORTS render order so the
+ * derived context layer keeps its legacy ordering (plus LUN at the end).
+ */
+export const AIRPORTS: Record<AirportCode, Airport> = {
+  llw: {
+    code: "llw",
+    id: "llw",
+    label: "Lilongwe",
+    sublabel: "Kamuzu International Airport (LLW)",
+    lat: -13.789,
+    lng: 33.781,
+    destination: "lake-malawi",
+  },
+  blz: {
+    code: "blz",
+    id: "chileka",
+    label: "Blantyre",
+    sublabel: "Chileka / Bakili Muluzi International Airport (BLZ)",
+    lat: -15.679,
+    lng: 34.968,
+    destination: "lake-malawi",
+  },
+  lix: {
+    code: "lix",
+    id: "likoma",
+    label: "Likoma Island",
+    sublabel: "Likoma Airstrip (LIX)",
+    lat: -12.052,
+    lng: 34.736,
+    destination: "lake-malawi",
+  },
+  cmk: {
+    code: "cmk",
+    id: "club_makokola",
+    label: "Club Makokola",
+    sublabel: "Club Makokola Airstrip (CMK)",
+    lat: -14.283,
+    lng: 35.167,
+    destination: "lake-malawi",
+  },
+  mfu: {
+    code: "mfu",
+    id: "mfu",
+    label: "Mfuwe",
+    sublabel: "Mfuwe Airport (MFU)",
+    lat: -13.255,
+    lng: 31.936,
+    destination: "south-luangwa",
+  },
+  lun: {
+    code: "lun",
+    id: "lun",
+    label: "Lusaka",
+    sublabel: "Kenneth Kaunda International Airport (LUN)",
+    lat: -15.3308,
+    lng: 28.4526,
+    destination: "south-luangwa",
+  },
+  znz: {
+    code: "znz",
+    id: "znz",
+    label: "Zanzibar",
+    sublabel: "Abeid Amani Karume International Airport (ZNZ)",
+    lat: -6.222,
+    lng: 39.225,
+    destination: "zanzibar",
+  },
+};
+
 export const ARRIVAL_GATEWAYS: Record<string, RouteStop> = {
   "lake-malawi": {
     id: "llw",
@@ -61,6 +146,13 @@ export const ARRIVAL_GATEWAYS: Record<string, RouteStop> = {
     lng: 39.225,
     kind: "gateway",
   },
+};
+
+/** Primary international arrival airport per destination. */
+export const INTERNATIONAL_GATEWAYS: Record<string, AirportCode> = {
+  "lake-malawi": "llw",
+  "south-luangwa": "lun",
+  "zanzibar": "znz",
 };
 
 export const MOVEMENT_LABELS: Record<MovementMode, string> = {
@@ -214,67 +306,185 @@ export function buildExperienceStops(experience: { id: string }): RouteStop[] {
   return stops;
 }
 
+// ─── Property transfer routes ───────────────────────────────────────────
+// How a guest physically reaches each property from its international
+// arrival gateway, leg by leg. Enforces the portfolio's airport rules:
+// Malawi arrives via LLW (or BLZ), Zambia via LUN, Zanzibar via ZNZ;
+// Makokola & Pumulani connect via CMK, Likoma via LIX, South Luangwa via MFU.
+
+export interface TransferStep {
+  id: string;
+  label: string;
+  sublabel?: string;
+  /** IATA code for airport steps (absent on property steps). */
+  code?: string;
+  kind: "airport" | "property";
+  /** How the traveller ARRIVES at this step from the previous one. */
+  mode: MovementMode;
+  duration: string;
+  note?: string;
+  lat: number;
+  lng: number;
+}
+
+export interface PropertyTransfer {
+  propertyId: string;
+  /** International arrival airport for this property. */
+  gateway: AirportCode;
+  /** Secondary connection (e.g. Likoma from the southern lakeshore). */
+  alternateGateway?: { code: AirportCode; note: string };
+  /** Ordered steps : gateway → … → property. */
+  steps: TransferStep[];
+}
+
+const propertyCoordinates = (id: string) =>
+  PROPERTIES.find((p) => p.id === id)?.coordinates ?? { lat: 0, lng: 0 };
+
+/** Gateway step shared by every route : the international arrival airport. */
+function gatewayStep(code: AirportCode, note: string): TransferStep {
+  const a = AIRPORTS[code];
+  return {
+    id: a.id,
+    label: a.label,
+    sublabel: a.sublabel,
+    code: a.code,
+    kind: "airport",
+    mode: "fly",
+    duration: "International arrival",
+    note,
+    lat: a.lat,
+    lng: a.lng,
+  };
+}
+
+/** Domestic airstrip leg : reachable by scheduled or charter flight. */
+function airportStep(code: AirportCode, duration: string, note?: string): TransferStep {
+  const a = AIRPORTS[code];
+  return {
+    id: a.id,
+    label: a.label,
+    sublabel: a.sublabel,
+    code: a.code,
+    kind: "airport",
+    mode: "fly",
+    duration,
+    note,
+    lat: a.lat,
+    lng: a.lng,
+  };
+}
+
+/** Final leg : the property itself. */
+function propertyStep(
+  propertyId: string,
+  mode: MovementMode,
+  duration: string,
+  note?: string
+): TransferStep {
+  const p = PROPERTIES.find((x) => x.id === propertyId);
+  const coords = propertyCoordinates(propertyId);
+  return {
+    id: propertyId,
+    label: p?.name ?? propertyId,
+    sublabel: p?.location,
+    kind: "property",
+    mode,
+    duration,
+    note,
+    lat: coords.lat,
+    lng: coords.lng,
+  };
+}
+
+export const PROPERTY_TRANSFERS: Record<string, PropertyTransfer> = {
+  "kaya-mawa": {
+    propertyId: "kaya-mawa",
+    gateway: "llw",
+    alternateGateway: {
+      code: "cmk",
+      note: "Travelling between the southern lakeshore and Likoma connects through Club Makokola Airstrip (CMK).",
+    },
+    steps: [
+      gatewayStep("llw", "Kamuzu International, Lilongwe — Kivara concierge meets you airside"),
+      airportStep("lix", "45-minute scenic flight", "Scenic charter over the Lake of Stars"),
+      propertyStep("kaya-mawa", "drive", "10-minute road transfer", "Airstrip to the lodge on Likoma Island"),
+    ],
+  },
+  "pumulani-lodge": {
+    propertyId: "pumulani-lodge",
+    gateway: "llw",
+    steps: [
+      gatewayStep("llw", "Kamuzu International, Lilongwe — Kivara concierge meets you airside"),
+      airportStep("cmk", "35-minute scenic flight", "Club Makokola Airstrip — gateway to the southern lakeshore"),
+      propertyStep("pumulani-lodge", "drive", "Scenic road transfer", "Approximately 50 minutes along the lake shore to Nankumba Peninsula"),
+    ],
+  },
+  "makokola-retreat": {
+    propertyId: "makokola-retreat",
+    gateway: "llw",
+    steps: [
+      gatewayStep("llw", "Kamuzu International, Lilongwe — Kivara concierge meets you airside"),
+      airportStep("cmk", "35-minute scenic flight"),
+      propertyStep("makokola-retreat", "drive", "5-minute road transfer", "The Retreat lies moments from the airstrip"),
+    ],
+  },
+  "chinzombo": {
+    propertyId: "chinzombo",
+    gateway: "lun",
+    steps: [
+      gatewayStep("lun", "Kenneth Kaunda International, Lusaka — Kivara concierge meets you airside"),
+      airportStep("mfu", "1.5-hour light aircraft flight", "Flight over the Luangwa Valley"),
+      propertyStep("chinzombo", "drive", "Game-drive transfer", "30–60 minutes through the park to camp — a safari begins before you arrive"),
+    ],
+  },
+  "puku-ridge-camp": {
+    propertyId: "puku-ridge-camp",
+    gateway: "lun",
+    steps: [
+      gatewayStep("lun", "Kenneth Kaunda International, Lusaka — Kivara concierge meets you airside"),
+      airportStep("mfu", "1.5-hour light aircraft flight"),
+      propertyStep("puku-ridge-camp", "drive", "Game-drive transfer", "30–60 minutes to the ridge above the Kakumbi Floodplain"),
+    ],
+  },
+  "xanadu-villas": {
+    propertyId: "xanadu-villas",
+    gateway: "znz",
+    steps: [
+      gatewayStep("znz", "Abeid Amani Karume International, Zanzibar — Kivara concierge meets you airside"),
+      propertyStep("xanadu-villas", "drive", "Private road transfer", "Approximately 50 minutes to the east coast at Michamvi"),
+    ],
+  },
+  "baraza-resort-spa": {
+    propertyId: "baraza-resort-spa",
+    gateway: "znz",
+    steps: [
+      gatewayStep("znz", "Abeid Amani Karume International, Zanzibar — Kivara concierge meets you airside"),
+      propertyStep("baraza-resort-spa", "drive", "Private road transfer", "Approximately 60 minutes to the south-east coast at Bwejuu"),
+    ],
+  },
+};
+
+/** Transfer route for a property, or null when the property is not in the portfolio. */
+export function getPropertyTransfer(propertyId: string): PropertyTransfer | null {
+  return PROPERTY_TRANSFERS[propertyId] ?? null;
+}
+
 /**
  * Every arrival airport across the portfolio. Rendered as the context layer
  * on every journey map so guests always see the full network of airports.
  * Defined after the stop builders : module-scope evaluation calls stayStop.
  */
-export const ALL_AIRPORTS: RouteStop[] = [
-  {
-    id: "llw",
-    label: "Lilongwe",
-    sublabel: "Kamuzu International Airport (LLW)",
-    lat: -13.789,
-    lng: 33.781,
+export const ALL_AIRPORTS: RouteStop[] = Object.values(AIRPORTS).map(
+  (a): RouteStop => ({
+    id: a.id,
+    label: a.label,
+    sublabel: a.sublabel,
+    lat: a.lat,
+    lng: a.lng,
     kind: "gateway",
-    destination: "lake-malawi",
-  },
-  {
-    id: "chileka",
-    label: "Blantyre",
-    sublabel: "Chileka / Bakili Muluzi International Airport (BLZ)",
-    lat: -15.679,
-    lng: 34.968,
-    kind: "gateway",
-    destination: "lake-malawi",
-  },
-  {
-    id: "likoma",
-    label: "Likoma Island",
-    sublabel: "Likoma Airstrip",
-    lat: -12.052,
-    lng: 34.736,
-    kind: "gateway",
-    destination: "lake-malawi",
-  },
-  {
-    id: "club_makokola",
-    label: "Club Makokola",
-    sublabel: "Club Makokola Airstrip",
-    lat: -14.283,
-    lng: 35.167,
-    kind: "gateway",
-    destination: "lake-malawi",
-  },
-  {
-    id: "mfu",
-    label: "Mfuwe",
-    sublabel: "Mfuwe Airport (MFU)",
-    lat: -13.255,
-    lng: 31.936,
-    kind: "gateway",
-    destination: "south-luangwa",
-  },
-  {
-    id: "znz",
-    label: "Zanzibar",
-    sublabel: "Abeid Amani Karume International Airport (ZNZ)",
-    lat: -6.222,
-    lng: 39.225,
-    kind: "gateway",
-    destination: "zanzibar",
-  },
-];
+    destination: a.destination,
+  })
+);
 
 /**
  * The full network : every airport and every property across all three

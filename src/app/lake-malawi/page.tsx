@@ -10,6 +10,8 @@ import { PropertyCard } from "@/components/ui/property-card";
 import { Button } from "@/components/ui/button";
 import { IMAGES, DESTINATION_COORDINATES } from "@/lib/constants";
 import { useProperties, usePackages, useDestinations } from "@/lib/use-public-data";
+import { getPropertyTransfer } from "@/lib/journey-routes";
+import { TransferChain } from "@/components/sections/TransferTimeline";
 import { MapEmbed } from "@/components/maps/MapEmbed";
 import { FaqJsonLd } from "@/components/seo/FaqJsonLd";
 import { cn } from "@/lib/utils";
@@ -76,7 +78,7 @@ export default function LakeMalawiPage() {
   const packages = usePackages().filter((p) => p.destinations.includes("lake-malawi"));
   const faqs = [
     { question: "What is the best time to visit Lake Malawi?", answer: "The best time to visit Lake Malawi is from May to October during the dry season when you'll enjoy warm, sunny days and calm lake conditions. June through August offers the clearest skies for stargazing — the 'Lake of Stars' effect is at its most magical. The green season (November to April) brings lush landscapes, fewer crowds, and excellent value for couples seeking solitude." },
-    { question: "How do I get to Lake Malawi?", answer: "International visitors fly into Lilongwe (LLW) via Johannesburg, Nairobi, or Addis Ababa. From Lilongwe, it's a scenic 45-minute light aircraft charter to Likoma Island or a 4-hour drive to the lakeshore resorts. Kivara handles all transfers including private charters, road transfers, and connections from your international flight — ensuring a seamless journey from arrival to your suite." },
+    { question: "How do I get to Lake Malawi?", answer: "International visitors fly into Kamuzu International Airport in Lilongwe (LLW) — or Bakili Muluzi International in Blantyre (BLZ) — via Johannesburg, Nairobi, or Addis Ababa. From Lilongwe, it's a scenic 35-minute light aircraft charter to Club Makokola Airstrip (CMK) for The Makokola Retreat and Pumulani, or a 45-minute charter to Likoma Island (LIX) for Kaya Mawa, followed by short road transfers to your suite. Kivara handles every leg — private charters, road transfers, and connections from your international flight — ensuring a seamless journey from arrival to your suite." },
     { question: "What makes Lake Malawi a romantic destination for couples?", answer: "Lake Malawi offers an intimacy that no beach destination can match. With private island escapes, deserted beaches where the only footsteps are your own, candlelit dinners on the shore under the Lake of Stars, and suites that open directly onto the freshwater lake, it is Africa's most understated romantic sanctuary. The complete absence of crowds, combined with warm year-round weather and the natural beauty of the lake, creates an atmosphere where couples can truly disconnect and reconnect." },
     { question: "Which luxury lodges are on Lake Malawi?", answer: "Kivara curates three peerless Lake Malawi properties: Kaya Mawa on Likoma Island (the iconic barefoot luxury beach resort), Pumulani (colonial-chic lakeside villas), and The Makokola Retreat (intimate lakehouse elegance). Each offers a distinct expression of Lake Malawi luxury, from adventure-focused escapes to pure relaxation." },
     { question: "What activities can couples enjoy on Lake Malawi?", answer: "Lake Malawi offers an extraordinary range of couples' experiences: snorkeling with tropical cichlids in crystal-clear coves, sunset dhow cruises, kayaking through golden hour light, private picnics on deserted islands, scuba diving, paddleboarding, village cultural visits, and simply lounging on pristine beaches. The lake's calm, crystal-clear waters make it one of Africa's safest and most accessible water playgrounds." },
@@ -259,6 +261,56 @@ export default function LakeMalawiPage() {
                 index={index}
               />
             ))}
+          </div>
+        </Container>
+      </section>
+
+      {/* Getting There Section */}
+      <section className="py-24 md:py-32 bg-cream">
+        <Container>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            className="max-w-3xl mx-auto text-center mb-16"
+          >
+            <span className="inline-block text-xs font-medium tracking-[0.2em] uppercase text-gold mb-4">
+              Getting There
+            </span>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-medium text-soft-black leading-tight">
+              How You Arrive on
+              <br />
+              <span className="italic text-earth">Lake Malawi</span>
+            </h2>
+            <p className="mt-5 text-earth/70 max-w-xl mx-auto text-sm leading-relaxed">
+              Every flight, charter and road transfer arranged by your Kivara Journey Concierge — from your international arrival to your suite.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {properties.map((property, index) => {
+              const transfer = getPropertyTransfer(property.id);
+              if (!transfer) return null;
+              return (
+                <motion.div
+                  key={property.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className="bg-warm-white border border-sand-light/30 p-6 md:p-8"
+                >
+                  <h3 className="font-heading text-lg text-soft-black mb-4">{property.name}</h3>
+                  <TransferChain steps={transfer.steps} />
+                  {transfer.alternateGateway?.note && (
+                    <p className="mt-4 text-xs text-earth/70 leading-relaxed border-t border-sand-light/30 pt-4">
+                      {transfer.alternateGateway.note}
+                    </p>
+                  )}
+                </motion.div>
+              );
+            })}
           </div>
         </Container>
       </section>

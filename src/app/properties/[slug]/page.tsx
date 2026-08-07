@@ -10,6 +10,8 @@ import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { SITE_CONFIG, SITE_URL, DESTINATION_COORDINATES } from "@/lib/constants";
 import { useProperties, useDestinations } from "@/lib/use-public-data";
+import { getPropertyTransfer } from "@/lib/journey-routes";
+import { TransferTimeline } from "@/components/sections/TransferTimeline";
 import { MapEmbed } from "@/components/maps/MapEmbed";
 import { cn } from "@/lib/utils";
 
@@ -33,6 +35,7 @@ export default function PropertyDetailPage() {
 
   const regionCoords = property ? DESTINATION_COORDINATES[property.destination] : undefined;
   const mapCoords = property?.coordinates ?? regionCoords ?? { lat: -12.8, lng: 34.6 };
+  const transfer = property ? getPropertyTransfer(property.id) : null;
 
   if (!property) {
     return (
@@ -310,8 +313,48 @@ export default function PropertyDetailPage() {
         </Container>
       </section>
 
+      {/* Getting There : airport & ground transfer journey */}
+      {transfer && (
+        <section className="py-24 bg-warm-white">
+          <Container>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="max-w-3xl mx-auto text-center mb-12"
+            >
+              <span className="text-xs font-medium tracking-[0.2em] uppercase text-gold mb-3 block">
+                Getting There
+              </span>
+              <h2 className="text-3xl md:text-4xl font-heading font-medium text-soft-black">
+                Your Journey to {property.name}
+              </h2>
+              <p className="text-sm text-earth mt-3 max-w-xl mx-auto">
+                From your international arrival to our front door, every flight and road transfer is arranged by your Kivara journey concierge.
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="max-w-2xl mx-auto p-6 md:p-8 bg-cream border border-sand-light/30"
+            >
+              <TransferTimeline steps={transfer.steps} />
+              {transfer.alternateGateway?.note && (
+                <p className="mt-6 pt-5 border-t border-sand-light/30 text-xs text-earth/70 leading-relaxed">
+                  {transfer.alternateGateway.note}
+                </p>
+              )}
+            </motion.div>
+          </Container>
+        </section>
+      )}
+
       {/* Gallery : 15 property-specific images */}
-      <section className="py-24 bg-warm-white">
+      <section className="py-24 bg-cream">
         <Container>
           <motion.div
             initial={{ opacity: 0, y: 20 }}

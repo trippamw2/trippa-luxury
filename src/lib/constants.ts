@@ -1078,7 +1078,7 @@ export const PACKAGES = [
       "Gratuities",
     ],
     itinerary: [
-      { day: 1, title: "Arrival at the Lake", description: "Fly to Monkey Bay and transfer to Pumulani Lodge. Sunset drinks on the deck as the escarpment turns rose." },
+      { day: 1, title: "Arrival at the Lake", description: "Fly to Club Makokola Airstrip and transfer to Pumulani Lodge. Sunset drinks on the deck as the escarpment turns rose." },
       { day: 2, title: "Lake Discovery", description: "Sail, kayak and snorkel the cichlid-filled waters of Lake Malawi National Park." },
       { day: 3, title: "Romance on the Water", description: "Private sunset cruise, followed by a couples spa treatment overlooking the lake." },
       { day: 4, title: "Island Farewell", description: "A day of beach time and a private candlelit dinner on the sand." },

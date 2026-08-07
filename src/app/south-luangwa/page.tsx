@@ -10,6 +10,8 @@ import { PropertyCard } from "@/components/ui/property-card";
 import { Button } from "@/components/ui/button";
 import { IMAGES, DESTINATION_COORDINATES } from "@/lib/constants";
 import { useProperties, usePackages, useDestinations } from "@/lib/use-public-data";
+import { getPropertyTransfer } from "@/lib/journey-routes";
+import { TransferChain } from "@/components/sections/TransferTimeline";
 import { MapEmbed } from "@/components/maps/MapEmbed";
 import { FaqJsonLd } from "@/components/seo/FaqJsonLd";
 import { cn } from "@/lib/utils";
@@ -77,7 +79,7 @@ export default function SouthLuangwaPage() {
     { question: "What makes South Luangwa special for couples?", answer: "South Luangwa is the birthplace of the walking safari, offering couples an intimacy with the African wilderness that no vehicle-based safari can match. With a maximum of 6-12 suites per camp and vast private concessions, you often have the bush entirely to yourselves. The combination of expert guides, exceptional wildlife concentrations, and ultra-luxury camps creates a safari experience that is both thrilling and deeply romantic." },
     { question: "What is a walking safari?", answer: "A walking safari is the original form of safari — exploring the bush on foot with an expert armed guide and tracker. South Luangwa pioneered this experience, and it remains the most intimate way to encounter Africa's wildlife. You track animals, learn about tracks and plants, and feel the raw energy of the bush. It is safe, profoundly moving, and arguably the most romantic way to experience the African wilderness together." },
     { question: "Which luxury camps are in South Luangwa?", answer: "Kivara curates two peerless South Luangwa properties: Time+Tide Chinzombo (six avant-garde riverfront villas with private plunge pools) and Puku Ridge Camp (six hilltop suites with star bed towers overlooking the floodplain). Each offers a distinct window into the Valley of the Leopard." },
-    { question: "How do I get to South Luangwa?", answer: "International visitors fly into Kenneth Kaunda International Airport in Lusaka (LUN) or Harry Mwanga Nkumbula International Airport in Livingstone (LVI). From Lusaka, it's a 1.5-hour light aircraft flight to Mfuwe Airport, followed by a 30-60 minute game-drive transfer to your camp. Kivara arranges all internal flights and transfers for a seamless journey." },
+    { question: "How do I get to South Luangwa?", answer: "International visitors fly into Kenneth Kaunda International Airport in Lusaka (LUN) via Johannesburg, Nairobi, or Addis Ababa. From Lusaka, it's a 1.5-hour light aircraft flight to Mfuwe Airport (MFU), followed by a 30-60 minute game-drive transfer to your camp — your safari begins before you arrive. Kivara arranges all internal flights and transfers for a seamless journey." },
     { question: "What wildlife can we see in South Luangwa?", answer: "South Luangwa is renowned for its extraordinary concentration of wildlife, including large herds of elephants, Thornicroft's giraffe (endemic to the region), leopards, lions, wild dogs, hippos, crocodiles, and over 400 bird species. The park is particularly famous for its leopard sightings — many consider it the best place in Africa to see these elusive cats. Night drives reveal a completely different world of nocturnal wildlife." },
   ];
 
@@ -258,6 +260,56 @@ export default function SouthLuangwaPage() {
                 index={index}
               />
             ))}
+          </div>
+        </Container>
+      </section>
+
+      {/* Getting There Section */}
+      <section className="py-24 md:py-32 bg-cream">
+        <Container>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            className="max-w-3xl mx-auto text-center mb-16"
+          >
+            <span className="inline-block text-xs font-medium tracking-[0.2em] uppercase text-gold mb-4">
+              Getting There
+            </span>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-medium text-soft-black leading-tight">
+              How You Arrive in
+              <br />
+              <span className="italic text-earth">South Luangwa</span>
+            </h2>
+            <p className="mt-5 text-earth/70 max-w-xl mx-auto text-sm leading-relaxed">
+              Every flight and road transfer arranged by your Kivara Journey Concierge — from your international arrival to camp.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            {properties.map((property, index) => {
+              const transfer = getPropertyTransfer(property.id);
+              if (!transfer) return null;
+              return (
+                <motion.div
+                  key={property.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className="bg-warm-white border border-sand-light/30 p-6 md:p-8"
+                >
+                  <h3 className="font-heading text-lg text-soft-black mb-4">{property.name}</h3>
+                  <TransferChain steps={transfer.steps} />
+                  {transfer.alternateGateway?.note && (
+                    <p className="mt-4 text-xs text-earth/70 leading-relaxed border-t border-sand-light/30 pt-4">
+                      {transfer.alternateGateway.note}
+                    </p>
+                  )}
+                </motion.div>
+              );
+            })}
           </div>
         </Container>
       </section>

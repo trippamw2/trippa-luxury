@@ -10,6 +10,8 @@ import { PropertyCard } from "@/components/ui/property-card";
 import { Button } from "@/components/ui/button";
 import { IMAGES, DESTINATION_COORDINATES } from "@/lib/constants";
 import { useProperties, usePackages, useDestinations } from "@/lib/use-public-data";
+import { getPropertyTransfer } from "@/lib/journey-routes";
+import { TransferChain } from "@/components/sections/TransferTimeline";
 import { MapEmbed } from "@/components/maps/MapEmbed";
 import { FaqJsonLd } from "@/components/seo/FaqJsonLd";
 import { cn } from "@/lib/utils";
@@ -76,7 +78,7 @@ export default function ZanzibarPage() {
   const packages = usePackages().filter((p) => p.destinations.includes("zanzibar"));
   const faqs = [
     { question: "What is the best time to visit Zanzibar?", answer: "Zanzibar enjoys year-round tropical weather, but the best time is June to October during the dry season when days are sunny and humidity is lower. The short rains (November-December) bring brief afternoon showers and lush landscapes. January-February is hot and dry with excellent beach weather. The long rains (March-May) see fewer visitors and lower rates, ideal for couples seeking solitude, though some activities may be limited." },
-    { question: "How do I get to Zanzibar?", answer: "International visitors fly directly into Abeid Amani Karume International Airport (ZNZ) from major hubs including Johannesburg, Nairobi, Doha, Istanbul, and several European cities. Alternatively, fly into Julius Nyerere International Airport in Dar es Salaam (DAR) and take a 15-minute light aircraft or 2-hour ferry to Zanzibar. Kivara handles all transfers including airport Meet & Greet, private road transfers, and seaplane connections." },
+    { question: "How do I get to Zanzibar?", answer: "International visitors fly directly into Abeid Amani Karume International Airport (ZNZ) from major hubs including Johannesburg, Nairobi, Doha, Istanbul, and several European cities. From ZNZ, it's a private road transfer of roughly 50 to 60 minutes to our resorts on the east and south-east coasts. Kivara handles everything — airport Meet & Greet, private road transfers, and seaplane connections — for a seamless journey." },
     { question: "What makes Zanzibar romantic for couples?", answer: "Zanzibar offers an intoxicating blend of pristine beaches, world-class luxury resorts, and rich cultural heritage. Couples can explore the ancient alleyways of Stone Town together, sail on traditional dhows at sunset, enjoy private sandbank dining surrounded by turquoise waters, and indulge in couples' spa treatments using indigenous Zanzibari ingredients. The island's spice plantations, historic architecture, and warm Swahili hospitality create an atmosphere that is both exotic and deeply romantic." },
     { question: "Which luxury resorts are in Zanzibar?", answer: "Kivara curates two peerless Zanzibar properties: Baraza Resort & Spa (Zanzibar's most awarded Swahili palace) and Xanadu Luxury Villas & Retreat (private villa sanctuary with personal butlers). Each offers a distinct expression of Zanzibar's unique romance." },
     { question: "What activities can couples do in Zanzibar?", answer: "Zanzibar offers extraordinary variety for couples: spice plantation tours, Stone Town heritage walks, sunset dhow cruises with champagne, private sandbank dining, world-class snorkeling and diving at Mnemba Atoll, deep-sea fishing, couples spa rituals, cooking classes featuring Swahili cuisine, and visits to Jozani Forest to see red colobus monkeys. The island's compact size means you can experience both cultural Zanzibar and beach paradise in a single trip." },
@@ -252,6 +254,56 @@ export default function ZanzibarPage() {
                 index={index}
               />
             ))}
+          </div>
+        </Container>
+      </section>
+
+      {/* Getting There Section */}
+      <section className="py-24 md:py-32 bg-cream">
+        <Container>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            className="max-w-3xl mx-auto text-center mb-16"
+          >
+            <span className="inline-block text-xs font-medium tracking-[0.2em] uppercase text-gold mb-4">
+              Getting There
+            </span>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-medium text-soft-black leading-tight">
+              How You Arrive in
+              <br />
+              <span className="italic text-earth">Zanzibar</span>
+            </h2>
+            <p className="mt-5 text-earth/70 max-w-xl mx-auto text-sm leading-relaxed">
+              Every flight and road transfer arranged by your Kivara Journey Concierge — from your international arrival to your resort.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            {properties.map((property, index) => {
+              const transfer = getPropertyTransfer(property.id);
+              if (!transfer) return null;
+              return (
+                <motion.div
+                  key={property.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className="bg-warm-white border border-sand-light/30 p-6 md:p-8"
+                >
+                  <h3 className="font-heading text-lg text-soft-black mb-4">{property.name}</h3>
+                  <TransferChain steps={transfer.steps} />
+                  {transfer.alternateGateway?.note && (
+                    <p className="mt-4 text-xs text-earth/70 leading-relaxed border-t border-sand-light/30 pt-4">
+                      {transfer.alternateGateway.note}
+                    </p>
+                  )}
+                </motion.div>
+              );
+            })}
           </div>
         </Container>
       </section>

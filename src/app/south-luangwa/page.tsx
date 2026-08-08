@@ -357,7 +357,7 @@ export default function SouthLuangwaPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            className="relative aspect-[4/3] md:aspect-[21/10] overflow-hidden rounded-xl border border-cream/10 shadow-2xl"
+            className="relative aspect-[4/3] md:aspect-[21/10] overflow-hidden rounded-xl border border-cream/10 shadow-2xl min-h-[300px]"
           >
             <LeafletMap destinationId="south-luangwa" showAll={false} />
           </motion.div>

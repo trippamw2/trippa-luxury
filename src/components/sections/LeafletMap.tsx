@@ -6,6 +6,7 @@ import "leaflet/dist/leaflet.css";
 import Link from "next/link";
 import { PROPERTIES } from "@/lib/constants";
 import { AIRPORTS, DESTINATION_BOUNDARIES } from "@/lib/journey-routes";
+import { useEffect } from "react";
 
 // ─── Brand colors ─────────────────────────────────────────────────────────
 const GOLD = "#C2A46D";
@@ -45,11 +46,13 @@ const airportIcon = L.divIcon({
 // ─── Fit bounds to specific points ───────────────────────────────────────
 function FitBounds({ points }: { points: [number, number][] }) {
   const map = useMap();
-  map.whenReady(() => {
+  useEffect(() => {
     if (points.length === 0) return;
-    const bounds = L.latLngBounds(points);
+    const bounds = L.latLngBounds(points as [number, number][]);
     map.fitBounds(bounds, { padding: [50, 50], maxZoom: 9 });
-  });
+    // Fix for blank map: invalidate size after mount
+    setTimeout(() => map.invalidateSize(), 100);
+  }, [map, points]);
   return null;
 }
 
@@ -137,8 +140,10 @@ export function LeafletMap({
     <MapContainer
       scrollWheelZoom={false}
       zoomControl={false}
+      center={[-13.0, 34.0]}
+      zoom={6}
       className={mapContainerClass}
-      style={{ background: "#1a1a1a" }}
+      style={{ height: "100%", width: "100%", background: "#1a1a1a" }}
     >
       <FitBounds points={focusPoints.length > 0 ? focusPoints : allPoints} />
       <CustomZoomControl />

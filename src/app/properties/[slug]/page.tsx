@@ -304,7 +304,7 @@ export default function PropertyDetailPage() {
                 <Button href="/contact" variant="outline">Plan Your Journey</Button>
               </div>
               <div className="lg:col-span-3">
-                <div className="relative aspect-[16/10] overflow-hidden rounded-lg border border-sand-light/40 shadow-xl">
+                <div className="relative aspect-[16/10] overflow-hidden rounded-lg border border-sand-light/40 shadow-xl min-h-[300px]">
                   <LeafletMap propertyId={property.id} showAll={false} />
                 </div>
               </div>

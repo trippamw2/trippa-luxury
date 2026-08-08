@@ -58,13 +58,13 @@ export default function ContactPage() {
             transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
           >
             <span className="inline-block text-xs font-medium tracking-[0.2em] uppercase text-gold-light mb-4">
-              Get in Touch
+              Begin Your Love Story
             </span>
             <h1 className="text-4xl md:text-5xl lg:text-7xl font-heading font-medium text-cream leading-tight">
-              Begin Your Journey
+              Share Your Story
             </h1>
             <p className="mt-4 text-base md:text-lg text-cream/60 max-w-xl mx-auto">
-              Your personal luxury concierge is ready to craft your escape.
+              Tell us your vision, and a Kivara love-story curator will craft a bespoke journey for two.
             </p>
           </motion.div>
         </div>
@@ -178,10 +178,10 @@ export default function ContactPage() {
             >
               <div className="bg-warm-white p-8 md:p-10 border border-sand-light/30">
                 <h3 className="text-xl font-heading font-medium text-soft-black mb-2">
-                  Send an Inquiry
+                  Share Your Story
                 </h3>
                 <p className="text-sm text-earth mb-8">
-                  Tell us about your dream escape and we&apos;ll craft a personalized itinerary.
+                  Tell us about your dream journey and we&apos;ll craft a love story for two.
                 </p>
 
                 {submitted ? (
@@ -252,7 +252,7 @@ export default function ContactPage() {
                       ) : (
                         <Send className="w-4 h-4" />
                       )}
-                      {submitting ? "Sending..." : "Send Inquiry"}
+                       {submitting ? "Sending..." : "Begin Your Love Story"}
                     </button>
 
                     <p className="text-xs text-earth/50 text-center">

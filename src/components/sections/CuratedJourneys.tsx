@@ -90,9 +90,9 @@ export function CuratedJourneys() {
                     {pkg.description}
                   </p>
                   <div className="mt-3 flex items-center justify-between">
-                    <span className="text-xs text-gold/70 font-medium">Enquire Within</span>
+                    <span className="text-xs text-gold/70 font-medium">Begin This Story</span>
                     <span className="inline-flex items-center gap-1 text-xs text-soft-black tracking-widest uppercase group-hover:text-gold-dark transition-colors">
-                      View Details
+                      Read the Story
                       <ArrowRightIcon className="w-3 h-3 transition-transform group-hover:translate-x-1" />
                     </span>
                   </div>
@@ -114,8 +114,8 @@ export function CuratedJourneys() {
               variant="outline"
               size="lg"
             >
-            View All Journeys
-                    <ArrowRightIcon className="w-4 h-4" />
+            Explore Romantic Journeys
+                     <ArrowRightIcon className="w-4 h-4" />
           </Button>
         </motion.div>
       </Container>

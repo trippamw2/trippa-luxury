@@ -18,16 +18,16 @@ export function FeaturedDestinations() {
           className="max-w-3xl mx-auto text-center mb-16"
         >
           <span className="inline-block text-xs font-medium tracking-[0.2em] uppercase text-gold mb-4">
-            Curated Destinations
+            Your African Chapters
           </span>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-medium text-soft-black leading-tight">
-            Three Iconic Destinations.
+            Three Destinations.
             <br />
-            <span className="italic text-earth">Countless Love Stories.</span>
+            <span className="italic text-earth">Three Chapters of Your Story.</span>
           </h2>
           <p className="mt-4 text-base text-earth leading-relaxed">
-            From the pristine shores of Lake Malawi to the wild heart of South Luangwa and the 
-            spice-scented breezes of Zanzibar: each destination is a world unto itself.
+            The Heart. The Wild Soul. The Forever — each destination a different chapter, 
+            each one waiting to become part of your love story.
           </p>
         </motion.div>
 
@@ -37,6 +37,7 @@ export function FeaturedDestinations() {
               key={dest.id}
               title={dest.title}
               subtitle={dest.subtitle}
+              chapter={dest.chapter}
               tagline={dest.tagline}
               image={dest.heroImage}
               slug={dest.slug}

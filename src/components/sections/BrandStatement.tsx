@@ -33,7 +33,7 @@ export function BrandStatement() {
   return (
     <section className="py-24 md:py-32 bg-cream">
       <Container>
-        {/* StoryBrand: Hero introduction */}
+        {/* StoryBrand: Problem + Solution */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -45,14 +45,14 @@ export function BrandStatement() {
             The Kivara Philosophy
           </span>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-medium text-soft-black leading-tight">
-            {storyBrand.hero.split(". ")[0]}.
+            Finding a meaningful romantic African experience
             <br />
-            <span className="italic text-earth">A Partnership That Deserves Celebrating</span>
+            <span className="italic text-earth">should not feel overwhelming.</span>
           </h2>
           <p className="mt-6 text-base md:text-lg text-earth leading-relaxed max-w-3xl mx-auto">
-            {storyBrand.problem}
+            Most holidays distract. You deserve a journey that deepens your bond rather than merely filling your calendar.
           </p>
-          <p className="mt-4 text-base md:text-lg text-soft-black/80 leading-relaxed max-w-3xl mx-auto font-heading italic">
+          <p className="mt-6 text-base md:text-lg text-soft-black leading-relaxed max-w-3xl mx-auto font-heading italic">
             &ldquo;{storyBrand.guide}&rdquo;
           </p>
         </motion.div>

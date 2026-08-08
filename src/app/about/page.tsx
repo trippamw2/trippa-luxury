@@ -276,7 +276,7 @@ export default function AboutPage() {
               href="/contact"
               className="inline-flex items-center gap-2 px-8 py-4 bg-gold text-soft-black text-sm font-medium tracking-[0.15em] uppercase hover:bg-gold-dark transition-all duration-500"
             >
-              Begin Your Journey
+              Begin Your Love Story
             </a>
           </motion.div>
         </Container>

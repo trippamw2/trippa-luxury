@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Luxury Packages",
+  title: "Kivara Romantic Journeys | Bespoke Luxury Itineraries",
   description:
     "Curated romantic journeys across Africa's finest escapes. From Lake Malawi to South Luangwa and Zanzibar: bespoke itineraries for discerning couples.",
 };

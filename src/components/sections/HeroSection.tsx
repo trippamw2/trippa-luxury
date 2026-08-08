@@ -119,9 +119,9 @@ export function HeroSection() {
             transition={{ duration: 1, delay: 0.7, ease: [0.22, 1, 0.36, 1] }}
             className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-heading font-medium text-cream leading-tight text-balance"
           >
-            Africa&apos;s Most Coveted
+            Create Your African
             <br />
-            <span className="text-gold-light">Romance Sanctuaries</span>
+            <span className="text-gold-light">Love Story</span>
           </motion.h1>
 
           {/* Destination bar */}
@@ -132,7 +132,7 @@ export function HeroSection() {
             className="mt-4"
           >
             <span className="inline-block text-[11px] md:text-xs tracking-[0.3em] uppercase text-cream/40 font-light">
-              Lake Malawi  ·  South Luangwa  ·  Zanzibar
+              The Heart  ·  The Wild Soul  ·  The Forever
             </span>
           </motion.div>
 
@@ -143,8 +143,8 @@ export function HeroSection() {
             transition={{ duration: 0.8, delay: 1 }}
             className="mt-6 md:mt-8 text-base md:text-lg text-cream/70 max-w-2xl mx-auto leading-relaxed font-light"
           >
-            Private island villas, award-winning safari camps, and beachfront hideaways: 
-            crafted for couples who seek beauty, intimacy, and wonder.
+            Kivara crafts private romantic journeys across Africa, combining breathtaking
+            destinations, authentic culture and unforgettable moments designed around your story.
           </motion.p>
 
           {/* CTA */}
@@ -155,19 +155,19 @@ export function HeroSection() {
             className="mt-10 md:mt-12 flex flex-col sm:flex-row items-center justify-center gap-4"
           >
             <Button
-              href="/packages"
+              href="/contact"
               variant="gold"
               size="lg"
             >
-              Begin Your Journey
+              Begin Your Love Story
               <ArrowRightIcon className="w-4 h-4 transition-transform duration-500 group-hover:translate-x-1" />
             </Button>
             <Button
-              href="/lake-malawi"
+              href="/packages"
               variant="outlineLight"
               size="lg"
             >
-              Explore Destinations
+              Explore Romantic Journeys
             </Button>
           </motion.div>
         </motion.div>

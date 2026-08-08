@@ -11,6 +11,7 @@ import { SITE_CONFIG } from "@/lib/constants";
 import { usePackages, useProperties } from "@/lib/use-public-data";
 import { ProductJsonLd } from "@/components/seo/ProductJsonLd";
 import { TouristTripJsonLd } from "@/components/seo/TouristTripJsonLd";
+import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 import { cn } from "@/lib/utils";
 import { JourneyMapSection } from "@/components/sections/JourneyMapSection";
 import { buildPackageStops } from "@/lib/journey-routes";
@@ -42,7 +43,7 @@ export default function PackageDetailPage() {
         name={pkg.title}
         description={pkg.subtitle || pkg.description}
         image={pkg.image || undefined}
-        category="Luxury Safari Package"
+        category="Luxury Romance Journey"
       />
       <TouristTripJsonLd
         name={pkg.title}
@@ -51,6 +52,13 @@ export default function PackageDetailPage() {
         image={pkg.image || undefined}
         itinerary={pkg.itinerary}
         destination={destNames}
+      />
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", url: "/" },
+          { name: "Romantic Journeys", url: "/packages" },
+          { name: pkg.title, url: `/packages/${pkg.id}` },
+        ]}
       />
       {/* Hero */}
       <section className="relative h-[70vh] min-h-[500px] w-full overflow-hidden bg-soft-black">
@@ -81,9 +89,9 @@ export default function PackageDetailPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
           >
-            <span className="inline-block text-xs font-medium tracking-[0.2em] uppercase text-gold-light mb-4">
-              {pkg.duration} &middot; Enquire Within
-            </span>
+              <span className="inline-block text-xs font-medium tracking-[0.2em] uppercase text-gold-light mb-4">
+               {pkg.duration} &middot; Begin This Story
+             </span>
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-heading font-medium text-cream leading-tight">
               {pkg.title}
             </h1>
@@ -91,8 +99,8 @@ export default function PackageDetailPage() {
               {pkg.subtitle}
             </p>
             <div className="mt-8">
-              <Button href="/contact" variant="gold" size="lg">
-                Enquire About This Journey
+                <Button href="/contact" variant="gold" size="lg">
+                Begin This Story
               </Button>
             </div>
           </motion.div>
@@ -156,7 +164,7 @@ export default function PackageDetailPage() {
 
                 <div>
                   <span className="text-xs text-earth/60">Price</span>
-                  <p className="text-lg font-heading text-gold-dark/70 font-medium mt-1">Enquire Within</p>
+                  <p className="text-lg font-heading text-gold-dark/70 font-medium mt-1">By Request</p>
                 </div>
 
                 <div>
@@ -195,7 +203,7 @@ export default function PackageDetailPage() {
 
                 <div className="pt-4 space-y-3">
                   <Button href="/contact" variant="primary" className="w-full">
-                    Enquire Now
+                    Begin Your Love Story
                   </Button>
                   <a
                     href={`https://wa.me/${SITE_CONFIG.whatsapp}?text=I'm interested in the ${pkg.title}`}
@@ -295,7 +303,7 @@ export default function PackageDetailPage() {
               href="/contact"
               className="inline-flex items-center gap-2 px-8 py-4 bg-gold text-soft-black text-sm font-medium tracking-[0.15em] uppercase hover:bg-gold-dark transition-all duration-500"
             >
-              Begin Your Journey
+              Begin Your Love Story
               <ArrowRight className="w-4 h-4" />
             </Link>
           </motion.div>

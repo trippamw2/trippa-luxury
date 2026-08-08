@@ -1,54 +1,194 @@
 "use client";
 
 import L from "leaflet";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Polygon, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import Link from "next/link";
 import { PROPERTIES } from "@/lib/constants";
+import { AIRPORTS, DESTINATION_BOUNDARIES } from "@/lib/journey-routes";
 
+// ─── Brand colors ─────────────────────────────────────────────────────────
 const GOLD = "#C2A46D";
 const CREAM = "#F7F1E3";
+const BLUE = "#6BA3C0"; // airport markers
 
-const markerIcon = L.divIcon({
+// ─── Property marker (gold pin) ───────────────────────────────────────────
+const propertyIcon = L.divIcon({
   className: "",
   html: `
-    <div style="position:relative;width:36px;height:44px;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.35));">
-      <svg width="36" height="44" viewBox="0 0 36 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M18 0C8.06 0 0 8.06 0 18c0 13.5 18 26 18 26s18-12.5 18-26C36 8.06 27.94 0 18 0z" fill="${GOLD}" stroke="${CREAM}" stroke-width="2"/>
-        <circle cx="18" cy="18" r="7" fill="${CREAM}"/>
+    <div style="position:relative;width:32px;height:40px;filter:drop-shadow(0 3px 6px rgba(0,0,0,0.4));">
+      <svg width="32" height="40" viewBox="0 0 32 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M16 0C7.16 0 0 7.16 0 16c0 12 16 24 16 24s16-12 16-24C32 7.16 24.84 0 16 0z" fill="${GOLD}" stroke="${CREAM}" stroke-width="1.5"/>
+        <circle cx="16" cy="16" r="6" fill="${CREAM}"/>
       </svg>
     </div>`,
-  iconSize: [36, 44],
-  iconAnchor: [18, 44],
-  popupAnchor: [0, -40],
+  iconSize: [32, 40],
+  iconAnchor: [16, 40],
+  popupAnchor: [0, -36],
 });
 
-const mappedProperties = PROPERTIES.filter(
-  (p) => p.coordinates && p.coordinates.lat !== undefined
-);
+// ─── Airport marker (blue circle with plane glyph) ───────────────────────
+const airportIcon = L.divIcon({
+  className: "",
+  html: `
+    <div style="position:relative;width:28px;height:28px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="14" cy="14" r="12" fill="${BLUE}" stroke="${CREAM}" stroke-width="1.5"/>
+        <path d="M14 7l-2 5h4l-2-5zM10 12l-4 2 4 1v-3zM18 12v3l4-1-4-2zM9 16l-2 5 4-2-2-3zM19 16l-2 3 4 2-2-5z" fill="${CREAM}" opacity="0.9"/>
+      </svg>
+    </div>`,
+  iconSize: [28, 28],
+  iconAnchor: [14, 14],
+  popupAnchor: [0, -24],
+});
+
+// ─── Fit bounds to all destinations ───────────────────────────────────────
+const allBoundaryPoints = DESTINATION_BOUNDARIES.flatMap((b) => b.positions);
+
+function FitBounds() {
+  const map = useMap();
+  map.whenReady(() => {
+    const bounds = L.latLngBounds(allBoundaryPoints as [number, number][]);
+    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 6 });
+  });
+  return null;
+}
+
+// ─── Legend ────────────────────────────────────────────────────────────────
+function Legend() {
+  return (
+    <div
+      className="absolute bottom-4 left-4 z-[1000] bg-cream/95 backdrop-blur-sm p-4 border border-sand-light/30 shadow-lg"
+      style={{ fontSize: "11px", lineHeight: "1.6" }}
+    >
+      <p className="font-medium text-soft-black tracking-widest uppercase text-[10px] mb-2">
+        Map Legend
+      </p>
+      <div className="flex items-center gap-2 mb-1.5">
+        <span
+          className="inline-block w-3 h-3 rounded-full border-2"
+          style={{ background: GOLD, borderColor: CREAM }}
+        />
+        <span className="text-earth">Property</span>
+      </div>
+      <div className="flex items-center gap-2 mb-1.5">
+        <span
+          className="inline-block w-3 h-3 rounded-full border-2"
+          style={{ background: BLUE, borderColor: CREAM }}
+        />
+        <span className="text-earth">Airport</span>
+      </div>
+      <div className="mt-2 pt-2 border-t border-sand-light/40">
+        <p className="text-[10px] text-earth/70 mb-1">Destination Areas</p>
+        <div className="flex items-center gap-2 mb-1">
+          <span className="inline-block w-3 h-2 rounded-sm" style={{ background: "#4A90A4" }} />
+          <span className="text-earth">Lake Malawi</span>
+        </div>
+        <div className="flex items-center gap-2 mb-1">
+          <span className="inline-block w-3 h-2 rounded-sm" style={{ background: "#D4956A" }} />
+          <span className="text-earth">South Luangwa</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="inline-block w-3 h-2 rounded-sm" style={{ background: "#E07A5F" }} />
+          <span className="text-earth">Zanzibar</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Zoom Control ──────────────────────────────────────────────────────────
+function CustomZoomControl() {
+  const map = useMap();
+  return (
+    <div className="absolute right-4 bottom-4 z-[1000] flex flex-col gap-1">
+      <button
+        className="w-10 h-10 bg-cream/90 backdrop-blur-sm border border-sand-light/30 shadow-lg hover:bg-gold hover:border-gold transition-all duration-300 flex items-center justify-center text-earth-light hover:text-soft-black"
+        onClick={() => map.zoomIn()}
+        aria-label="Zoom in"
+      >
+        +
+      </button>
+      <button
+        className="w-10 h-10 bg-cream/90 backdrop-blur-sm border border-sand-light/30 shadow-lg hover:bg-gold hover:border-gold transition-all duration-300 flex items-center justify-center text-earth-light hover:text-soft-black"
+        onClick={() => map.zoomOut()}
+        aria-label="Zoom out"
+      >
+        −
+      </button>
+    </div>
+  );
+}
+
+// ─── Destination labels ───────────────────────────────────────────────────
+const DESTINATION_LABELS: Record<string, { label: string; position: [number, number] }> = {
+  "lake-malawi": { label: "Lake Malawi", position: [-12.8, 34.7] },
+  "south-luangwa": { label: "South Luangwa", position: [-12.9, 31.6] },
+  "zanzibar": { label: "Zanzibar", position: [-6.2, 39.3] },
+};
 
 export function LeafletMap() {
-  const bounds = L.latLngBounds(
-    mappedProperties.map(
-      (p) => [p.coordinates.lat, p.coordinates.lng] as [number, number]
-    )
-  );
-
   return (
     <MapContainer
-      bounds={bounds}
       scrollWheelZoom={false}
+      zoomControl={false}
       className="h-full w-full z-0"
+      style={{ background: "#1a1a1a" }}
     >
+      <FitBounds />
+      <CustomZoomControl />
+
+      {/* Dark elegant base tiles — luxury aesthetic */}
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
       />
-      {mappedProperties.map((property) => (
+
+      {/* Destination boundary polygons */}
+      {DESTINATION_BOUNDARIES.map((boundary) => (
+        <Polygon
+          key={boundary.destination}
+          positions={boundary.positions}
+          pathOptions={{
+            color: boundary.color,
+            fillColor: boundary.color,
+            fillOpacity: 0.08,
+            weight: 2,
+            dashArray: "6 4",
+            opacity: 0.6,
+          }}
+        />
+      ))}
+
+      {/* Destination labels via custom divIcon */}
+      {DESTINATION_BOUNDARIES.map((boundary) => {
+        const info = DESTINATION_LABELS[boundary.destination];
+        if (!info) return null;
+        const labelIcon = L.divIcon({
+          className: "",
+          html: `
+            <div style="font-family:'Cinzel','Trajan Pro',serif;font-size:13px;font-weight:500;letter-spacing:0.15em;text-transform:uppercase;color:${boundary.color};white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,0.5);opacity:0.85;">
+              ${info.label}
+            </div>`,
+          iconSize: [120, 20],
+          iconAnchor: [60, 10],
+        });
+        return (
+          <Marker
+            key={`label-${boundary.destination}`}
+            position={info.position}
+            icon={labelIcon}
+            interactive={false}
+          />
+        );
+      })}
+
+      {/* Property markers (gold pins) */}
+      {PROPERTIES.filter((p) => p.coordinates).map((property) => (
         <Marker
           key={property.id}
           position={[property.coordinates.lat, property.coordinates.lng]}
-          icon={markerIcon}
+          icon={propertyIcon}
         >
           <Popup>
             <div className="text-left" style={{ minWidth: 180 }}>
@@ -62,12 +202,37 @@ export function LeafletMap() {
                 href={`/properties/${property.id}`}
                 className="mt-2 inline-block text-xs font-medium uppercase tracking-widest text-[#B08A4D] hover:text-[#8F6B35] transition-colors"
               >
-                View Property
+                Explore Sanctuary
               </Link>
             </div>
           </Popup>
         </Marker>
       ))}
+
+      {/* Airport markers (blue) */}
+      {Object.values(AIRPORTS).map((airport) => (
+        <Marker
+          key={airport.id}
+          position={[airport.lat, airport.lng]}
+          icon={airportIcon}
+        >
+          <Popup>
+            <div className="text-left" style={{ minWidth: 160 }}>
+              <span className="block font-heading text-[15px] font-medium text-[#1E1B16]">
+                {airport.label}
+              </span>
+              <span className="block text-xs text-[#7A6F5D] mt-0.5">
+                {airport.sublabel}
+              </span>
+              <span className="mt-1.5 inline-block text-[10px] font-medium uppercase tracking-widest text-[#6BA3C0]">
+                Arrival Gateway
+              </span>
+            </div>
+          </Popup>
+        </Marker>
+      ))}
+
+      <Legend />
     </MapContainer>
   );
 }

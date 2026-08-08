@@ -18,13 +18,14 @@ const COLLECTION_CHILDREN = JOURNEY_COLLECTIONS.map((collection) => ({
 
 const NAV_ITEMS = [
   { label: "Home", href: "/" },
+  { label: "Experiences", href: "/experiences" },
   {
     label: "Destinations",
     href: "#",
     children: [
-      { label: "Lake Malawi", href: "/lake-malawi", description: "Africa's hidden luxury beach escape", image: "/images/pl-camporlodge-pumulani-lodge-58.jpg" },
-      { label: "South Luangwa", href: "/south-luangwa", description: "Raw intimate safari luxury", image: "/images/puku-ridge-3.jpg" },
-      { label: "Zanzibar", href: "/zanzibar", description: "Tropical romantic elegance", image: "/images/zanzibar-beach.jpg" },
+      { label: "Lake Malawi", href: "/lake-malawi", description: "The Heart — the warmth of a people who greet you with kindness", image: "/images/pl-camporlodge-pumulani-lodge-58.jpg" },
+      { label: "South Luangwa", href: "/south-luangwa", description: "The Wild Soul — where the wild brings two hearts closer", image: "/images/puku-ridge-3.jpg" },
+      { label: "Zanzibar", href: "/zanzibar", description: "The Forever — where turquoise waters hold your memories", image: "/images/zanzibar-beach.jpg" },
     ],
   },
   {
@@ -198,7 +199,7 @@ export function Navbar() {
                   : "border-white text-white hover:bg-white hover:text-soft-black"
               )}
             >
-              Begin Your Journey
+              Begin Your Love Story
             </Link>
           </div>
 
@@ -298,7 +299,7 @@ export function Navbar() {
                 onClick={() => setIsMobileOpen(false)}
                 className="mt-8 w-full text-center px-8 py-4 bg-soft-black text-cream text-sm font-medium tracking-widest uppercase hover:bg-soft-black-light transition-colors"
               >
-                Begin Your Journey
+                Begin Your Love Story
               </Link>
             </div>
           </motion.div>

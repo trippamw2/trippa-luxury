@@ -5,12 +5,12 @@ import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 const canonical = `${SITE_URL}/contact`;
 
 export const metadata: Metadata = {
-  title: "Contact: Begin Your Journey | Kivara Luxury Travel",
+  title: "Contact: Begin Your Love Story | Kivara Luxury Travel",
   description:
     "Reach out to Kivara's concierge team. Let us craft your African romance escape: a bespoke itinerary designed around your love story.",
   alternates: { canonical },
   openGraph: {
-    title: "Contact: Begin Your Journey | Kivara Luxury Travel",
+    title: "Contact: Begin Your Love Story | Kivara Luxury Travel",
     description:
       "Reach out to Kivara's concierge team. Let us craft your African romance escape: a bespoke itinerary designed around your love story.",
     url: canonical,
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Contact: Begin Your Journey | Kivara Luxury Travel",
+    title: "Contact: Begin Your Love Story | Kivara Luxury Travel",
     description:
       "Reach out to Kivara's concierge team. Let us craft your African romance escape: a bespoke itinerary designed around your love story.",
     images: ["/images/hero-poster.jpg"],

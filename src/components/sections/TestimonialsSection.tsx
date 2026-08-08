@@ -20,7 +20,7 @@ export function TestimonialsSection() {
             Love Stories
           </span>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-medium text-soft-black leading-tight">
-            What Our Couples Say
+            Stories Our Couples Tell Forever
           </h2>
         </motion.div>
 

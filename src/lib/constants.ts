@@ -82,19 +82,19 @@ export const IMAGES = {
 } as const;
 
 export const BRAND_POSITIONING = {
-  proposition: "Africa's most intimate romance sanctuaries.",
+  proposition: "The African Love Story — a private journey house crafting bespoke romantic experiences across Africa's most intimate destinations.",
   tagline: "Where Your Love Story Meets the Wild.",
   description:
-    "A portfolio of Africa's most coveted private sanctuaries, curated without compromise for those who seek not simply a journey but a transformation. Only a handful of couples will ever know these shores. Be among them.",
+    "Kivara crafts private romantic journeys across Africa, combining breathtaking destinations, authentic culture and unforgettable moments designed around your story. Not trips. Love stories.",
   betweenAmanAndBeyond:
-    "We occupy the space between Aman's serenity and &Beyond's wilderness. Like Aman, we worship space and silence. Like &Beyond, we honor the raw and the wild. We are Kivara: Africa's most romantic gateway.",
+    "We occupy the space between Aman's serenity and &Beyond's wilderness. Like Aman, we worship space and silence. Like &Beyond, we honor the raw and the wild. We are Kivara: Africa's first Luxury Romance Journey House.",
   storyBrand: {
-    hero: "You, a couple who has experienced the world's finest and still seeks something more.",
-    problem: "Most holidays distract. You deserve a journey that deepens your bond rather than merely filling your calendar.",
+    hero: "You, a couple who has experienced the world's finest and still seeks something more — a memory that represents your love.",
+    problem: "Finding a meaningful romantic African experience should not feel overwhelming. Most holidays distract. You deserve a journey that deepens your bond rather than merely filling your calendar.",
     guide: "Kivara. Your personal curators of romance. We know Africa's most secret gardens, its most intimate camps, its most soul stirring shorelines.",
-    plan: "A bespoke journey around your love story. Three destinations. Nine exceptional properties. Infinite moments of wonder.",
-    callToAction: "Begin Your Journey.",
-    success: "You return transformed. Closer. More in love. The memory of golden light, of silence shared, of a love deepened by Africa stays with you forever.",
+    plan: "Choose your love story — a proposal, a honeymoon, an anniversary, or a private escape. Choose your African chapter — The Heart, The Wild Soul, or The Forever. Then let Kivara craft your private journey, from arrival to departure.",
+    callToAction: "Begin Your Love Story.",
+    success: "You created a memory that will stay with you forever. Closer. More in love. The golden light over Luangwa, the silence of a Lake Malawi sunrise, the scent of cloves in Zanzibar's twilight — yours to keep.",
     stakes: "Let Africa remain someone else's story, or claim the golden light over Luangwa as your own. The silence of a Lake Malawi sunrise. The scent of cloves in Zanzibar's twilight. The choice is yours.",
   },
 };
@@ -145,12 +145,13 @@ export const DESTINATIONS = [
     id: "lake-malawi",
     accent: "teal",
     title: "Lake Malawi",
+    chapter: "The Heart",
     subtitle: "A freshwater archipelago known only to the fortunate few.",
-    tagline: "Where the lake becomes an ocean of romantic tranquility",
+    tagline: "The beginning of your African love story — where the warmth of its people embraces you",
     description:
       "Lake Malawi. Africa's third largest lake holds crystal waters, shores untouched by mass tourism, and an atmosphere of such profound serenity that couples find themselves recalibrating to a slower, more meaningful rhythm.",
     positioning:
-      "An infinity of water and sky. Kayak at dawn across coves discovered only by those who know. Dine beneath constellations on a private beach where the only footsteps in the sand are your own. Kaya Mawa, Pumulani, and The Makokola Retreat : each a chapter in a love story that few will ever read. Africa's hidden luxury beach escape. Reserved for those who know where to look.",
+      "The Warm Heart of Africa. This is the chapter where your story meets the heart of a people who have faced hardship with resilience, and greet every visitor with hope, dignity and kindness. An infinity of water and sky. Kayak at dawn across coves discovered only by those who know. Dine beneath constellations on a private beach where the only footsteps in the sand are your own. Kaya Mawa, Pumulani, and The Makokola Retreat : each a chapter in a love story that few will ever read. Africa's hidden luxury beach escape. Reserved for those who know where to look.",
     heroImage: IMAGES.lakeMalawiRomanceHero,
     slug: "lake-malawi",
     properties: ["kaya-mawa", "pumulani-lodge", "makokola-retreat"],
@@ -185,8 +186,9 @@ export const DESTINATIONS = [
     id: "south-luangwa",
     accent: "amber",
     title: "South Luangwa",
+    chapter: "The Wild Soul",
     subtitle: "Where the Birthplace of the Walking Safari Becomes Yours Alone.",
-    tagline: "Where intimacy with the wild deepens your connection",
+    tagline: "The adventure chapter of your love story — where the wild brings two hearts closer",
     description:
       "South Luangwa. The birthplace of the walking safari. An unfiltered communion with wilderness that strips away everything unnecessary and leaves only what matters : you, your partner, and Africa in its purest form.",
     positioning:
@@ -225,8 +227,9 @@ export const DESTINATIONS = [
     id: "zanzibar",
     accent: "coral",
     title: "Zanzibar",
+    chapter: "The Forever",
     subtitle: "The Spice Island. The Apex of Indian Ocean Romance.",
-    tagline: "Where history, spice, and turquoise waters converge",
+    tagline: "The forever chapter — where turquoise waters hold memories that last a lifetime",
     description:
       "Zanzibar. A love letter written in cinnamon and clove. Stone Town's ancient corridors lead to beaches of impossible beauty. The Indian Ocean trades in shades of turquoise reserved for those with the discernment to find them.",
     positioning:
@@ -485,7 +488,7 @@ export const PROPERTIES = [
     name: "The Makokola Retreat",
     destination: "lake-malawi",
     location: "Southern Shore, Lake Malawi",
-    coordinates: { lat: -14.283, lng: 35.167 },
+    coordinates: { lat: -14.04, lng: 34.82 },
     tagline: "Where the lake's ancient rhythm meets unhurried grace",
     description:
       "On Lake Malawi's sun bleached southern shore, Makokola Retreat is a world unto itself. Palm-fringed, white-sanded, and wrapped in the unhurried rhythm of lakeside days. Here, the Lake Suites offer an adult only enclave with private infinity pools suspended above the water : your own crystalline corner of Africa.",
@@ -1331,9 +1334,9 @@ export const JOURNEY_COLLECTIONS = [
 ];
 
 export const DESTINATION_COORDINATES: Record<string, { lat: number; lng: number; zoom: number }> = {
-  "lake-malawi": { lat: -12.8, lng: 34.6, zoom: 8 },
-  "south-luangwa": { lat: -13.0, lng: 31.75, zoom: 10 },
-  "zanzibar": { lat: -6.2, lng: 39.4, zoom: 10 },
+  "lake-malawi": { lat: -13.0, lng: 34.7, zoom: 7 },
+  "south-luangwa": { lat: -13.0, lng: 31.8, zoom: 9 },
+  "zanzibar": { lat: -6.15, lng: 39.3, zoom: 10 },
 };
 
 export const TESTIMONIALS = [

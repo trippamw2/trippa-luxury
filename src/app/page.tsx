@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import { SITE_URL } from "@/lib/constants";
+import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 import { HeroSection } from "@/components/sections/HeroSection";
 import { BrandStatement } from "@/components/sections/BrandStatement";
-import { ImpactSection } from "@/components/sections/ImpactSection";
+import { LoveStoriesSection } from "@/components/sections/LoveStoriesSection";
 import { FeaturedDestinations } from "@/components/sections/FeaturedDestinations";
+import { KivaraProcessSection } from "@/components/sections/KivaraProcessSection";
 import { PhilosophySection } from "@/components/sections/PhilosophySection";
+import { ImpactSection } from "@/components/sections/ImpactSection";
 import { CuratedJourneys } from "@/components/sections/CuratedJourneys";
 import { FeaturedProperties } from "@/components/sections/FeaturedProperties";
 import { MapSection } from "@/components/sections/MapSection";
@@ -17,12 +20,12 @@ import { NewsletterSection } from "@/components/sections/NewsletterSection";
 export const metadata: Metadata = {
   title: "Kivara: Africa's Ultimate Romance Sanctuary | Luxury Couples Travel",
   description:
-    "Where your love story meets the wild. Handcrafted African romance escapes for couples who refuse to compromise: private island villas on Lake Malawi, award winning safari camps, and Zanzibar beachfront hideaways.",
+    "Create your African love story with Kivara — private romantic journeys across Lake Malawi, South Luangwa and Zanzibar, crafted around your story from arrival to departure.",
   alternates: { canonical: SITE_URL },
   openGraph: {
     title: "Kivara: Africa's Ultimate Romance Sanctuary | Luxury Couples Travel",
     description:
-      "Where your love story meets the wild. African romance escapes for couples who seek beauty, intimacy, and wonder: Lake Malawi, South Luangwa, and Zanzibar.",
+      "Create your African love story with Kivara — private romantic journeys across Lake Malawi, South Luangwa and Zanzibar, crafted around your story.",
     url: SITE_URL,
     type: "website",
     locale: "en_US",
@@ -33,7 +36,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Kivara: Africa's Ultimate Romance Sanctuary | Luxury Couples Travel",
     description:
-      "Where your love story meets the wild. African romance escapes for couples who seek beauty, intimacy, and wonder: Lake Malawi, South Luangwa, and Zanzibar.",
+      "Create your African love story with Kivara — private romantic journeys across Lake Malawi, South Luangwa and Zanzibar, crafted around your story.",
     images: ["/images/hero-poster.jpg"],
   },
 };
@@ -41,11 +44,14 @@ export const metadata: Metadata = {
 export default function HomePage() {
   return (
     <>
+      <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }]} />
       <HeroSection />
       <BrandStatement />
-      <ImpactSection />
+      <LoveStoriesSection />
       <FeaturedDestinations />
+      <KivaraProcessSection />
       <PhilosophySection />
+      <ImpactSection />
       <CuratedJourneys />
       <FeaturedProperties />
       <MapSection />

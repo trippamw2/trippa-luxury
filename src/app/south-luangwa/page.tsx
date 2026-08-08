@@ -14,6 +14,7 @@ import { getPropertyTransfer } from "@/lib/journey-routes";
 import { TransferChain } from "@/components/sections/TransferTimeline";
 import { MapEmbed } from "@/components/maps/MapEmbed";
 import { FaqJsonLd } from "@/components/seo/FaqJsonLd";
+import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 import { cn } from "@/lib/utils";
 
 const DESTINATION_SLUG = "south-luangwa";
@@ -86,6 +87,12 @@ export default function SouthLuangwaPage() {
   return (
     <>
       <FaqJsonLd items={faqs} />
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", url: "/" },
+          { name: "South Luangwa", url: "/south-luangwa" },
+        ]}
+      />
       {/* Hero Section */}
       <section className="relative h-screen w-full overflow-hidden bg-soft-black">
         <video
@@ -112,7 +119,7 @@ export default function SouthLuangwaPage() {
           >
             <div className="w-16 h-px bg-accent-amber mx-auto mb-4"></div>
             <span className="inline-block text-xs md:text-sm font-medium tracking-[0.25em] uppercase text-accent-amber mb-4 md:mb-6">
-              {destination.subtitle}
+              {destination.chapter ?? destination.subtitle}
             </span>
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-heading font-medium text-cream leading-tight">
               {destination.title}
@@ -127,8 +134,8 @@ export default function SouthLuangwaPage() {
               <Button href="#properties" variant="gold" size="lg">
                 Explore Properties
               </Button>
-              <Button href="#inquiry" variant="outline" size="lg" className="border-cream/30 text-cream hover:bg-cream/10">
-                Plan Your Safari
+              <Button href="/contact" variant="outline" size="lg" className="border-cream/30 text-cream hover:bg-cream/10">
+                Begin Your Love Story
               </Button>
             </div>
           </motion.div>
@@ -560,13 +567,13 @@ export default function SouthLuangwaPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <span className="text-xs text-earth/60">{pkg.duration}</span>
-                      <span className="text-xs text-gold/70 font-medium ml-4">Enquire Within</span>
+                      <span className="text-xs text-gold/70 font-medium ml-4">Begin This Story</span>
                     </div>
                     <Link
                       href={`/packages#${pkg.id}`}
                       className="inline-flex items-center gap-1 text-xs text-soft-black tracking-widest uppercase group-hover:text-gold-dark transition-colors"
                     >
-                      View Details <ArrowRight className="w-3 h-3" />
+                      Read the Story <ArrowRight className="w-3 h-3" />
                     </Link>
                   </div>
                 </motion.div>
@@ -626,7 +633,7 @@ export default function SouthLuangwaPage() {
               className="max-w-2xl mx-auto text-center mb-12"
             >
               <span className="inline-block text-xs font-medium tracking-[0.2em] uppercase text-gold mb-4">
-                Begin Your Safari
+                Begin Your Love Story
               </span>
               <h2 className="text-3xl md:text-4xl font-heading font-medium text-soft-black leading-tight mb-4">
                 Enquire About South Luangwa

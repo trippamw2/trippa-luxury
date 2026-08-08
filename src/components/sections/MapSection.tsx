@@ -24,15 +24,16 @@ export function MapSection() {
           className="max-w-3xl mx-auto text-center mb-16"
         >
           <span className="inline-block text-xs font-medium tracking-[0.2em] uppercase text-gold-light mb-4">
-            The Kivara Map
+            Your Journey
           </span>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-medium text-cream leading-tight">
             Every Sanctuary,
             <br />
-            <span className="italic text-cream/80">One Map</span>
+            <span className="italic text-cream/80">One Love Story</span>
           </h2>
           <p className="mt-5 text-cream/60 max-w-xl mx-auto text-sm leading-relaxed">
-            From the islands of Lake Malawi to the Luangwa floodplain and the beaches of Zanzibar : explore the seven properties that define the Kivara collection.
+            The Heart. The Wild Soul. The Forever. Explore the seven properties that
+            define the Kivara collection, and the arrival gateways that welcome you home.
           </p>
         </motion.div>
 

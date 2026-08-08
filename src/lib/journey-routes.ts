@@ -88,8 +88,8 @@ export const AIRPORTS: Record<AirportCode, Airport> = {
     id: "club_makokola",
     label: "Club Makokola",
     sublabel: "Club Makokola Airstrip (CMK)",
-    lat: -14.283,
-    lng: 35.167,
+    lat: -14.04,
+    lng: 34.82,
     destination: "lake-malawi",
   },
   mfu: {
@@ -496,4 +496,62 @@ export const NETWORK_STOPS: RouteStop[] = [
   ...PROPERTIES.filter((p) => p.coordinates)
     .map((p) => stayStop(p.id))
     .filter((s): s is RouteStop => Boolean(s)),
+];
+
+// ─── Destination boundaries ──────────────────────────────────────────────
+// Polygons that visually distinguish each destination area on the map.
+// Colors match each destination's accent: teal (Lake Malawi), amber (South Luangwa), coral (Zanzibar).
+
+export interface DestinationBoundary {
+  destination: string;
+  label: string;
+  positions: [number, number][];
+  color: string;
+}
+
+export const DESTINATION_BOUNDARIES: DestinationBoundary[] = [
+  {
+    destination: "lake-malawi",
+    label: "Lake Malawi",
+    color: "#4A90A4", // teal
+    positions: [
+      [-11.4, 34.2],
+      [-11.4, 34.9],
+      [-12.0, 35.0],
+      [-13.5, 35.4],
+      [-14.6, 35.5],
+      [-14.6, 34.6],
+      [-14.0, 34.1],
+      [-12.5, 34.0],
+      [-11.4, 34.2],
+    ],
+  },
+  {
+    destination: "south-luangwa",
+    label: "South Luangwa",
+    color: "#D4956A", // amber
+    positions: [
+      [-12.2, 31.2],
+      [-12.2, 32.0],
+      [-13.0, 32.1],
+      [-13.6, 31.9],
+      [-13.6, 31.3],
+      [-13.0, 31.1],
+      [-12.2, 31.2],
+    ],
+  },
+  {
+    destination: "zanzibar",
+    label: "Zanzibar",
+    color: "#E07A5F", // coral
+    positions: [
+      [-5.9, 39.1],
+      [-5.9, 39.5],
+      [-6.2, 39.6],
+      [-6.5, 39.5],
+      [-6.5, 39.1],
+      [-6.2, 39.0],
+      [-5.9, 39.1],
+    ],
+  },
 ];

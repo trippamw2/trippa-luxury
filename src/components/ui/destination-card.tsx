@@ -8,6 +8,7 @@ import { ArrowRightIcon } from "@/components/ui/icons";
 interface DestinationCardProps {
   title: string;
   subtitle: string;
+  chapter?: string;
   tagline: string;
   image: string;
   slug: string;
@@ -17,6 +18,7 @@ interface DestinationCardProps {
 export function DestinationCard({
   title,
   subtitle,
+  chapter,
   tagline,
   image,
   slug,
@@ -46,7 +48,7 @@ export function DestinationCard({
       {/* Content */}
       <div className="absolute bottom-0 left-0 right-0 p-8 md:p-10">
         <span className="inline-block text-xs font-medium tracking-[0.2em] uppercase text-gold-light mb-3">
-          {subtitle}
+          {chapter ?? subtitle}
         </span>
         <h3 className="text-2xl md:text-3xl lg:text-4xl font-heading font-medium text-cream mb-2">
           {title}

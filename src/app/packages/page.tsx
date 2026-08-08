@@ -147,7 +147,7 @@ export default function PackagesPage() {
                         <MapPin className="w-4 h-4 text-gold" />
                         {pkg.destinations.length} {pkg.destinations.length === 1 ? "destination" : "destinations"}
                       </div>
-                      <span className="text-lg font-heading text-gold-dark/70 font-medium">Enquire Within</span>
+                      <span className="text-lg font-heading text-gold-dark/70 font-medium">Begin This Story</span>
                     </div>
 
                     {/* Inclusions */}
@@ -187,7 +187,7 @@ export default function PackagesPage() {
                         Enquire About This Journey
                       </Button>
                       <a
-                        href={`https://wa.me/${SITE_CONFIG.whatsapp}?text=I'm interested in the ${pkg.title} package`}
+                        href={`https://wa.me/${SITE_CONFIG.whatsapp}?text=I'm interested in the ${pkg.title} journey`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-2 px-6 py-3.5 border border-soft-black text-soft-black text-sm tracking-widest uppercase hover:bg-soft-black hover:text-cream transition-all duration-500"
@@ -271,7 +271,7 @@ export default function PackagesPage() {
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button href="/contact" variant="gold">
-                Begin Your Journey
+                Begin Your Love Story
               </Button>
               <a
                 href={`https://wa.me/${SITE_CONFIG.whatsapp}`}

@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
-import { Plane, PlaneLanding, PlaneTakeoff, Car, Ship, Sparkles, MapPin } from "lucide-react";
+import { Plane, PlaneLanding, PlaneTakeoff, Car, Ship, Sparkles, MapPin, ArrowRight } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { cn } from "@/lib/utils";
 import { useExperiences } from "@/lib/use-public-data";
@@ -211,8 +212,19 @@ export function ExperiencesSection() {
               </motion.article>
             );
           })}
-        </div>
-      </Container>
-    </section>
+          </div>
+
+          {/* View All Link */}
+          <div className="mt-16 text-center">
+            <Link
+              href="/experiences"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-gold text-soft-black text-sm font-medium tracking-[0.15em] uppercase hover:bg-gold-dark transition-all duration-500"
+            >
+              Explore All Experiences
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </Container>
+      </section>
   );
 }

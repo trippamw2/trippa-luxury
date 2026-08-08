@@ -127,16 +127,16 @@ export function LeafletMap() {
     <MapContainer
       scrollWheelZoom={false}
       zoomControl={false}
-      className="h-full w-full z-0"
+      className="h-full w-full z-0 leaflet-dark-tiles"
       style={{ background: "#1a1a1a" }}
     >
       <FitBounds />
       <CustomZoomControl />
 
-      {/* Dark elegant base tiles — luxury aesthetic (no non-Kivara attribution) */}
+      {/* Standard OSM tiles with dark luxury filter */}
       <TileLayer
         attribution=""
-        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
       {/* Destination boundary polygons */}

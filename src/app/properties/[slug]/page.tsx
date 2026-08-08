@@ -8,12 +8,20 @@ import Image from "next/image";
 import { Star, MapPin, Wifi, Waves, Car, Utensils, Sparkles, Heart, MessageCircle, Check, ChevronLeft } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
-import { SITE_CONFIG, SITE_URL, DESTINATION_COORDINATES } from "@/lib/constants";
+import { SITE_CONFIG, SITE_URL } from "@/lib/constants";
 import { useProperties, useDestinations } from "@/lib/use-public-data";
 import { getPropertyTransfer } from "@/lib/journey-routes";
 import { TransferTimeline } from "@/components/sections/TransferTimeline";
-import { MapEmbed } from "@/components/maps/MapEmbed";
+import dynamic from "next/dynamic";
 import { cn } from "@/lib/utils";
+
+const LeafletMap = dynamic(
+  () => import("@/components/sections/LeafletMap").then((m) => m.LeafletMap),
+  {
+    ssr: false,
+    loading: () => <div className="h-full w-full bg-soft-black animate-pulse" />,
+  }
+);
 
 const amenityIcons: Record<string, React.ReactNode> = {
   "Private infinity pool": <Waves className="w-4 h-4" />,
@@ -33,8 +41,6 @@ export default function PropertyDetailPage() {
   const [inquiryStatus, setInquiryStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const property = properties.find((p) => p.id === params.slug);
 
-  const regionCoords = property ? DESTINATION_COORDINATES[property.destination] : undefined;
-  const mapCoords = property?.coordinates ?? regionCoords ?? { lat: -12.8, lng: 34.6 };
   const transfer = property ? getPropertyTransfer(property.id) : null;
 
   if (!property) {
@@ -299,13 +305,7 @@ export default function PropertyDetailPage() {
               </div>
               <div className="lg:col-span-3">
                 <div className="relative aspect-[16/10] overflow-hidden rounded-lg border border-sand-light/40 shadow-xl">
-                  <MapEmbed
-                    lat={mapCoords.lat}
-                    lng={mapCoords.lng}
-                    zoom={12}
-                    title={`Map showing the location of ${property.name}`}
-                    className="h-full"
-                  />
+                  <LeafletMap />
                 </div>
               </div>
             </div>

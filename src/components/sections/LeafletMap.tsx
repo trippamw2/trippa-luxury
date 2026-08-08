@@ -120,12 +120,7 @@ function CustomZoomControl() {
   );
 }
 
-// ─── Destination labels ───────────────────────────────────────────────────
-const DESTINATION_LABELS: Record<string, { label: string; position: [number, number] }> = {
-  "lake-malawi": { label: "Lake Malawi", position: [-12.8, 34.7] },
-  "south-luangwa": { label: "South Luangwa", position: [-12.9, 31.6] },
-  "zanzibar": { label: "Zanzibar", position: [-6.2, 39.3] },
-};
+// ─── Destination labels (hidden — only Kivara context shows on map) ──────
 
 export function LeafletMap() {
   return (
@@ -138,9 +133,9 @@ export function LeafletMap() {
       <FitBounds />
       <CustomZoomControl />
 
-      {/* Dark elegant base tiles — luxury aesthetic */}
+      {/* Dark elegant base tiles — luxury aesthetic (no non-Kivara attribution) */}
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        attribution=""
         url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
       />
 
@@ -160,28 +155,7 @@ export function LeafletMap() {
         />
       ))}
 
-      {/* Destination labels via custom divIcon */}
-      {DESTINATION_BOUNDARIES.map((boundary) => {
-        const info = DESTINATION_LABELS[boundary.destination];
-        if (!info) return null;
-        const labelIcon = L.divIcon({
-          className: "",
-          html: `
-            <div style="font-family:'Cinzel','Trajan Pro',serif;font-size:13px;font-weight:500;letter-spacing:0.15em;text-transform:uppercase;color:${boundary.color};white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,0.5);opacity:0.85;">
-              ${info.label}
-            </div>`,
-          iconSize: [120, 20],
-          iconAnchor: [60, 10],
-        });
-        return (
-          <Marker
-            key={`label-${boundary.destination}`}
-            position={info.position}
-            icon={labelIcon}
-            interactive={false}
-          />
-        );
-      })}
+      {/* Destination labels (hidden — no non-Kivara text on map) */}
 
       {/* Property markers (gold pins) */}
       {PROPERTIES.filter((p) => p.coordinates).map((property) => (

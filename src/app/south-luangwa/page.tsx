@@ -8,14 +8,22 @@ import Image from "next/image";
 import { Container } from "@/components/ui/container";
 import { PropertyCard } from "@/components/ui/property-card";
 import { Button } from "@/components/ui/button";
-import { IMAGES, DESTINATION_COORDINATES } from "@/lib/constants";
+import { IMAGES } from "@/lib/constants";
 import { useProperties, usePackages, useDestinations } from "@/lib/use-public-data";
 import { getPropertyTransfer } from "@/lib/journey-routes";
 import { TransferChain } from "@/components/sections/TransferTimeline";
-import { MapEmbed } from "@/components/maps/MapEmbed";
+import dynamic from "next/dynamic";
 import { FaqJsonLd } from "@/components/seo/FaqJsonLd";
 import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 import { cn } from "@/lib/utils";
+
+const LeafletMap = dynamic(
+  () => import("@/components/sections/LeafletMap").then((m) => m.LeafletMap),
+  {
+    ssr: false,
+    loading: () => <div className="h-full w-full bg-soft-black animate-pulse" />,
+  }
+);
 
 const DESTINATION_SLUG = "south-luangwa";
 
@@ -351,13 +359,7 @@ export default function SouthLuangwaPage() {
             transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
             className="relative aspect-[4/3] md:aspect-[21/10] overflow-hidden rounded-xl border border-cream/10 shadow-2xl"
           >
-            <MapEmbed
-              lat={DESTINATION_COORDINATES["south-luangwa"].lat}
-              lng={DESTINATION_COORDINATES["south-luangwa"].lng}
-              zoom={DESTINATION_COORDINATES["south-luangwa"].zoom}
-              title="Map of South Luangwa properties"
-              className="h-full"
-            />
+            <LeafletMap />
           </motion.div>
         </Container>
       </section>

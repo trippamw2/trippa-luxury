@@ -1,7 +1,7 @@
 "use client";
 
 import L from "leaflet";
-import { MapContainer, TileLayer, Marker, Popup, Polygon, useMap } from "react-leaflet";
+import { MapContainer, Marker, Popup, Polygon, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import Link from "next/link";
 import { PROPERTIES } from "@/lib/constants";
@@ -10,7 +10,7 @@ import { AIRPORTS, DESTINATION_BOUNDARIES } from "@/lib/journey-routes";
 // ─── Brand colors ─────────────────────────────────────────────────────────
 const GOLD = "#C2A46D";
 const CREAM = "#F7F1E3";
-const BLUE = "#6BA3C0"; // airport markers
+const BLUE = "#6BA3C0";
 
 // ─── Property marker (gold pin) ───────────────────────────────────────────
 const propertyIcon = L.divIcon({
@@ -42,75 +42,31 @@ const airportIcon = L.divIcon({
   popupAnchor: [0, -24],
 });
 
-// ─── Fit bounds to all destinations ───────────────────────────────────────
-const allBoundaryPoints = DESTINATION_BOUNDARIES.flatMap((b) => b.positions);
-
-function FitBounds() {
+// ─── Fit bounds to specific points ───────────────────────────────────────
+function FitBounds({ points }: { points: [number, number][] }) {
   const map = useMap();
   map.whenReady(() => {
-    const bounds = L.latLngBounds(allBoundaryPoints as [number, number][]);
-    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 6 });
+    if (points.length === 0) return;
+    const bounds = L.latLngBounds(points);
+    map.fitBounds(bounds, { padding: [50, 50], maxZoom: 9 });
   });
   return null;
-}
-
-// ─── Legend ────────────────────────────────────────────────────────────────
-function Legend() {
-  return (
-    <div
-      className="absolute bottom-4 left-4 z-[1000] bg-cream/95 backdrop-blur-sm p-4 border border-sand-light/30 shadow-lg"
-      style={{ fontSize: "11px", lineHeight: "1.6" }}
-    >
-      <p className="font-medium text-soft-black tracking-widest uppercase text-[10px] mb-2">
-        Map Legend
-      </p>
-      <div className="flex items-center gap-2 mb-1.5">
-        <span
-          className="inline-block w-3 h-3 rounded-full border-2"
-          style={{ background: GOLD, borderColor: CREAM }}
-        />
-        <span className="text-earth">Property</span>
-      </div>
-      <div className="flex items-center gap-2 mb-1.5">
-        <span
-          className="inline-block w-3 h-3 rounded-full border-2"
-          style={{ background: BLUE, borderColor: CREAM }}
-        />
-        <span className="text-earth">Airport</span>
-      </div>
-      <div className="mt-2 pt-2 border-t border-sand-light/40">
-        <p className="text-[10px] text-earth/70 mb-1">Destination Areas</p>
-        <div className="flex items-center gap-2 mb-1">
-          <span className="inline-block w-3 h-2 rounded-sm" style={{ background: "#4A90A4" }} />
-          <span className="text-earth">Lake Malawi</span>
-        </div>
-        <div className="flex items-center gap-2 mb-1">
-          <span className="inline-block w-3 h-2 rounded-sm" style={{ background: "#D4956A" }} />
-          <span className="text-earth">South Luangwa</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="inline-block w-3 h-2 rounded-sm" style={{ background: "#E07A5F" }} />
-          <span className="text-earth">Zanzibar</span>
-        </div>
-      </div>
-    </div>
-  );
 }
 
 // ─── Zoom Control ──────────────────────────────────────────────────────────
 function CustomZoomControl() {
   const map = useMap();
   return (
-    <div className="absolute right-4 bottom-4 z-[1000] flex flex-col gap-1">
+    <div className="absolute right-3 bottom-3 z-[1000] flex flex-col gap-1">
       <button
-        className="w-10 h-10 bg-cream/90 backdrop-blur-sm border border-sand-light/30 shadow-lg hover:bg-gold hover:border-gold transition-all duration-300 flex items-center justify-center text-earth-light hover:text-soft-black"
+        className="w-9 h-9 bg-cream/90 backdrop-blur-sm border border-sand-light/30 shadow-lg hover:bg-gold hover:border-gold transition-all duration-300 flex items-center justify-center text-earth-light hover:text-soft-black text-lg font-medium"
         onClick={() => map.zoomIn()}
         aria-label="Zoom in"
       >
         +
       </button>
       <button
-        className="w-10 h-10 bg-cream/90 backdrop-blur-sm border border-sand-light/30 shadow-lg hover:bg-gold hover:border-gold transition-all duration-300 flex items-center justify-center text-earth-light hover:text-soft-black"
+        className="w-9 h-9 bg-cream/90 backdrop-blur-sm border border-sand-light/30 shadow-lg hover:bg-gold hover:border-gold transition-all duration-300 flex items-center justify-center text-earth-light hover:text-soft-black text-lg font-medium"
         onClick={() => map.zoomOut()}
         aria-label="Zoom out"
       >
@@ -120,45 +76,91 @@ function CustomZoomControl() {
   );
 }
 
-// ─── Destination labels (hidden — only Kivara context shows on map) ──────
+// ─── Map background (dark luxury gradient via CSS) ────────────────────────
+const mapContainerClass =
+  "h-full w-full z-0 luxury-map-bg";
 
-export function LeafletMap() {
+// ─── Props ─────────────────────────────────────────────────────────────────
+interface LeafletMapProps {
+  /** When provided, focuses on this destination + its properties/airports */
+  destinationId?: string;
+  /** When provided, highlights this property on the map */
+  propertyId?: string;
+  /** Show all destinations (default: true when no destinationId/propertyId) */
+  showAll?: boolean;
+}
+
+export function LeafletMap({
+  destinationId,
+  propertyId,
+  showAll = true,
+}: LeafletMapProps) {
+  // Determine which boundaries to show
+  const boundaries = destinationId
+    ? DESTINATION_BOUNDARIES.filter((b) => b.destination === destinationId)
+    : showAll
+      ? DESTINATION_BOUNDARIES
+      : [];
+
+  // Determine which properties to show
+  const properties = destinationId
+    ? PROPERTIES.filter((p) => p.destination === destinationId && p.coordinates)
+    : showAll
+      ? PROPERTIES.filter((p) => p.coordinates)
+      : propertyId
+        ? PROPERTIES.filter((p) => p.id === propertyId && p.coordinates)
+        : PROPERTIES.filter((p) => p.coordinates);
+
+  // Determine which airports to show
+  const airports = destinationId
+    ? Object.values(AIRPORTS).filter((a) => a.destination === destinationId)
+    : showAll
+      ? Object.values(AIRPORTS)
+      : [];
+
+  // Collect all points for FitBounds
+  const allPoints: [number, number][] = [
+    ...boundaries.flatMap((b) => b.positions),
+    ...properties.map((p) => [p.coordinates.lat, p.coordinates.lng] as [number, number]),
+    ...airports.map((a) => [a.lat, a.lng] as [number, number]),
+  ];
+
+  // If focusing on a single property, center on it with padding
+  const focusPoints: [number, number][] =
+    propertyId && !destinationId
+      ? properties
+          .filter((p) => p.id === propertyId)
+          .map((p) => [p.coordinates.lat, p.coordinates.lng] as [number, number])
+      : allPoints;
+
   return (
     <MapContainer
       scrollWheelZoom={false}
       zoomControl={false}
-      className="h-full w-full z-0 leaflet-dark-tiles"
+      className={mapContainerClass}
       style={{ background: "#1a1a1a" }}
     >
-      <FitBounds />
+      <FitBounds points={focusPoints.length > 0 ? focusPoints : allPoints} />
       <CustomZoomControl />
 
-      {/* Standard OSM tiles with dark luxury filter */}
-      <TileLayer
-        attribution=""
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-
       {/* Destination boundary polygons */}
-      {DESTINATION_BOUNDARIES.map((boundary) => (
+      {boundaries.map((boundary) => (
         <Polygon
           key={boundary.destination}
           positions={boundary.positions}
           pathOptions={{
             color: boundary.color,
             fillColor: boundary.color,
-            fillOpacity: 0.08,
+            fillOpacity: 0.1,
             weight: 2,
             dashArray: "6 4",
-            opacity: 0.6,
+            opacity: 0.7,
           }}
         />
       ))}
 
-      {/* Destination labels (hidden — no non-Kivara text on map) */}
-
       {/* Property markers (gold pins) */}
-      {PROPERTIES.filter((p) => p.coordinates).map((property) => (
+      {properties.map((property) => (
         <Marker
           key={property.id}
           position={[property.coordinates.lat, property.coordinates.lng]}
@@ -184,7 +186,7 @@ export function LeafletMap() {
       ))}
 
       {/* Airport markers (blue) */}
-      {Object.values(AIRPORTS).map((airport) => (
+      {airports.map((airport) => (
         <Marker
           key={airport.id}
           position={[airport.lat, airport.lng]}
@@ -205,8 +207,6 @@ export function LeafletMap() {
           </Popup>
         </Marker>
       ))}
-
-      <Legend />
     </MapContainer>
   );
 }

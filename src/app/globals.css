@@ -433,3 +433,39 @@ input:focus, textarea:focus, select:focus {
 .leaflet-dark-tiles.leaflet-container {
   background: #1a1a1a;
 }
+
+/* ─── Luxury map background (no external tiles) ─────────────────────────── */
+.luxury-map-bg.leaflet-container {
+  background: linear-gradient(
+    145deg,
+    #1a1a1a 0%,
+    #1c1c1c 25%,
+    #1e1e1e 50%,
+    #1b1b1b 75%,
+    #191919 100%
+  );
+  background-size: 400% 400%;
+}
+/* Subtle grid pattern overlay */
+.luxury-map-bg.leaflet-container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(194, 164, 109, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(194, 164, 109, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 1;
+}
+/* Hide Leaflet default controls and attribution */
+.luxury-map-bg .leaflet-control-attribution,
+.luxury-map-bg .leaflet-control-zoom {
+  display: none !important;
+}
+/* Ensure overlay panes render above the grid */
+.luxury-map-bg .leaflet-overlay-pane,
+.luxury-map-bg .leaflet-marker-pane,
+.luxury-map-bg .leaflet-popup-pane {
+  z-index: 2;
+}

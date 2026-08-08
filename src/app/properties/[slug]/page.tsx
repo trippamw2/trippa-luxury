@@ -305,7 +305,7 @@ export default function PropertyDetailPage() {
               </div>
               <div className="lg:col-span-3">
                 <div className="relative aspect-[16/10] overflow-hidden rounded-lg border border-sand-light/40 shadow-xl">
-                  <LeafletMap />
+                  <LeafletMap propertyId={property.id} showAll={false} />
                 </div>
               </div>
             </div>

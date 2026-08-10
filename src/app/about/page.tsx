@@ -16,7 +16,7 @@ const values = [
     icon: Globe,
     title: "African Nature",
     description:
-      "Nature is the setting for your romance. Pristine beaches, untamed wilderness, and soul-stirring landscapes that become the backdrop to your most treasured memories.",
+      "Nature is the setting for your romance. Pristine beaches, untamed wilderness, and soul stirring landscapes that become the backdrop to your most treasured memories.",
   },
   {
     icon: Sparkles,

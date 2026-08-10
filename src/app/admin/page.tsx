@@ -51,7 +51,7 @@ export default function AdminDashboard() {
         { label: "Revenue", value: `$${data.totalRevenue.toLocaleString()}`, change: "All time", icon: DollarSign, color: "text-emerald-600", bg: "bg-emerald-50" },
         { label: "Suppliers", value: String(data.totalSuppliers), change: "Active partners", icon: Building, color: "text-purple-600", bg: "bg-purple-50" },
         { label: "Tours", value: String(data.totalTours), change: "Available", icon: Luggage, color: "text-amber-600", bg: "bg-amber-50" },
-        { label: "Upcoming Check-ins", value: String(data.upcomingCheckins), change: "Next 7 days", icon: Eye, color: "text-indigo-600", bg: "bg-indigo-50" },
+        { label: "Upcoming Check ins", value: String(data.upcomingCheckins), change: "Next 7 days", icon: Eye, color: "text-indigo-600", bg: "bg-indigo-50" },
       ]
     : [];
 

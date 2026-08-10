@@ -50,8 +50,8 @@ const ACCOMMODATION_OPTIONS = [
 ];
 
 const BUDGET_OPTIONS = [
-  { value: "premium", label: "Premium ($500–$1,200/night)" },
-  { value: "ultra-luxury", label: "Ultra-Luxury ($1,200+/night)" },
+  { value: "premium", label: "Premium ($500 to $1,200/night)" },
+  { value: "ultra-luxury", label: "Ultra Luxury ($1,200+/night)" },
 ];
 
 export default function AIJourneysPage() {

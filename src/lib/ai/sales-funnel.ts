@@ -104,9 +104,9 @@ export class SalesFunnel {
       proposal_sent: "Follow up within 48 hours if no response. Prepare alternatives for negotiation.",
       negotiation: "Refine proposal based on feedback. Discuss payment terms and dates.",
       deposit_received: "Send booking confirmation and payment receipt. Begin itinerary finalisation.",
-      confirmed: "Send final itinerary and welcome package. Schedule pre-trip reminders.",
-      completed: "Send post-trip follow-up. Request review and referral.",
-      lost: "Archive with notes on why lost. Consider re-engagement campaign in 90 days.",
+      confirmed: "Send final itinerary and welcome package. Schedule pre trip reminders.",
+      completed: "Send post trip follow up. Request review and referral.",
+      lost: "Archive with notes on why lost. Consider re engagement campaign in 90 days.",
     };
     return actions[entry.stage] || "Review manually.";
   }

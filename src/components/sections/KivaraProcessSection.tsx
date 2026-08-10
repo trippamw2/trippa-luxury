@@ -31,7 +31,7 @@ const PROCESS_STEPS = [
     icon: SparklesIcon,
     title: "Crafted Around You",
     description:
-      "Every detail designed around your story — the destinations, the stays, the moments that matter.",
+      "Every detail designed around your story, the destinations, the stays, the moments that matter.",
   },
   {
     number: "04",

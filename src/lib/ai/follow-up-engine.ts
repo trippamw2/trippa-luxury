@@ -32,7 +32,7 @@ export function generateFollowUpSchedules(travelEnd: string): ExtendedFollowUpSc
   const now = new Date();
 
   return [
-    { type: "d1", label: "Day 1 Check-in", delayDays: 1, sent: false },
+    { type: "d1", label: "Day 1 Check in", delayDays: 1, sent: false },
     { type: "d7", label: "Day 7 : NPS Survey", delayDays: 7, sent: false },
     { type: "d30", label: "Day 30 : Referral Request", delayDays: 30, sent: false },
   ].map((s) => {

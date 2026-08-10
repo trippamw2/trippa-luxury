@@ -264,8 +264,8 @@ export class AIOrchestrator {
       "quote-specialist": "Prepare and send quote document",
       "payment-agent": "Process payment and send receipt",
       "itinerary-agent": "Finalise and deliver itinerary package",
-      "reminder-agent": "Send pre-trip reminders",
-      "followup-agent": "Post-trip check-in and review request",
+      "reminder-agent": "Send pre trip reminders",
+      "followup-agent": "Post trip check in and review request",
       analyst: "Update funnel metrics and generate report",
     };
 

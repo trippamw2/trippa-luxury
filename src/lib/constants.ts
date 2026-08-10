@@ -82,19 +82,19 @@ export const IMAGES = {
 } as const;
 
 export const BRAND_POSITIONING = {
-  proposition: "The African Love Story — a private journey house crafting bespoke romantic experiences across Africa's most intimate destinations.",
+  proposition: "The African Love Story, a private journey house crafting bespoke romantic experiences across Africa's most intimate destinations.",
   tagline: "Where Your Love Story Meets the Wild.",
   description:
     "Kivara crafts private romantic journeys across Africa, combining breathtaking destinations, authentic culture and unforgettable moments designed around your story. Not trips. Love stories.",
   betweenAmanAndBeyond:
     "We occupy the space between Aman's serenity and &Beyond's wilderness. Like Aman, we worship space and silence. Like &Beyond, we honor the raw and the wild. We are Kivara: Africa's first Luxury Romance Journey House.",
   storyBrand: {
-    hero: "You, a couple who has experienced the world's finest and still seeks something more — a memory that represents your love.",
+    hero: "You, a couple who has experienced the world's finest and still seeks something more, a memory that represents your love.",
     problem: "Finding a meaningful romantic African experience should not feel overwhelming. Most holidays distract. You deserve a journey that deepens your bond rather than merely filling your calendar.",
     guide: "Kivara. Your personal curators of romance. We know Africa's most secret gardens, its most intimate camps, its most soul stirring shorelines.",
-    plan: "Choose your love story — a proposal, a honeymoon, an anniversary, or a private escape. Choose your African chapter — The Heart, The Wild Soul, or The Forever. Then let Kivara craft your private journey, from arrival to departure.",
+    plan: "Choose your love story, a proposal, a honeymoon, an anniversary, or a private escape. Choose your African chapter, The Heart, The Wild Soul, or The Forever. Then let Kivara craft your private journey, from arrival to departure.",
     callToAction: "Begin Your Love Story.",
-    success: "You created a memory that will stay with you forever. Closer. More in love. The golden light over Luangwa, the silence of a Lake Malawi sunrise, the scent of cloves in Zanzibar's twilight — yours to keep.",
+    success: "You created a memory that will stay with you forever. Closer. More in love. The golden light over Luangwa, the silence of a Lake Malawi sunrise, the scent of cloves in Zanzibar's twilight, yours to keep.",
     stakes: "Let Africa remain someone else's story, or claim the golden light over Luangwa as your own. The silence of a Lake Malawi sunrise. The scent of cloves in Zanzibar's twilight. The choice is yours.",
   },
 };
@@ -147,7 +147,7 @@ export const DESTINATIONS = [
     title: "Lake Malawi",
     chapter: "The Heart",
     subtitle: "A freshwater archipelago known only to the fortunate few.",
-    tagline: "The beginning of your African love story — where the warmth of its people embraces you",
+    tagline: "The beginning of your African love story, where the warmth of its people embraces you",
     description:
       "Lake Malawi. Africa's third largest lake holds crystal waters, shores untouched by mass tourism, and an atmosphere of such profound serenity that couples find themselves recalibrating to a slower, more meaningful rhythm.",
     positioning:
@@ -188,7 +188,7 @@ export const DESTINATIONS = [
     title: "South Luangwa",
     chapter: "The Wild Soul",
     subtitle: "Where the Birthplace of the Walking Safari Becomes Yours Alone.",
-    tagline: "The adventure chapter of your love story — where the wild brings two hearts closer",
+    tagline: "The adventure chapter of your love story, where the wild brings two hearts closer",
     description:
       "South Luangwa. The birthplace of the walking safari. An unfiltered communion with wilderness that strips away everything unnecessary and leaves only what matters : you, your partner, and Africa in its purest form.",
     positioning:
@@ -229,7 +229,7 @@ export const DESTINATIONS = [
     title: "Zanzibar",
     chapter: "The Forever",
     subtitle: "The Spice Island. The Apex of Indian Ocean Romance.",
-    tagline: "The forever chapter — where turquoise waters hold memories that last a lifetime",
+    tagline: "The forever chapter, where turquoise waters hold memories that last a lifetime",
     description:
       "Zanzibar. A love letter written in cinnamon and clove. Stone Town's ancient corridors lead to beaches of impossible beauty. The Indian Ocean trades in shades of turquoise reserved for those with the discernment to find them.",
     positioning:
@@ -247,7 +247,7 @@ export const DESTINATIONS = [
     ],
     seasons: {
       bestTime: "June to October, December to February",
-      closed: "Open year-round - occasional short rains in November and April/May",
+      closed: "Open year round, occasional short rains in November and April/May",
       months: [
         { name: "January", temp: "27°C", weather: "Peak dry season", open: true },
         { name: "February", temp: "28°C", weather: "Peak dry season", open: true },
@@ -278,7 +278,7 @@ export const PROPERTIES = [
     description:
       "Perched on the shores of Likoma Island, Kaya Mawa is the apotheosis of barefoot luxury. Each suite handcrafted from local stone and thatch, opening to panoramic views of Lake Malawi's crystalline waters. A place where time suspends and love deepens.",
     longDescription:
-      "Kaya Mawa is not a lodge. It is a sanctuary on one of Africa's most beautiful islands, built into the rocky shoreline with such reverence that the landscape remains the protagonist. Each of the eleven houses and rooms offers complete privacy with sweeping lake views, designed in a philosophy of minimal intervention: local stone, handwoven textiles, and an architecture that lets the water take center stage. Some suites feature their own private plunge pools carved from the granite shoreline. Days unfold at nature's pace. Swim in the infinity-edge pool that merges with the lake : Africa's fourth-largest. Explore hidden coves by kayak or stand-up paddleboard. Dive into the crystalline depths with the on-site PADI dive centre. Lose yourself in a novel on your private deck while the lake whispers below. The restaurant serves farm-to-table cuisine with a Malawian soul. The over water Sunset Bar perches above the lake for sundowners that linger into starlit evenings. Kaya Mawa is operated by Green Safaris, running entirely on 100% renewable solar energy, and its Kaya Mawa Foundation champions education and enterprise on the island. Open annually from mid-March to mid-January.",
+      "Kaya Mawa is not a lodge. It is a sanctuary on one of Africa's most beautiful islands, built into the rocky shoreline with such reverence that the landscape remains the protagonist. Each of the eleven houses and rooms offers complete privacy with sweeping lake views, designed in a philosophy of minimal intervention: local stone, handwoven textiles, and an architecture that lets the water take center stage. Some suites feature their own private plunge pools carved from the granite shoreline. Days unfold at nature's pace. Swim in the infinity edge pool that merges with the lake : Africa's fourth largest. Explore hidden coves by kayak or stand up paddleboard. Dive into the crystalline depths with the on site PADI dive centre. Lose yourself in a novel on your private deck while the lake whispers below. The restaurant serves farm to table cuisine with a Malawian soul. The over water Sunset Bar perches above the lake for sundowners that linger into starlit evenings. Kaya Mawa is operated by Green Safaris, running entirely on 100% renewable solar energy, and its Kaya Mawa Foundation champions education and enterprise on the island. Open annually from mid March to mid January.",
     heroImage: "/images/kaya-mawa-beach-swing.jpg",
     gallery: [
       IMAGES.kayaMawa,                                   // 1  Hero : beach swing at sunset
@@ -305,9 +305,9 @@ export const PROPERTIES = [
       "Farm to table restaurant",
       "Private beach coves",
       "PADI dive centre",
-      "Kayaking and stand-up paddleboarding",
+      "Kayaking and stand up paddleboarding",
       "Sailing and wakeboarding",
-      "Quad biking and e-biking",
+      "Quad biking and e biking",
       "Spa treatments",
       "100% solar powered",
       "Helicopter pad",
@@ -370,7 +370,7 @@ export const PROPERTIES = [
       },
       {
         name: "Mainja House",
-        description: "A sprawling two-bedroom house ideal for small groups or families, with a private pool, outdoor dining pavilion, and direct beach access.",
+        description: "A sprawling two bedroom house ideal for small groups or families, with a private pool, outdoor dining pavilion, and direct beach access.",
         images: [
           "/images/gs--286.mainja-bedroom.jpg",
           "/images/gs--283.mainja-pool_1.jpg",
@@ -380,7 +380,7 @@ export const PROPERTIES = [
       },
       {
         name: "Ndomo Private House",
-        description: "The ultimate private-house experience : a completely private house with dedicated staff, private beach access, and an outdoor living area perched above the lake.",
+        description: "The ultimate private house experience : a completely private house with dedicated staff, private beach access, and an outdoor living area perched above the lake.",
         images: [
           "/images/gs--337.yofu-bedroom_1.jpg",
           "/images/gs--340.yofu-outside-bath_1.jpg",
@@ -400,7 +400,7 @@ export const PROPERTIES = [
     description:
       "Set on a private peninsula on the Nankumba Peninsula, Pumulani Lodge offers ten secluded villas with sweeping views across Lake Malawi. One of Robin Pope Safaris' finest properties : a place of serene beauty where high net worth couples rediscover each other far from the world's gaze.",
     longDescription:
-      "Pumulani Lodge occupies a pristine stretch of the Nankumba Peninsula, offering a level of seclusion that feels like your own private world. The ten villas embody a contemporary African aesthetic: clean architectural lines, natural materials, and floor-to-ceiling windows that frame the lake as living art. Each villa features its own plunge pool and outdoor shower, creating an indoor outdoor living experience that dissolves the boundary between luxury and nature. The main lodge houses a stunning infinity pool, a curated library, and a dining room where the seasonal menu celebrates the flavours of Malawi with a sophistication that rivals the world's finest restaurants. Operated by the award winning Robin Pope Safaris, Pumulani operates on a Fully Inclusive Plus basis: all meals, select premium drinks, laundry, and a wide range of activities are included. From water-skiing and sailing to guided nature walks, mountain biking, and visits to local villages, every day offers a new adventure or perfect stillness : entirely on your terms.",
+      "Pumulani Lodge occupies a pristine stretch of the Nankumba Peninsula, offering a level of seclusion that feels like your own private world. The ten villas embody a contemporary African aesthetic: clean architectural lines, natural materials, and floor to ceiling windows that frame the lake as living art. Each villa features its own plunge pool and outdoor shower, creating an indoor outdoor living experience that dissolves the boundary between luxury and nature. The main lodge houses a stunning infinity pool, a curated library, and a dining room where the seasonal menu celebrates the flavours of Malawi with a sophistication that rivals the world's finest restaurants. Operated by the award winning Robin Pope Safaris, Pumulani operates on a Fully Inclusive Plus basis: all meals, select premium drinks, laundry, and a wide range of activities are included. From water skiing and sailing to guided nature walks, mountain biking, and visits to local villages, every day offers a new adventure or perfect stillness : entirely on your terms.",
     heroImage: "/images/pl-camporlodge-pumulani-lodge-69.jpg",
     gallery: [
       IMAGES.pumulani,                            // 1  Hero : lodge by the lake
@@ -450,7 +450,7 @@ export const PROPERTIES = [
     rooms: [
       {
         name: "Standard Villa",
-        description: "A light-filled villa with floor-to-ceiling windows overlooking the lake, a private plunge pool, and an outdoor shower. Contemporary African design meets barefoot luxury.",
+        description: "A light filled villa with floor to ceiling windows overlooking the lake, a private plunge pool, and an outdoor shower. Contemporary African design meets barefoot luxury.",
         images: [
           "/images/pl-camporlodge-pumulani-lodge-64.jpg",
           "/images/pl-camporlodge-pumulani-lodge-65.jpg",
@@ -472,7 +472,7 @@ export const PROPERTIES = [
       },
       {
         name: "Honeymoon Villa",
-        description: "The pinnacle of romance : positioned at the tip of the peninsula for uninterrupted panoramic views. Features include an infinity-edge plunge pool, outdoor shower, and a private sala.",
+        description: "The pinnacle of romance : positioned at the tip of the peninsula for uninterrupted panoramic views. Features include an infinity edge plunge pool, outdoor shower, and a private sala.",
         images: [
           "/images/pl-camporlodge-pumulani-lodge-58.jpg",
           "/images/pl-camporlodge-pumulani-lodge-59.jpg",
@@ -491,9 +491,9 @@ export const PROPERTIES = [
     coordinates: { lat: -14.04, lng: 34.82 },
     tagline: "Where the lake's ancient rhythm meets unhurried grace",
     description:
-      "On Lake Malawi's sun bleached southern shore, Makokola Retreat is a world unto itself. Palm-fringed, white-sanded, and wrapped in the unhurried rhythm of lakeside days. Here, the Lake Suites offer an adult only enclave with private infinity pools suspended above the water : your own crystalline corner of Africa.",
+      "On Lake Malawi's sun bleached southern shore, Makokola Retreat is a world unto itself. Palm fringed, white sanded, and wrapped in the unhurried rhythm of lakeside days. Here, the Lake Suites offer an adult only enclave with private infinity pools suspended above the water : your own crystalline corner of Africa.",
     longDescription:
-      "Makokola Retreat unfolds along the brilliant white sands of Lake Malawi's southern shore : a place where time sheds its urgency and the lake becomes the only horizon that matters. The Lake Suites form an adult only sanctuary of 22 suites and the private Sunset Villa, each with a terrace that delivers the lake to your doorstep. The infinity pool here is reserved exclusively for adults : a sheet of still water that seems to pour directly into the lake beyond. The culinary journey carries the same attention to detail: Il Lago serves Italian and Mediterranean cuisine al fresco with the lake as your backdrop, while Harry's Bar is the kind of place where sundowners stretch into evenings without notice. Beyond the pool and plate, a nine-hole par three golf course unfurls along the lakeshore, botanical gardens invite wandering, and the Tropex Nursery offers a living博物馆 of indigenous flora to carry home as memory. The Superior Beach Rooms, reimagined in 2021, blend thatch-roofed charm with considered comfort. All of it set to the soundtrack of lapping water and rustling palms : the soundtrack of Malawi at peace.",
+      "Makokola Retreat unfolds along the brilliant white sands of Lake Malawi's southern shore : a place where time sheds its urgency and the lake becomes the only horizon that matters. The Lake Suites form an adult only sanctuary of 22 suites and the private Sunset Villa, each with a terrace that delivers the lake to your doorstep. The infinity pool here is reserved exclusively for adults : a sheet of still water that seems to pour directly into the lake beyond. The culinary journey carries the same attention to detail: Il Lago serves Italian and Mediterranean cuisine al fresco with the lake as your backdrop, while Harry's Bar is the kind of place where sundowners stretch into evenings without notice. Beyond the pool and plate, a nine hole par three golf course unfurls along the lakeshore, botanical gardens invite wandering, and the Tropex Nursery offers a living博物馆 of indigenous flora to carry home as memory. The Superior Beach Rooms, reimagined in 2021, blend thatch roofed charm with considered comfort. All of it set to the soundtrack of lapping water and rustling palms : the soundtrack of Malawi at peace.",
     heroImage: "/images/mk-lake-suite-01.jpg",
     gallery: [
       IMAGES.makokolaRetreat,
@@ -514,13 +514,13 @@ export const PROPERTIES = [
     rooms: [
       {
         name: "Sunset Villa",
-        description: "The crown jewel of the Retreat : a two-level villa with a king size bedroom upstairs, panoramic lake views, a living room, and a private infinity pool that surrounds the room on both sides.",
+        description: "The crown jewel of the Retreat : a two level villa with a king size bedroom upstairs, panoramic lake views, a living room, and a private infinity pool that surrounds the room on both sides.",
         images: ["/images/mk-sunset-villa-01.jpg", "/images/mk-sunset-villa-02.jpg", "/images/mk-sunset-villa-03.jpg"],
         sleeps: 2,
       },
       {
         name: "Lake Suite",
-        description: "Adult only luxury suites with private terrace or balcony overlooking Lake Malawi. En-suite bathrooms, flat screen TV, mini fridge, and exclusive access to the Lake Suite infinity pool and bar.",
+        description: "Adult only luxury suites with private terrace or balcony overlooking Lake Malawi. En suite bathrooms, flat screen TV, mini fridge, and exclusive access to the Lake Suite infinity pool and bar.",
         images: ["/images/mk-lake-suite-01.jpg", "/images/mk-lake-suite-02.jpg", "/images/mk-lake-suite-03.jpg"],
         sleeps: 2,
       },
@@ -554,7 +554,7 @@ export const PROPERTIES = [
     romanticHighlights: [
       "Adult only Lake Suites with private infinity pool for two",
       "Sundowners at Harry's Bar as the sun sets over Lake Malawi",
-      "Couples golf on the nine-hole Mlambe course",
+      "Couples golf on the nine hole Mlambe course",
       "Stargazing from your Lake Suite terrace with a Malawian gin and tonic",
       "Candlelit dinner at Il Lago with the lake as your backdrop",
     ],
@@ -570,7 +570,7 @@ export const PROPERTIES = [
     description:
       "Set on a sweeping curve of the Luangwa River within 60 acres of private land, Time+Tide Chinzombo is arguably Africa's most celebrated bush sanctuary. Six peerless villas, each with a private plunge pool, redefine the boundaries of ultra luxury safari living.",
     longDescription:
-      "Named after a species of acacia that grows near camp, Time+Tide Chinzombo's natural building materials and vintage accents blend modern style with the best of a traditional bush safari camp. Designed by award winning architects Silvio Rech and Lesley Carstens, the camp won Best New Property in Africa in 2014 and again in 2015. Its six spacious luxury safari villas (including a two-bedroom, two-bathroom family villa) rest beneath ancient msikizi trees. Each has a private plunge pool, a soaking tub with panoramic views over the river, and an open plan design featuring canvas, timber, and reed accented with leather and raw linen. Each stretches out onto a shaded verandah where you can while away the afternoon or unwind with an in-villa spa treatment. Down a winding path, the main lodge beckons with a riverfront sun deck, an open-air library, a bar rich with old books and photographs, and a fire pit suspended high atop the river bank. Here, dining is a celebration of Zambian flavours enriched by produce grown in the camp's own garden.",
+      "Named after a species of acacia that grows near camp, Time+Tide Chinzombo's natural building materials and vintage accents blend modern style with the best of a traditional bush safari camp. Designed by award winning architects Silvio Rech and Lesley Carstens, the camp won Best New Property in Africa in 2014 and again in 2015. Its six spacious luxury safari villas (including a two bedroom, two bathroom family villa) rest beneath ancient msikizi trees. Each has a private plunge pool, a soaking tub with panoramic views over the river, and an open plan design featuring canvas, timber, and reed accented with leather and raw linen. Each stretches out onto a shaded verandah where you can while away the afternoon or unwind with an in villa spa treatment. Down a winding path, the main lodge beckons with a riverfront sun deck, an open air library, a bar rich with old books and photographs, and a fire pit suspended high atop the river bank. Here, dining is a celebration of Zambian flavours enriched by produce grown in the camp's own garden.",
     heroImage: "/images/cz-pool-villa.jpg",
     gallery: [
       // ROOMS : villa interiors, suites, bedrooms
@@ -628,7 +628,7 @@ export const PROPERTIES = [
       },
       {
         name: "Family Safari Villa",
-        description: "A two-bedroom, two-bathroom villa with the same award winning design and river views. Perfect for couples traveling with children or sharing the safari experience with close friends.",
+        description: "A two bedroom, two bathroom villa with the same award winning design and river views. Perfect for couples traveling with children or sharing the safari experience with close friends.",
         images: ["/images/chinzombo-room-1.jpg", "/images/cz-pool-villa.jpg", "/images/cz-family-tent.jpg"],
         sleeps: 4,
       },
@@ -645,7 +645,7 @@ export const PROPERTIES = [
     description:
       "Perched on an elevated ridge commanding the Kakumbi Floodplain, Puku Ridge Camp offers eight air conditioned luxury suites, each with its own plunge pool and star bed tower. An encounter that brings you closer to the wild : and to each other : than you thought possible.",
     longDescription:
-      "Puku Ridge Camp occupies a spectacular hilltop position in the South Luangwa National Park, commanding panoramic views of the sprawling Kakumbi Floodplain below. Rebuilt in 2019, the camp's eight luxury tented suites are ranged across the hillside, each featuring a super king or twin bed configuration, air conditioning (a rare and welcome luxury in the Luangwa Valley), and en suite facilities with his-and-hers washbasins and a large bathtub with a view. Outside, a multi-level verandah with a private plunge pool overlooks the plains, while a tower above the bathroom offers a star bed for a night under the vast African sky. The main area features indoor and open-air lounges, a bar, a campfire, and a photographic hide overlooking a waterhole that draws predators and prey alike. Zambia is renowned for its walking safaris, and Puku Ridge's award winning guides lead both vehicle and foot explorations, including night drives using an award winning red-light protocol that allows guests to observe nocturnal predators undisturbed.",
+      "Puku Ridge Camp occupies a spectacular hilltop position in the South Luangwa National Park, commanding panoramic views of the sprawling Kakumbi Floodplain below. Rebuilt in 2019, the camp's eight luxury tented suites are ranged across the hillside, each featuring a super king or twin bed configuration, air conditioning (a rare and welcome luxury in the Luangwa Valley), and en suite facilities with his and hers washbasins and a large bathtub with a view. Outside, a multi level verandah with a private plunge pool overlooks the plains, while a tower above the bathroom offers a star bed for a night under the vast African sky. The main area features indoor and open air lounges, a bar, a campfire, and a photographic hide overlooking a waterhole that draws predators and prey alike. Zambia is renowned for its walking safaris, and Puku Ridge's award winning guides lead both vehicle and foot explorations, including night drives using an award winning red light protocol that allows guests to observe nocturnal predators undisturbed.",
     heroImage: "/images/puku-ridge-property.jpg",
     gallery: [
       IMAGES.pukuRidge,                         // 1  Puku Ridge camp
@@ -670,7 +670,7 @@ export const PROPERTIES = [
       "Air conditioning (rare in the Luangwa Valley)",
       "Star bed tower for sleeping under the stars",
       "Morning and evening game drives",
-      "Night drives with award winning red-light protocol",
+      "Night drives with award winning red light protocol",
       "Guided walking safaris",
       "Photographic hide overlooking waterhole",
       "Bush dining under the stars",
@@ -678,12 +678,12 @@ export const PROPERTIES = [
       "Complimentary WiFi",
       "24/7 220V power with international charging",
       "Indoor and outdoor showers",
-      "Campfire and open-air lounge",
+      "Campfire and open air lounge",
     ],
     rating: 4.9,
     reviews: [
       { name: "Robert and Catherine Thompson", text: "The most incredible wildlife experience of our lives. We watched a leopard stalk from our plunge pool. Unforgettable.", location: "Toronto, Canada" },
-      { name: "Guest, Puku Ridge", text: "A beautiful lodge with first-rate service and imaginative, well-presented food. Well designed and comfortable rooms with tremendous views.", location: "Chiawa Safaris Guest" },
+      { name: "Guest, Puku Ridge", text: "A beautiful lodge with first rate service and imaginative, well presented food. Well designed and comfortable rooms with tremendous views.", location: "Chiawa Safaris Guest" },
     ],
     romanticHighlights: [
       "Sundowners on the ridge as the sun sets over the floodplain",
@@ -695,7 +695,7 @@ export const PROPERTIES = [
     rooms: [
       {
         name: "Luxury Safari Suite",
-        description: "A spacious tented suite on a raised deck with a super king bed, air conditioning, his-and-hers washbasins, and a large bathtub with floodplain views. Multi level verandah with private plunge pool and star bed tower above the bathroom.",
+        description: "A spacious tented suite on a raised deck with a super king bed, air conditioning, his and hers washbasins, and a large bathtub with floodplain views. Multi level verandah with private plunge pool and star bed tower above the bathroom.",
         images: ["/images/puku-ridge-2.jpg", "/images/puku-ridge-5.jpg", "/images/puku-ridge-3.jpg"],
         sleeps: 2,
       },
@@ -717,7 +717,7 @@ export const PROPERTIES = [
     description:
       "Nine uncompromising villas on a stretch of pristine white sand beach on Zanzibar's east coast. Each villa a private sanctuary with plunge pool, butler service, and an indulgence where every detail is anticipated : crafted for the discerning couple.",
     longDescription:
-      "Xanadu Luxury Villas & Retreat is an experience, a lifestyle, an awakening of what life can be. Nine individually designed villas : each with a Swahili name meaning clouds, waves, stars, or dew : are scattered along a pristine white sand beach on Zanzibar's sun-drenched east coast. Each villa features its own private plunge pool, indoor and outdoor living spaces, and a private butler who anticipates your every need. The experience is uncompromising: world-class cuisine prepared by an international chef, premium beverages, laundry service, and a range of water sports including sea kayaking, snorkelling, and stand-up paddleboarding directly from the beach. The Kiota Spa nestles on the sand, offering treatments with the sound of the Indian Ocean as your soundtrack. A member of Small Luxury Hotels of the World and featured in the National Geographic Traveller UK Collection 2024, Xanadu has been crafted out of a desire to breathe : to celebrate life in its purest, most luxurious form.",
+      "Xanadu Luxury Villas & Retreat is an experience, a lifestyle, an awakening of what life can be. Nine individually designed villas : each with a Swahili name meaning clouds, waves, stars, or dew : are scattered along a pristine white sand beach on Zanzibar's sun drenched east coast. Each villa features its own private plunge pool, indoor and outdoor living spaces, and a private butler who anticipates your every need. The experience is uncompromising: world class cuisine prepared by an international chef, premium beverages, laundry service, and a range of water sports including sea kayaking, snorkelling, and stand up paddleboarding directly from the beach. The Kiota Spa nestles on the sand, offering treatments with the sound of the Indian Ocean as your soundtrack. A member of Small Luxury Hotels of the World and featured in the National Geographic Traveller UK Collection 2024, Xanadu has been crafted out of a desire to breathe : to celebrate life in its purest, most luxurious form.",
     heroImage: IMAGES.xanadu,
     gallery: [
       "/images/xanadu.jpg",
@@ -786,7 +786,7 @@ export const PROPERTIES = [
       },
       {
         name: "Kimwondo : One Bedroom Rooftop Pool Villa",
-        description: "The signature Xanadu experience : a villa with a spectacular rooftop plunge pool offering 360-degree views over the Indian Ocean. Open-plan living, private butler, and the most dramatic sunsets on the island.",
+        description: "The signature Xanadu experience : a villa with a spectacular rooftop plunge pool offering 360 degree views over the Indian Ocean. Open plan living, private butler, and the most dramatic sunsets on the island.",
         images: ["/images/xanadu-10.jpg", "/images/xanadu-12.jpg", "/images/xanadu-14.jpg"],
         sleeps: 2,
       },
@@ -796,14 +796,14 @@ export const PROPERTIES = [
     id: "baraza-resort-spa",
     name: "Baraza Resort & Spa",
     destination: "zanzibar",
-    location: "Bwejuu, South-East Coast, Zanzibar",
+    location: "Bwejuu, South East Coast, Zanzibar",
     coordinates: { lat: -6.367, lng: 39.517 },
     awards: ["Condé Nast Traveller : Top 30 Beaches in the World"],
     tagline: "Swahili elegance on one of the world's finest beaches",
     description:
-      "A stunning 30-villa boutique resort on Zanzibar's award winning Bwejuu Beach, recognised by Condé Nast Traveller as one of the top 30 beaches in the world. Every villa features a private plunge pool and Swahili-inspired architecture with hand carved details : every meal, every drink, every moment included.",
+      "A stunning 30 villa boutique resort on Zanzibar's award winning Bwejuu Beach, recognised by Condé Nast Traveller as one of the top 30 beaches in the world. Every villa features a private plunge pool and Swahili inspired architecture with hand carved details : every meal, every drink, every moment included.",
     longDescription:
-      "Baraza Resort & Spa is a refined Swahili boutique resort set along a beach named one of the top 30 in the world by Condé Nast Traveller. The resort evokes the heritage of Zanzibar dating back to the era of the Sultans, designed in a fusion of Arabic, Swahili, and Indian architectural styles with dramatic Swahili arches, intricate hand carved cement decorations, beautiful antiques, handmade furniture, and brass lanterns. All 30 villas : 14 one-bedroom and 15 two-bedroom, plus one Royal Sultan two-bedroom villa : feature luxury interiors, hand carved furniture, spacious terraces, and private plunge pools. The resort offers four restaurants and two bars including Livingstone Terrace, Dhahabu Bar & Lounge, Chai Lounge, Ocean Lounge, and The Sultans Dining Room. The Frangipani Spa offers a wide array of massage techniques and treatments. On-site activities include a PADI dive centre, kite surfing, sailing, snorkelling, kayaking, dhow excursions, Swahili cooking classes, spice farm visits, Jozani Forest excursions, and tennis.",
+      "Baraza Resort & Spa is a refined Swahili boutique resort set along a beach named one of the top 30 in the world by Condé Nast Traveller. The resort evokes the heritage of Zanzibar dating back to the era of the Sultans, designed in a fusion of Arabic, Swahili, and Indian architectural styles with dramatic Swahili arches, intricate hand carved cement decorations, beautiful antiques, handmade furniture, and brass lanterns. All 30 villas : 14 one bedroom and 15 two bedroom, plus one Royal Sultan two bedroom villa : feature luxury interiors, hand carved furniture, spacious terraces, and private plunge pools. The resort offers four restaurants and two bars including Livingstone Terrace, Dhahabu Bar & Lounge, Chai Lounge, Ocean Lounge, and The Sultans Dining Room. The Frangipani Spa offers a wide array of massage techniques and treatments. On site activities include a PADI dive centre, kite surfing, sailing, snorkelling, kayaking, dhow excursions, Swahili cooking classes, spice farm visits, Jozani Forest excursions, and tennis.",
     heroImage: IMAGES.baraza,
     gallery: [
       "/images/br-wetu-00.jpg",                 // 1  Main building exterior
@@ -854,7 +854,7 @@ export const PROPERTIES = [
       {
         name: "One Bedroom Villa",
         description:
-          "A spacious 70m² villa with Swahili-inspired interiors, hand carved furniture, king size bed, en suite bathroom with twin vanity and rainfall shower, a private terrace with plunge pool, and garden views.",
+          "A spacious 70m² villa with Swahili inspired interiors, hand carved furniture, king size bed, en suite bathroom with twin vanity and rainfall shower, a private terrace with plunge pool, and garden views.",
         images: ["/images/br-wetu-07.jpg", "/images/br-wetu-05.jpg", "/images/br-wetu-02.jpg"],
         sleeps: 2,
       },
@@ -868,7 +868,7 @@ export const PROPERTIES = [
       {
         name: "Royal Sultan Two Bedroom Villa",
         description:
-          "The ultimate villa at Baraza spanning 140m² with two en suite bedrooms, a grand living room, private dining area, expansive terrace, and a large private plunge pool. Designed with Sultan-inspired opulence throughout.",
+          "The ultimate villa at Baraza spanning 140m² with two en suite bedrooms, a grand living room, private dining area, expansive terrace, and a large private plunge pool. Designed with Sultan inspired opulence throughout.",
         images: [IMAGES.barazaRoyalVilla, "/images/br-wetu-07.jpg", "/images/br-wetu-08.jpg"],
         sleeps: 4,
       },
@@ -912,7 +912,7 @@ export const PACKAGES = [
     ],
     itinerary: [
       { day: 1, title: "Arrival on Likoma Island", description: "Fly from Lilongwe to Likoma Island and settle into Kaya Mawa. Sunset gin and tonic on the jetty as the lake turns to gold." },
-      { day: 2, title: "Island Discovery", description: "Kayak hidden coves, snorkel the cichlid-filled reefs, and enjoy a private beach lunch with your toes in the sand." },
+      { day: 2, title: "Island Discovery", description: "Kayak hidden coves, snorkel the cichlid filled reefs, and enjoy a private beach lunch with your toes in the sand." },
       { day: 3, title: "Lake Romance", description: "Private sunset dhow cruise along the island's shores, followed by a couples spa treatment at the Kaya Mawa Spa." },
       { day: 4, title: "Journey to the Wild", description: "Morning swim, then fly to Mfuwe and transfer to Time+Tide Chinzombo in South Luangwa. Afternoon game drive and sundowners on the riverbank." },
       { day: 5, title: "Safari Immersion", description: "Full day of game drives and guided walking safaris with award winning guides. Bush breakfast among the ebony groves." },
@@ -924,10 +924,10 @@ export const PACKAGES = [
   {
     id: "african-love-story",
     title: "The African Love Story",
-    subtitle: "Lake, bush and island : a three-chapter romance",
+    subtitle: "Lake, bush and island : a three chapter romance",
     image: IMAGES.chinzombo,
     description:
-      "Kivara's signature journey across three worlds : the hidden beaches of Lake Malawi, the untamed wilderness of South Luangwa, and the spice-scented shores of Zanzibar. Twelve nights composed for two, each chapter more extraordinary than the last.",
+      "Kivara's signature journey across three worlds : the hidden beaches of Lake Malawi, the untamed wilderness of South Luangwa, and the spice scented shores of Zanzibar. Twelve nights composed for two, each chapter more extraordinary than the last.",
     duration: "12 nights",
     price: "Enquire Within",
     collection: "romance",
@@ -1082,7 +1082,7 @@ export const PACKAGES = [
     ],
     itinerary: [
       { day: 1, title: "Arrival at the Lake", description: "Fly to Club Makokola Airstrip and transfer to Pumulani Lodge. Sunset drinks on the deck as the escarpment turns rose." },
-      { day: 2, title: "Lake Discovery", description: "Sail, kayak and snorkel the cichlid-filled waters of Lake Malawi National Park." },
+      { day: 2, title: "Lake Discovery", description: "Sail, kayak and snorkel the cichlid filled waters of Lake Malawi National Park." },
       { day: 3, title: "Romance on the Water", description: "Private sunset cruise, followed by a couples spa treatment overlooking the lake." },
       { day: 4, title: "Island Farewell", description: "A day of beach time and a private candlelit dinner on the sand." },
       { day: 5, title: "Departure", description: "Final lake morning, then transfer onward. Africa's hidden beach escape, discovered." },
@@ -1094,7 +1094,7 @@ export const PACKAGES = [
     subtitle: "The Spice Island, made for two",
     image: IMAGES.xanadu,
     description:
-      "Six nights across two of Zanzibar's most coveted addresses : the artistic vision of Xanadu Luxury Villas & Retreat and the Swahili grandeur of Baraza Resort & Spa. Spice-scented days, dhow-sailed sunsets, and Indian Ocean nights.",
+      "Six nights across two of Zanzibar's most coveted addresses : the artistic vision of Xanadu Luxury Villas & Retreat and the Swahili grandeur of Baraza Resort & Spa. Spice scented days, dhow sailed sunsets, and Indian Ocean nights.",
     duration: "6 nights",
     price: "Enquire Within",
     collection: "beach-island",
@@ -1133,7 +1133,7 @@ export const PACKAGES = [
     subtitle: "Honour your story with a journey worthy of it",
     image: IMAGES.makokolaRetreat,
     description:
-      "Celebrate the years you have built together : three nights at The Makokola Retreat on Lake Malawi's sun-bleached shore, then four nights of wilderness romance at Time+Tide Chinzombo. Surprises composed at every turn.",
+      "Celebrate the years you have built together : three nights at The Makokola Retreat on Lake Malawi's sun bleached shore, then four nights of wilderness romance at Time+Tide Chinzombo. Surprises composed at every turn.",
     duration: "7 nights",
     price: "Enquire Within",
     collection: "romance",
@@ -1253,7 +1253,7 @@ export const PACKAGES = [
     ],
     itinerary: [
       { day: 1, title: "Arrival on Likoma Island", description: "Fly from Lilongwe to Likoma Island and settle into Kaya Mawa. Champagne on the jetty as the lake turns to gold." },
-      { day: 2, title: "Island Life", description: "Kayak hidden coves, snorkel cichlid-filled reefs, and picnic on a private stretch of sand." },
+      { day: 2, title: "Island Life", description: "Kayak hidden coves, snorkel cichlid filled reefs, and picnic on a private stretch of sand." },
       { day: 3, title: "Lake Romance", description: "Private sunset dhow cruise and a couples spa treatment at the Kaya Mawa Spa." },
       { day: 4, title: "Island Exploration", description: "Explore Likoma's village life and the island's historic cathedral. Sundowners on a hidden beach." },
       { day: 5, title: "Journey South", description: "Fly to Mfuwe and transfer to Time+Tide Chinzombo. Afternoon game drive along the Luangwa River." },
@@ -1274,7 +1274,7 @@ export const PACKAGES = [
     subtitle: "Africa, composed entirely around you",
     image: IMAGES.xanadu,
     description:
-      "A fully customised itinerary built around your vision : a honeymoon, a proposal, an anniversary, a wellness retreat, or a multi-country African adventure. Kivara's Journey Concierge composes every detail around your wishes, your rhythm, and your story.",
+      "A fully customised itinerary built around your vision : a honeymoon, a proposal, an anniversary, a wellness retreat, or a multi country African adventure. Kivara's Journey Concierge composes every detail around your wishes, your rhythm, and your story.",
     duration: "Fully customised",
     price: "Enquire Within",
     collection: "bespoke",
@@ -1299,7 +1299,7 @@ export const PACKAGES = [
     ],
     itinerary: [
       { day: 1, title: "Your Arrival", description: "Met by your dedicated Kivara Journey Concierge, with your itinerary refined and polished around your every wish." },
-      { day: 2, title: "Your World", description: "Choose from Lake Malawi's hidden beaches, South Luangwa's untamed wilderness, or Zanzibar's spice-scented shores." },
+      { day: 2, title: "Your World", description: "Choose from Lake Malawi's hidden beaches, South Luangwa's untamed wilderness, or Zanzibar's spice scented shores." },
       { day: 3, title: "Your Moments", description: "Private dinners, proposals, spa rituals, game drives, or cultural encounters : composed entirely for you." },
       { day: 4, title: "Your Legacy", description: "Depart with a journey that could never be repeated. This is yours alone." },
     ],
@@ -1322,7 +1322,7 @@ export const JOURNEY_COLLECTIONS = [
   {
     id: "beach-island",
     title: "Beach & Island Collection",
-    description: "Turquoise waters and powder-white sands on Lake Malawi and the Zanzibar Archipelago.",
+    description: "Turquoise waters and powder white sands on Lake Malawi and the Zanzibar Archipelago.",
     image: IMAGES.baraza,
   },
   {

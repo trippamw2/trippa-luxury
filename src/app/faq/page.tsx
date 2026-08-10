@@ -10,7 +10,7 @@ const faqs = [
     questions: [
       { q: "How do I book a journey with Kivara?", a: "You can book by filling out the inquiry form on our website, emailing concierge@kivara.com, or messaging us on WhatsApp. A member of our concierge team will respond within 24 hours to begin crafting your bespoke itinerary." },
       { q: "What is the booking process?", a: "After your initial inquiry, we will create a personalized itinerary. Once you approve it, we require a 30% deposit to secure your reservation. The balance is due 60 days before departure." },
-      { q: "Is a deposit required?", a: "Yes, a non-refundable deposit of 30% is required to confirm all bookings. Full payment is due 60 days prior to travel." },
+      { q: "Is a deposit required?", a: "Yes, a non refundable deposit of 30% is required to confirm all bookings. Full payment is due 60 days prior to travel." },
       { q: "Can I modify my booking after confirmation?", a: "Yes, amendments can be made up to 14 days before departure. A $100 administration fee applies per change, plus any costs from suppliers." },
     ],
   },
@@ -26,7 +26,7 @@ const faqs = [
     category: "Travel & Destinations",
     questions: [
       { q: "Which destinations do you serve?", a: "We specialize in three iconic African destinations: Lake Malawi, South Luangwa (Zambia), and Zanzibar. Our journeys can combine multiple destinations." },
-      { q: "What is the best time to travel?", a: "Each destination has its own optimal season. Lake Malawi is best May to November; South Luangwa is excellent June to October; Zanzibar is lovely year-round but peak season is June to October and December to February." },
+      { q: "What is the best time to travel?", a: "Each destination has its own optimal season. Lake Malawi is best May to November; South Luangwa is excellent June to October; Zanzibar is lovely year round but peak season is June to October and December to February." },
       { q: "Do I need a visa?", a: "Visa requirements vary by nationality. Our concierge team will advise you on specific visa requirements for your itinerary. You are responsible for obtaining the correct visas." },
     ],
   },
@@ -40,8 +40,8 @@ const faqs = [
   {
     category: "Sustainability",
     questions: [
-      { q: "How does Kivara support conservation?", a: "Every Kivara booking contributes to Conservation South Luangwa for anti-poaching patrols. We partner exclusively with lodges that demonstrate genuine commitment to conservation and community development." },
-      { q: "Are the lodges eco-friendly?", a: "All properties in the Kivara collection meet rigorous sustainability standards, including solar power, water conservation, plastic-free initiatives, and local employment practices." },
+      { q: "How does Kivara support conservation?", a: "Every Kivara booking contributes to Conservation South Luangwa for anti poaching patrols. We partner exclusively with lodges that demonstrate genuine commitment to conservation and community development." },
+      { q: "Are the lodges eco friendly?", a: "All properties in the Kivara collection meet rigorous sustainability standards, including solar power, water conservation, plastic free initiatives, and local employment practices." },
     ],
   },
 ];

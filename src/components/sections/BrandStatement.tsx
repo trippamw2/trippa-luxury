@@ -17,7 +17,7 @@ const values = [
     icon: GlobeIcon,
     title: "Modern African Luxury",
     description:
-      "African luxury reimagined through a contemporary lens: where authentic experiences meet world-class sophistication. For those who seek the remarkable.",
+      "African luxury reimagined through a contemporary lens: where authentic experiences meet world class sophistication. For those who seek the remarkable.",
   },
   {
     icon: MoonIcon,

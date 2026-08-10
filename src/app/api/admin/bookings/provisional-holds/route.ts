@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
       .from("bookings")
       .update({
         status: "cancelled",
-        cancellation_reason: "Auto-released : provisional hold expired",
+        cancellation_reason: "Auto released : provisional hold expired",
         cancelled_at: new Date().toISOString(),
       })
       .eq("status", "provisional")

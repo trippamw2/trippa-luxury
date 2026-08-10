@@ -19,7 +19,7 @@ const socialItems = [
     type: "photo",
     label: "@kivara",
     icon: Camera,
-    description: "Sundowner beneath a thousand-year-old baobab",
+    description: "Sundowner beneath a thousand year old baobab",
     image: "/images/cz-sundowner-baobab.jpg",
     alt: "Sundowner beneath a baobab tree at sunset in South Luangwa",
   },

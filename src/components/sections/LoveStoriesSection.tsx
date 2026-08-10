@@ -20,7 +20,7 @@ const LOVE_STORIES = [
     eyebrow: "Honeymoon Journeys",
     headline: "Begin Your Forever in Africa",
     description:
-      "From starlit safari camps to turquoise island shores — the first chapter of your life together, written by Africa.",
+      "From starlit safari camps to turquoise island shores, the first chapter of your life together, written by Africa.",
     image: IMAGES.kayaMawaPicnic,
     href: "/packages#romance",
   },
@@ -36,7 +36,7 @@ const LOVE_STORIES = [
     eyebrow: "Private Escapes",
     headline: "Moments Designed For Just The Two of You",
     description:
-      "Intimate villas, hidden beaches, and world-class seclusion — crafted so you can focus on what matters most.",
+      "Intimate villas, hidden beaches, and world class seclusion, crafted so you can focus on what matters most.",
     image: IMAGES.spa,
     href: "/packages#bespoke",
   },

@@ -43,6 +43,24 @@ const airportIcon = L.divIcon({
   popupAnchor: [0, -24],
 });
 
+// ─── Featured property marker (larger gold pin with halo rings) ──────────
+const featuredPropertyIcon = L.divIcon({
+  className: "",
+  html: `
+    <div style="position:relative;width:48px;height:60px;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.5));">
+      <svg width="48" height="60" viewBox="0 0 48 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="24" cy="23" r="19" stroke="${GOLD}" stroke-width="1.5" opacity="0.4" fill="none"/>
+        <circle cx="24" cy="23" r="13" stroke="${GOLD}" stroke-width="1" opacity="0.22" fill="none"/>
+        <path d="M24 3C13.51 3 5 11.51 5 22c0 15.75 19 33 19 33s19-17.25 19-33C43 11.51 34.49 3 24 3z" fill="${GOLD}" stroke="${CREAM}" stroke-width="2"/>
+        <circle cx="24" cy="22" r="8.5" fill="${CREAM}"/>
+        <circle cx="24" cy="22" r="4" fill="${GOLD}"/>
+      </svg>
+    </div>`,
+  iconSize: [48, 60],
+  iconAnchor: [24, 60],
+  popupAnchor: [0, -54],
+});
+
 // ─── Fit bounds to specific points ───────────────────────────────────────
 function FitBounds({ points }: { points: [number, number][] }) {
   const map = useMap();
@@ -98,25 +116,32 @@ export function LeafletMap({
   propertyId,
   showAll = true,
 }: LeafletMapProps) {
+  // When focusing on a single property, derive its destination so the map
+  // renders the full destination context (boundary, airports, sibling
+  // properties) instead of a lone pin on an empty canvas.
+  const featuredProperty = propertyId
+    ? PROPERTIES.find((p) => p.id === propertyId && p.coordinates)
+    : undefined;
+
+  const effectiveDestinationId = destinationId ?? featuredProperty?.destination;
+
   // Determine which boundaries to show
-  const boundaries = destinationId
-    ? DESTINATION_BOUNDARIES.filter((b) => b.destination === destinationId)
+  const boundaries = effectiveDestinationId
+    ? DESTINATION_BOUNDARIES.filter((b) => b.destination === effectiveDestinationId)
     : showAll
       ? DESTINATION_BOUNDARIES
       : [];
 
   // Determine which properties to show
-  const properties = destinationId
-    ? PROPERTIES.filter((p) => p.destination === destinationId && p.coordinates)
+  const properties = effectiveDestinationId
+    ? PROPERTIES.filter((p) => p.destination === effectiveDestinationId && p.coordinates)
     : showAll
       ? PROPERTIES.filter((p) => p.coordinates)
-      : propertyId
-        ? PROPERTIES.filter((p) => p.id === propertyId && p.coordinates)
-        : PROPERTIES.filter((p) => p.coordinates);
+      : [];
 
   // Determine which airports to show
-  const airports = destinationId
-    ? Object.values(AIRPORTS).filter((a) => a.destination === destinationId)
+  const airports = effectiveDestinationId
+    ? Object.values(AIRPORTS).filter((a) => a.destination === effectiveDestinationId)
     : showAll
       ? Object.values(AIRPORTS)
       : [];
@@ -128,14 +153,6 @@ export function LeafletMap({
     ...airports.map((a) => [a.lat, a.lng] as [number, number]),
   ];
 
-  // If focusing on a single property, center on it with padding
-  const focusPoints: [number, number][] =
-    propertyId && !destinationId
-      ? properties
-          .filter((p) => p.id === propertyId)
-          .map((p) => [p.coordinates.lat, p.coordinates.lng] as [number, number])
-      : allPoints;
-
   return (
     <MapContainer
       scrollWheelZoom={false}
@@ -143,9 +160,9 @@ export function LeafletMap({
       center={[-13.0, 34.0]}
       zoom={6}
       className={mapContainerClass}
-      style={{ height: "100%", width: "100%", background: "#1a1a1a" }}
+      style={{ height: "100%", width: "100%", backgroundColor: "#1a1a1a" }}
     >
-      <FitBounds points={focusPoints.length > 0 ? focusPoints : allPoints} />
+      <FitBounds points={allPoints} />
       <CustomZoomControl />
 
       {/* Destination boundary polygons */}
@@ -164,12 +181,17 @@ export function LeafletMap({
         />
       ))}
 
-      {/* Property markers (gold pins) */}
+      {/* Property markers (gold pins; featured property highlighted) */}
       {properties.map((property) => (
         <Marker
           key={property.id}
           position={[property.coordinates.lat, property.coordinates.lng]}
-          icon={propertyIcon}
+          icon={
+            property.id === featuredProperty?.id
+              ? featuredPropertyIcon
+              : propertyIcon
+          }
+          zIndexOffset={property.id === featuredProperty?.id ? 1000 : 0}
         >
           <Popup>
             <div className="text-left" style={{ minWidth: 180 }}>

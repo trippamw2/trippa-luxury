@@ -84,7 +84,7 @@ const TRANSITIONS: StateTransition[] = [
   { from: ["deposit-paid", "confirmed"], to: "itinerary-sent", agent: "human-concierge", automatic: false, description: "Final itinerary, vouchers, and briefing sent" },
   { from: ["itinerary-sent"], to: "in-progress", agent: "reminder-agent", automatic: true, description: "Travel start date reached" },
   { from: ["in-progress"], to: "completed", agent: "system", automatic: true, description: "Travel end date passed" },
-  { from: ["completed"], to: "follow-up", agent: "follow-up-agent", automatic: true, description: "Post-trip check-in sent at D+1" },
+  { from: ["completed"], to: "follow-up", agent: "follow-up-agent", automatic: true, description: "Post trip check in sent at D+1" },
   { from: ["follow-up"], to: "archived", agent: "human-concierge", automatic: false, description: "Client responded or 30 days passed" },
   { from: ["*"], to: "archived", agent: "human-concierge", automatic: false, description: "Manually archived (lost/dead)" },
 ];
@@ -174,11 +174,11 @@ export class WorkflowEngine {
   getEstimatedDuration(state: ConciergeState): string {
     const durations: Partial<Record<ConciergeState, string>> = {
       "new": "Same day",
-      "qualifying": "1-2 days",
+      "qualifying": "1 to 2 days",
       "curating": "AI generates instantly",
       "quoted": "Awaiting client",
-      "reviewing": "3-7 days",
-      "provisional": "7-14 days",
+      "reviewing": "3 to 7 days",
+      "provisional": "7 to 14 days",
       "deposit-paid": "Until balance due",
       "confirmed": "Until travel",
     };

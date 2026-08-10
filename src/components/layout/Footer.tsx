@@ -12,10 +12,10 @@ const footerLinks = {
   ],
   journeys: [
     { label: "Honeymoon Escape", href: "/packages#honeymoon-escape" },
-    { label: "Beach & Bush Escape", href: "/packages#beach-bush-escape" },
-    { label: "Romantic Safari Journey", href: "/packages#romantic-safari-journey" },
-    { label: "Anniversary Escape", href: "/packages#anniversary-escape" },
-    { label: "Luxury Island Retreat", href: "/packages#luxury-island-retreat" },
+    { label: "Beach & Bush Escape", href: "/packages#beach-island" },
+    { label: "Romantic Safari Journey", href: "/packages#safari" },
+    { label: "Anniversary Escape", href: "/packages#anniversary-celebration" },
+    { label: "Luxury Island Retreat", href: "/packages#island-romance-retreat" },
   ],
   explore: [
     { label: "About Kivara", href: "/about" },

@@ -11,7 +11,7 @@ const pillars = [
     icon: TreePine,
     title: "Wildlife Conservation",
     description:
-      "Every Kivara booking contributes directly to anti-poaching patrols and wildlife monitoring programs in South Luangwa National Park. We partner with Conservation South Luangwa to fund ranger units, tracker dogs, and community education programs that protect Zambia's wildlife for generations to come.",
+      "Every Kivara booking contributes directly to anti poaching patrols and wildlife monitoring programs in South Luangwa National Park. We partner with Conservation South Luangwa to fund ranger units, tracker dogs, and community education programs that protect Zambia's wildlife for generations to come.",
     stat: "100%",
     statLabel: "Of bookings fund conservation",
   },
@@ -29,9 +29,9 @@ const pillars = [
     icon: Sun,
     title: "Sustainable Operations",
     description:
-      "From solar-powered camps in Zambia to plastic-free initiatives on Lake Malawi and reef-safe marine policies in Zanzibar, every property in the Kivara collection meets our rigorous sustainability standards. We measure not just luxury, but legacy.",
+      "From solar powered camps in Zambia to plastic free initiatives on Lake Malawi and reef safe marine policies in Zanzibar, every property in the Kivara collection meets our rigorous sustainability standards. We measure not just luxury, but legacy.",
     stat: "100%",
-    statLabel: "Solar-powered camps in Zambia",
+    statLabel: "Solar powered camps in Zambia",
   },
 ];
 

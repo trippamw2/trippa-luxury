@@ -20,12 +20,12 @@ import { NewsletterSection } from "@/components/sections/NewsletterSection";
 export const metadata: Metadata = {
   title: "Kivara: Africa's Ultimate Romance Sanctuary | Luxury Couples Travel",
   description:
-    "Create your African love story with Kivara — private romantic journeys across Lake Malawi, South Luangwa and Zanzibar, crafted around your story from arrival to departure.",
+    "Create your African love story with Kivara, private romantic journeys across Lake Malawi, South Luangwa and Zanzibar, crafted around your story from arrival to departure.",
   alternates: { canonical: SITE_URL },
   openGraph: {
     title: "Kivara: Africa's Ultimate Romance Sanctuary | Luxury Couples Travel",
     description:
-      "Create your African love story with Kivara — private romantic journeys across Lake Malawi, South Luangwa and Zanzibar, crafted around your story.",
+      "Create your African love story with Kivara, private romantic journeys across Lake Malawi, South Luangwa and Zanzibar, crafted around your story.",
     url: SITE_URL,
     type: "website",
     locale: "en_US",
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Kivara: Africa's Ultimate Romance Sanctuary | Luxury Couples Travel",
     description:
-      "Create your African love story with Kivara — private romantic journeys across Lake Malawi, South Luangwa and Zanzibar, crafted around your story.",
+      "Create your African love story with Kivara, private romantic journeys across Lake Malawi, South Luangwa and Zanzibar, crafted around your story.",
     images: ["/images/hero-poster.jpg"],
   },
 };

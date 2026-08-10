@@ -157,7 +157,7 @@ export async function GET(request: Request) {
     properties: CONSTANT_PROPERTIES.length,
     destinations: CONSTANT_DESTINATIONS.length,
     packages: CONSTANT_PACKAGES.length,
-    message: "Dry-run. POST to actually seed the data.",
+    message: "Dry run. POST to actually seed the data.",
   });
 }
 

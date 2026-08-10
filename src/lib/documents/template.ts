@@ -377,8 +377,8 @@ export function documentHeader(meta: { title: string; reference: string; clientN
           <svg class="brand-logo-svg" viewBox="0 0 400 145" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Kivara">
             <path d="M 105,12 Q 200,24 295,12 Q 200,40 105,12 Z" fill="#F4F0E8" opacity="0.7"/>
             <path d="M 105,46 Q 200,36 295,46 Q 200,22 105,46 Z" fill="#D4BC8A" opacity="0.8"/>
-            <text x="200" y="88" text-anchor="middle" font-family="'Trajan Pro','Times New Roman',Georgia,serif" font-size="44" font-weight="400" fill="#F4F0E8" style="letter-spacing: 28px;">KIVARA</text>
-            <text x="200" y="120" text-anchor="middle" font-family="'Inter','Helvetica Neue',Arial,sans-serif" font-size="7" font-weight="300" fill="#D8CBB8" style="letter-spacing: 5px;">BUSH ● BEACH ● ROMANCE</text>
+            <text x="200" y="88" text-anchor="middle" font-family="'Trajan Pro','Times New Roman',Georgia,serif" font size="44" font weight="400" fill="#F4F0E8" style="letter-spacing: 28px;">KIVARA</text>
+            <text x="200" y="120" text-anchor="middle" font-family="'Inter','Helvetica Neue',Arial,sans-serif" font size="7" font weight="300" fill="#D8CBB8" style="letter-spacing: 5px;">BUSH ● BEACH ● ROMANCE</text>
           </svg>
         </div>
         <div class="document-badge">

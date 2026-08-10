@@ -50,3 +50,5 @@ next-env.d.ts
 
 # agent/workspace artifacts
 /.omo/
+/.playwright-mcp/
+/*-map-*.png

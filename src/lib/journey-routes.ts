@@ -405,17 +405,17 @@ export const PROPERTY_TRANSFERS: Record<string, PropertyTransfer> = {
       note: "Travelling between the southern lakeshore and Likoma connects through Club Makokola Airstrip (CMK).",
     },
     steps: [
-      gatewayStep("llw", "Kamuzu International, Lilongwe — Kivara concierge meets you airside"),
-      airportStep("lix", "45-minute scenic flight", "Scenic charter over the Lake of Stars"),
-      propertyStep("kaya-mawa", "drive", "10-minute road transfer", "Airstrip to the lodge on Likoma Island"),
+      gatewayStep("llw", "Kamuzu International, Lilongwe, Kivara concierge meets you airside"),
+      airportStep("lix", "45 minute scenic flight", "Scenic charter over the Lake of Stars"),
+      propertyStep("kaya-mawa", "drive", "10 minute road transfer", "Airstrip to the lodge on Likoma Island"),
     ],
   },
   "pumulani-lodge": {
     propertyId: "pumulani-lodge",
     gateway: "llw",
     steps: [
-      gatewayStep("llw", "Kamuzu International, Lilongwe — Kivara concierge meets you airside"),
-      airportStep("cmk", "35-minute scenic flight", "Club Makokola Airstrip — gateway to the southern lakeshore"),
+      gatewayStep("llw", "Kamuzu International, Lilongwe, Kivara concierge meets you airside"),
+      airportStep("cmk", "35 minute scenic flight", "Club Makokola Airstrip, gateway to the southern lakeshore"),
       propertyStep("pumulani-lodge", "drive", "Scenic road transfer", "Approximately 50 minutes along the lake shore to Nankumba Peninsula"),
     ],
   },
@@ -423,34 +423,34 @@ export const PROPERTY_TRANSFERS: Record<string, PropertyTransfer> = {
     propertyId: "makokola-retreat",
     gateway: "llw",
     steps: [
-      gatewayStep("llw", "Kamuzu International, Lilongwe — Kivara concierge meets you airside"),
-      airportStep("cmk", "35-minute scenic flight"),
-      propertyStep("makokola-retreat", "drive", "5-minute road transfer", "The Retreat lies moments from the airstrip"),
+      gatewayStep("llw", "Kamuzu International, Lilongwe, Kivara concierge meets you airside"),
+      airportStep("cmk", "35 minute scenic flight"),
+      propertyStep("makokola-retreat", "drive", "5 minute road transfer", "The Retreat lies moments from the airstrip"),
     ],
   },
   "chinzombo": {
     propertyId: "chinzombo",
     gateway: "lun",
     steps: [
-      gatewayStep("lun", "Kenneth Kaunda International, Lusaka — Kivara concierge meets you airside"),
-      airportStep("mfu", "1.5-hour light aircraft flight", "Flight over the Luangwa Valley"),
-      propertyStep("chinzombo", "drive", "Game-drive transfer", "30–60 minutes through the park to camp — a safari begins before you arrive"),
+      gatewayStep("lun", "Kenneth Kaunda International, Lusaka, Kivara concierge meets you airside"),
+      airportStep("mfu", "1.5 hour light aircraft flight", "Flight over the Luangwa Valley"),
+      propertyStep("chinzombo", "drive", "Game drive transfer", "30 to 60 minutes through the park to camp, a safari begins before you arrive"),
     ],
   },
   "puku-ridge-camp": {
     propertyId: "puku-ridge-camp",
     gateway: "lun",
     steps: [
-      gatewayStep("lun", "Kenneth Kaunda International, Lusaka — Kivara concierge meets you airside"),
-      airportStep("mfu", "1.5-hour light aircraft flight"),
-      propertyStep("puku-ridge-camp", "drive", "Game-drive transfer", "30–60 minutes to the ridge above the Kakumbi Floodplain"),
+      gatewayStep("lun", "Kenneth Kaunda International, Lusaka, Kivara concierge meets you airside"),
+      airportStep("mfu", "1.5 hour light aircraft flight"),
+      propertyStep("puku-ridge-camp", "drive", "Game drive transfer", "30 to 60 minutes to the ridge above the Kakumbi Floodplain"),
     ],
   },
   "xanadu-villas": {
     propertyId: "xanadu-villas",
     gateway: "znz",
     steps: [
-      gatewayStep("znz", "Abeid Amani Karume International, Zanzibar — Kivara concierge meets you airside"),
+      gatewayStep("znz", "Abeid Amani Karume International, Zanzibar, Kivara concierge meets you airside"),
       propertyStep("xanadu-villas", "drive", "Private road transfer", "Approximately 50 minutes to the east coast at Michamvi"),
     ],
   },
@@ -458,8 +458,8 @@ export const PROPERTY_TRANSFERS: Record<string, PropertyTransfer> = {
     propertyId: "baraza-resort-spa",
     gateway: "znz",
     steps: [
-      gatewayStep("znz", "Abeid Amani Karume International, Zanzibar — Kivara concierge meets you airside"),
-      propertyStep("baraza-resort-spa", "drive", "Private road transfer", "Approximately 60 minutes to the south-east coast at Bwejuu"),
+      gatewayStep("znz", "Abeid Amani Karume International, Zanzibar, Kivara concierge meets you airside"),
+      propertyStep("baraza-resort-spa", "drive", "Private road transfer", "Approximately 60 minutes to the south east coast at Bwejuu"),
     ],
   },
 };

@@ -341,7 +341,7 @@ function generateAirTransfer(
       from: fromName,
       to: `${toName} (${toCode})`,
       mode: "flight",
-      duration: "~45–60 minutes",
+      duration: "~45 to 60 minutes",
       cost,
       notes: `Private charter from ${fromCode} to ${toCode}. VIP meet-and-greet upon arrival.`,
     };
@@ -352,7 +352,7 @@ function generateAirTransfer(
       from: `${fromName} (${fromCode})`,
       to: `${toName} (${toCode}) : International Departure`,
       mode: "flight",
-      duration: "~45–60 minutes",
+      duration: "~45 to 60 minutes",
       cost,
       notes: `Private charter from ${fromCode} to ${toCode} for international connection.`,
     };
@@ -389,7 +389,7 @@ function generateRoadLeg(
       ? propertyName
       : `${airportName} (${airportCode})`,
     mode: "road",
-    duration: "~30–45 minutes",
+    duration: "~30 to 45 minutes",
     cost: ROAD_TRANSFER_COST,
     notes: direction === "pickup"
       ? "Private safari vehicle with refreshments. Driver will greet you at arrivals."
@@ -1085,7 +1085,7 @@ Property selection guidelines:
     } catch (err) {
       // LLM failed : fall back to rule-based generation
       console.warn(
-        "LLM journey generation failed, using rule-based fallback:",
+        "LLM journey generation failed, using rule based fallback:",
         err instanceof Error ? err.message : String(err)
       );
       return this.generate(guest);

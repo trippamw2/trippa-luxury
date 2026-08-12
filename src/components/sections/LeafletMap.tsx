@@ -1,7 +1,7 @@
 "use client";
 
 import L from "leaflet";
-import { MapContainer, Marker, Popup, Polygon, useMap } from "react-leaflet";
+import { MapContainer, Marker, Popup, Polygon, TileLayer, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import Link from "next/link";
 import { PROPERTIES } from "@/lib/constants";
@@ -162,6 +162,11 @@ export function LeafletMap({
       className={mapContainerClass}
       style={{ height: "100%", width: "100%", backgroundColor: "#1a1a1a" }}
     >
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        opacity={0.55}
+      />
       <FitBounds points={allPoints} />
       <CustomZoomControl />
 

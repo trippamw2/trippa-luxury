@@ -1,5 +1,5 @@
 /* KIVARA — Brand Typography */
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap');
+/* Fonts self-hosted via next/font (Cormorant Garamond + Inter) — see layout.tsx */
 @import "leaflet/dist/leaflet.css";
 @import "tailwindcss";
 
@@ -37,9 +37,9 @@
   --color-warm-white: var(--color-warm-ivory);
   --color-warm-white-dark: var(--color-warm-ivory-dark);
 
-  /* KIVARA Fonts — Cormorant Garamond loaded via Google Fonts for reliable luxury serif */
-  --font-heading: "Cormorant Garamond", "Trajan Pro", "Cinzel", "Playfair Display", serif;
-  --font-body: "Inter", "Helvetica Neue", Arial, sans-serif;
+  /* KIVARA Fonts — self-hosted via next/font; variables set on <html> in layout.tsx */
+  --font-heading: var(--font-cormorant), "Trajan Pro", "Cinzel", "Playfair Display", serif;
+  --font-body: var(--font-inter), "Helvetica Neue", Arial, sans-serif;
 
   /* KIVARA Typographic Scale */
   --text-xs: 0.688rem;
@@ -163,6 +163,52 @@ img {
   100% { background-position: 200% center; }
 }
 
+/* ─── REDUCED MOTION ACCESSIBILITY ─────────────────────────────────── */
+/* Respect prefers-reduced-motion for users with vestibular disorders */
+@media (prefers-reduced-motion: no-preference) {
+  img[class*="object-cover"] {
+    transition: filter 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .group:hover img {
+    filter: saturate(0.95) brightness(0.95) !important;
+  }
+  .transition-luxury {
+    transition: all var(--duration-base) var(--ease-luxury);
+  }
+  .cta-luxury::after {
+    transform: translateX(-100%);
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .cta-luxury:hover::after {
+    transform: translateX(100%);
+  }
+  .card-hover-luxury {
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .card-hover-luxury:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 24px 48px -16px rgba(28, 26, 23, 0.15);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .group:hover img {
+    filter: none !important;
+  }
+  .card-hover-luxury:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  .cta-luxury:hover::after {
+    transform: none !important;
+  }
+}
+
 /* ─── CINEMATIC IMAGE AESTHETICS ──────────────────────────────────── */
 /* KIVARA: Muted, cinematic, atmospheric — Aman-inspired desaturation */
 
@@ -170,20 +216,19 @@ img {
 /* Targets Next.js Image components with object-cover (all hero/gallery/card images) */
 /* Does NOT apply to SVGs, Lucide icons, logos, or admin panel images */
 img[class*="object-cover"] {
-  filter: saturate(0.85) brightness(0.88);
-  transition: filter 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  filter: saturate(0.92) brightness(0.94);
 }
 
 /* Hero full-screen images: dramatic cinema grade */
 section.h-screen img[data-nimg="fill"],
 section.min-h-screen img[data-nimg="fill"] {
-  filter: saturate(0.78) brightness(0.78) contrast(1.12) !important;
+  filter: saturate(0.85) brightness(0.85) contrast(1.08) !important;
 }
 
 /* Gallery/experience card images: moody */
 .grid .group img,
 [class*="grid"] .group img {
-  filter: saturate(0.82) brightness(0.85);
+  filter: saturate(0.88) brightness(0.90);
 }
 
 /* Hover: lift toward natural — reveal the raw beauty */
@@ -219,14 +264,14 @@ h1 {
   font-family: var(--font-heading);
   font-weight: var(--weight-heading-1);
   font-size: var(--text-5xl);
-  letter-spacing: -0.03em;
+  letter-spacing: -0.015em;
   line-height: 1.05;
 }
 h2 {
   font-family: var(--font-heading);
   font-weight: var(--weight-heading-2);
   font-size: var(--text-4xl);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
   line-height: 1.1;
 }
 h3 {
@@ -265,6 +310,9 @@ button, .btn {
   text-transform: uppercase;
   font-size: 0.75rem;
   font-weight: 500;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0.75rem 1.5rem;
 }
 
 /* Elegant form inputs */

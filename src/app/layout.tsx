@@ -1,10 +1,26 @@
 import type { Metadata } from "next";
+import { Cormorant_Garamond, Inter } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
 import { SiteShell } from "@/components/layout/SiteShell";
 import { WhatsAppWidget } from "@/components/ui/whatsapp-widget";
 import { CookieConsent } from "@/components/ui/CookieConsent";
 import { SITE_URL } from "@/lib/constants";
+
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
+  style: ["normal", "italic"],
+  variable: "--font-cormorant",
+  display: "swap",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-inter",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -55,7 +71,7 @@ export default function RootLayout({
   const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
   return (
-    <html lang="en">
+    <html lang="en" className={`${cormorant.variable} ${inter.variable}`}>
       <head>
         <link rel="icon" href="/images/kivara-icon.svg" type="image/svg+xml" />
         <link rel="alternate icon" href="/images/kivara-icon.svg" type="image/svg+xml" />

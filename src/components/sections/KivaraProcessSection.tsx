@@ -67,7 +67,7 @@ export function KivaraProcessSection() {
             The Kivara Process
           </span>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-medium text-cream leading-tight">
-            {storyBrand.plan.split("—")[0].trim()}.
+            {storyBrand.plan.split(". ")[0]}.
             <br />
             <span className="italic text-gold-light">Then Let Us Craft the Rest.</span>
           </h2>

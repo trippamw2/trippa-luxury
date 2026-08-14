@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { StarIcon, QuoteIcon } from "@/components/ui/icons";
 import { Container } from "@/components/ui/container";
-import { TESTIMONIALS } from "@/lib/constants";
+import { BRAND_POSITIONING, TESTIMONIALS } from "@/lib/constants";
 
 export function TestimonialsSection() {
   return (
@@ -22,9 +22,21 @@ export function TestimonialsSection() {
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-medium text-soft-black leading-tight">
             Stories Our Couples Tell Forever
           </h2>
-        </motion.div>
+          </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="max-w-3xl mx-auto text-center mb-12"
+          >
+            <p className="text-base md:text-lg text-soft-black/80 leading-relaxed font-heading italic">
+              &ldquo;{BRAND_POSITIONING.storyBrand.success}&rdquo;
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {TESTIMONIALS.map((testimonial, index) => (
             <motion.div
               key={testimonial.name}

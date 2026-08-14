@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { Clock, MapPin, Check, Minus, Heart, MessageCircle } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
-import { SITE_CONFIG, JOURNEY_COLLECTIONS, PROPERTIES } from "@/lib/constants";
+import { SITE_CONFIG, IMAGES, JOURNEY_COLLECTIONS, PROPERTIES } from "@/lib/constants";
 import { usePackages } from "@/lib/use-public-data";
 import { buildPackageStops } from "@/lib/journey-routes";
 
@@ -33,12 +33,12 @@ export default function PackagesPage() {
   const heroImage =
     packages[0]?.image ||
     JOURNEY_COLLECTIONS[0]?.image ||
-    "/images/hero-poster.jpg";
+    IMAGES.chinzomboWildlife;
   const journeyImage = (pkg: JourneyImageSource) =>
     pkg.image ||
     PROPERTIES.find((p) => p.id === pkg.properties?.[0])?.heroImage ||
     JOURNEY_COLLECTIONS.find((c) => c.id === pkg.collection)?.image ||
-    "/images/hero-poster.jpg";
+    IMAGES.chinzomboWildlife;
   return (
     <>
       {/* Hero */}

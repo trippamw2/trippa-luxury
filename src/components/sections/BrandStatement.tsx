@@ -33,7 +33,7 @@ export function BrandStatement() {
   return (
     <section className="py-24 md:py-32 bg-cream">
       <Container>
-        {/* StoryBrand: Problem + Solution */}
+        {/* StoryBrand: Problem + Guide + Stakes */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -54,6 +54,9 @@ export function BrandStatement() {
           </p>
           <p className="mt-6 text-base md:text-lg text-soft-black leading-relaxed max-w-3xl mx-auto font-heading italic">
             &ldquo;{storyBrand.guide}&rdquo;
+          </p>
+          <p className="mt-6 text-base md:text-lg text-earth/90 leading-relaxed max-w-3xl mx-auto italic">
+            &ldquo;{storyBrand.stakes}&rdquo;
           </p>
         </motion.div>
 

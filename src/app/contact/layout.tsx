@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SITE_URL } from "@/lib/constants";
+import { SITE_URL, IMAGES } from "@/lib/constants";
 import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 
 const canonical = `${SITE_URL}/contact`;
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     description:
       "Reach out to Kivara's concierge team. Let us craft your African romance escape: a bespoke itinerary designed around your love story.",
     url: canonical,
-    images: [{ url: "/images/hero-poster.jpg", width: 1200, height: 630, alt: "Kivara Luxury Travel" }],
+    images: [{ url: IMAGES.heroPoster, width: 1200, height: 630, alt: "Kivara Luxury Travel" }],
     type: "website",
     locale: "en_US",
     siteName: "Kivara Luxury Travel",
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     title: "Contact: Begin Your Love Story | Kivara Luxury Travel",
     description:
       "Reach out to Kivara's concierge team. Let us craft your African romance escape: a bespoke itinerary designed around your love story.",
-    images: ["/images/hero-poster.jpg"],
+    images: [IMAGES.heroPoster],
   },
 };
 

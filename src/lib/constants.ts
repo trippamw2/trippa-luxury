@@ -1329,7 +1329,7 @@ export const JOURNEY_COLLECTIONS = [
     id: "bespoke",
     title: "Bespoke Journeys",
     description: "Fully customised journeys composed entirely around your vision.",
-    image: IMAGES.xanadu,
+    image: "/images/xanadu-1.jpg",
   },
 ];
 

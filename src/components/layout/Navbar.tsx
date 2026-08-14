@@ -23,9 +23,9 @@ const NAV_ITEMS = [
     label: "Destinations",
     href: "#",
     children: [
-      { label: "Lake Malawi", href: "/lake-malawi", description: "The Heart, the warmth of a people who greet you with kindness", image: "/images/pl-camporlodge-pumulani-lodge-58.jpg" },
-      { label: "South Luangwa", href: "/south-luangwa", description: "The Wild Soul, where the wild brings two hearts closer", image: "/images/puku-ridge-3.jpg" },
-      { label: "Zanzibar", href: "/zanzibar", description: "The Forever, where turquoise waters hold your memories", image: "/images/zanzibar-beach.jpg" },
+      { label: "Lake Malawi", href: "/lake-malawi", description: "The Heart, the warmth of a people who greet you with kindness", image: "/images/gs--283.mainja-pool_1.jpg" },
+      { label: "South Luangwa", href: "/south-luangwa", description: "The Wild Soul, where the wild brings two hearts closer", image: "/images/shawa-campfire.jpg" },
+      { label: "Zanzibar", href: "/zanzibar", description: "The Forever, where turquoise waters hold your memories", image: "/images/baraza-beach.jpg" },
     ],
   },
   {
@@ -37,7 +37,7 @@ const NAV_ITEMS = [
         label: "All Journeys",
         href: "/packages",
         description: "Every curated journey across Africa, in one place",
-        image: "/images/hero-poster.jpg",
+        image: "/images/chinzombo-wildlife.jpg",
       },
     ],
   },

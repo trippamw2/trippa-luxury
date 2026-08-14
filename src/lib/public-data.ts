@@ -121,7 +121,7 @@ export async function getMergedBlogPosts() {
       excerpt: luxury(String(post.excerpt || "")),
       content: String(post.content || ""),
       category: String(post.category || "Travel"),
-      image: String(post.image || "/images/hero-poster.jpg"),
+      image: String(post.image || "/images/chinzombo-wildlife.jpg"),
       author: String(post.author || "Kivara Team"),
       readTime: String(post.read_time || "5 min read"),
       date: post.published_at

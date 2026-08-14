@@ -78,7 +78,7 @@ export const IMAGES = {
   journalZanzibar: "/images/journal-zanzibar.jpg",
 
   // Hero video poster frames
-  heroPoster: "/images/hero-poster.jpg",
+  heroPoster: "/images/chinzombo-wildlife.jpg",
 } as const;
 
 export const BRAND_POSITIONING = {

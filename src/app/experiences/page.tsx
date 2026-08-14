@@ -42,7 +42,7 @@ export default function ExperiencesPage() {
       <section className="relative h-[60vh] min-h-[500px] flex items-center">
         <Image
           src={experiences[0]?.image ?? ""}
-          alt="Couple enjoying a sunset dhow cruise"
+          alt="Private beach dining beneath the stars"
           fill
           className="object-cover"
           priority

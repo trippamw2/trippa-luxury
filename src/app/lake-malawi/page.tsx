@@ -299,7 +299,7 @@ export default function LakeMalawiPage() {
               <span className="italic text-earth">Lake Malawi</span>
             </h2>
             <p className="mt-5 text-earth/70 max-w-xl mx-auto text-sm leading-relaxed">
-              Every flight, charter and road transfer arranged by your Kivara Journey Concierge — from your international arrival to your suite.
+              Every flight, charter and road transfer arranged by your Kivara Journey Concierge, from your international arrival to your suite.
             </p>
           </motion.div>
 

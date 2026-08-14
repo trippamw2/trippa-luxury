@@ -26,7 +26,7 @@ export function FeaturedDestinations() {
             <span className="italic text-earth">Three Chapters of Your Story.</span>
           </h2>
           <p className="mt-4 text-base text-earth leading-relaxed">
-            The Heart. The Wild Soul. The Forever — each destination a different chapter, 
+            The Heart. The Wild Soul. The Forever. Each destination a different chapter, 
             each one waiting to become part of your love story.
           </p>
         </motion.div>

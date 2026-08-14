@@ -9,26 +9,26 @@
 export const IMAGES = {
   // Lake Malawi (updated with images from Green Safaris)
   lakeMalawiHero: "/images/kaya-mawa-beach-swing.jpg",
-  lakeMalawiRomanceHero: "/images/kaya-mawa-mainja-dinner-on-terrace.jpg",
+  lakeMalawiRomanceHero: "/images/gs--283.mainja-pool_1.jpg",
   lakeMalawiAerial: "/images/likoma-scuba.jpg",
-  lakeMalawiSunset: "/images/likoma-paddleboard-view.jpg",
-  lakeMalawiBeach: "/images/likoma-snorkelling.jpg",
+  lakeMalawiSunset: "/images/likoma-paddleboard.jpg",
+  lakeMalawiBeach: "/images/makokola-retreat.jpg",
   lakeMalawiDhow: "/images/likoma-kayaking.jpg",
   lakeMalawiIsland: "/images/likoma-paddleboard.jpg",
 
-  // South Luangwa
+  // South Luangwa (official camp imagery)
   southLuangwaHero: "/images/puku-ridge-5.jpg",
-  southLuangwaRomanceHero: "/images/cz-romance-02.jpg",
-  southLuangwaElephant: "/images/south-luangwa-elephant.jpg",
-  southLuangwaLeopard: "/images/south-luangwa-camp.jpg",
-  southLuangwaSunset: "/images/south-luangwa-sunset.jpg",
-  southLuangwaSafari: "/images/south-luangwa-safari.jpg",
-  southLuangwaCamp: "/images/south-luangwa-camp.jpg",
+  southLuangwaRomanceHero: "/images/shawa-campfire.jpg",
+  southLuangwaElephant: "/images/chinzombo-wildlife.jpg",
+  southLuangwaLeopard: "/images/chinzombo-main-area.jpg",
+  southLuangwaSunset: "/images/chinzombo-sundowner.jpg",
+  southLuangwaSafari: "/images/shawa-lion.jpg",
+  southLuangwaCamp: "/images/shawa-lodge.jpg",
 
   // Zanzibar
-  zanzibarHero: "/images/zanzibar-hero.jpg",
+  zanzibarHero: "/images/residence.jpg",
   zanzibarRomanceHero: "/images/baraza-beach.jpg",
-  zanzibarBeach: "/images/zanzibar-beach.jpg",
+  zanzibarBeach: "/images/baraza-beach.jpg",
   zanzibarAerial: "/images/zanzibar-stonetown.jpg",
   zanzibarDhow: "/images/zanzibar-dhow.jpg",
   zanzibarSpa: "/images/zanzibar-spa.jpg",
@@ -53,23 +53,23 @@ export const IMAGES = {
   pukuRidgeStars: "/images/puku-ridge-4.jpg",
   pukuRidgeView: "/images/puku-ridge-5.jpg",
   xanadu: "/images/xanadu.jpg",
-  baraza: "/images/br-wetu-00.jpg",
-  barazaVillaView: "/images/br-wetu-07.jpg",
-  barazaGarden: "/images/br-wetu-05.jpg",
-  barazaPool: "/images/br-wetu-02.jpg",
-  barazaBeach: "/images/br-wetu-01.jpg",
-  barazaDining: "/images/br-wetu-03.jpg",
-  barazaSpa: "/images/br-wetu-04.jpg",
-  barazaSunset: "/images/br-wetu-06.jpg",
-  barazaRoyalVilla: "/images/br-wetu-09.jpg",
+  baraza: "/images/baraza.jpg",
+  barazaVillaView: "/images/baraza-villa-view.jpg",
+  barazaGarden: "/images/baraza-garden.jpg",
+  barazaPool: "/images/baraza-pool.jpg",
+  barazaBeach: "/images/baraza-beach.jpg",
+  barazaDining: "/images/baraza-dining.jpg",
+  barazaSpa: "/images/baraza-spa.jpg",
+  barazaSunset: "/images/baraza-sunset.jpg",
+  barazaRoyalVilla: "/images/baraza-royal-villa.jpg",
 
-  // Experiences
-  dining: "/images/dining.jpg",
+  // Experiences (real property photography)
+  dining: "/images/bz-beach-dining.jpg",
   walking: "/images/lrc-walking.jpg",
-  dhow: "/images/dhow.jpg",
-  spa: "/images/spa.jpg",
-  starbed: "/images/starbed.jpg",
-  bushDining: "/images/bush-dining.jpg",
+  dhow: "/images/zanzibar-dhow.jpg",
+  spa: "/images/baraza-spa.jpg",
+  starbed: "/images/pr-starbed.jpg",
+  bushDining: "/images/bz-beach-dining.jpg",
 
   // Journal
   journalHoneymoon: "/images/journal-honeymoon.jpg",
@@ -806,16 +806,16 @@ export const PROPERTIES = [
       "Baraza Resort & Spa is a refined Swahili boutique resort set along a beach named one of the top 30 in the world by Condé Nast Traveller. The resort evokes the heritage of Zanzibar dating back to the era of the Sultans, designed in a fusion of Arabic, Swahili, and Indian architectural styles with dramatic Swahili arches, intricate hand carved cement decorations, beautiful antiques, handmade furniture, and brass lanterns. All 30 villas : 14 one bedroom and 15 two bedroom, plus one Royal Sultan two bedroom villa : feature luxury interiors, hand carved furniture, spacious terraces, and private plunge pools. The resort offers four restaurants and two bars including Livingstone Terrace, Dhahabu Bar & Lounge, Chai Lounge, Ocean Lounge, and The Sultans Dining Room. The Frangipani Spa offers a wide array of massage techniques and treatments. On site activities include a PADI dive centre, kite surfing, sailing, snorkelling, kayaking, dhow excursions, Swahili cooking classes, spice farm visits, Jozani Forest excursions, and tennis.",
     heroImage: IMAGES.baraza,
     gallery: [
-      "/images/br-wetu-00.jpg",                 // 1  Main building exterior
-      "/images/br-wetu-01.jpg",                 // 2  Sundowners at the beach
-      "/images/br-wetu-02.jpg",                 // 3  Swimming pool
-      "/images/br-wetu-03.jpg",                 // 4  Dhahabu Bar terrace
-      "/images/br-wetu-04.jpg",                 // 5  Frangipani Spa
-      "/images/br-wetu-05.jpg",                 // 6  Garden villa exterior
-      "/images/br-wetu-06.jpg",                 // 7  Main pool at dusk
-      "/images/br-wetu-07.jpg",                 // 8  One bedroom villa
-      "/images/br-wetu-08.jpg",                 // 9  Ocean front villa
-      "/images/br-wetu-09.jpg",                 // 10 Royal beach villa
+      IMAGES.baraza,                                     // 1  Main building exterior
+      IMAGES.barazaBeach,                                // 2  Sundowners at the beach
+      IMAGES.barazaPool,                                 // 3  Swimming pool
+      IMAGES.barazaSunset,                              // 4  Dhahabu Bar terrace
+      IMAGES.barazaSpa,                                // 5  Frangipani Spa
+      IMAGES.barazaGarden,                                // 6  Garden villa exterior
+      IMAGES.barazaPool,                                 // 7  Main pool at dusk
+      IMAGES.barazaVillaView,                            // 8  One bedroom villa
+      IMAGES.barazaVillaView,                            // 9  Ocean front villa
+      IMAGES.barazaRoyalVilla,                           // 10 Royal beach villa
     ],
     priceRange: "$500 to $1,200 per night",
     roomTypes: ["One Bedroom Villa", "Ocean Front One Bedroom Villa", "Two Bedroom Garden Villa", "Royal Sultan Two Bedroom Villa"],
@@ -855,21 +855,21 @@ export const PROPERTIES = [
         name: "One Bedroom Villa",
         description:
           "A spacious 70m² villa with Swahili inspired interiors, hand carved furniture, king size bed, en suite bathroom with twin vanity and rainfall shower, a private terrace with plunge pool, and garden views.",
-        images: ["/images/br-wetu-07.jpg", "/images/br-wetu-05.jpg", "/images/br-wetu-02.jpg"],
+        images: [IMAGES.barazaVillaView, IMAGES.barazaGarden, IMAGES.barazaPool],
         sleeps: 2,
       },
       {
         name: "Ocean Front One Bedroom Villa",
         description:
           "Positioned closest to the ocean, these villas offer panoramic sea views from a larger private terrace and plunge pool. The interiors feature premium Swahili furnishings, a king size bed, and an expansive bathroom with twin vanities.",
-        images: ["/images/br-wetu-01.jpg", "/images/br-wetu-02.jpg", "/images/br-wetu-00.jpg"],
+        images: [IMAGES.barazaBeach, IMAGES.barazaPool, IMAGES.baraza],
         sleeps: 2,
       },
       {
         name: "Royal Sultan Two Bedroom Villa",
         description:
           "The ultimate villa at Baraza spanning 140m² with two en suite bedrooms, a grand living room, private dining area, expansive terrace, and a large private plunge pool. Designed with Sultan inspired opulence throughout.",
-        images: [IMAGES.barazaRoyalVilla, "/images/br-wetu-07.jpg", "/images/br-wetu-08.jpg"],
+        images: [IMAGES.barazaRoyalVilla, IMAGES.barazaVillaView, IMAGES.barazaBeach],
         sleeps: 4,
       },
     ],

@@ -298,7 +298,7 @@ export default function SouthLuangwaPage() {
               <span className="italic text-earth">South Luangwa</span>
             </h2>
             <p className="mt-5 text-earth/70 max-w-xl mx-auto text-sm leading-relaxed">
-              Every flight and road transfer arranged by your Kivara Journey Concierge — from your international arrival to camp.
+              Every flight and road transfer arranged by your Kivara Journey Concierge, from your international arrival to camp.
             </p>
           </motion.div>
 

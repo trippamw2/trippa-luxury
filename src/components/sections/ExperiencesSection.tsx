@@ -142,8 +142,8 @@ export function ExperiencesSection() {
             <span className="italic text-gold-light">Breath Away</span>
           </h2>
           <p className="mt-4 text-base text-earth-light leading-relaxed">
-            Follow each experience step by step — from the point of arrival to the
-            point of departure — and trace the journey on the map beside it.
+            Follow each experience step by step, from the point of arrival to the
+            point of departure, and trace the journey on the map beside it.
           </p>
         </motion.div>
 

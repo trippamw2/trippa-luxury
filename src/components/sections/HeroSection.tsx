@@ -179,7 +179,7 @@ export function HeroSection() {
           <button
             key={index}
             onClick={() => setActiveIndex(index)}
-            className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full transition-all duration-700 ${
+            className={`min-w-0 min-h-0 w-1.5 h-1.5 md:w-2 md:h-2 rounded-full transition-all duration-700 ${
               index === activeIndex
                 ? "bg-cream w-4 md:w-5"
                 : "bg-cream/30 hover:bg-cream/50"

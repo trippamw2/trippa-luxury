@@ -56,7 +56,7 @@ export default function ExperiencesPage() {
             Experiences Composed for Two
           </h1>
           <p className="text-lg text-earth-light mb-8 max-w-2xl">
-            Each experience is crafted around the rhythm of your journey—whether
+            Each experience is crafted around the rhythm of your journey, whether
             that is a private dinner beneath the African stars, a guided walking
             safari through ancient wilderness, or a sunset dhow cruise with
             champagne in hand.

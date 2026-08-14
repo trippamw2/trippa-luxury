@@ -315,6 +315,15 @@ button, .btn {
   padding: 0.75rem 1.5rem;
 }
 
+/* Decorative carousel indicator dots — exempt from the 44px touch minimum
+   and button padding (unlayered rule with higher specificity beats the
+   button minimums; border-box padding would otherwise inflate the dot box). */
+button[aria-label*="video"] {
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+}
+
 /* Elegant form inputs */
 input, textarea, select {
   font-family: var(--font-body);
@@ -486,11 +495,11 @@ input:focus, textarea:focus, select:focus {
 .luxury-map-bg.leaflet-container {
   background: linear-gradient(
     145deg,
-    #1a1a1a 0%,
-    #1c1c1c 25%,
-    #1e1e1e 50%,
-    #1b1b1b 75%,
-    #191919 100%
+    #2e2a24 0%,
+    #322d26 25%,
+    #35302a 50%,
+    #302b25 75%,
+    #2c2822 100%
   );
   background-size: 400% 400%;
 }
@@ -511,9 +520,6 @@ input:focus, textarea:focus, select:focus {
 .luxury-map-bg .leaflet-control-zoom {
   display: none !important;
 }
-/* Ensure overlay panes render above the grid */
-.luxury-map-bg .leaflet-overlay-pane,
-.luxury-map-bg .leaflet-marker-pane,
-.luxury-map-bg .leaflet-popup-pane {
-  z-index: 2;
-}
+/* Panes keep Leaflet's default stacking (tile 200 < overlay 400 < marker
+   600 < popup 700) so markers render ABOVE the base tiles. The map-pane
+   (z-index 400) already sits above the grid overlay (z-index 1). */

@@ -292,7 +292,7 @@ export default function ZanzibarPage() {
               <span className="italic text-earth">Zanzibar</span>
             </h2>
             <p className="mt-5 text-earth/70 max-w-xl mx-auto text-sm leading-relaxed">
-              Every flight and road transfer arranged by your Kivara Journey Concierge — from your international arrival to your resort.
+              Every flight and road transfer arranged by your Kivara Journey Concierge, from your international arrival to your resort.
             </p>
           </motion.div>
 

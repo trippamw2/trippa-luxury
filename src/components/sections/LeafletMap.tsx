@@ -160,12 +160,12 @@ export function LeafletMap({
       center={[-13.0, 34.0]}
       zoom={6}
       className={mapContainerClass}
-      style={{ height: "100%", width: "100%", backgroundColor: "#1a1a1a" }}
+      style={{ height: "100%", width: "100%", backgroundColor: "#2E2A24" }}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        opacity={0.55}
+        opacity={0.9}
       />
       <FitBounds points={allPoints} />
       <CustomZoomControl />

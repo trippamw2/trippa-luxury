@@ -5,7 +5,7 @@ import { mapKeysToCamel } from "@/lib/api-helpers";
 
 export async function GET(request: NextRequest) {
   try {
-    await requireAdmin();
+    await requireAdmin({ module: "audit-log", minRole: "admin" });
     const supabase = createAdminClient();
 
     const url = new URL(request.url);

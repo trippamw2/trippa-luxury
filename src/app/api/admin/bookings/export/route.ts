@@ -5,7 +5,7 @@ import { toCsv, csvFilename } from "@/lib/csv";
 
 export async function GET(request: NextRequest) {
   try {
-    await requireAdmin();
+    await requireAdmin({ module: "bookings", minRole: "agent" });
     const supabase = createAdminClient();
 
     const url = new URL(request.url);

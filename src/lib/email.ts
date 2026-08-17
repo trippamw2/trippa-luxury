@@ -179,6 +179,26 @@ export function newsletterWelcomeEmail() {
   };
 }
 
+/**
+ * Admin-composed newsletter campaign. `bodyHtml` is the staff-written HTML
+ * (paragraph-safe), rendered inside the Kivara shell.
+ */
+export function newsletterCampaignEmail(data: { subject: string; bodyHtml: string }) {
+  return {
+    subject: data.subject,
+    htmlContent: emailShell("The Kivara Edit", `
+      <div style="font-size: 14px; color: #4A4A4A; line-height: 1.7;">
+        ${data.bodyHtml}
+      </div>
+      <div style="margin-top: 32px; padding: 16px; background: #F5F0EB; border-left: 3px solid #C9A96E;">
+        <p style="font-size: 12px; color: #8B7D6B; margin: 0;">
+          Prefer not to hear from us? Reply with "unsubscribe" and we will remove you from the list.
+        </p>
+      </div>
+    `),
+  };
+}
+
 export function quoteEmail(data: {
   clientName: string;
   quoteRef: string;
@@ -187,6 +207,29 @@ export function quoteEmail(data: {
   return {
     subject: `Your Curated Journey : ${data.quoteRef} : Kivara Luxury Travel`,
     htmlContent: data.htmlContent,
+  };
+}
+
+/**
+ * Concierge reply to an inquiry. `replyHtml` is the staff-written message,
+ * rendered as-is inside the Kivara shell (multi-line safe).
+ */
+export function inquiryReplyEmail(data: {
+  clientName: string;
+  replyHtml: string;
+}) {
+  return {
+    subject: `Re: Your Journey Inquiry : Kivara Luxury Travel`,
+    htmlContent: emailShell("Your Personal Concierge", `
+      <h2 style="font-family: 'Times New Roman', serif; font-size: 20px; color: #1A1A1A; margin: 0 0 16px;">Dear ${data.clientName},</h2>
+      <div style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 24px;">
+        ${data.replyHtml}
+      </div>
+      <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0;">With warmest regards,<br><strong style="color: #C9A96E;">Your Kivara Concierge</strong></p>
+      <div style="margin-top: 24px; padding: 16px; background: #F5F0EB; border-left: 3px solid #C9A96E;">
+        <p style="font-size: 12px; color: #8B7D6B; margin: 0;">Simply reply to this email to continue the conversation, or reach us on WhatsApp at any time.</p>
+      </div>
+    `),
   };
 }
 

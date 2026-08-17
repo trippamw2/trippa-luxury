@@ -107,6 +107,7 @@ export async function getMergedBlogPosts() {
       .from("blog_posts")
       .select("*")
       .eq("is_published", true)
+      .or(`scheduled_at.is.null,scheduled_at.lte.${new Date().toISOString()}`)
       .order("published_at", { ascending: false });
 
     if (error || !dbPosts) {

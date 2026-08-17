@@ -21,7 +21,7 @@ function mapRow(item: ExpenseRow) {
 
 export async function GET(_request: NextRequest) {
   try {
-    await requireAdmin();
+    await requireAdmin({ module: "finance", minRole: "admin" });
     const supabase = createAdminClient();
     const { data, error, count } = await supabase
       .from(TABLE)
@@ -49,7 +49,7 @@ export async function GET(_request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    await requireAdmin();
+    await requireAdmin({ module: "finance", minRole: "admin" });
     const body = await request.json();
     const supabase = createAdminClient();
 

@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const auth = await requireAdmin();
+    const auth = await requireAdmin({ module: "users", minRole: "admin" });
     const supabase = createAdminClient();
     const body = await request.json();
 

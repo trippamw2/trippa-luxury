@@ -30,6 +30,8 @@ interface Supplier {
   image?: string;
   website?: string;
   notes?: string;
+  bankDetails?: string;
+  paymentTerms?: string;
 }
 
 interface ApiSupplier {
@@ -51,6 +53,8 @@ interface ApiSupplier {
   logo?: string;
   website?: string;
   notes?: string;
+  bankDetails?: string;
+  paymentTerms?: string;
 }
 
 function mapSupplier(item: ApiSupplier): Supplier {
@@ -72,6 +76,8 @@ function mapSupplier(item: ApiSupplier): Supplier {
     image: item.logo || "",
     website: item.website || "",
     notes: item.notes || "",
+    bankDetails: item.bankDetails || "",
+    paymentTerms: item.paymentTerms || "",
   };
 }
 
@@ -92,6 +98,8 @@ function mapSupplierToApi(item: Partial<Supplier>): Record<string, unknown> {
     rating: item.rating,
     logo: item.image,
     slug: item.name?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || `supplier-${Date.now()}`,
+    bank_details: item.bankDetails || null,
+    payment_terms: item.paymentTerms || null,
   };
 }
 
@@ -122,7 +130,7 @@ export default function AdminSuppliers() {
     name: "", category: "lodge" as SupplierCategory, location: "", country: "",
     contactPerson: "", email: "", phone: "", commissionRate: "", rating: "",
     status: "active" as "active" | "inactive" | "blacklisted", contractOnFile: false,
-    image: "", website: "", notes: ""
+    image: "", website: "", notes: "", bankDetails: "", paymentTerms: ""
   });
 
   const filtered = suppliers.filter(s => {
@@ -131,7 +139,7 @@ export default function AdminSuppliers() {
     return matchesSearch && matchesCategory;
   });
 
-  const resetForm = () => setFormData({ name: "", category: "lodge", location: "", country: "", contactPerson: "", email: "", phone: "", commissionRate: "", rating: "", status: "active", contractOnFile: false, image: "", website: "", notes: "" });
+  const resetForm = () => setFormData({ name: "", category: "lodge", location: "", country: "", contactPerson: "", email: "", phone: "", commissionRate: "", rating: "", status: "active", contractOnFile: false, image: "", website: "", notes: "", bankDetails: "", paymentTerms: "" });
 
   const handleAdd = async () => {
     const result = await create({
@@ -141,6 +149,7 @@ export default function AdminSuppliers() {
       rating: parseFloat(formData.rating) || 4.0, status: formData.status,
       contractOnFile: formData.contractOnFile, image: formData.image || undefined,
       website: formData.website || undefined, notes: formData.notes || undefined,
+      bankDetails: formData.bankDetails || undefined, paymentTerms: formData.paymentTerms || undefined,
     });
     if (result) {
       setShowModal(false);
@@ -177,7 +186,7 @@ export default function AdminSuppliers() {
   };
 
   const openAddModal = () => { setEditingSupplier(null); resetForm(); setShowModal(true); };
-  const openEditModal = (supplier: Supplier) => { setEditingSupplier(supplier); setFormData({ name: supplier.name, category: supplier.category, location: supplier.location, country: supplier.country, contactPerson: supplier.contactPerson, email: supplier.email, phone: supplier.phone, commissionRate: supplier.commissionRate.toString(), rating: supplier.rating.toString(), status: supplier.status, contractOnFile: supplier.contractOnFile, image: supplier.image || "", website: supplier.website || "", notes: supplier.notes || "" }); setShowModal(true); };
+  const openEditModal = (supplier: Supplier) => { setEditingSupplier(supplier); setFormData({ name: supplier.name, category: supplier.category, location: supplier.location, country: supplier.country, contactPerson: supplier.contactPerson, email: supplier.email, phone: supplier.phone, commissionRate: supplier.commissionRate.toString(), rating: supplier.rating.toString(), status: supplier.status, contractOnFile: supplier.contractOnFile, image: supplier.image || "", website: supplier.website || "", notes: supplier.notes || "", bankDetails: supplier.bankDetails || "", paymentTerms: supplier.paymentTerms || "" }); setShowModal(true); };
 
   const stats = { total: suppliers.length, active: suppliers.filter(s => s.status === "active").length, lodges: suppliers.filter(s => s.category === "lodge").length, revenue: `$${(suppliers.reduce((a, s) => a + (s.totalRevenue || 0), 0) / 1000).toFixed(0)}k` };
 
@@ -244,7 +253,7 @@ export default function AdminSuppliers() {
                   <p className="flex items-center gap-1"><Phone className="w-3 h-3" />{supplier.phone}</p>
                 </div>
                 <div className="flex items-center justify-between pt-3 border-t border-sand-light">
-                  <span className="text-xs text-earth">{supplier.bookingsCount} bookings</span>
+                  <span className="text-xs text-earth">{supplier.bookingsCount} bookings{supplier.paymentTerms ? ` · ${supplier.paymentTerms}` : ""}</span>
                   <div className="flex gap-3">
                     <button onClick={() => openEditModal(supplier)} className="flex items-center gap-1 text-xs text-gold hover:underline"><Edit2 className="w-3 h-3" />Edit</button>
                     <button onClick={() => setDeleteConfirm(supplier.id)} className="text-xs text-red-500 hover:underline">Delete</button>
@@ -288,6 +297,11 @@ export default function AdminSuppliers() {
                 <FormGroup>
                   <FormInput label="Commission %" name="commissionRate" type="number" value={formData.commissionRate} onChange={(e) => setFormData(p => ({ ...p, commissionRate: e.target.value }))} placeholder="15" />
                   <FormInput label="Rating" name="rating" type="number" step="0.1" value={formData.rating} onChange={(e) => setFormData(p => ({ ...p, rating: e.target.value }))} placeholder="4.9" />
+                  <FormInput label="Payment Terms" name="paymentTerms" value={formData.paymentTerms} onChange={(e) => setFormData(p => ({ ...p, paymentTerms: e.target.value }))} placeholder="Net 30" />
+                </FormGroup>
+                <FormTextarea label="Bank Details" name="bankDetails" value={formData.bankDetails} onChange={(e) => setFormData(p => ({ ...p, bankDetails: e.target.value }))} rows={2} placeholder="Bank name, account number, SWIFT/BIC, currency…" />
+                <FormGroup>
+                  <FormInput label="Image URL" name="image" type="url" value={formData.image} onChange={(e) => setFormData(p => ({ ...p, image: e.target.value }))} placeholder="/images/makokola-retreat.jpg" />
                   <div className="flex items-end pb-2">
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input type="checkbox" checked={formData.contractOnFile} onChange={(e) => setFormData(p => ({ ...p, contractOnFile: e.target.checked }))} className="w-4 h-4 accent-gold" />
@@ -295,7 +309,6 @@ export default function AdminSuppliers() {
                     </label>
                   </div>
                 </FormGroup>
-                <FormInput label="Image URL" name="image" type="url" value={formData.image} onChange={(e) => setFormData(p => ({ ...p, image: e.target.value }))} placeholder="/images/makokola-retreat.jpg" />
                 <FormTextarea label="Notes" name="notes" value={formData.notes} onChange={(e) => setFormData(p => ({ ...p, notes: e.target.value }))} rows={2} placeholder="Additional notes..." />
               </div>
               <div className="flex gap-3 px-6 py-4 border-t border-sand-light flex-shrink-0">

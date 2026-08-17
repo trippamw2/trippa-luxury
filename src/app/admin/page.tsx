@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { DollarSign, MessageCircle, CalendarCheck, Eye, Building, Plane, Receipt, ArrowRight, Plus, Luggage, MapPin } from "lucide-react";
+import { DollarSign, MessageCircle, CalendarCheck, Eye, Building, Plane, Receipt, ArrowRight, Plus, Luggage, MapPin, ListTodo, AlertCircle, Clock } from "lucide-react";
 import { RevenueChart } from "./components/RevenueChart";
 import { BookingTrendsChart } from "./components/BookingTrendsChart";
 import { StatusDistributionChart } from "./components/StatusDistributionChart";
@@ -29,6 +29,16 @@ interface DashboardData {
   monthlyBookings: { month: string; count: number }[];
 }
 
+interface DashboardTask {
+  id: string;
+  title: string;
+  description: string;
+  priority: "low" | "medium" | "high" | "urgent";
+  status: "todo" | "in_progress" | "done" | "cancelled";
+  dueDate?: string | null;
+  assigneeName?: string | null;
+}
+
 export default function AdminDashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -42,6 +52,18 @@ export default function AdminDashboard() {
       })
       .catch((err) => console.error("Dashboard fetch error:", err))
       .finally(() => setLoading(false));
+  }, []);
+
+  const [tasks, setTasks] = useState<DashboardTask[]>([]);
+
+  useEffect(() => {
+    fetch("/api/admin/tasks")
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.error) throw new Error(json.error);
+        setTasks((json.data || []) as DashboardTask[]);
+      })
+      .catch((err) => console.error("Dashboard tasks fetch error:", err));
   }, []);
 
   const statCards = data
@@ -206,6 +228,64 @@ export default function AdminDashboard() {
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+
+          {/* Team Tasks */}
+          <div className="bg-white border border-gray-100 mb-8">
+            <div className="p-5 border-b border-gray-50 flex items-center justify-between">
+              <h2 className="text-xs font-semibold text-gray-900 uppercase tracking-wider">Team Tasks</h2>
+              <Link href="/admin/tasks" className="text-xs text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
+                Manage Tasks <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+            <div className="divide-y divide-gray-50">
+              {tasks.length === 0 ? (
+                <div className="p-8 text-center text-sm text-gray-400">
+                  <ListTodo className="w-8 h-8 mx-auto mb-2 text-gray-200" />
+                  <p>No open tasks.</p>
+                </div>
+              ) : (
+                tasks
+                  .filter((t) => t.status !== "done" && t.status !== "cancelled")
+                  .slice(0, 5)
+                  .map((task) => {
+                    const overdue = !!task.dueDate && new Date(task.dueDate) < new Date();
+                    return (
+                      <div key={task.id} className="p-4 hover:bg-gray-50 transition-colors flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className={`w-8 h-8 flex items-center justify-center flex-shrink-0 ${
+                            task.priority === "urgent" ? "bg-red-50" :
+                            task.priority === "high" ? "bg-amber-50" : "bg-gray-50"
+                          }`}>
+                            {overdue
+                              ? <AlertCircle className={`w-4 h-4 ${task.priority === "urgent" ? "text-red-600" : task.priority === "high" ? "text-amber-600" : "text-gray-500"}`} />
+                              : <ListTodo className="w-4 h-4 text-gray-500" />}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">{task.title}</p>
+                            <p className="text-xs text-gray-400 flex items-center gap-1">
+                              {task.assigneeName || "Unassigned"}
+                              {task.dueDate && (
+                                <span className={`inline-flex items-center gap-0.5 ${overdue ? "text-red-500 font-medium" : ""}`}>
+                                  · <Clock className="w-3 h-3" /> {new Date(task.dueDate).toLocaleDateString()}
+                                  {overdue && " (overdue)"}
+                                </span>
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                        <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-medium uppercase flex-shrink-0 ${
+                          task.priority === "urgent" ? "bg-red-50 text-red-700" :
+                          task.priority === "high" ? "bg-amber-50 text-amber-700" :
+                          task.priority === "low" ? "bg-gray-100 text-gray-500" : "bg-blue-50 text-blue-700"
+                        }`}>
+                          {task.priority}
+                        </span>
+                      </div>
+                    );
+                  })
+              )}
             </div>
           </div>
 

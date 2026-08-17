@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, X, FileText, Mail, Send, Printer, Loader2, Edit2, Trash2, Calendar, CalendarDays, AlertTriangle, RefreshCw, Download } from "lucide-react";
+import { Plus, X, FileText, Mail, Send, Printer, Loader2, Edit2, Trash2, Calendar, CalendarDays, AlertTriangle, RefreshCw, Download, History, UserRound } from "lucide-react";
 import { useApiData } from "@/lib/use-api-data";
 import { useToast } from "@/app/admin/components/Toast";
 import { DataTable, type Column } from "@/app/admin/components/DataTable";
@@ -24,12 +24,14 @@ interface Booking {
   guests: number;
   totalPrice: string;
   depositPaid: string;
+  currency: string;
   status: BookingStatus;
   package?: string;
   specialRequests?: string;
   depositMethod?: string;
   swiftCode?: string;
   depositNotes?: string;
+  guestProfileId?: string | null;
 }
 
 /** Raw row shape returned by the bookings admin API (DB column names). */
@@ -46,12 +48,14 @@ interface ApiBooking {
   guestsCount?: number | null;
   totalAmount?: number | null;
   depositAmount?: number | null;
+  currency?: string | null;
   status?: string | null;
   packageId?: string | null;
   specialRequests?: string | null;
   depositMethod?: string | null;
   swiftConfirmationCode?: string | null;
   depositNotes?: string | null;
+  guestProfileId?: string | null;
 }
 
 interface BookingFormData {
@@ -65,6 +69,7 @@ interface BookingFormData {
   guests: string;
   totalPrice: string;
   depositPaid: string;
+  currency: string;
   status: string;
   package: string;
   specialRequests: string;
@@ -76,7 +81,7 @@ interface BookingFormData {
 function emptyFormData(): BookingFormData {
   return {
     clientName: "", clientEmail: "", clientPhone: "", destination: "", property: "",
-    checkIn: "", checkOut: "", guests: "2", totalPrice: "", depositPaid: "",
+    checkIn: "", checkOut: "", guests: "2", totalPrice: "", depositPaid: "", currency: "USD",
     status: "provisional", package: "", specialRequests: "",
     depositMethod: "", swiftCode: "", depositNotes: "",
   };
@@ -95,6 +100,7 @@ function bookingToFormData(booking: Booking): BookingFormData {
     guests: String(booking.guests),
     totalPrice: booking.totalPrice,
     depositPaid: booking.depositPaid,
+    currency: booking.currency || "USD",
     status: booking.status,
     package: booking.package || "",
     specialRequests: booking.specialRequests || "",
@@ -114,11 +120,19 @@ interface BookingApiPayload {
   guests_count?: number;
   total_amount?: number;
   deposit_amount?: number;
+  currency?: string;
   status?: string;
   special_requests?: string;
   deposit_method?: string | null;
   swift_confirmation_code?: string | null;
   deposit_notes?: string | null;
+}
+
+/** Format an amount with the booking's currency code. */
+function formatAmount(amount: number | undefined | null, currency: string | undefined | null): string {
+  if (!amount) return "—";
+  const code = currency || "USD";
+  return `${code} ${Number(amount).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
 }
 
 function mapBooking(item: ApiBooking): Booking {
@@ -133,14 +147,16 @@ function mapBooking(item: ApiBooking): Booking {
     checkIn: item.startDate || "",
     checkOut: item.endDate || "",
     guests: item.guestsCount || 2,
-    totalPrice: item.totalAmount ? `$${(+item.totalAmount).toLocaleString()}` : "$0",
-    depositPaid: item.depositAmount ? `$${(+item.depositAmount).toLocaleString()}` : "$0",
+    totalPrice: formatAmount(item.totalAmount, item.currency),
+    depositPaid: formatAmount(item.depositAmount, item.currency),
+    currency: item.currency || "USD",
     status: (item.status as BookingStatus) || "provisional",
     package: item.packageId || "",
     specialRequests: item.specialRequests || "",
     depositMethod: item.depositMethod || "",
     swiftCode: item.swiftConfirmationCode || "",
     depositNotes: item.depositNotes || "",
+    guestProfileId: item.guestProfileId || null,
   };
 }
 
@@ -153,8 +169,9 @@ function mapBookingToApi(item: Partial<Booking>): BookingApiPayload {
     start_date: item.checkIn,
     end_date: item.checkOut,
     guests_count: item.guests,
-    total_amount: item.totalPrice ? parseFloat(item.totalPrice.replace(/[$,]/g, "")) : 0,
-    deposit_amount: item.depositPaid ? parseFloat(item.depositPaid.replace(/[$,]/g, "")) : 0,
+    total_amount: item.totalPrice ? parseFloat(item.totalPrice.replace(/[^\d.]/g, "")) : 0,
+    deposit_amount: item.depositPaid ? parseFloat(item.depositPaid.replace(/[^\d.]/g, "")) : 0,
+    currency: item.currency || "USD",
     status: item.status || "provisional",
     special_requests: item.specialRequests,
     deposit_method: item.depositMethod || null,
@@ -192,6 +209,67 @@ export default function AdminBookings() {
   const [emailMenu, setEmailMenu] = useState<string | null>(null);
   const [sendingEmail, setSendingEmail] = useState<string | null>(null);
   const [generatingDoc, setGeneratingDoc] = useState<string | null>(null);
+
+  // ─── Amendment history ─────────────────────────────
+  interface Amendment {
+    id: string;
+    field: string;
+    oldValue: string | null;
+    newValue: string | null;
+    reason: string | null;
+    changedByName: string | null;
+    createdAt: string;
+  }
+  const [historyBooking, setHistoryBooking] = useState<Booking | null>(null);
+  const [amendments, setAmendments] = useState<Amendment[]>([]);
+  const [loadingAmendments, setLoadingAmendments] = useState(false);
+  const [amendmentForm, setAmendmentForm] = useState({ field: "", oldValue: "", newValue: "", reason: "" });
+  const [savingAmendment, setSavingAmendment] = useState(false);
+
+  const openHistory = async (booking: Booking) => {
+    setHistoryBooking(booking);
+    setAmendments([]);
+    setAmendmentForm({ field: "", oldValue: "", newValue: "", reason: "" });
+    setLoadingAmendments(true);
+    try {
+      const res = await fetch(`/api/admin/bookings/${booking.id}/amendments`);
+      if (res.ok) {
+        const json = await res.json();
+        setAmendments(json.data || []);
+      }
+    } catch {
+      // Non-critical
+    }
+    setLoadingAmendments(false);
+  };
+
+  const handleAddAmendment = async () => {
+    if (!historyBooking || !amendmentForm.field.trim() || savingAmendment) return;
+    setSavingAmendment(true);
+    try {
+      const res = await fetch(`/api/admin/bookings/${historyBooking.id}/amendments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          field: amendmentForm.field,
+          oldValue: amendmentForm.oldValue || null,
+          newValue: amendmentForm.newValue || null,
+          reason: amendmentForm.reason || null,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to record amendment");
+      }
+      const json = await res.json();
+      setAmendments((prev) => [json.data, ...prev]);
+      setAmendmentForm({ field: "", oldValue: "", newValue: "", reason: "" });
+      toast("Amendment recorded", "success");
+    } catch (err: unknown) {
+      toast(`Failed to record amendment: ${err instanceof Error ? err.message : "unknown error"}`, "error");
+    }
+    setSavingAmendment(false);
+  };
 
   // ─── Provisional holds ─────────────────────────────
   const [staleProvisionals, setStaleProvisionals] = useState<number>(0);
@@ -359,7 +437,18 @@ export default function AdminBookings() {
       header: "Client",
       render: (b) => (
         <div>
-          <p className="font-medium text-soft-black">{b.clientName}</p>
+          <p className="font-medium text-soft-black flex items-center gap-1.5">
+            {b.clientName}
+            {b.guestProfileId && (
+              <a
+                href="/admin/guest-profiles"
+                title="Linked to guest profile"
+                className="inline-flex items-center gap-0.5 text-[10px] text-gold hover:underline"
+              >
+                <UserRound className="w-3 h-3" />guest
+              </a>
+            )}
+          </p>
           <p className="text-xs text-earth">{b.clientEmail}</p>
         </div>
       ),
@@ -404,6 +493,11 @@ export default function AdminBookings() {
       sortable: false,
       render: (b) => (
         <div className="flex items-center justify-end gap-1">
+          {/* Amendment history */}
+          <button onClick={() => void openHistory(b)} className="p-1.5 text-xs text-earth hover:text-soft-black hover:bg-sand-light rounded" title="Amendment history">
+            <History className="w-3.5 h-3.5" />
+          </button>
+
           {/* Download iCal */}
           <a
             href={`/api/admin/bookings/${b.id}/ical`}
@@ -596,8 +690,20 @@ export default function AdminBookings() {
 
               <FormGroup>
                 <FormInput label="Guests" name="guests" type="number" value={formData.guests || "2"} onChange={e => setFormData({ ...formData, guests: e.target.value })} />
-                <FormInput label="Total Price" name="totalPrice" value={formData.totalPrice || ""} onChange={e => setFormData({ ...formData, totalPrice: e.target.value })} placeholder="$5,000" />
-                <FormInput label="Deposit Paid" name="depositPaid" value={formData.depositPaid || ""} onChange={e => setFormData({ ...formData, depositPaid: e.target.value })} placeholder="$2,500" />
+                <FormSelect label="Currency" name="currency" value={formData.currency || "USD"} onChange={e => setFormData({ ...formData, currency: e.target.value })}
+                  options={[
+                    { value: "USD", label: "USD — US Dollar" },
+                    { value: "EUR", label: "EUR — Euro" },
+                    { value: "GBP", label: "GBP — British Pound" },
+                    { value: "ZMW", label: "ZMW — Zambian Kwacha" },
+                    { value: "ZAR", label: "ZAR — South African Rand" },
+                  ]}
+                />
+              </FormGroup>
+
+              <FormGroup>
+                <FormInput label="Total Price" name="totalPrice" value={formData.totalPrice || ""} onChange={e => setFormData({ ...formData, totalPrice: e.target.value })} placeholder={`5,000`} />
+                <FormInput label="Deposit Paid" name="depositPaid" value={formData.depositPaid || ""} onChange={e => setFormData({ ...formData, depositPaid: e.target.value })} placeholder={`2,500`} />
               </FormGroup>
 
               <FormGroup>
@@ -628,6 +734,109 @@ export default function AdminBookings() {
               </button>
             </div>
           </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ─── Amendment History Modal ─────────────────── */}
+      <AnimatePresence>
+        {historyBooking && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-40 p-4"
+            onClick={() => setHistoryBooking(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95 }}
+              className="bg-cream border border-sand-light w-full max-w-2xl max-h-[90vh] flex flex-col"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between px-6 py-4 border-b border-sand-light flex-shrink-0">
+                <div>
+                  <h2 className="text-xl font-bold text-soft-black">Amendment History</h2>
+                  <p className="text-xs text-earth mt-0.5">
+                    {historyBooking.ref} • {historyBooking.clientName}
+                    {historyBooking.guestProfileId ? " • linked to guest profile" : ""}
+                  </p>
+                </div>
+                <button onClick={() => setHistoryBooking(null)}><X className="w-5 h-5 text-earth" /></button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-6 min-h-0">
+                {loadingAmendments ? (
+                  <div className="flex items-center gap-2 text-sm text-earth py-8 justify-center">
+                    <Loader2 className="w-4 h-4 animate-spin" /> Loading history...
+                  </div>
+                ) : amendments.length === 0 ? (
+                  <div className="text-center py-10">
+                    <History className="w-10 h-10 text-earth/30 mx-auto mb-3" />
+                    <p className="text-sm text-earth">No amendments recorded for this booking yet.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {amendments.map((a) => (
+                      <div key={a.id} className="border border-sand-light bg-white p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-medium text-soft-black uppercase tracking-wide">{a.field}</span>
+                          <span className="text-[10px] text-earth">
+                            {a.changedByName ? `${a.changedByName} • ` : ""}{a.createdAt ? new Date(a.createdAt).toLocaleString() : ""}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs">
+                          <span className="text-earth line-through">{a.oldValue || "—"}</span>
+                          <span className="text-earth">→</span>
+                          <span className="text-soft-black font-medium">{a.newValue || "—"}</span>
+                        </div>
+                        {a.reason && <p className="text-[11px] text-earth mt-1.5 italic">Reason: {a.reason}</p>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Add amendment form */}
+                <div className="mt-6 pt-6 border-t border-sand-light">
+                  <h3 className="text-sm font-bold text-soft-black mb-3">Record an Amendment</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <input
+                      type="text"
+                      value={amendmentForm.field}
+                      onChange={(e) => setAmendmentForm({ ...amendmentForm, field: e.target.value })}
+                      placeholder="Field (e.g. Check-in date)"
+                      className="col-span-2 px-3 py-2 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white"
+                    />
+                    <input
+                      type="text"
+                      value={amendmentForm.oldValue}
+                      onChange={(e) => setAmendmentForm({ ...amendmentForm, oldValue: e.target.value })}
+                      placeholder="Old value"
+                      className="px-3 py-2 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white"
+                    />
+                    <input
+                      type="text"
+                      value={amendmentForm.newValue}
+                      onChange={(e) => setAmendmentForm({ ...amendmentForm, newValue: e.target.value })}
+                      placeholder="New value"
+                      className="px-3 py-2 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white"
+                    />
+                    <input
+                      type="text"
+                      value={amendmentForm.reason}
+                      onChange={(e) => setAmendmentForm({ ...amendmentForm, reason: e.target.value })}
+                      placeholder="Reason (optional)"
+                      className="col-span-2 px-3 py-2 border border-sand-light text-sm focus:outline-none focus:border-gold bg-white"
+                    />
+                  </div>
+                  <button
+                    onClick={handleAddAmendment}
+                    disabled={!amendmentForm.field.trim() || savingAmendment}
+                    className="mt-3 w-full px-4 py-2.5 bg-gold text-soft-black text-sm font-medium hover:bg-gold-dark transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {savingAmendment ? <Loader2 className="w-4 h-4 animate-spin" /> : <History className="w-4 h-4" />}
+                    Record Amendment
+                  </button>
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

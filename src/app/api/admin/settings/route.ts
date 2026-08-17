@@ -4,7 +4,7 @@ import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 
 export async function GET() {
   try {
-    await requireAdmin();
+    await requireAdmin({ module: "settings", minRole: "admin" });
     const supabase = createAdminClient();
 
     const { data: settings } = await supabase
@@ -34,7 +34,7 @@ export async function GET() {
 
 export async function PUT(request: NextRequest) {
   try {
-    await requireAdmin();
+    await requireAdmin({ module: "settings", minRole: "admin" });
     const body = await request.json();
     const supabase = createAdminClient();
 

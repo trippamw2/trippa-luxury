@@ -30,7 +30,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireAdmin();
+    await requireAdmin({ module: "finance", minRole: "admin" });
 
     const { id } = await params;
     const supabase = createAdminClient();

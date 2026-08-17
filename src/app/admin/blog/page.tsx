@@ -25,6 +25,9 @@ interface BlogPost {
   image: string;
   content?: string;
   published?: boolean;
+  seoTitle?: string;
+  seoDescription?: string;
+  scheduledAt?: string;
 }
 
 const CATEGORIES = ["Romance", "Safari", "Travel", "Travel Guide", "Sustainability", "Wellness"];
@@ -40,6 +43,9 @@ interface ApiBlogPost {
   image?: string;
   content?: string;
   isPublished?: boolean;
+  seoTitle?: string;
+  seoDescription?: string;
+  scheduledAt?: string;
 }
 
 function mapPost(item: ApiBlogPost): BlogPost {
@@ -53,6 +59,9 @@ function mapPost(item: ApiBlogPost): BlogPost {
     image: item.image || "",
     content: item.content || "",
     published: item.isPublished !== false,
+    seoTitle: item.seoTitle || "",
+    seoDescription: item.seoDescription || "",
+    scheduledAt: item.scheduledAt || "",
   };
 }
 
@@ -67,6 +76,9 @@ function mapPostToApi(item: Partial<BlogPost>): Record<string, unknown> {
     is_published: item.published,
     published_at: item.published ? new Date().toISOString() : null,
     slug: item.title?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || `post-${Date.now()}`,
+    seo_title: item.seoTitle || null,
+    seo_description: item.seoDescription || null,
+    scheduled_at: item.scheduledAt || null,
   };
 }
 
@@ -83,6 +95,7 @@ export default function AdminBlog() {
   const [formData, setFormData] = useState({
     title: "", category: "Romance", date: "", author: "Kivara Team",
     excerpt: "", image: "", content: "", published: true,
+    seoTitle: "", seoDescription: "", scheduledAt: "",
   });
 
   const filtered = posts.filter(p =>
@@ -93,6 +106,7 @@ export default function AdminBlog() {
   const resetForm = () => setFormData({
     title: "", category: "Romance", date: new Date().toISOString().split("T")[0],
     author: "Kivara Team", excerpt: "", image: "", content: "", published: true,
+    seoTitle: "", seoDescription: "", scheduledAt: "",
   });
 
   const handleAdd = async () => {
@@ -105,6 +119,9 @@ export default function AdminBlog() {
       image: formData.image || "/images/journal-honeymoon.jpg",
       content: formData.content,
       published: formData.published,
+      seoTitle: formData.seoTitle,
+      seoDescription: formData.seoDescription,
+      scheduledAt: formData.scheduledAt || undefined,
     });
     if (result) {
       setShowModal(false);
@@ -126,6 +143,9 @@ export default function AdminBlog() {
       image: formData.image,
       content: formData.content,
       published: formData.published,
+      seoTitle: formData.seoTitle,
+      seoDescription: formData.seoDescription,
+      scheduledAt: formData.scheduledAt || undefined,
     });
     if (result) {
       setEditingPost(null);
@@ -152,6 +172,8 @@ export default function AdminBlog() {
     setFormData({
       title: post.title, category: post.category, date: post.date, author: post.author,
       excerpt: post.excerpt, image: post.image, content: post.content || "", published: post.published ?? true,
+      seoTitle: post.seoTitle || "", seoDescription: post.seoDescription || "",
+      scheduledAt: post.scheduledAt ? post.scheduledAt.slice(0, 16) : "",
     });
     setShowModal(true);
   };
@@ -218,8 +240,8 @@ export default function AdminBlog() {
               <div className="relative aspect-video bg-cream">
                 {post.image ? <Image src={post.image} alt={post.title} fill className="object-cover" /> : <div className="flex items-center justify-center h-full"><ImageIcon className="w-6 h-6 text-earth" /></div>}
                 <div className="absolute top-2 right-2">
-                  <span className={`px-2 py-0.5 text-xs font-medium ${post.published ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
-                    {post.published ? "Published" : "Draft"}
+                  <span className={`px-2 py-0.5 text-xs font-medium ${post.published ? "bg-emerald-50 text-emerald-700" : post.scheduledAt ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-700"}`}>
+                    {post.published ? "Published" : post.scheduledAt ? `Scheduled ${new Date(post.scheduledAt).toLocaleDateString()}` : "Draft"}
                   </span>
                 </div>
               </div>
@@ -265,10 +287,16 @@ export default function AdminBlog() {
                 <ImageUpload label="Featured Image" value={formData.image} onChange={(url) => setFormData(p => ({ ...p, image: url }))} />
                 <FormTextarea label="Excerpt" name="excerpt" value={formData.excerpt} onChange={e => setFormData(p => ({ ...p, excerpt: e.target.value }))} rows={2} />
                 <RichTextEditor label="Content" value={formData.content} onChange={(html) => setFormData(p => ({ ...p, content: html }))} minH="320px" />
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" checked={formData.published} onChange={e => setFormData(p => ({ ...p, published: e.target.checked }))} className="w-4 h-4 accent-gold" />
-                  <span className="text-sm text-earth">Published</span>
-                </label>
+                <div className="pt-4 border-t border-sand-light space-y-4">
+                  <p className="text-xs font-medium text-earth uppercase tracking-wider">SEO & Scheduling</p>
+                  <FormInput label="SEO Title" name="seoTitle" value={formData.seoTitle} onChange={e => setFormData(p => ({ ...p, seoTitle: e.target.value }))} placeholder="Optional — defaults to the post title" />
+                  <FormTextarea label="SEO Description" name="seoDescription" value={formData.seoDescription} onChange={e => setFormData(p => ({ ...p, seoDescription: e.target.value }))} rows={2} placeholder="Optional meta description" />
+                  <FormInput label="Schedule Publish" name="scheduledAt" type="datetime-local" value={formData.scheduledAt} onChange={e => setFormData(p => ({ ...p, scheduledAt: e.target.value }))} />
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={formData.published} onChange={e => setFormData(p => ({ ...p, published: e.target.checked }))} className="w-4 h-4 accent-gold" />
+                    <span className="text-sm text-earth">Published immediately</span>
+                  </label>
+                </div>
               </div>
               <div className="flex gap-3 px-6 py-4 border-t border-sand-light flex-shrink-0">
                 <button onClick={() => setShowModal(false)} className="flex-1 px-4 py-2.5 border border-sand-light text-earth text-sm hover:bg-warm-white transition-colors">Cancel</button>

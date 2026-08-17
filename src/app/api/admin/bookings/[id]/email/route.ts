@@ -20,7 +20,7 @@ type CamelBooking = {
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireAdmin();
+    await requireAdmin({ module: "bookings", minRole: "agent" });
     const { id } = await params;
     const body = await request.json();
     const { type, paymentUrl } = body; // type: "confirmation" | "receipt" | "reminder" | "payment-link"

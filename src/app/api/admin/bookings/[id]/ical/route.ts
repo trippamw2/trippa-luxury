@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 import { generateBookingICal } from "@/lib/ical";
+import { joinSingle } from "@/lib/api-helpers";
 
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireAdmin();
+    await requireAdmin({ module: "bookings", minRole: "agent" });
     const { id } = await params;
 
     const supabase = createAdminClient();
@@ -28,7 +29,7 @@ export async function GET(
       clientName: booking.client_name || "Guest",
       clientEmail: booking.client_email,
       destination: booking.destination,
-      propertyName: booking.properties?.name,
+      propertyName: joinSingle(booking.properties)?.name,
       startDate: booking.start_date,
       endDate: booking.end_date,
     });

@@ -15,7 +15,7 @@ function toString(value: unknown): string {
 
 export async function GET() {
   try {
-    await requireAdmin();
+    await requireAdmin({ module: "dashboard", minRole: "agent" });
     const supabase = createAdminClient();
 
     // ── Aggregate counts ──────────────────────────────────────────────

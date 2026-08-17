@@ -11,6 +11,8 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { KivaraLogo } from "@/components/ui/KivaraLogo";
+import { isModuleAllowed } from "@/lib/admin-permissions";
+import { useAdminProfile } from "@/app/admin/AdminAuthGuard";
 
 /* ─── Context ─────────────────────────────────────────── */
 
@@ -58,27 +60,40 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
 /* ─── Sidebar Component ───────────────────────────────── */
 
 const NAV_ITEMS = [
-  { label: "Dashboard", href: "/admin" },
-  { label: "Destinations", href: "/admin/destinations" },
-  { label: "Properties", href: "/admin/properties" },
-  { label: "Tours & Experiences", href: "/admin/tours" },
-  { label: "Packages", href: "/admin/packages" },
-  { label: "Bookings", href: "/admin/bookings" },
-  { label: "Inquiries", href: "/admin/inquiries" },
-  { label: "AI Journeys", href: "/admin/ai-journeys" },
-  { label: "Journey Editor", href: "/admin/journeys" },
-  { label: "Guest Profiles", href: "/admin/guest-profiles" },
-  { label: "Finance", href: "/admin/finance" },
-  { label: "Suppliers", href: "/admin/suppliers" },
-  { label: "Blog", href: "/admin/blog" },
-  { label: "Media Library", href: "/admin/media" },
-  { label: "Users", href: "/admin/users" },
-  { label: "Audit Log", href: "/admin/audit-log" },
-  { label: "Settings", href: "/admin/settings" },
+  { label: "Dashboard", href: "/admin", module: "dashboard" },
+  { label: "Destinations", href: "/admin/destinations", module: "destinations" },
+  { label: "Properties", href: "/admin/properties", module: "properties" },
+  { label: "Tours & Experiences", href: "/admin/tours", module: "tours" },
+  { label: "Packages", href: "/admin/packages", module: "packages" },
+  { label: "Bookings", href: "/admin/bookings", module: "bookings" },
+  { label: "Inquiries", href: "/admin/inquiries", module: "inquiries" },
+  { label: "AI Journeys", href: "/admin/ai-journeys", module: "journeys" },
+  { label: "Journey Editor", href: "/admin/journeys", module: "journeys" },
+  { label: "Guest Profiles", href: "/admin/guest-profiles", module: "guest-profiles" },
+  { label: "Tasks", href: "/admin/tasks", module: "tasks" },
+  { label: "Finance", href: "/admin/finance", module: "finance" },
+  { label: "Suppliers", href: "/admin/suppliers", module: "suppliers" },
+  { label: "Blog", href: "/admin/blog", module: "blog" },
+  { label: "Marketing", href: "/admin/marketing", module: "marketing" },
+  { label: "Media Library", href: "/admin/media", module: "media" },
+  { label: "Users", href: "/admin/users", module: "users" },
+  { label: "Audit Log", href: "/admin/audit-log", module: "audit-log" },
+  { label: "Settings", href: "/admin/settings", module: "settings" },
 ];
+
+const ROLE_LABEL: Record<string, string> = {
+  admin: "Admin",
+  editor: "Editor",
+  agent: "Agent",
+};
 
 export function Sidebar() {
   const { isOpen, close } = useSidebar();
+  const profile = useAdminProfile();
+
+  const visibleItems = profile
+    ? NAV_ITEMS.filter((item) => isModuleAllowed(profile.role, profile.permissions, item.module))
+    : NAV_ITEMS;
 
   const sidebarContent = (
     <div className="flex flex-col min-h-screen">
@@ -89,7 +104,7 @@ export function Sidebar() {
         </span>
       </div>
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        {NAV_ITEMS.map((item) => (
+        {visibleItems.map((item) => (
           <a
             key={item.href}
             href={item.href}
@@ -99,7 +114,12 @@ export function Sidebar() {
           </a>
         ))}
       </nav>
-      <div className="p-4 border-t border-white/5">
+      <div className="p-4 border-t border-white/5 space-y-2">
+        {profile && (
+          <p className="text-[11px] text-earth-light/70">
+            Signed in as <span className="text-cream/80 capitalize">{ROLE_LABEL[profile.role] || profile.role}</span>
+          </p>
+        )}
         <Link
           href="/"
           className="block text-xs text-earth-light hover:text-cream transition-colors"

@@ -3,7 +3,6 @@
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, AlertCircle, Eye, EyeOff } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -20,16 +19,19 @@ export default function AdminLoginPage() {
     setError(null);
 
     try {
-      // Create the client in the handler: never during render/SSR so the
-      // build cannot crash on missing env.
-      const supabase = createClient();
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      // Authenticate via the hardened server-side login route so every attempt
+      // is rate-limited and audit-logged. The session cookie is established
+      // server-side (via @supabase/ssr cookie helpers) on success.
+      const res = await fetch("/api/admin/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
       });
 
-      if (signInError) {
-        throw new Error(signInError.message);
+      const body = await res.json().catch(() => ({ error: "Request failed" }));
+
+      if (!res.ok) {
+        throw new Error(body.error || "Invalid email or password");
       }
 
       router.push("/admin");

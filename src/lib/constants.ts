@@ -52,7 +52,7 @@ export const IMAGES = {
   pukuRidgeSunset: "/images/puku-ridge-3.jpg",
   pukuRidgeStars: "/images/puku-ridge-4.jpg",
   pukuRidgeView: "/images/puku-ridge-5.jpg",
-  xanadu: "/images/xanadu.jpg",
+  xanadu: "/images/xanadu-1.jpg",
   baraza: "/images/baraza.jpg",
   barazaVillaView: "/images/baraza-villa-view.jpg",
   barazaGarden: "/images/baraza-garden.jpg",
@@ -718,9 +718,8 @@ export const PROPERTIES = [
       "Nine uncompromising villas on a stretch of pristine white sand beach on Zanzibar's east coast. Each villa a private sanctuary with plunge pool, butler service, and an indulgence where every detail is anticipated : crafted for the discerning couple.",
     longDescription:
       "Xanadu Luxury Villas & Retreat is an experience, a lifestyle, an awakening of what life can be. Nine individually designed villas : each with a Swahili name meaning clouds, waves, stars, or dew : are scattered along a pristine white sand beach on Zanzibar's sun drenched east coast. Each villa features its own private plunge pool, indoor and outdoor living spaces, and a private butler who anticipates your every need. The experience is uncompromising: world class cuisine prepared by an international chef, premium beverages, laundry service, and a range of water sports including sea kayaking, snorkelling, and stand up paddleboarding directly from the beach. The Kiota Spa nestles on the sand, offering treatments with the sound of the Indian Ocean as your soundtrack. A member of Small Luxury Hotels of the World and featured in the National Geographic Traveller UK Collection 2024, Xanadu has been crafted out of a desire to breathe : to celebrate life in its purest, most luxurious form.",
-    heroImage: IMAGES.xanadu,
+    heroImage: "/images/xanadu-1.jpg",
     gallery: [
-      "/images/xanadu.jpg",
       "/images/xanadu-1.jpg",
       "/images/xanadu-2.jpg",
       "/images/xanadu-3.jpg",
@@ -1092,7 +1091,7 @@ export const PACKAGES = [
     id: "zanzibar-love-escape",
     title: "Zanzibar Love Escape",
     subtitle: "The Spice Island, made for two",
-    image: IMAGES.xanadu,
+    image: IMAGES.barazaBeach,
     description:
       "Six nights across two of Zanzibar's most coveted addresses : the artistic vision of Xanadu Luxury Villas & Retreat and the Swahili grandeur of Baraza Resort & Spa. Spice scented days, dhow sailed sunsets, and Indian Ocean nights.",
     duration: "6 nights",
@@ -1272,7 +1271,7 @@ export const PACKAGES = [
     id: "kivara-bespoke-private-journey",
     title: "Kivara Bespoke Private Journey",
     subtitle: "Africa, composed entirely around you",
-    image: IMAGES.xanadu,
+    image: "/images/xanadu-1.jpg",
     description:
       "A fully customised itinerary built around your vision : a honeymoon, a proposal, an anniversary, a wellness retreat, or a multi country African adventure. Kivara's Journey Concierge composes every detail around your wishes, your rhythm, and your story.",
     duration: "Fully customised",

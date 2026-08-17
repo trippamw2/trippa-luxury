@@ -23,7 +23,7 @@ const ALLOWED_TABLES = new Set([
 
 export async function POST(request: NextRequest) {
   try {
-    await requireAdmin();
+    await requireAdmin({ module: "content", minRole: "editor" });
     const supabase = createAdminClient();
     const body = await request.json();
     const { table, rows } = body;

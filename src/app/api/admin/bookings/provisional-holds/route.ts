@@ -12,7 +12,7 @@ import { mapKeysToCamel } from "@/lib/api-helpers";
  */
 export async function GET(request: NextRequest) {
   try {
-    await requireAdmin();
+    await requireAdmin({ module: "bookings", minRole: "agent" });
     const supabase = createAdminClient();
 
     const url = new URL(request.url);
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    await requireAdmin();
+    await requireAdmin({ module: "bookings", minRole: "agent" });
     const supabase = createAdminClient();
 
     const body = await request.json();

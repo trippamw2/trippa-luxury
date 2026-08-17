@@ -1,11 +1,21 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
+import { requireAdmin, AdminAuthError, type AdminAuthOptions } from "@/lib/admin-auth";
 import { createAuditLog, sanitizeForAudit, getIpFromRequest } from "@/lib/audit";
 
 /** Convert snake_case string to camelCase */
 export function toCamelCase(str: string): string {
   return str.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+}
+
+/**
+ * Normalize a nested-select join relation to a single row or null.
+ * The untyped Supabase client types FK joins as arrays, but the runtime
+ * returns an object for many-to-one relations — this handles both shapes.
+ */
+export function joinSingle<T>(join: T | T[] | null | undefined): T | null {
+  if (Array.isArray(join)) return join[0] ?? null;
+  return join ?? null;
 }
 
 /** Convert camelCase string to snake_case */
@@ -37,6 +47,52 @@ export function mapKeysToSnake<T = Record<string, unknown>>(obj: unknown): T {
     result[snakeKey] = mapKeysToSnake((obj as Record<string, unknown>)[key]);
   }
   return result as T;
+}
+
+/**
+ * Default module / minimum-role context per table.
+ * Custom routes (non-helper) should use `inferAuthForTable` or pass an
+ * explicit `requireAdmin({ module, minRole })` call.
+ */
+const TABLE_AUTH: Record<string, AdminAuthOptions> = {
+  // Agent-level: guest-facing operations
+  bookings: { module: "bookings", minRole: "agent" },
+  booking_suppliers: { module: "bookings", minRole: "agent" },
+  inquiries: { module: "inquiries", minRole: "agent" },
+  guest_profiles: { module: "guest-profiles", minRole: "agent" },
+  guest_communications: { module: "guest-profiles", minRole: "agent" },
+  tasks: { module: "tasks", minRole: "agent" },
+  // Editor-level: content & operations
+  properties: { module: "properties", minRole: "editor" },
+  packages: { module: "journeys", minRole: "editor" },
+  tours: { module: "tours", minRole: "editor" },
+  tour_availability: { module: "tours", minRole: "editor" },
+  experiences: { module: "experiences", minRole: "editor" },
+  destinations: { module: "destinations", minRole: "editor" },
+  suppliers: { module: "suppliers", minRole: "editor" },
+  supplier_services: { module: "suppliers", minRole: "editor" },
+  supplier_categories: { module: "suppliers", minRole: "editor" },
+  blog_posts: { module: "blog", minRole: "editor" },
+  media_assets: { module: "media", minRole: "editor" },
+  newsletter_subscribers: { module: "marketing", minRole: "editor" },
+  testimonials: { module: "content", minRole: "editor" },
+  saved_journeys: { module: "journeys", minRole: "editor" },
+  property_pricing: { module: "properties", minRole: "editor" },
+  // Admin-level: finance, people, platform
+  supplier_payouts: { module: "finance", minRole: "admin" },
+  transactions: { module: "finance", minRole: "admin" },
+  invoices: { module: "finance", minRole: "admin" },
+  expenses: { module: "finance", minRole: "admin" },
+  expense_categories: { module: "finance", minRole: "admin" },
+  payment_methods: { module: "finance", minRole: "admin" },
+  admin_profiles: { module: "users", minRole: "admin" },
+  platform_settings: { module: "settings", minRole: "admin" },
+  audit_log: { module: "audit-log", minRole: "admin" },
+};
+
+/** Resolve the auth context for a table, falling back to legacy admin/editor gate. */
+export function inferAuthForTable(table: string): AdminAuthOptions {
+  return TABLE_AUTH[table] ?? {};
 }
 
 type QueryOptions = {
@@ -84,10 +140,14 @@ export async function queryTable(
 export async function handleGetList(
   table: string,
   request: Request,
-  options?: { orderBy?: { column: string; direction?: "asc" | "desc" }; select?: string }
+  options?: {
+    orderBy?: { column: string; direction?: "asc" | "desc" };
+    select?: string;
+    auth?: AdminAuthOptions;
+  }
 ) {
   try {
-    await requireAdmin();
+    await requireAdmin(options?.auth ?? inferAuthForTable(table));
     const url = new URL(request.url);
     const filters: Record<string, unknown> = {};
     
@@ -133,9 +193,13 @@ export async function handleGetList(
 }
 
 /** Handle GET (single) for a resource */
-export async function handleGetOne(table: string, id: string) {
+export async function handleGetOne(
+  table: string,
+  id: string,
+  auth?: AdminAuthOptions
+) {
   try {
-    await requireAdmin();
+    await requireAdmin(auth ?? inferAuthForTable(table));
     const supabase = createAdminClient();
     const { data, error } = await supabase
       .from(table)
@@ -166,10 +230,11 @@ export async function handleGetOne(table: string, id: string) {
 export async function handleCreate(
   table: string,
   body: Record<string, unknown>,
-  request?: Request
+  request?: Request,
+  auth?: AdminAuthOptions
 ) {
   try {
-    const auth = await requireAdmin();
+    const authResult = await requireAdmin(auth ?? inferAuthForTable(table));
     const supabase = createAdminClient();
     const dbData = mapKeysToSnake(body);
 
@@ -190,7 +255,7 @@ export async function handleCreate(
       recordId: data?.id,
       action: "CREATE",
       newData: sanitizeForAudit(data),
-      performedBy: auth.profile.id,
+      performedBy: authResult.profile.id,
       ipAddress: request ? getIpFromRequest(request) : undefined,
     });
 
@@ -210,10 +275,11 @@ export async function handleUpdate(
   table: string,
   id: string,
   body: Record<string, unknown>,
-  request?: Request
+  request?: Request,
+  auth?: AdminAuthOptions
 ) {
   try {
-    const auth = await requireAdmin();
+    const authResult = await requireAdmin(auth ?? inferAuthForTable(table));
     const supabase = createAdminClient();
     const dbData = mapKeysToSnake(body);
 
@@ -246,7 +312,7 @@ export async function handleUpdate(
       action: "UPDATE",
       oldData: sanitizeForAudit(oldData),
       newData: sanitizeForAudit(data),
-      performedBy: auth.profile.id,
+      performedBy: authResult.profile.id,
       ipAddress: request ? getIpFromRequest(request) : undefined,
     });
 
@@ -265,10 +331,11 @@ export async function handleUpdate(
 export async function handleDelete(
   table: string,
   id: string,
-  request?: Request
+  request?: Request,
+  auth?: AdminAuthOptions
 ) {
   try {
-    const auth = await requireAdmin();
+    const authResult = await requireAdmin(auth ?? inferAuthForTable(table));
     const supabase = createAdminClient();
 
     // Fetch old data before deleting (for audit trail)
@@ -291,7 +358,7 @@ export async function handleDelete(
       recordId: id,
       action: "DELETE",
       oldData: sanitizeForAudit(oldData),
-      performedBy: auth.profile.id,
+      performedBy: authResult.profile.id,
       ipAddress: request ? getIpFromRequest(request) : undefined,
     });
 

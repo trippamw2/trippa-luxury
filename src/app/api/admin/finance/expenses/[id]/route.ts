@@ -23,7 +23,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   let id: string;
   try { id = (await params).id; } catch { return NextResponse.json({ error: "Invalid id" }, { status: 400 }); }
   try {
-    await requireAdmin();
+    await requireAdmin({ module: "finance", minRole: "admin" });
     const supabase = createAdminClient();
     const { data, error } = await supabase
       .from(TABLE)
@@ -54,7 +54,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   let id: string;
   try { id = (await params).id; } catch { return NextResponse.json({ error: "Invalid id" }, { status: 400 }); }
   try {
-    await requireAdmin();
+    await requireAdmin({ module: "finance", minRole: "admin" });
     const body = await request.json();
     const supabase = createAdminClient();
 
@@ -100,7 +100,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
   let id: string;
   try { id = (await params).id; } catch { return NextResponse.json({ error: "Invalid id" }, { status: 400 }); }
   try {
-    await requireAdmin();
+    await requireAdmin({ module: "finance", minRole: "admin" });
     const supabase = createAdminClient();
     const { error } = await supabase.from(TABLE).delete().eq("id", id);
 

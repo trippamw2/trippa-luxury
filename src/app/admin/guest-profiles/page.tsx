@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Mail, Phone, User, Star, Heart, Tag, Plus, Edit2, Trash2, X, Check, Loader2, Globe } from "lucide-react";
+import { Search, Mail, Phone, User, Star, Heart, Tag, Plus, Edit2, Trash2, X, Check, Loader2, Globe, MessageSquare, CalendarDays, ArrowUpRight, Inbox } from "lucide-react";
 import { useApiData } from "@/lib/use-api-data";
 import { useToast } from "@/app/admin/components/Toast";
 
@@ -69,6 +69,64 @@ interface ApiGuestProfile {
   createdAt?: string;
   updatedAt?: string;
 }
+
+interface TimelineCommunication {
+  id: string;
+  channel: "email" | "call" | "whatsapp" | "sms" | "meeting" | "note";
+  direction: "inbound" | "outbound";
+  subject?: string | null;
+  body?: string | null;
+  relatedBookingId?: string | null;
+  relatedInquiryId?: string | null;
+  createdAt?: string;
+}
+
+interface TimelineBooking {
+  id: string;
+  bookingReference: string;
+  status?: string;
+  destination?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  totalAmount?: number;
+  currency?: string;
+  createdAt?: string;
+}
+
+interface TimelineInquiry {
+  id: string;
+  fullName?: string;
+  destination?: string | null;
+  status?: string;
+  createdAt?: string;
+  convertedToBookingId?: string | null;
+}
+
+type SegmentFilter = "all" | "vip" | "returning" | "optin";
+
+const SEGMENT_FILTERS: { key: SegmentFilter; label: string }[] = [
+  { key: "all", label: "All" },
+  { key: "vip", label: "VIP" },
+  { key: "returning", label: "Returning" },
+  { key: "optin", label: "Email Opt-in" },
+];
+
+const CHANNEL_LABELS: Record<TimelineCommunication["channel"], string> = {
+  email: "Email",
+  call: "Call",
+  whatsapp: "WhatsApp",
+  sms: "SMS",
+  meeting: "Meeting",
+  note: "Note",
+};
+
+const BOOKING_STATUS_STYLES: Record<string, { color: string; bg: string }> = {
+  provisional: { color: "text-amber-700", bg: "bg-amber-50" },
+  confirmed: { color: "text-emerald-700", bg: "bg-emerald-50" },
+  deposit_paid: { color: "text-blue-700", bg: "bg-blue-50" },
+  completed: { color: "text-gray-600", bg: "bg-gray-100" },
+  cancelled: { color: "text-red-700", bg: "bg-red-50" },
+};
 
 function mapProfile(item: ApiGuestProfile): GuestProfile {
   return {
@@ -170,19 +228,46 @@ export default function AdminGuestProfiles() {
     mapToApi: mapProfileToApi,
   });
   const [search, setSearch] = useState("");
+  const [segment, setSegment] = useState<SegmentFilter>("all");
   const [selected, setSelected] = useState<GuestProfile | null>(null);
   const [editing, setEditing] = useState<GuestProfile | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [newProfile, setNewProfile] = useState<Partial<GuestProfile>>({ fullName: "", email: "", isCouple: true, source: "website", emailOptIn: true, tags: [], interests: [], dietaryRestrictions: [], pastDestinations: [], wishlist: [] });
   const [saving, setSaving] = useState(false);
+  const [timeline, setTimeline] = useState<{ communications: TimelineCommunication[]; bookings: TimelineBooking[]; inquiries: TimelineInquiry[] } | null>(null);
+  const [loadingTimeline, setLoadingTimeline] = useState(false);
   const { toast } = useToast();
 
-  const filtered = profiles.filter((p) =>
-    !search || p.fullName.toLowerCase().includes(search.toLowerCase()) ||
-    p.email.toLowerCase().includes(search.toLowerCase()) ||
-    p.phone.toLowerCase().includes(search.toLowerCase()) ||
-    p.tags.some(t => t.toLowerCase().includes(search.toLowerCase()))
-  );
+  const filtered = profiles.filter((p) => {
+    const matchesSearch =
+      !search || p.fullName.toLowerCase().includes(search.toLowerCase()) ||
+      p.email.toLowerCase().includes(search.toLowerCase()) ||
+      p.phone.toLowerCase().includes(search.toLowerCase()) ||
+      p.tags.some(t => t.toLowerCase().includes(search.toLowerCase()));
+    if (!matchesSearch) return false;
+    if (segment === "vip") return p.isVip;
+    if (segment === "returning") return p.totalBookings >= 2;
+    if (segment === "optin") return p.emailOptIn;
+    return true;
+  });
+
+  const openProfile = async (p: GuestProfile) => {
+    setSelected(p);
+    setEditing(null);
+    setLoadingTimeline(true);
+    setTimeline(null);
+    try {
+      const res = await fetch(`/api/admin/guest-profiles/${p.id}/timeline`);
+      if (res.ok) {
+        const body = (await res.json()) as { data: { communications: TimelineCommunication[]; bookings: TimelineBooking[]; inquiries: TimelineInquiry[] } };
+        setTimeline(body.data);
+      }
+    } catch {
+      /* timeline is non-critical */
+    } finally {
+      setLoadingTimeline(false);
+    }
+  };
 
   const vips = filtered.filter(p => p.isVip);
   const regulars = filtered.filter(p => !p.isVip);
@@ -242,11 +327,28 @@ export default function AdminGuestProfiles() {
       </div>
 
       {/* Search */}
-      <div className="relative mb-6">
+      <div className="relative mb-4">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-earth" />
         <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
           placeholder="Search by name, email, phone or tag..."
           className="w-full pl-10 pr-4 py-2.5 border border-gray-200 text-sm bg-white focus:outline-none focus:border-soft-black" />
+      </div>
+
+      {/* Segmentation filters */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        {SEGMENT_FILTERS.map((f) => (
+          <button key={f.key} onClick={() => setSegment(f.key)}
+            className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors ${
+              segment === f.key
+                ? "bg-soft-black text-cream border-soft-black"
+                : "bg-white text-earth border-gray-200 hover:border-soft-black/40"
+            }`}>
+            {f.label}
+            <span className="ml-1.5 opacity-60">
+              {f.key === "all" ? profiles.length : f.key === "vip" ? profiles.filter(p => p.isVip).length : f.key === "returning" ? profiles.filter(p => p.totalBookings >= 2).length : profiles.filter(p => p.emailOptIn).length}
+            </span>
+          </button>
+        ))}
       </div>
 
       {loading ? (
@@ -272,7 +374,7 @@ export default function AdminGuestProfiles() {
                 <Star className="w-3.5 h-3.5 text-gold" /> VIP Guests ({vips.length})
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                {vips.map((p) => <ProfileCard key={p.id} profile={p} onClick={() => setSelected(p)} onDelete={handleDelete} />)}
+                {vips.map((p) => <ProfileCard key={p.id} profile={p} onClick={() => void openProfile(p)} onDelete={handleDelete} />)}
               </div>
             </div>
           )}
@@ -283,7 +385,7 @@ export default function AdminGuestProfiles() {
               {vips.length > 0 ? "All Guests" : `Guest Profiles (${filtered.length})`}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {regulars.map((p) => <ProfileCard key={p.id} profile={p} onClick={() => setSelected(p)} onDelete={handleDelete} />)}
+              {regulars.map((p) => <ProfileCard key={p.id} profile={p} onClick={() => void openProfile(p)} onDelete={handleDelete} />)}
             </div>
           </div>
         </div>
@@ -358,12 +460,12 @@ export default function AdminGuestProfiles() {
       <AnimatePresence>
         {selected && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-soft-black/50 z-50" onClick={() => { setSelected(null); setEditing(null); }}>
+            className="fixed inset-0 bg-soft-black/50 z-50" onClick={() => { setSelected(null); setEditing(null); setTimeline(null); }}>
             <motion.div initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
               className="absolute right-0 top-0 bottom-0 w-full max-w-xl bg-white shadow-xl overflow-y-auto"
               onClick={(e) => e.stopPropagation()}>
-              
+
               {!editing ? (
                 <>
                   {/* View Mode */}
@@ -371,7 +473,7 @@ export default function AdminGuestProfiles() {
                     <h2 className="text-lg font-bold text-soft-black">Guest Profile</h2>
                     <div className="flex items-center gap-2">
                       <button onClick={() => setEditing(selected)} className="p-2 text-earth hover:text-soft-black"><Edit2 className="w-4 h-4" /></button>
-                      <button onClick={() => { setSelected(null); setEditing(null); }} className="p-2 text-earth hover:text-soft-black"><X className="w-5 h-5" /></button>
+                      <button onClick={() => { setSelected(null); setEditing(null); setTimeline(null); }} className="p-2 text-earth hover:text-soft-black"><X className="w-5 h-5" /></button>
                     </div>
                   </div>
                   <div className="p-6 space-y-6">
@@ -452,6 +554,85 @@ export default function AdminGuestProfiles() {
                       <p>Bookings: {selected.totalBookings} | Spent: ${selected.totalSpent.toLocaleString()}</p>
                       {selected.lastTripDate && <p>Last trip: {selected.lastTripDate}</p>}
                       {selected.createdAt && <p>Guest since: {new Date(selected.createdAt).toLocaleDateString()}</p>}
+                    </div>
+
+                    {/* 360° Timeline */}
+                    <div className="pt-4 border-t border-gray-100">
+                      <h4 className="text-sm font-semibold text-soft-black mb-3 flex items-center gap-2">
+                        <MessageSquare className="w-4 h-4 text-gold" /> Communication Timeline
+                      </h4>
+                      {loadingTimeline ? (
+                        <div className="flex items-center gap-2 text-xs text-earth"><Loader2 className="w-4 h-4 animate-spin" /> Loading history...</div>
+                      ) : timeline ? (
+                        <div className="space-y-4">
+                          {/* Bookings */}
+                          {timeline.bookings.length > 0 && (
+                            <div>
+                              <p className="text-[10px] text-earth uppercase tracking-wider mb-1.5 flex items-center gap-1"><CalendarDays className="w-3 h-3" /> Bookings ({timeline.bookings.length})</p>
+                              <div className="space-y-1.5">
+                                {timeline.bookings.map((b) => {
+                                  const style = BOOKING_STATUS_STYLES[b.status || ""] || { color: "text-gray-600", bg: "bg-gray-100" };
+                                  return (
+                                    <div key={b.id} className="flex items-center justify-between bg-gray-50 p-2.5">
+                                      <div>
+                                        <p className="text-xs font-medium text-soft-black">{b.bookingReference}</p>
+                                        <p className="text-[10px] text-earth">{b.destination || "—"}{b.startDate ? ` • ${b.startDate}` : ""}{b.totalAmount ? ` • ${b.currency || "USD"} ${Number(b.totalAmount).toLocaleString()}` : ""}</p>
+                                      </div>
+                                      <div className="flex items-center gap-1.5">
+                                        <span className={`text-[10px] px-1.5 py-0.5 ${style.bg} ${style.color}`}>{b.status}</span>
+                                        <a href="/admin/bookings" className="text-earth hover:text-soft-black" title="Open bookings"><ArrowUpRight className="w-3.5 h-3.5" /></a>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Inquiries */}
+                          {timeline.inquiries.length > 0 && (
+                            <div>
+                              <p className="text-[10px] text-earth uppercase tracking-wider mb-1.5 flex items-center gap-1"><Inbox className="w-3 h-3" /> Inquiries ({timeline.inquiries.length})</p>
+                              <div className="space-y-1.5">
+                                {timeline.inquiries.map((inq) => (
+                                  <div key={inq.id} className="flex items-center justify-between bg-gray-50 p-2.5">
+                                    <div>
+                                      <p className="text-xs font-medium text-soft-black">{inq.destination || "Inquiry"}</p>
+                                      <p className="text-[10px] text-earth">{inq.createdAt ? new Date(inq.createdAt).toLocaleDateString() : ""}{inq.convertedToBookingId ? " • converted to booking" : ""}</p>
+                                    </div>
+                                    <span className="text-[10px] capitalize px-1.5 py-0.5 bg-white border border-gray-200 text-earth">{inq.status}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Communications */}
+                          {timeline.communications.length > 0 && (
+                            <div>
+                              <p className="text-[10px] text-earth uppercase tracking-wider mb-1.5">Messages ({timeline.communications.length})</p>
+                              <div className="space-y-2">
+                                {timeline.communications.map((c) => (
+                                  <div key={c.id} className="bg-gray-50 p-2.5 border-l-2 border-l-gold">
+                                    <div className="flex items-center justify-between mb-1">
+                                      <p className="text-[10px] font-medium text-soft-black">
+                                        {CHANNEL_LABELS[c.channel]} <span className={c.direction === "inbound" ? "text-blue-600" : "text-emerald-600"}>({c.direction})</span>
+                                      </p>
+                                      <p className="text-[10px] text-earth">{c.createdAt ? new Date(c.createdAt).toLocaleString() : ""}</p>
+                                    </div>
+                                    {c.subject && <p className="text-[11px] font-medium text-soft-black">{c.subject}</p>}
+                                    {c.body && <p className="text-[11px] text-earth line-clamp-2">{c.body}</p>}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {timeline.communications.length === 0 && timeline.bookings.length === 0 && timeline.inquiries.length === 0 && (
+                            <p className="text-xs text-earth/60">No history recorded yet.</p>
+                          )}
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 </>

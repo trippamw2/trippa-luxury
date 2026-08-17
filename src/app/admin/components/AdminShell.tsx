@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { LogOut, User, ChevronDown, LayoutDashboard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebar, HamburgerButton } from "./SidebarProvider";
+import { useAdminProfile } from "@/app/admin/AdminAuthGuard";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 /* ─── Page title map ──────────────────────────────────── */
@@ -20,9 +21,11 @@ const PAGE_TITLES: Record<string, string> = {
   "/admin/ai-journeys": "AI Journeys",
   "/admin/journeys": "Journey Editor",
   "/admin/guest-profiles": "Guest Profiles",
+  "/admin/tasks": "Tasks",
   "/admin/finance": "Finance",
   "/admin/suppliers": "Suppliers",
   "/admin/blog": "Blog & Journal",
+  "/admin/marketing": "Marketing",
   "/admin/media": "Media Library",
   "/admin/users": "Users",
   "/admin/settings": "Settings",
@@ -61,6 +64,7 @@ export function AdminShell({ children }: AdminShellProps) {
   }, []);
 
   const { toggle } = useSidebar();
+  const profile = useAdminProfile();
 
   const handleLogout = async () => {
     createClient().auth.signOut();
@@ -103,6 +107,11 @@ export function AdminShell({ children }: AdminShellProps) {
                 <p className="text-xs text-earth truncate">{user?.email || "Admin user"}</p>
                 {user?.user_metadata?.full_name && (
                   <p className="text-sm font-medium text-soft-black truncate">{user.user_metadata.full_name}</p>
+                )}
+                {profile && (
+                  <span className="inline-block mt-1 px-1.5 py-0.5 text-[10px] font-medium capitalize border border-gold/40 text-gold bg-gold/5">
+                    {profile.role}
+                  </span>
                 )}
               </div>
               <button

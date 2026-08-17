@@ -1,6 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 
-type AuditAction = "CREATE" | "UPDATE" | "DELETE";
+type AuditAction = "CREATE" | "UPDATE" | "DELETE" | "CAMPAIGN_SEND" | "LOGIN_SUCCESS" | "LOGIN_FAILED";
 
 type AuditEntry = {
   tableName: string;

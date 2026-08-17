@@ -19,7 +19,7 @@ type DestMeta = {
 
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireAdmin();
+    await requireAdmin({ module: "destinations", minRole: "editor" });
     const { id } = await params;
     const supabase = createAdminClient();
 
@@ -62,7 +62,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireAdmin();
+    await requireAdmin({ module: "destinations", minRole: "editor" });
     const { id } = await params;
     const body = await request.json();
     const supabase = createAdminClient();
@@ -103,7 +103,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireAdmin();
+    await requireAdmin({ module: "destinations", minRole: "editor" });
     const { id } = await params;
     const supabase = createAdminClient();
 

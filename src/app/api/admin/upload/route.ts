@@ -8,7 +8,7 @@ const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 
 export async function POST(request: NextRequest) {
   try {
-    await requireAdmin();
+    await requireAdmin({ module: "media", minRole: "editor" });
 
     const formData = await request.formData();
     const file = formData.get("file") as File | null;

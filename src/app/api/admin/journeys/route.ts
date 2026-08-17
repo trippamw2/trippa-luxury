@@ -6,7 +6,7 @@ import { requireAdmin } from "@/lib/admin-auth";
 const TABLE = "saved_journeys";
 
 export async function GET(request: NextRequest) {
-  await requireAdmin();
+  await requireAdmin({ module: "journeys", minRole: "editor" });
   const url = new URL(request.url);
   const search = url.searchParams.get("search");
 

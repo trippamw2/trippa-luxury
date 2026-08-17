@@ -15,7 +15,7 @@ type GuestAnalyticsRow = {
 
 export async function GET() {
   try {
-    await requireAdmin();
+    await requireAdmin({ module: "guest-profiles", minRole: "agent" });
     const supabase = createAdminClient();
 
     // ── Aggregate counts ──────────────────────────────────────────────

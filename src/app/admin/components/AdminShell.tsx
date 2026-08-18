@@ -29,6 +29,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/admin/media": "Media Library",
   "/admin/users": "Users",
   "/admin/settings": "Settings",
+  "/admin/analytics": "Analytics",
 };
 
 /* ─── Props ───────────────────────────────────────────── */

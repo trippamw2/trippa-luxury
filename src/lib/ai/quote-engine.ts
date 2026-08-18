@@ -28,7 +28,7 @@ export class QuoteEngine {
       journey,
       quoteRef: `Q-${journey.id}`,
       validUntil: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-      paymentTerms: "A 30% deposit is requested to secure your reservation. The balance will be due 60 days before your departure.",
+      paymentTerms: "A 30% deposit is requested to secure your reservation. The balance will be due 30 days before your departure.",
       depositRequired: depositAmount,
       depositPercent,
     };

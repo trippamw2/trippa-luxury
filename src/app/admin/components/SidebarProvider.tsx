@@ -79,6 +79,7 @@ const NAV_ITEMS = [
   { label: "Users", href: "/admin/users", module: "users" },
   { label: "Audit Log", href: "/admin/audit-log", module: "audit-log" },
   { label: "Settings", href: "/admin/settings", module: "settings" },
+  { label: "Analytics", href: "/admin/analytics", module: "analytics" },
 ];
 
 const ROLE_LABEL: Record<string, string> = {

@@ -6,6 +6,9 @@ export { generateInvoiceDocument } from "./invoice";
 export { generateInvoicePDFBuffer } from "./invoice-pdf";
 export { generateReceiptDocument } from "./receipt";
 export { generateItineraryDocument } from "./itinerary";
+export { generateVisaInfoDocument } from "./visa-info";
+export { generatePackingListDocument } from "./packing-list";
+export { generateTravelInsuranceDocument } from "./travel-insurance";
 
 export { wrapDocument, KIVARA_BRAND } from "./template";
 export type { InvoiceData } from "./invoice";

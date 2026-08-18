@@ -70,7 +70,7 @@ export async function sendEmail(params: EmailParams) {
 
 // ─── Shared email shell ─────────────────────────────────────────────
 
-function emailShell(subjectLine: string, bodyHtml: string): string {
+export function emailShell(subjectLine: string, bodyHtml: string): string {
   return `
     <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #FAF7F2; color: #1A1A1A;">
       <div style="background: #1A1A1A; padding: 32px 40px; text-align: center;">

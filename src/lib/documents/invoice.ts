@@ -18,6 +18,40 @@ export interface InvoiceData {
   totalAmount: number;
   currency: string;
   notes?: string;
+  /** Payment reference for wire transfer (e.g. "KVR-20240818-A1B2C3D4-DEP"). */
+  paymentReference?: string;
+  /** PayPal payment link URL. */
+  paypalLink?: string;
+  /** Bank details for wire transfer. */
+  bankDetails?: {
+    bankName: string;
+    accountName: string;
+    accountNumber: string;
+    iban: string;
+    swiftCode: string;
+    routingNumber?: string;
+    sortCode?: string;
+    country?: string;
+  };
+}
+
+function buildBankDetailsHtml(bank: NonNullable<InvoiceData["bankDetails"]>, reference: string): string {
+  const rows: string[] = [];
+  rows.push(`<tr><td style="padding:8px 0;font-size:12px;color:#8B7D6B;border-bottom:1px solid #EDE5DA;width:160px;">Bank Name</td><td style="padding:8px 0;font-size:14px;font-weight:600;border-bottom:1px solid #EDE5DA;">${bank.bankName}</td></tr>`);
+  rows.push(`<tr><td style="padding:8px 0;font-size:12px;color:#8B7D6B;border-bottom:1px solid #EDE5DA;">Account Name</td><td style="padding:8px 0;font-size:14px;border-bottom:1px solid #EDE5DA;">${bank.accountName}</td></tr>`);
+  rows.push(`<tr><td style="padding:8px 0;font-size:12px;color:#8B7D6B;border-bottom:1px solid #EDE5DA;">Account Number</td><td style="padding:8px 0;font-size:14px;border-bottom:1px solid #EDE5DA;letter-spacing:1px;">${bank.accountNumber}</td></tr>`);
+  if (bank.iban) rows.push(`<tr><td style="padding:8px 0;font-size:12px;color:#8B7D6B;border-bottom:1px solid #EDE5DA;">IBAN</td><td style="padding:8px 0;font-size:14px;border-bottom:1px solid #EDE5DA;letter-spacing:1px;">${bank.iban}</td></tr>`);
+  if (bank.swiftCode) rows.push(`<tr><td style="padding:8px 0;font-size:12px;color:#8B7D6B;border-bottom:1px solid #EDE5DA;">SWIFT / BIC</td><td style="padding:8px 0;font-size:14px;font-weight:600;border-bottom:1px solid #EDE5DA;letter-spacing:1px;">${bank.swiftCode}</td></tr>`);
+  if (bank.routingNumber) rows.push(`<tr><td style="padding:8px 0;font-size:12px;color:#8B7D6B;border-bottom:1px solid #EDE5DA;">Routing Number</td><td style="padding:8px 0;font-size:14px;border-bottom:1px solid #EDE5DA;">${bank.routingNumber}</td></tr>`);
+  if (bank.sortCode) rows.push(`<tr><td style="padding:8px 0;font-size:12px;color:#8B7D6B;border-bottom:1px solid #EDE5DA;">Sort Code</td><td style="padding:8px 0;font-size:14px;border-bottom:1px solid #EDE5DA;">${bank.sortCode}</td></tr>`);
+  if (bank.country) rows.push(`<tr><td style="padding:8px 0;font-size:12px;color:#8B7D6B;border-bottom:1px solid #EDE5DA;">Country</td><td style="padding:8px 0;font-size:14px;border-bottom:1px solid #EDE5DA;">${bank.country}</td></tr>`);
+  if (reference) rows.push(`<tr><td style="padding:8px 0;font-size:12px;color:#8B7D6B;border-bottom:1px solid #EDE5DA;">Payment Reference</td><td style="padding:8px 0;font-size:14px;font-weight:600;color:#C9A96E;border-bottom:1px solid #EDE5DA;letter-spacing:1px;">${reference}</td></tr>`);
+
+  return `<div style="background:#F5F0EB;padding:20px;margin-bottom:24px;">
+    <h3 style="font-size:14px;color:#1A1A1A;margin-bottom:12px;">Wire Transfer Details</h3>
+    <p style="font-size:12px;color:#8B7D6B;margin-bottom:12px;">Please include the payment reference in your transfer description.</p>
+    <table style="width:100%;">${rows.join("")}</table>
+  </div>`;
 }
 
 export function generateInvoiceDocument(inv: InvoiceData): string {
@@ -28,6 +62,27 @@ export function generateInvoiceDocument(inv: InvoiceData): string {
       <td class="text-right">${inv.currency} ${item.unitPrice.toLocaleString()}</td>
       <td class="text-right font-bold">${inv.currency} ${item.total.toLocaleString()}</td>
     </tr>`).join("");
+
+  // Build payment options section
+  const paymentOptionsHtml: string[] = [];
+
+  if (inv.bankDetails) {
+    paymentOptionsHtml.push(buildBankDetailsHtml(inv.bankDetails, inv.paymentReference || ""));
+  }
+
+  if (inv.paypalLink) {
+    paymentOptionsHtml.push(`
+      <div style="background:#F5F0EB;padding:20px;margin-bottom:24px;">
+        <h3 style="font-size:14px;color:#1A1A1A;margin-bottom:8px;">Pay Online with PayPal</h3>
+        <p style="font-size:12px;color:#8B7D6B;margin-bottom:12px;">For a quick and secure payment, use the link below:</p>
+        <a href="${inv.paypalLink}" style="display:inline-block;padding:12px 24px;background:#C9A96E;color:#1A1A1A;text-decoration:none;font-size:13px;font-weight:600;letter-spacing:1px;">Pay Now with PayPal</a>
+      </div>
+    `);
+  }
+
+  const paymentSection = paymentOptionsHtml.length > 0
+    ? paymentOptionsHtml.join("")
+    : `<p style="font-size:12px;color:#8B7D6B;">Payment is due by ${inv.dueDate}. Please remit payment via bank transfer or the secure payment link provided separately.</p>`;
 
   const html = `
     ${documentHeader({ title: "Invoice", reference: inv.invoiceNumber, clientName: inv.clientName })}
@@ -68,7 +123,10 @@ export function generateInvoiceDocument(inv: InvoiceData): string {
 
       ${inv.notes ? `<div style="background: #F5F0EB; padding: 16px; margin-bottom: 24px;"><p style="font-size: 12px; color: #8B7D6B; margin: 0;">${inv.notes}</p></div>` : ""}
 
-      <p style="font-size: 12px; color: #8B7D6B;">Payment is due by ${inv.dueDate}. Please remit payment via bank transfer or the secure payment link provided separately.</p>
+      <h3>How to Pay</h3>
+      ${paymentSection}
+
+      <p style="font-size: 12px; color: #8B7D6B;">Payment is due by ${inv.dueDate}.</p>
       <p>Thank you for choosing Kivara.<br><strong style="color: #C9A96E;">The Kivara Team</strong></p>
     `)}
     ${documentFooter()}

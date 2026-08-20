@@ -127,7 +127,13 @@ export function generateQuoteDocument(journey: CuratedJourney, meta: {
       <div class="ref-box">
         <p style="font-size: 12px; color: #8B7D6B; margin-bottom: 8px;">Deposit Required: <strong style="color: ${KIVARA_BRAND.colors.gold};">$${meta.depositRequired.toLocaleString()} (${meta.depositPercent}%)</strong></p>
         <p style="font-size: 12px; color: #8B7D6B; margin-bottom: 4px;">${meta.paymentTerms}</p>
-        <p style="font-size: 12px; color: #8B7D6B;">Quote valid until: <strong>${meta.validUntil}</strong></p>
+        <p style="font-size: 12px; color: #8B7D6B; margin-bottom: 12px;">Quote valid until: <strong>${meta.validUntil}</strong></p>
+        <div style="border-top: 1px solid #EDE5DA; padding-top: 12px;">
+          <p style="font-size: 11px; color: #8B7D6B; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;">Accepted Payment Methods</p>
+          <p style="font-size: 12px; color: #4A4A4A; margin-bottom: 4px;"><strong>PayPal</strong> — Instant online payment via secure checkout</p>
+          <p style="font-size: 12px; color: #4A4A4A; margin-bottom: 4px;"><strong>Wire Transfer (SWIFT/IBAN)</strong> — Bank transfer with full instructions provided upon booking confirmation</p>
+          <p style="font-size: 11px; color: #8B7D6B; margin-top: 8px;">For bookings under $5,000, PayPal is recommended for speed. For larger amounts, wire transfer is available with no processing fees.</p>
+        </div>
       </div>
 
       <p>Should you wish to adjust any element of this journey, simply reply to this document. Your personal concierge is ready to refine every detail until it feels perfectly yours.</p>

@@ -1,26 +1,51 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CheckCircle, AlertCircle } from "lucide-react";
+import { CheckCircle, AlertCircle, CreditCard } from "lucide-react";
+
+interface BankDetailsData {
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
+  iban: string;
+  swiftCode: string;
+  routingNumber: string;
+  sortCode: string;
+  bankCurrency: string;
+  bankCountry: string;
+}
 
 interface SettingsData {
   siteName: string;
   whatsapp: string;
   email: string;
   currency: string;
+  bankDetails: BankDetailsData;
 }
 
 const LS_KEY = "kivara_settings";
 
+const defaultBankDetails: BankDetailsData = {
+  bankName: "",
+  accountName: "",
+  accountNumber: "",
+  iban: "",
+  swiftCode: "",
+  routingNumber: "",
+  sortCode: "",
+  bankCurrency: "USD",
+  bankCountry: "",
+};
+
 function loadLocal(): SettingsData {
   if (typeof window === "undefined") {
-    return { siteName: "Kivara", whatsapp: "+27871234567", email: "concierge@kivara.luxury", currency: "USD" };
+    return { siteName: "Kivara", whatsapp: "+27871234567", email: "concierge@kivara.luxury", currency: "USD", bankDetails: defaultBankDetails };
   }
   try {
     const raw = localStorage.getItem(LS_KEY);
     if (raw) return JSON.parse(raw);
   } catch {}
-  return { siteName: "Kivara", whatsapp: "+27871234567", email: "concierge@kivara.luxury", currency: "USD" };
+  return { siteName: "Kivara", whatsapp: "+27871234567", email: "concierge@kivara.luxury", currency: "USD", bankDetails: defaultBankDetails };
 }
 
 export default function AdminSettings() {
@@ -36,7 +61,13 @@ export default function AdminSettings() {
       .then((r) => r.json())
       .then((json) => {
         if (json.error) throw new Error(json.error);
-        setForm({ siteName: json.siteName, whatsapp: json.whatsapp, email: json.email, currency: json.currency });
+        setForm({
+          siteName: json.siteName,
+          whatsapp: json.whatsapp,
+          email: json.email,
+          currency: json.currency,
+          bankDetails: json.bankDetails || defaultBankDetails,
+        });
         setUseApi(true);
       })
       .catch(() => {
@@ -142,6 +173,111 @@ export default function AdminSettings() {
               <option value="GBP">GBP (£)</option>
               <option value="ZAR">ZAR (R)</option>
             </select>
+          </div>
+
+          {/* ─── Bank Details Section ─────────────────────────────── */}
+          <div className="pt-6 border-t border-sand-light/50">
+            <div className="flex items-center gap-2 mb-4">
+              <CreditCard className="w-4 h-4 text-gold" />
+              <h2 className="text-sm font-semibold text-soft-black uppercase tracking-wider">Bank Details (Wire Transfer)</h2>
+            </div>
+            <p className="text-xs text-earth mb-4">Configure your bank account details for wire transfer payments. These will appear on invoices and payment reminders.</p>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-soft-black mb-1">Bank Name</label>
+                <input
+                  type="text"
+                  value={form.bankDetails.bankName}
+                  onChange={(e) => setForm({ ...form, bankDetails: { ...form.bankDetails, bankName: e.target.value } })}
+                  placeholder="e.g. Standard Bank"
+                  className="w-full px-3 py-2 border border-sand-light/50 text-sm focus:outline-none focus:border-gold transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-soft-black mb-1">Account Name</label>
+                <input
+                  type="text"
+                  value={form.bankDetails.accountName}
+                  onChange={(e) => setForm({ ...form, bankDetails: { ...form.bankDetails, accountName: e.target.value } })}
+                  placeholder="e.g. Kivara Travel Pty Ltd"
+                  className="w-full px-3 py-2 border border-sand-light/50 text-sm focus:outline-none focus:border-gold transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-soft-black mb-1">Account Number</label>
+                <input
+                  type="text"
+                  value={form.bankDetails.accountNumber}
+                  onChange={(e) => setForm({ ...form, bankDetails: { ...form.bankDetails, accountNumber: e.target.value } })}
+                  placeholder="e.g. 123456789"
+                  className="w-full px-3 py-2 border border-sand-light/50 text-sm focus:outline-none focus:border-gold transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-soft-black mb-1">SWIFT / BIC Code</label>
+                <input
+                  type="text"
+                  value={form.bankDetails.swiftCode}
+                  onChange={(e) => setForm({ ...form, bankDetails: { ...form.bankDetails, swiftCode: e.target.value } })}
+                  placeholder="e.g. SBZAJJAXXX"
+                  className="w-full px-3 py-2 border border-sand-light/50 text-sm focus:outline-none focus:border-gold transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-soft-black mb-1">IBAN</label>
+                <input
+                  type="text"
+                  value={form.bankDetails.iban}
+                  onChange={(e) => setForm({ ...form, bankDetails: { ...form.bankDetails, iban: e.target.value } })}
+                  placeholder="e.g. ZA00012345678901234567"
+                  className="w-full px-3 py-2 border border-sand-light/50 text-sm focus:outline-none focus:border-gold transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-soft-black mb-1">Routing Number</label>
+                <input
+                  type="text"
+                  value={form.bankDetails.routingNumber}
+                  onChange={(e) => setForm({ ...form, bankDetails: { ...form.bankDetails, routingNumber: e.target.value } })}
+                  placeholder="Optional"
+                  className="w-full px-3 py-2 border border-sand-light/50 text-sm focus:outline-none focus:border-gold transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-soft-black mb-1">Sort Code</label>
+                <input
+                  type="text"
+                  value={form.bankDetails.sortCode}
+                  onChange={(e) => setForm({ ...form, bankDetails: { ...form.bankDetails, sortCode: e.target.value } })}
+                  placeholder="Optional"
+                  className="w-full px-3 py-2 border border-sand-light/50 text-sm focus:outline-none focus:border-gold transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-soft-black mb-1">Bank Currency</label>
+                <select
+                  value={form.bankDetails.bankCurrency}
+                  onChange={(e) => setForm({ ...form, bankDetails: { ...form.bankDetails, bankCurrency: e.target.value } })}
+                  className="w-full px-3 py-2 border border-sand-light/50 text-sm focus:outline-none focus:border-gold transition-colors"
+                >
+                  <option value="USD">USD</option>
+                  <option value="EUR">EUR</option>
+                  <option value="GBP">GBP</option>
+                  <option value="ZAR">ZAR</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-soft-black mb-1">Bank Country</label>
+                <input
+                  type="text"
+                  value={form.bankDetails.bankCountry}
+                  onChange={(e) => setForm({ ...form, bankDetails: { ...form.bankDetails, bankCountry: e.target.value } })}
+                  placeholder="e.g. South Africa"
+                  className="w-full px-3 py-2 border border-sand-light/50 text-sm focus:outline-none focus:border-gold transition-colors"
+                />
+              </div>
+            </div>
           </div>
 
           {apiError && (

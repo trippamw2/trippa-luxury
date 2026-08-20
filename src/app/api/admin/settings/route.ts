@@ -22,6 +22,17 @@ export async function GET() {
       siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
       supabaseConfigured: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
       brevoConfigured: !!process.env.NEXT_BREVO_KEY,
+      bankDetails: {
+        bankName: settingsMap.bank_name || "",
+        accountName: settingsMap.bank_account_name || "",
+        accountNumber: settingsMap.bank_account_number || "",
+        iban: settingsMap.bank_iban || "",
+        swiftCode: settingsMap.bank_swift_code || "",
+        routingNumber: settingsMap.bank_routing_number || "",
+        sortCode: settingsMap.bank_sort_code || "",
+        bankCurrency: settingsMap.bank_currency || "USD",
+        bankCountry: settingsMap.bank_country || "",
+      },
     });
   } catch (err: unknown) {
     if (err instanceof AdminAuthError) {
@@ -43,6 +54,20 @@ export async function PUT(request: NextRequest) {
     if (body.whatsapp !== undefined) entries.push({ key: "whatsapp_number", value: body.whatsapp });
     if (body.email !== undefined) entries.push({ key: "contact_email", value: body.email });
     if (body.currency !== undefined) entries.push({ key: "default_currency", value: body.currency });
+
+    // Bank details
+    if (body.bankDetails) {
+      const bd = body.bankDetails;
+      if (bd.bankName !== undefined) entries.push({ key: "bank_name", value: bd.bankName });
+      if (bd.accountName !== undefined) entries.push({ key: "bank_account_name", value: bd.accountName });
+      if (bd.accountNumber !== undefined) entries.push({ key: "bank_account_number", value: bd.accountNumber });
+      if (bd.iban !== undefined) entries.push({ key: "bank_iban", value: bd.iban });
+      if (bd.swiftCode !== undefined) entries.push({ key: "bank_swift_code", value: bd.swiftCode });
+      if (bd.routingNumber !== undefined) entries.push({ key: "bank_routing_number", value: bd.routingNumber });
+      if (bd.sortCode !== undefined) entries.push({ key: "bank_sort_code", value: bd.sortCode });
+      if (bd.bankCurrency !== undefined) entries.push({ key: "bank_currency", value: bd.bankCurrency });
+      if (bd.bankCountry !== undefined) entries.push({ key: "bank_country", value: bd.bankCountry });
+    }
 
     for (const entry of entries) {
       await supabase.from("platform_settings").upsert(

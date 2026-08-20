@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { loginRateLimiter } from "@/lib/login-rate-limiter";
 import { createAuditLog, getIpFromRequest } from "@/lib/audit";
 import { resolveEffectiveRole } from "@/lib/admin-permissions";
@@ -61,7 +62,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Credentials are valid — verify the account is an active staff member.
-    const { data: profile, error: profileError } = await supabase
+    // Use the service-role client to query admin_profiles, bypassing the
+    // self-referencing RLS policy that causes infinite recursion.
+    const adminClient = createAdminClient();
+    const { data: profile, error: profileError } = await adminClient
       .from("admin_profiles")
       .select("id, role, permissions, is_active")
       .eq("id", user.id)

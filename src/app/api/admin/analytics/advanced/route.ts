@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 
 /**
  * GET /api/admin/analytics/advanced
@@ -7,6 +8,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
  */
 export async function GET() {
   try {
+    await requireAdmin({ module: "analytics", minRole: "editor" });
     const supabase = createAdminClient();
 
     // Fetch all bookings and inquiries for calculations
@@ -102,6 +104,9 @@ export async function GET() {
       monthlyBookings,
     });
   } catch (err: unknown) {
+    if (err instanceof AdminAuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
     const message = err instanceof Error ? err.message : "Internal error";
     return NextResponse.json({ error: message }, { status: 500 });
   }

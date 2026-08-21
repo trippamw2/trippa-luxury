@@ -8,6 +8,48 @@ export function generateItineraryDocument(journey: CuratedJourney): string {
   const guestCount = isCouple ? 2 : 1;
   const transferCost = journey.pricing.transfers.reduce((s, t) => s + t.cost, 0);
   const accomSubtotal = journey.pricing.subtotal - transferCost;
+  const occasion = journey.guestProfile.specialOccasion;
+  const prefs = journey.guestProfile.preferences;
+
+  // Occasion-specific greeting
+  let occasionSection = "";
+  if (occasion === "honeymoon") {
+    occasionSection = `
+      <div style="background: linear-gradient(135deg, #FAF7F2, #F5F0EB); padding: 24px; margin-bottom: 24px; border-left: 3px solid #C9A96E;">
+        <p style="font-size: 14px; color: #C9A96E; font-family: 'Playfair Display', serif; font-style: italic; margin-bottom: 8px;">A Romance Written in the Stars</p>
+        <p style="font-size: 13px; color: #4A4A4A; margin: 0;">This journey was curated for the beginning of your forever. Every moment has been designed to deepen your connection and create memories that will last a lifetime. From sunrise to starlight, this is your love story, written across Africa.</p>
+      </div>`;
+  } else if (occasion === "anniversary") {
+    occasionSection = `
+      <div style="background: linear-gradient(135deg, #FAF7F2, #F5F0EB); padding: 24px; margin-bottom: 24px; border-left: 3px solid #C9A96E;">
+        <p style="font-size: 14px; color: #C9A96E; font-family: 'Playfair Display', serif; font-style: italic; margin-bottom: 8px;">Celebrating Your Journey Together</p>
+        <p style="font-size: 13px; color: #4A4A4A; margin: 0;">The years you have shared deserve a celebration as extraordinary as your bond. This journey honors the depth of your connection — quiet moments of reconnection, shared adventures, and the kind of intimacy that only comes from truly knowing another person.</p>
+      </div>`;
+  } else if (occasion === "birthday") {
+    occasionSection = `
+      <div style="background: linear-gradient(135deg, #FAF7F2, #F5F0EB); padding: 24px; margin-bottom: 24px; border-left: 3px solid #C9A96E;">
+        <p style="font-size: 14px; color: #C9A96E; font-family: 'Playfair Display', serif; font-style: italic; margin-bottom: 8px;">A Birthday Celebration in the Wild</p>
+        <p style="font-size: 13px; color: #4A4A4A; margin: 0;">You deserve a birthday unlike any other. Surprise moments, unexpected delights, and the raw beauty of Africa as your celebration backdrop. This journey is your gift — from us, and from the wild.</p>
+      </div>`;
+  } else if (occasion === "proposal") {
+    occasionSection = `
+      <div style="background: linear-gradient(135deg, #FAF7F2, #F5F0EB); padding: 24px; margin-bottom: 24px; border-left: 3px solid #C9A96E;">
+        <p style="font-size: 14px; color: #C9A96E; font-family: 'Playfair Display', serif; font-style: italic; margin-bottom: 8px;">The Most Important Question</p>
+        <p style="font-size: 13px; color: #4A4A4A; margin: 0;">Every moment of this journey has been designed to build toward that one perfect second. A secret photographer, champagne on standby, and a setting so beautiful the answer is already in the air. We will handle every detail — you just speak from the heart.</p>
+      </div>`;
+  }
+
+  // Travel style reflection
+  let styleReflection = "";
+  if (prefs.travelStyle === "romantic") {
+    styleReflection = `<p style="font-size: 12px; color: #8B7D6B; margin-bottom: 4px;"><strong>Your Style:</strong> Romantic — intimate moments, private settings, and the kind of closeness that only comes from being truly alone together.</p>`;
+  } else if (prefs.travelStyle === "adventure") {
+    styleReflection = `<p style="font-size: 12px; color: #8B7D6B; margin-bottom: 4px;"><strong>Your Style:</strong> Adventure — walking safaris, game drives, and the thrill of discovering Africa's wild heart together.</p>`;
+  } else if (prefs.travelStyle === "relaxation") {
+    styleReflection = `<p style="font-size: 12px; color: #8B7D6B; margin-bottom: 4px;"><strong>Your Style:</strong> Relaxation — unhurried days, stillness, and the luxury of having nothing to do but be together.</p>`;
+  } else if (prefs.travelStyle === "cultural") {
+    styleReflection = `<p style="font-size: 12px; color: #8B7D6B; margin-bottom: 4px;"><strong>Your Style:</strong> Cultural — connection with local people, ancient traditions, and the soul of Africa.</p>`;
+  }
 
   const accommodationRows = journey.pricing.accommodation.map(a => {
     const pppn = a.ratePerNightPPPN || Math.round(a.ratePerNight / guestCount);
@@ -85,7 +127,8 @@ export function generateItineraryDocument(journey: CuratedJourney): string {
     ${documentHeader({ title: "Final Itinerary", reference: journey.id, clientName: journey.guestProfile.name })}
     ${documentBody(`
       <h1>Dear ${journey.guestProfile.name},</h1>
-      <p>Your journey is confirmed. Every detail has been arranged for your comfort and delight. Inside this document, you will find the complete itinerary for your Kivara experience.</p>
+      ${occasionSection}
+      <p>Your journey is confirmed. Every detail has been arranged for your comfort and delight. Inside this document, you will find the complete itinerary for your Kivara experience — a journey designed specifically around your story.</p>
 
       ${refBox("Journey Reference", journey.id)}
 
@@ -95,6 +138,8 @@ export function generateItineraryDocument(journey: CuratedJourney): string {
         { label: "Duration", value: `${journey.duration} Nights` },
         { label: "Destinations", value: journey.destinations.map(d => d.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())).join(", ") },
       ])}
+
+      ${styleReflection}
 
       <h3>Journey Overview</h3>
       <p style="font-size: 16px; font-weight: 600; margin-bottom: 4px;">${journey.title}</p>

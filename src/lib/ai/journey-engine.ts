@@ -3,7 +3,7 @@
 // generates day-by-day itineraries, and calculates pricing.
 // All guest-facing prose uses the KIVARA brand vocabulary and tone.
 
-import { PROPERTIES, DESTINATIONS } from "../constants";
+import { PROPERTIES, DESTINATIONS, PACKAGES, EXPERIENCES } from "../constants";
 import type {
   GuestProfile,
   CuratedJourney,
@@ -14,6 +14,7 @@ import type {
   JourneyAlternative,
 } from "./types";
 import { callLlmJson, type LlmMessage } from "./llm";
+import { wrapDocument, documentHeader, documentBody, documentFooter, refBox, infoGrid, KIVARA_BRAND } from "../documents/template";
 
 // ── Helpers ─────────────────────────────────────────────────────────────
 
@@ -312,15 +313,19 @@ function getDestIdForProperty(propertyId: string): string {
 }
 
 // ── Transfer Generation ────────────────────────────────────────────────
-// Pricing constants (per person)
+// Pricing constants (per person, based on actual supplier rates 2025)
+// Sources: Sky Trails Zambia, Proflight Zambia, Coastal Aviation
 const CHARTER_COSTS: Record<string, number> = {
-  "lake-malawi_south-luangwa": 850,
-  "south-luangwa_zanzibar": 1200,
-  "lake-malawi_zanzibar": 1450,
+  "lake-malawi_south-luangwa": 1850,   // Lilongwe → Mfuwe (1hr flight, ~$2,500-3,040 per aircraft)
+  "south-luangwa_zanzibar": 1450,       // Mfuwe → Zanzibar (2.5hr flight, ~$3,500 per aircraft)
+  "lake-malawi_zanzibar": 1650,         // Lilongwe → Zanzibar (1.5hr flight, ~$4,000 per aircraft)
+  "lake-malawi_lake-malawi": 450,       // Likoma → Club Makokola airstrip (~30min)
+  "south-luangwa_south-luangwa": 350,   // Mfuwe → Mfuwe internal (~30min)
 };
-const DEFAULT_CHARTER_COST = 650;
-const ROAD_TRANSFER_COST = 95;
-const EXIT_CHARTER_COST = 550;
+const DEFAULT_CHARTER_COST = 850;
+const ROAD_TRANSFER_COST = 120;          // Private vehicle with refreshments
+const EXIT_CHARTER_COST = 750;           // Local airstrip → international hub
+const PARK_FEES_PER_DAY = 120;           // South Luangwa park fees per person per day
 
 /** Generate an air transfer (charter flight) between two airports */
 function generateAirTransfer(
@@ -492,22 +497,24 @@ function buildDepartureTransfers(
 // ── Pricing Calculation ────────────────────────────────────────────────
 
 /** Extract the maximum per-person-per-night price from a priceRange string.
- *  Handles formats: "$X to $Y", "From $X", and bare "$X".
+ *  Handles formats: "$X to $Y", "$X to $Y (text)", "From $X", and bare "$X".
  *  Falls back to a default if parsing fails.
  */
 function extractMaxPppn(priceRange: string): number {
+  // Strip parenthetical notes first (e.g. "(park fees additional $120pppn)")
+  const cleaned = priceRange.replace(/\([^)]*\)/g, "");
   // Try "$X to $Y" format → return Y
-  const rangeMatch = priceRange.match(/\$([\d,]+)\s*to\s*\$([\d,]+)/i);
+  const rangeMatch = cleaned.match(/\$([\d,]+)\s*to\s*\$([\d,]+)/i);
   if (rangeMatch) {
     return parseInt(rangeMatch[2].replace(/,/g, ""));
   }
   // Try "From $X" format → return X
-  const fromMatch = priceRange.match(/from\s*\$?([\d,]+)/i);
+  const fromMatch = cleaned.match(/from\s*\$?([\d,]+)/i);
   if (fromMatch) {
     return parseInt(fromMatch[1].replace(/,/g, ""));
   }
   // Fallback: grab the first dollar figure
-  const fallback = priceRange.match(/\$?([\d,]+)/);
+  const fallback = cleaned.match(/\$?([\d,]+)/);
   return fallback ? parseInt(fallback[1].replace(/,/g, "")) : 600;
 }
 
@@ -581,9 +588,19 @@ function calculatePricing(
     if (lastLocal.name !== lastPoe.name) transferTotal += EXIT_CHARTER_COST; // local → international
   }
 
+  // Calculate park fees (South Luangwa charges $120pppn)
+  let parkFeesTotal = 0;
+  for (const { property, nights } of propertyAssignments) {
+    const destId = getDestIdForProperty(property.id);
+    if (destId === "south-luangwa") {
+      parkFeesTotal += PARK_FEES_PER_DAY * nights * guestCount;
+    }
+  }
+
   // Multiply by guest count (each guest pays for transfers)
   const transferTotalGuests = transferTotal * guestCount;
   subtotal += transferTotalGuests;
+  subtotal += parkFeesTotal;
 
   const taxes = Math.round(subtotal * 0.1);
   const total = subtotal + taxes;
@@ -591,7 +608,10 @@ function calculatePricing(
   return {
     accommodation,
     activities: [],
-    transfers: [{ label: "All private charters & road transfers", cost: transferTotalGuests }],
+    transfers: [
+      { label: "All private charters & road transfers", cost: transferTotalGuests },
+      ...(parkFeesTotal > 0 ? [{ label: "South Luangwa National Park fees ($120pppn)", cost: parkFeesTotal }] : []),
+    ],
     subtotal,
     taxes,
     total,
@@ -823,48 +843,114 @@ export class JourneyEngine {
   }
 
   /**
-   * Generate a formatted quote summary with brand voice.
+   * Generate a branded HTML quote with Kivara design system.
+   * Returns a complete HTML document ready for PDF generation or email.
    */
   generateQuote(journey: CuratedJourney): string {
-    const xfTotal = journey.pricing.transfers.reduce((s, t) => s + t.cost, 0);
-    const accomSub = journey.pricing.subtotal - xfTotal;
-    const lines = [
-      "═══════════════════════════════════════",
-      "  KIVARA LUXURY TRAVEL : JOURNEY PROPOSAL",
-      "═══════════════════════════════════════",
-      "",
-      `  ${journey.title}`,
-      `  ${journey.subtitle}`,
-      "",
-      "  ── ITINERARY OVERVIEW ──",
-      ...journey.itinerary.map(
-        (d) => `  Day ${d.day}: ${d.title} @ ${d.accommodation}`
-      ),
-      "",
-      "  ── INVESTMENT ──",
-      ...journey.pricing.accommodation.map(
-        (a) => `  ${a.label}: ${a.nights} nights × $${a.ratePerNight}/night = $${a.subtotal.toLocaleString()}`
-      ),
-      "",
-      `  Accommodation: $${accomSub.toLocaleString()}`,
-      ...(xfTotal > 0 ? [`  Private Charters & Transfers: $${xfTotal.toLocaleString()}`] : []),
-      `  Subtotal: $${journey.pricing.subtotal.toLocaleString()}`,
-      `  Taxes & Fees (10%): $${journey.pricing.taxes.toLocaleString()}`,
-      `  TOTAL INVESTMENT: $${journey.pricing.total.toLocaleString()} ${journey.pricing.currency}`,
-      "",
-      "  ── HIGHLIGHTS ──",
-      ...journey.highlights.map((h) => `  · ${h}`),
-      "",
-      "  ── INCLUDED ──",
-      ...journey.includedExtras.map((e) => `  · ${e}`),
-      "",
-      "  Proposal ID: " + journey.id,
-      "  Created: " + new Date(journey.createdAt).toLocaleDateString(),
-      "",
-      "  Kivara Concierge: concierge@kivara.luxury",
-      "═══════════════════════════════════════",
-    ];
-    return lines.join("\n");
+    const isCouple = journey.guestProfile.isCouple ?? true;
+    const guestCount = isCouple ? 2 : 1;
+    const guestLabel = isCouple ? "Couple" : "Solo Traveller";
+    const transferCost = journey.pricing.transfers.reduce((s, t) => s + t.cost, 0);
+    const accomSubtotal = journey.pricing.subtotal - transferCost;
+
+    const accommodationRows = journey.pricing.accommodation.map(a => {
+      const pppn = a.ratePerNightPPPN || Math.round(a.ratePerNight / guestCount);
+      return `
+      <tr>
+        <td>${a.label}</td>
+        <td class="text-center">${a.nights}</td>
+        <td class="text-right">$${pppn.toLocaleString()}</td>
+        <td class="text-right">$${a.ratePerNight.toLocaleString()}</td>
+        <td class="text-right font-bold">$${a.subtotal.toLocaleString()}</td>
+      </tr>`;
+    }).join("");
+
+    const itineraryRows = journey.itinerary.map(d => `
+      <tr>
+        <td style="width: 50px; color: ${KIVARA_BRAND.colors.gold}; font-weight: 600;">Day ${d.day}</td>
+        <td>${d.title}</td>
+        <td style="color: ${KIVARA_BRAND.colors.textMuted};">${d.accommodation}</td>
+        <td style="color: ${KIVARA_BRAND.colors.textMuted};">${d.location}</td>
+      </tr>`).join("");
+
+    const highlightsList = journey.highlights.map(h => `<li style="margin-bottom: 6px;">${h}</li>`).join("");
+    const includedList = journey.includedExtras.map(e => `<li style="margin-bottom: 6px;">${e}</li>`).join("");
+
+    // Occasion-specific greeting
+    let occasionNote = "";
+    if (journey.guestProfile.specialOccasion === "honeymoon") {
+      occasionNote = `<p style="font-size: 14px; color: ${KIVARA_BRAND.colors.gold}; font-style: italic; margin-bottom: 16px;">A journey crafted for the beginning of your forever.</p>`;
+    } else if (journey.guestProfile.specialOccasion === "anniversary") {
+      occasionNote = `<p style="font-size: 14px; color: ${KIVARA_BRAND.colors.gold}; font-style: italic; margin-bottom: 16px;">Celebrating the beautiful years you have shared.</p>`;
+    } else if (journey.guestProfile.specialOccasion === "birthday") {
+      occasionNote = `<p style="font-size: 14px; color: ${KIVARA_BRAND.colors.gold}; font-style: italic; margin-bottom: 16px;">A celebration worthy of the extraordinary person you are.</p>`;
+    }
+
+    const html = `
+      ${documentHeader({ title: "Journey Proposal", reference: journey.id, clientName: journey.guestProfile.name })}
+      ${documentBody(`
+        <h1>Dear ${journey.guestProfile.name},</h1>
+        ${occasionNote}
+        <p>It is our privilege to present this personally curated journey for you. Every element has been selected with care — from the properties that will host you to the moments waiting to be discovered.</p>
+
+        ${refBox("Journey Reference", journey.id)}
+
+        ${infoGrid([
+          { label: "Guest", value: journey.guestProfile.name },
+          { label: "Party", value: `${guestLabel} · ${isCouple ? "2 Guests" : "1 Guest"}` },
+          { label: "Duration", value: `${journey.duration} Nights` },
+          { label: "Destinations", value: journey.destinations.map(d => d.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())).join(", ") },
+        ])}
+
+        <h3>Journey Overview</h3>
+        <p style="font-size: 16px; font-weight: 600; margin-bottom: 4px;">${journey.title}</p>
+        <p style="font-size: 13px; color: ${KIVARA_BRAND.colors.textMuted}; margin-bottom: 24px;">${journey.subtitle}</p>
+
+        <h3>Itinerary Summary</h3>
+        <table>
+          <thead>
+            <tr><th>Day</th><th>Experience</th><th>Accommodation</th><th>Location</th></tr>
+          </thead>
+          <tbody>${itineraryRows}</tbody>
+        </table>
+
+        <h3>Investment</h3>
+        <table>
+          <thead>
+            <tr><th>Accommodation</th><th class="text-center">Nights</th><th class="text-right">PPPN</th><th class="text-right">${isCouple ? "Per Couple" : "Per Person"}/Night</th><th class="text-right">Subtotal</th></tr>
+          </thead>
+          <tbody>${accommodationRows}</tbody>
+          <tfoot>
+            <tr><td colspan="4" class="text-right subtotal-label">Accommodation Subtotal</td><td class="text-right">$${accomSubtotal.toLocaleString()}</td></tr>
+            <tr><td colspan="4" class="text-right subtotal-label">Private Charters & Transfers</td><td class="text-right">$${transferCost.toLocaleString()}</td></tr>
+            <tr><td colspan="4" class="text-right subtotal-label">Taxes & Fees (10%)</td><td class="text-right font-bold">$${journey.pricing.taxes.toLocaleString()}</td></tr>
+            <tr class="total-row"><td colspan="4" class="text-right">Total Investment</td><td class="text-right total-amount">$${journey.pricing.total.toLocaleString()} ${journey.pricing.currency}</td></tr>
+          </tfoot>
+        </table>
+        <p class="text-earth text-xs">${isCouple ? "PPPN = Per Person Per Night (double occupancy). Per Couple/Night = PPPN × 2." : "PPPN = Per Person Per Night (single occupancy)."} Transfer costs cover all private charters and road transfers for your entire party.</p>
+
+        <h3>Journey Highlights</h3>
+        <ul style="padding-left: 20px; font-size: 13px; color: ${KIVARA_BRAND.colors.textSecondary}; line-height: 1.8;">${highlightsList}</ul>
+
+        <h3>What's Included</h3>
+        <ul style="padding-left: 20px; font-size: 13px; color: ${KIVARA_BRAND.colors.textSecondary}; line-height: 1.8;">${includedList}</ul>
+
+        <hr class="divider" />
+
+        <div style="background: ${KIVARA_BRAND.colors.cream}; padding: 20px; margin-bottom: 24px;">
+          <h3 style="font-size: 12px; color: ${KIVARA_BRAND.colors.gold}; border: none; padding: 0; margin-bottom: 8px;">Your Personal Concierge</h3>
+          <p style="font-size: 13px; color: ${KIVARA_BRAND.colors.textSecondary}; margin-bottom: 4px;">Your personal concierge is available 24/7 to refine every detail of this journey.</p>
+          <p style="font-size: 13px; color: ${KIVARA_BRAND.colors.textSecondary}; margin-bottom: 2px;">Email: <strong>concierge@kivara.luxury</strong></p>
+          <p style="font-size: 13px; color: ${KIVARA_BRAND.colors.textSecondary}; margin: 0;">WhatsApp: <strong>+27 87 123 4567</strong></p>
+        </div>
+
+        <p>Should you wish to adjust any element of this journey, simply reply. Your personal concierge is ready to refine every detail until it feels perfectly yours.</p>
+        <p>Warmest regards,<br><strong style="color: ${KIVARA_BRAND.colors.gold};">Your Kivara Concierge</strong></p>
+      `)}
+      ${documentFooter()}
+    `;
+
+    return wrapDocument(html, { title: `Journey Proposal ${journey.id}` });
   }
 
   // ── LLM-Powered Journey Curation ───────────────────────────────────────
@@ -899,50 +985,92 @@ export class JourneyEngine {
         };
       });
 
-      const systemPrompt = `You are Kivara's lead journey curator : a master of African luxury travel design. You craft bespoke itineraries for discerning couples.
+      const systemPrompt = `You are Kivara's lead journey curator — a world-class luxury travel designer with decades of experience crafting bespoke African journeys for ultra-high-net-worth couples. You understand that luxury is not about price — it is about emotional resonance, exclusivity, and the feeling of being truly known.
 
 KIVARA BRAND VOICE:
-- Tone: Warm, sophisticated, intimate. Not transactional : evocative.
-- Language: "sanctuary" not "hotel", "journey" not "trip", "investment" not "price", "discover" not "visit"
+- Tone: Warm, sophisticated, intimate. Never transactional — always evocative.
+- Language: "sanctuary" not "hotel", "journey" not "trip", "investment" not "price", "discover" not "visit", "curated" not "arranged", "bespoke" not "custom"
 - Spirit: Africa's most coveted romance sanctuary. We occupy the space between Aman's serenity and &Beyond's wilderness.
+- Emotional register: We speak to the heart, not the head. Every word should make the guest feel something.
+
+LUXURY TRAVEL PSYCHOLOGY — WHAT ULTRA-HIGH-NET-WORTH TRAVELERS WANT:
+1. EXCLUSIVITY: They want what others cannot have. Private access, hidden locations, experiences reserved for the few.
+2. TIME: They are time-poor. Every moment must feel effortless, unhurried, intentional. No rushing.
+3. AUTHENTICITY: They have seen the world. They crave genuine connection — with people, places, and each other.
+4. STORY: They want a narrative they can retell. Moments that become chapters in their love story.
+5. SENSORY RICHNESS: Light, sound, scent, texture — the bush at dawn, the lake at sunset, the spice of Zanzibar.
+6. PRIVACY: Seclusion without isolation. Intimacy without loneliness.
+7. SURPRISE: Delight them with unexpected touches they did not know they wanted.
+
+SPECIAL OCCASION INTELLIGENCE:
+- HONEYMOON: This is the beginning of forever. Every detail must feel like a love letter. Private dinners, sunrise moments, couples rituals. The journey should feel like it was designed for no one else in the world.
+- ANNIVERSARY: They are celebrating endurance and depth. Nostalgia, milestone acknowledgment, and reconnection. Reference the passage of time beautifully.
+- BIRTHDAY: A celebration in the wild. Surprise elements, unexpected delights, a sense of occasion woven through every day.
+- PROPOSAL: The most important question of their lives. Every moment builds toward that one. Secrecy, perfection, and a photographer who captures the moment they will relive forever.
+- GENERAL: Treat every journey as if it is the most important trip they have ever taken. Because for them, it is.
+
+PARTY COMPOSITION INTELLIGENCE:
+- COUPLE (no kids): Maximum romance, private moments, couples-only activities, unhurried pacing.
+- COUPLE (with kids): Family-friendly luxury, activities for all ages, moments of parental connection.
+- SOLO TRAVELER: Self-discovery, reflection, personal transformation, encounters with the wild.
+- FRIENDS GROUP: Shared adventure, group dining, bonding experiences, lively energy.
+
+ACTIVITY PACING:
+- Luxury travel is UNHURRIED. Maximum 1-2 activities per day.
+- Morning: Gentle start (slow breakfast, sunrise moment) or active exploration (safari, walking).
+- Afternoon: Rest, reflection, or curated encounter.
+- Evening: Culinary ceremony, stargazing, or intimate conversation.
+- Build in "white space" — time with nothing planned. That is when magic happens.
 
 AVAILABLE INVENTORY:
-${JSON.stringify(inventorySummary, null, 2)}
+
+DESTINATIONS:
+${DESTINATIONS.map(d => {
+  const destProps = d.properties.map(pid => PROPERTIES.find(p => p.id === pid)!).filter(Boolean);
+  return `- ${d.title} (${d.id}): ${d.tagline}
+  Properties: ${destProps.map(p => `${p.name} (${p.priceRange}, ${p.roomTypes?.join(", ")})`).join("; ")}`;
+}).join("\n")}
+
+CURATED PACKAGES (reference these for inspiration, but always customize):
+${PACKAGES.map(p => `- ${p.title} (${p.duration}): ${p.description.slice(0, 150)}...`).join("\n")}
+
+SIGNATURE EXPERIENCES:
+${EXPERIENCES.map(e => `- ${e.title} (${e.category}, ${e.destination}): ${e.description.slice(0, 100)}...`).join("\n")}
 
 Respond in valid JSON only with this exact structure:
 {
-  "title": string (evocative journey title, e.g. "A Romance Written in the Stars"),
-  "subtitle": string (brief subtitle with destinations, nights),
+  "title": string (evocative journey title that captures the emotional essence, e.g. "A Romance Written in the Stars"),
+  "subtitle": string (brief subtitle with destinations and nights),
   "destinations": string[] (destination IDs used),
   "itinerary": [
     {
       "day": number,
-      "title": string,
+      "title": string (evocative, not generic — e.g. "The Light Over Luangwa" not "Day 2"),
       "location": string,
-      "accommodation": string (property name),
-      "accommodationImage": string (heroImage URL),
+      "accommodation": string (exact property name from inventory),
+      "accommodationImage": string (heroImage URL from property data),
       "meals": string[],
       "activities": [
         {
           "time": string,
-          "title": string,
-          "description": string (2-3 sentences, brand voice, sensory),
+          "title": string (sensory, specific — e.g. "Dawn Walking Safari" not "Morning Activity"),
+          "description": string (2-3 sentences, brand voice, sensory details — light, sound, scent, texture. Make them FEEL it.),
           "duration": string,
           "included": boolean,
           "type": "safari" | "water-sports" | "cultural" | "spa" | "dining" | "relaxation" | "adventure" | "wellness" | "other"
         }
       ],
-      "highlights": string[] (2-3 highlights for this day)
+      "highlights": string[] (2-3 highlights for this day, emotionally resonant)
     }
   ],
-  "highlights": string[] (3-5 journey-level highlights),
-  "includedExtras": string[] (4-6 included services),
-  "planningNotes": string (1-2 sentences of personalized advice)
+  "highlights": string[] (3-5 journey-level highlights that capture the emotional arc),
+  "includedExtras": string[] (4-6 included services that feel exclusive),
+  "planningNotes": string (1-2 sentences of personalized advice that shows deep understanding of this guest)
 }`;
 
-      const userMessage = `Create a bespoke luxury journey for this guest:
+      const userMessage = `Create a bespoke luxury journey for this guest. This is not just a trip — it is a chapter in their love story.
 
-Guest Profile:
+GUEST PROFILE:
 ${JSON.stringify(
   {
     name: guest.name,
@@ -950,32 +1078,39 @@ ${JSON.stringify(
     specialOccasion: guest.specialOccasion,
     preferences: guest.preferences,
     desiredNights: guest.desiredNights,
+    pastDestinations: guest.pastDestinations,
+    wishlist: guest.wishlist,
     explicitDestinations: guest.explicitDestinations,
   },
   null,
   2
 )}
 
+${guest.specialOccasion ? `THIS JOURNEY CELEBRATES: ${guest.specialOccasion.toUpperCase()}
+This occasion is the emotional anchor of the entire journey. Every detail should reflect and honor this moment. For honeymoons — this is the beginning of forever. For anniversaries — celebrate the depth of their bond. For birthdays — make them feel like the most important person in Africa.` : "No specific occasion — craft a journey of discovery and reconnection."}
+
 ${guest.explicitDestinations && guest.explicitDestinations.length > 0
   ? `The guest has explicitly requested these destinations. Use ONLY these:
 ${guest.explicitDestinations.map((d) => `  - ${d.destinationId}${d.propertyId ? ` (property: ${d.propertyId})` : ""} for ${d.nights} nights`).join("\n")}`
   : `Based on their profile, select the best destinations and properties from the available inventory.`}
 
-Design a day-by-day itinerary that:
-1. Selects the best-matching properties from available inventory
-2. Creates unique, vivid activity descriptions in Kivara's brand voice
-3. Includes sensory details (light, sound, scent, texture)
-4. Flows naturally between locations with appropriate pacing
-5. Reflects their special occasion and preferences
-6. 1-2 activities per day maximum (luxury travel is unhurried)
+DESIGN PRINCIPLES:
+1. Select the best-matching properties — consider occasion, party composition, budget, and travel style
+2. Create unique, vivid activity descriptions in Kivara's brand voice — sensory details (light, sound, scent, texture)
+3. Flow naturally between locations with appropriate pacing — luxury is unhurried
+4. 1-2 activities per day maximum — build in white space for spontaneous magic
+5. Include at least one "moment of surprise" — something they did not expect
+6. Reference relevant experiences from the inventory (dining, safari, spa, cultural)
+7. The final day should feel like a gentle farewell, not a rushed departure
 
-Property selection guidelines:
+PROPERTY SELECTION INTELLIGENCE:
 - Romantic/relaxation travelers → Lake Malawi or Zanzibar beach properties
 - Adventure travelers → South Luangwa (walking safaris, game drives)
 - Mixed style → Bush & Beach combination (Luangwa + Zanzibar)
-- Couples on honeymoon → properties with romantic highlights
-- Ultra-luxury budget → premium villas and suites
-- Standard luxury → all properties are available`;
+- Couples on honeymoon → properties with romantic highlights and privacy
+- Ultra-luxury budget → premium villas and suites with butler service
+- Anniversary celebrations → properties with intimate dining and sunset moments
+- Birthday celebrations → properties with unique experiences and surprise potential`;
 
       const messages: LlmMessage[] = [
         { role: "system", content: systemPrompt },

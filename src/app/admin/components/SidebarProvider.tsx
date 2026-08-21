@@ -59,26 +59,32 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
 
 /* ─── Sidebar Component ───────────────────────────────── */
 
+// Workflow-ordered: Inquiries → Journeys → Bookings → Finance → Operations → Content → Marketing → Admin
 const NAV_ITEMS = [
+  // ── Sales Pipeline ──────────────────────────────────────────────────
   { label: "Dashboard", href: "/admin", module: "dashboard" },
+  { label: "Inquiries", href: "/admin/inquiries", module: "inquiries" },
+  { label: "AI Journeys", href: "/admin/ai-journeys", module: "journeys" },
+  { label: "Journey Editor", href: "/admin/journeys", module: "journeys" },
+  { label: "Bookings", href: "/admin/bookings", module: "bookings" },
+  { label: "Finance", href: "/admin/finance", module: "finance" },
+  // ── Guest Operations ────────────────────────────────────────────────
+  { label: "Guest Profiles", href: "/admin/guest-profiles", module: "guest-profiles" },
+  { label: "Tasks", href: "/admin/tasks", module: "tasks" },
+  // ── Content Management ──────────────────────────────────────────────
   { label: "Destinations", href: "/admin/destinations", module: "destinations" },
   { label: "Properties", href: "/admin/properties", module: "properties" },
   { label: "Tours & Experiences", href: "/admin/tours", module: "tours" },
   { label: "Packages", href: "/admin/packages", module: "packages" },
-  { label: "Bookings", href: "/admin/bookings", module: "bookings" },
-  { label: "Inquiries", href: "/admin/inquiries", module: "inquiries" },
-  { label: "AI Journeys", href: "/admin/ai-journeys", module: "journeys" },
-  { label: "Journey Editor", href: "/admin/journeys", module: "journeys" },
-  { label: "Guest Profiles", href: "/admin/guest-profiles", module: "guest-profiles" },
-  { label: "Tasks", href: "/admin/tasks", module: "tasks" },
-  { label: "Finance", href: "/admin/finance", module: "finance" },
-  { label: "Suppliers", href: "/admin/suppliers", module: "suppliers" },
+  // ── Marketing ───────────────────────────────────────────────────────
   { label: "Blog", href: "/admin/blog", module: "blog" },
   { label: "Marketing", href: "/admin/marketing", module: "marketing" },
   { label: "Media Library", href: "/admin/media", module: "media" },
+  // ── Administration ──────────────────────────────────────────────────
+  { label: "Suppliers", href: "/admin/suppliers", module: "suppliers" },
   { label: "Users", href: "/admin/users", module: "users" },
-  { label: "Audit Log", href: "/admin/audit-log", module: "audit-log" },
   { label: "Settings", href: "/admin/settings", module: "settings" },
+  { label: "Audit Log", href: "/admin/audit-log", module: "audit-log" },
   { label: "Analytics", href: "/admin/analytics", module: "analytics" },
 ];
 

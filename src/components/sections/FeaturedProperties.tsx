@@ -6,7 +6,7 @@ import { PropertyCard } from "@/components/ui/property-card";
 import { useProperties } from "@/lib/use-public-data";
 
 const PROPERTY_BADGES: Record<string, string> = {
-  "kaya-mawa": "Only 6 Villas",
+  "kaya-mawa": "11 Suites & Houses",
   "pumulani-lodge": "Robin Pope Safaris",
   chinzombo: "Best New Property Africa 2014 & 2015",
   "puku-ridge-camp": "Award Winning Guiding",

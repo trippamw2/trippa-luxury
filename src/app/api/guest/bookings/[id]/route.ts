@@ -48,6 +48,7 @@ export async function GET(
         balanceAmount: booking.balance_amount || 0,
         currency: booking.currency || "USD",
         status: booking.status || "provisional",
+        paymentMethod: booking.payment_method || "",
         specialRequests: booking.special_requests || "",
       },
     });

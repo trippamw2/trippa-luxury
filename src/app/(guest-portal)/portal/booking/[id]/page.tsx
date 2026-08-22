@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { Calendar, MapPin, Users, ArrowLeft, CreditCard } from "lucide-react";
+import { Calendar, MapPin, Users, ArrowLeft, CreditCard, Banknote } from "lucide-react";
 
 interface BookingDetail {
   id: string;
@@ -16,6 +16,7 @@ interface BookingDetail {
   balanceAmount: number;
   currency: string;
   status: string;
+  paymentMethod?: string;
   specialRequests?: string;
 }
 
@@ -141,16 +142,25 @@ export default function PortalBookingDetailPage() {
 
         {booking.balanceAmount > 0 && (
           <div className="p-4 bg-[#F5F0EB] border-l-3 border-[#C9A96E]">
-            <p className="text-xs text-[#8B7D6B] mb-2">
-              Your balance payment is due within 30 days of your departure date.
+            <p className="text-xs text-[#8B7D6B] mb-3">
+              Your balance payment is due within 30 days of your departure date. Choose your preferred payment method below.
             </p>
-            <a
-              href={`/payment/paypal?bookingId=${booking.id}&amount=${booking.balanceAmount}&currency=${booking.currency}`}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-[#1A1A1A] text-[#FAF7F2] text-[11px] uppercase tracking-[2px] hover:bg-[#2A2A2A] transition-colors"
-            >
-              <CreditCard className="w-4 h-4" />
-              Pay Balance via PayPal
-            </a>
+            <div className="flex flex-wrap gap-3">
+              <a
+                href={`/payment/${booking.id}?type=balance&method=paypal`}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-[#1A1A1A] text-[#FAF7F2] text-[11px] uppercase tracking-[2px] hover:bg-[#2A2A2A] transition-colors"
+              >
+                <CreditCard className="w-4 h-4" />
+                Pay Balance via PayPal
+              </a>
+              <a
+                href={`/payment/${booking.id}?type=balance&method=wire_transfer`}
+                className="inline-flex items-center gap-2 px-6 py-3 border border-[#1A1A1A] text-[#1A1A1A] text-[11px] uppercase tracking-[2px] hover:bg-[#1A1A1A] hover:text-[#FAF7F2] transition-colors"
+              >
+                <Banknote className="w-4 h-4" />
+                Pay via Wire Transfer
+              </a>
+            </div>
           </div>
         )}
       </div>

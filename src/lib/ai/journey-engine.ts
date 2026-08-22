@@ -327,6 +327,49 @@ const ROAD_TRANSFER_COST = 120;          // Private vehicle with refreshments
 const EXIT_CHARTER_COST = 750;           // Local airstrip → international hub
 const PARK_FEES_PER_DAY = 120;           // South Luangwa park fees per person per day
 
+/**
+ * Load transfer pricing from platform_settings (falls back to hardcoded defaults).
+ * Called once per journey generation request for accurate pricing.
+ */
+async function loadTransferPricing(): Promise<{
+  charterCosts: Record<string, number>;
+  defaultCharterCost: number;
+  roadTransferCost: number;
+  exitCharterCost: number;
+  parkFeesPerDay: number;
+}> {
+  try {
+    const { createAdminClient } = await import("@/lib/supabase/admin");
+    const supabase = createAdminClient();
+    const { data } = await supabase.from("platform_settings").select("key, value");
+    const map: Record<string, string> = {};
+    (data || []).forEach((s: { key: string; value: string }) => { map[s.key] = s.value; });
+
+    return {
+      charterCosts: {
+        "lake-malawi_south-luangwa": Number(map.charter_lby_mfu) || 1850,
+        "south-luangwa_zanzibar": Number(map.charter_mfu_znz) || 1450,
+        "lake-malawi_zanzibar": Number(map.charter_lby_znz) || 1650,
+        "lake-malawi_lake-malawi": Number(map.charter_internal) || 450,
+        "south-luangwa_south-luangwa": Number(map.charter_internal) || 350,
+      },
+      defaultCharterCost: 850,
+      roadTransferCost: Number(map.road_transfer) || 120,
+      exitCharterCost: Number(map.exit_charter) || 750,
+      parkFeesPerDay: Number(map.park_fees_per_day) || 120,
+    };
+  } catch {
+    // Fallback to hardcoded defaults if settings read fails
+    return {
+      charterCosts: { ...CHARTER_COSTS },
+      defaultCharterCost: DEFAULT_CHARTER_COST,
+      roadTransferCost: ROAD_TRANSFER_COST,
+      exitCharterCost: EXIT_CHARTER_COST,
+      parkFeesPerDay: PARK_FEES_PER_DAY,
+    };
+  }
+}
+
 /** Generate an air transfer (charter flight) between two airports */
 function generateAirTransfer(
   fromName: string,

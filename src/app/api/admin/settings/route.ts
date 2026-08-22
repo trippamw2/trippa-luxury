@@ -33,6 +33,15 @@ export async function GET() {
         bankCurrency: settingsMap.bank_currency || "USD",
         bankCountry: settingsMap.bank_country || "",
       },
+      transferPricing: {
+        charterLbyMfu: settingsMap.charter_lby_mfu || "1850",
+        charterMfuZnz: settingsMap.charter_mfu_znz || "1450",
+        charterLbyZnz: settingsMap.charter_lby_znz || "1650",
+        charterInternal: settingsMap.charter_internal || "350",
+        exitCharter: settingsMap.exit_charter || "750",
+        roadTransfer: settingsMap.road_transfer || "120",
+        parkFeesPerDay: settingsMap.park_fees_per_day || "120",
+      },
     });
   } catch (err: unknown) {
     if (err instanceof AdminAuthError) {
@@ -67,6 +76,18 @@ export async function PUT(request: NextRequest) {
       if (bd.sortCode !== undefined) entries.push({ key: "bank_sort_code", value: bd.sortCode });
       if (bd.bankCurrency !== undefined) entries.push({ key: "bank_currency", value: bd.bankCurrency });
       if (bd.bankCountry !== undefined) entries.push({ key: "bank_country", value: bd.bankCountry });
+    }
+
+    // Transfer pricing
+    if (body.transferPricing) {
+      const tp = body.transferPricing;
+      if (tp.charterLbyMfu !== undefined) entries.push({ key: "charter_lby_mfu", value: String(tp.charterLbyMfu) });
+      if (tp.charterMfuZnz !== undefined) entries.push({ key: "charter_mfu_znz", value: String(tp.charterMfuZnz) });
+      if (tp.charterLbyZnz !== undefined) entries.push({ key: "charter_lby_znz", value: String(tp.charterLbyZnz) });
+      if (tp.charterInternal !== undefined) entries.push({ key: "charter_internal", value: String(tp.charterInternal) });
+      if (tp.exitCharter !== undefined) entries.push({ key: "exit_charter", value: String(tp.exitCharter) });
+      if (tp.roadTransfer !== undefined) entries.push({ key: "road_transfer", value: String(tp.roadTransfer) });
+      if (tp.parkFeesPerDay !== undefined) entries.push({ key: "park_fees_per_day", value: String(tp.parkFeesPerDay) });
     }
 
     for (const entry of entries) {

@@ -71,7 +71,7 @@ export default function PortalDashboardPage() {
 
   return (
     <div>
-      <h1 style={{ fontFamily: "'Times New Roman', serif", fontSize: "24px", color: "#1A1A1A" }} className="mb-2">
+      <h1 className="font-heading text-2xl text-[#1A1A1A] mb-2">
         Your Journeys
       </h1>
       <p className="text-sm text-[#8B7D6B] mb-8">View your bookings, itineraries, and payment status.</p>
@@ -96,7 +96,7 @@ export default function PortalDashboardPage() {
                 <div className="flex items-start justify-between mb-4">
                   <div>
                     <p className="text-xs text-[#8B7D6B] font-mono mb-1">{b.ref}</p>
-                    <h3 style={{ fontFamily: "'Times New Roman', serif", fontSize: "18px", color: "#1A1A1A" }}>
+                    <h3 className="font-heading text-lg text-[#1A1A1A]">
                       {b.destination || "Luxury Journey"}
                     </h3>
                   </div>

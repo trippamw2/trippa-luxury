@@ -80,7 +80,7 @@ export default function PortalBookingDetailPage() {
         <div className="flex items-start justify-between mb-4">
           <div>
             <p className="text-xs text-[#8B7D6B] font-mono mb-1">{booking.ref}</p>
-            <h1 style={{ fontFamily: "'Times New Roman', serif", fontSize: "24px", color: "#1A1A1A" }}>
+            <h1 className="font-heading text-2xl text-[#1A1A1A]">
               {booking.destination || "Luxury Journey"}
             </h1>
           </div>
@@ -120,7 +120,7 @@ export default function PortalBookingDetailPage() {
 
       {/* Payment Status */}
       <div className="bg-white border border-[#EDE5DA] p-6 mb-6">
-        <h2 style={{ fontFamily: "'Times New Roman', serif", fontSize: "18px", color: "#1A1A1A" }} className="mb-4">
+        <h2 className="font-heading text-lg text-[#1A1A1A] mb-4">
           Payment Status
         </h2>
         <div className="grid grid-cols-3 gap-4 mb-4">
@@ -168,7 +168,7 @@ export default function PortalBookingDetailPage() {
       {/* Special Requests */}
       {booking.specialRequests && (
         <div className="bg-white border border-[#EDE5DA] p-6">
-          <h2 style={{ fontFamily: "'Times New Roman', serif", fontSize: "18px", color: "#1A1A1A" }} className="mb-3">
+          <h2 className="font-heading text-lg text-[#1A1A1A] mb-3">
             Special Requests
           </h2>
           <p className="text-sm text-[#4A4A4A] leading-relaxed">{booking.specialRequests}</p>

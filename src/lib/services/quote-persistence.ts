@@ -3,6 +3,7 @@
 // saved_journey, creates provisional booking, and links them together.
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { logInteraction } from "@/lib/ai/customer-intelligence";
 import type { GuestProfile } from "@/lib/ai/types";
 import type { QuoteData } from "@/lib/ai/quote-engine";
 
@@ -178,6 +179,18 @@ export async function persistQuote(
       })
       .eq("id", guestProfileId);
   }
+
+  // ── 5. Log the outbound quote as a customer interaction ─────────────
+  // This keeps the CRM timeline complete without extra calls in the route.
+  await logInteraction({
+    guestProfileId,
+    channel: "email",
+    direction: "outbound",
+    subject: `Journey proposal ${quote.quoteRef} sent`,
+    body: `Quote ${quote.quoteRef} — ${quote.journey.title} (${quote.journey.duration} nights). Total $${quote.journey.pricing.total.toLocaleString()}. Deposit $${quote.depositRequired.toLocaleString()}.`,
+    relatedBookingId: booking.id,
+    relatedInquiryId: inquiryId,
+  });
 
   return {
     guestProfileId,

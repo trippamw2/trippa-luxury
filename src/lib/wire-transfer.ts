@@ -50,7 +50,7 @@ export interface WireTransferInstructions {
  * @returns A payment reference string
  *
  * @example generatePaymentReference("deposit", "a1b2c3d4-e5f6-7890-abcd-ef1234567890")
- * // "KVR-20240818-A1B2C3D4-DEP"
+ * // "KVR-20240818-A1B2C3D4-DEPOSIT"
  */
 export function generatePaymentReference(
   type: "deposit" | "balance" | "full",

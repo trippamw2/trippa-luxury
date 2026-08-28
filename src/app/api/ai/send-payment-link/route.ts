@@ -2,9 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { paymentEngine } from "@/lib/ai/payment-engine";
 import { sendEmail } from "@/lib/email";
 import { generateInvoicePDFBuffer } from "@/lib/documents/invoice-pdf";
+import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 
+/**
+ * POST /api/ai/send-payment-link
+ * Generates a payment link and emails it to the guest with a PDF invoice.
+ * Admin-only — requires at least editor role.
+ */
 export async function POST(request: NextRequest) {
   try {
+    await requireAdmin({ module: "finance", minRole: "editor" });
+
     const body = await request.json();
     const { bookingRef, clientName, clientEmail, amount, currency, type, dueDate, description } = body;
 
@@ -81,6 +89,9 @@ export async function POST(request: NextRequest) {
       pdfAttached: !!pdfAttachment,
     });
   } catch (error) {
+    if (error instanceof AdminAuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("Send payment link error:", error);
     return NextResponse.json(
       { error: "Failed to generate and send payment link" },

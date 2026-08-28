@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 import {
@@ -23,7 +24,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "bookingId is required" }, { status: 400 });
     }
 
+    // Auth check: must be admin or authenticated guest who owns this booking
+    const supabaseClient = await createClient();
+    const { data: { user } } = await supabaseClient.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+
     const supabase = createAdminClient();
+
+    // Check if user is an admin
+    const { data: adminProfile } = await supabase
+      .from("admin_profiles")
+      .select("id")
+      .eq("id", user.id)
+      .eq("is_active", true)
+      .maybeSingle();
 
     // Fetch booking
     const { data: booking, error: bookingError } = await supabase
@@ -34,6 +51,13 @@ export async function POST(request: NextRequest) {
 
     if (bookingError || !booking) {
       return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+    }
+
+    // If not admin, verify guest owns this booking
+    if (!adminProfile) {
+      if (booking.client_email !== user.email) {
+        return NextResponse.json({ error: "Access denied" }, { status: 403 });
+      }
     }
 
     // Calculate amount based on payment type

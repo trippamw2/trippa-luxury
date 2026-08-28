@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { quoteEngine } from "@/lib/ai/quote-engine";
+import { runQualityGate } from "@/lib/ai/quality-gate";
 import { sendEmail } from "@/lib/email";
 import { persistQuote } from "@/lib/services/quote-persistence";
 import { generateQuotePDFBuffer } from "@/lib/documents/quote-pdf";
@@ -21,7 +22,25 @@ export async function POST(request: NextRequest) {
     // 1. Generate the quote (AI-curated journey + pricing)
     const quote = quoteEngine.generateQuote(profile);
 
-    // 2. Generate the HTML email
+    // 2. Run the Quality Control gate — never send a broken/incoherent proposal.
+    const qc = runQualityGate(quote.journey, quote.depositRequired);
+    if (!qc.ok) {
+      return NextResponse.json(
+        {
+          error: "Quote failed quality control and was not sent.",
+          qc: { severity: qc.severity, issues: qc.issues },
+        },
+        { status: 422 }
+      );
+    }
+    if (qc.severity === "warn") {
+      console.warn(
+        `Quote ${quote.quoteRef} passed with warnings:`,
+        qc.issues.map((i) => `[${i.code}] ${i.message}`)
+      );
+    }
+
+    // 3. Generate the HTML email
     const html = quoteEngine.generateQuoteHtml(quote);
 
     // 3. Generate the PDF attachment

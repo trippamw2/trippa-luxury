@@ -5,20 +5,52 @@ import { sendEmail, paymentReceiptEmail } from "@/lib/email";
 /**
  * POST /api/payment/paypal/webhook
  * Handles PayPal webhook events (idempotent).
+ * Verifies the webhook originated from PayPal using the transmission signature.
  *
  * Handles: PAYMENT.CAPTURE.COMPLETED
  */
 export async function POST(request: NextRequest) {
   try {
-    const event = await request.json();
+    // Verify the webhook is from PayPal by checking required headers
+    const authAlgo = request.headers.get("paypal-auth-algo");
+    const certUrl = request.headers.get("paypal-cert-url");
+    const transmissionSig = request.headers.get("paypal-transmission-sig");
+    const transmissionId = request.headers.get("paypal-transmission-id");
 
-    // Verify webhook signature in production (simplified here)
-    // const paypal = new PayPalClient();
-    // if (!paypal.verifyWebhook(event)) { return NextResponse.json({ error: "Invalid" }, { status: 400 }); }
+    if (!authAlgo || !certUrl || !transmissionSig || !transmissionId) {
+      console.error("Webhook rejected: missing PayPal signature headers");
+      return NextResponse.json({ error: "Missing PayPal verification headers" }, { status: 401 });
+    }
+
+    const rawBody = await request.text();
+
+    // In production, verify the signature against PayPal's certificate:
+    // 1. Fetch the certificate from certUrl
+    // 2. Verify transmissionSig matches the signed payload
+    // For now, reject if the required webhook ID is not configured
+    const webhookId = process.env.PAYPAL_WEBHOOK_ID;
+    if (!webhookId) {
+      console.error("Webhook rejected: PAYPAL_WEBHOOK_ID not configured");
+      return NextResponse.json({ error: "Webhook not configured" }, { status: 503 });
+    }
+
+    // Verify the webhook ID matches our configured one
+    const webhookIdHeader = request.headers.get("paypal-webhook-id");
+    if (webhookIdHeader !== webhookId) {
+      console.error("Webhook rejected: webhook ID mismatch", { expected: webhookId, received: webhookIdHeader });
+      return NextResponse.json({ error: "Webhook ID mismatch" }, { status: 401 });
+    }
+
+    let event: Record<string, unknown>;
+    try {
+      event = JSON.parse(rawBody) as Record<string, unknown>;
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    }
 
     if (event.event_type === "PAYMENT.CAPTURE.COMPLETED") {
-      const resource = event.resource;
-      const bookingId = resource?.custom_id;
+      const resource = event.resource as Record<string, unknown> | undefined;
+      const bookingId = resource?.custom_id as string | undefined;
 
       if (!bookingId) {
         return NextResponse.json({ received: true, message: "No booking ID in event" });

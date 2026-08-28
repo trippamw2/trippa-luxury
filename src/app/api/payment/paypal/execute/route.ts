@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail, paymentReceiptEmail } from "@/lib/email";
+import { PayPalClient } from "@/lib/paypal";
 
 /**
  * GET /api/payment/paypal/execute
  * Processes PayPal payment approval after guest completes payment.
+ * Verifies the payment with PayPal before updating booking status.
  * Redirects to success or cancel page.
  */
 export async function GET(request: NextRequest) {
@@ -13,19 +15,31 @@ export async function GET(request: NextRequest) {
     const paymentId = searchParams.get("paymentId");
     const payerID = searchParams.get("PayerID");
     const bookingId = searchParams.get("bookingId");
+    const orderId = searchParams.get("token");
     const type = searchParams.get("type") || "balance";
-    // token is used by PayPal for order identification
-    const _token = searchParams.get("token");
 
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
-    if (!paymentId || !payerID || !bookingId) {
+    if (!paymentId || !payerID || !bookingId || !orderId) {
       return NextResponse.redirect(new URL("/payment/cancel?error=missing_params", baseUrl));
     }
 
-    // In production, you would execute the PayPal payment here:
-    // const paypal = new PayPalClient();
-    // await paypal.executePayment(paymentId, payerID);
+    // Verify and capture the PayPal payment with PayPal's API
+    // This ensures funds are actually captured before we mark the booking as paid
+    let captureResult: { status: string; id: string };
+    try {
+      const paypal = new PayPalClient();
+      captureResult = await paypal.executePayment(orderId);
+    } catch (captureErr) {
+      console.error("PayPal capture failed:", captureErr);
+      return NextResponse.redirect(new URL("/payment/cancel?error=capture_failed", baseUrl));
+    }
+
+    // Only proceed if PayPal confirmed the capture
+    if (captureResult.status !== "COMPLETED" && captureResult.status !== "APPROVED") {
+      console.error("PayPal capture returned unexpected status:", captureResult.status);
+      return NextResponse.redirect(new URL("/payment/cancel?error=payment_not_captured", baseUrl));
+    }
 
     // Update booking status
     const supabase = createAdminClient();

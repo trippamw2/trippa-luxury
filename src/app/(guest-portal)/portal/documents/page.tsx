@@ -23,7 +23,7 @@ const DOCUMENTS = [
 export default function PortalDocumentsPage() {
   return (
     <div>
-      <h1 style={{ fontFamily: "'Times New Roman', serif", fontSize: "24px", color: "#1A1A1A" }} className="mb-2">
+      <h1 className="font-heading text-2xl text-[#1A1A1A] mb-2">
         Travel Documents
       </h1>
       <p className="text-sm text-[#8B7D6B] mb-8">Essential information for your journey.</p>
@@ -39,7 +39,7 @@ export default function PortalDocumentsPage() {
                 <FileText className="w-5 h-5 text-[#C9A96E]" />
               </div>
               <div>
-                <h3 style={{ fontFamily: "'Times New Roman', serif", fontSize: "16px", color: "#1A1A1A" }}>
+                <h3 className="font-heading text-base text-[#1A1A1A]">
                   {doc.title}
                 </h3>
                 <p className="text-xs text-[#8B7D6B] mt-1">{doc.description}</p>

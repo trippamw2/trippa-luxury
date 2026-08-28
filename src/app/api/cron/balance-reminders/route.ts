@@ -21,7 +21,11 @@ export async function POST(request: NextRequest) {
     const authToken = request.headers.get("authorization")?.replace("Bearer ", "");
     const expectedToken = process.env.CRON_SECRET;
 
-    if (expectedToken && authToken !== expectedToken) {
+    if (!expectedToken) {
+      return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: 503 });
+    }
+
+    if (authToken !== expectedToken) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

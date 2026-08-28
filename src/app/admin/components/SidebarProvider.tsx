@@ -63,6 +63,7 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
 const NAV_ITEMS = [
   // ── Sales Pipeline ──────────────────────────────────────────────────
   { label: "Dashboard", href: "/admin", module: "dashboard" },
+  { label: "Founder Dashboard", href: "/admin/founder", module: "dashboard" },
   { label: "Inquiries", href: "/admin/inquiries", module: "inquiries" },
   { label: "AI Journeys", href: "/admin/ai-journeys", module: "journeys" },
   { label: "Journey Editor", href: "/admin/journeys", module: "journeys" },

@@ -58,7 +58,7 @@ export default function PortalLoginPage() {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 style={{ fontFamily: "'Times New Roman', serif", fontSize: "28px", color: "#1A1A1A", letterSpacing: "4px" }}>
+          <h1 className="font-heading text-[28px] text-[#1A1A1A] tracking-[4px]">
             KIVARA
           </h1>
           <p className="text-[10px] text-[#8B7D6B] uppercase tracking-[3px] mt-1">Guest Portal</p>
@@ -68,7 +68,7 @@ export default function PortalLoginPage() {
         <div className="bg-white border border-[#EDE5DA] p-8">
           {step === "email" ? (
             <>
-              <h2 style={{ fontFamily: "'Times New Roman', serif", fontSize: "20px", color: "#1A1A1A" }} className="mb-2">
+              <h2 className="font-heading text-xl text-[#1A1A1A] mb-2">
                 Welcome Back
               </h2>
               <p className="text-sm text-[#8B7D6B] mb-6">
@@ -98,7 +98,7 @@ export default function PortalLoginPage() {
             </>
           ) : (
             <>
-              <h2 style={{ fontFamily: "'Times New Roman', serif", fontSize: "20px", color: "#1A1A1A" }} className="mb-2">
+              <h2 className="font-heading text-xl text-[#1A1A1A] mb-2">
                 Check Your Email
               </h2>
               <p className="text-sm text-[#8B7D6B] mb-6">

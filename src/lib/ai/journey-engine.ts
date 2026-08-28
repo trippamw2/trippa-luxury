@@ -666,6 +666,21 @@ function calculatePricing(
 
 export class JourneyEngine {
   generate(guest: GuestProfile): CuratedJourney {
+    // Normalize the profile so callers may pass a partial object (e.g. an
+    // admin-curated quote with only name/email/preferences). Missing optional
+    // fields fall back to safe defaults instead of crashing downstream.
+    const prefsDefaults = {
+      travelStyle: "romantic" as const,
+      accommodationStyle: "luxury-resort" as const,
+      activityLevel: "moderate" as const,
+      budgetRange: "premium" as const,
+    };
+    guest = {
+      ...guest,
+      desiredNights: guest.desiredNights ?? 7,
+      preferences: { ...prefsDefaults, ...(guest.preferences ?? {}) },
+    };
+
     // Use explicit destination assignments if provided, otherwise auto-select
     const hasExplicit = guest.explicitDestinations && guest.explicitDestinations.length > 0;
 

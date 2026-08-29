@@ -27,7 +27,19 @@ export type AgentName =
   | "itinerary-agent"  // Finalises itinerary
   | "reminder-agent"   // Sends pre-trip reminders
   | "followup-agent"   // Post-trip engagement
-  | "analyst";         // Funnel analytics
+  | "analyst"         // Funnel analytics
+  | "romance-specialist" // Romance & emotional profile (§6)
+  | "proposal-agent"     // Story-driven proposals (§7)
+  | "market-analyst"     // Market & scenario intelligence (§5A)
+  | "supplier-analyst"   // Supplier scoring (§9)
+  | "ops-coordinator"    // Ops orchestration (§8)
+  | "finance-agent"      // Finance & economics (§18)
+  | "marketing-agent"    // Campaign intelligence (§13)
+  | "distribution-agent" // Channel yield (§15)
+  | "partnership-agent"  // Partner fit scoring (§16)
+  | "evaluation-agent"   // Agent performance (§24)
+  | "platform-agent"     // Platform health & flywheel (§27-28)
+  | "lab-agent";         // AI Lab experiments (§26)
 
 export interface AgentTask {
   agent: AgentName;
@@ -267,6 +279,18 @@ export class AIOrchestrator {
       "reminder-agent": "Send pre trip reminders",
       "followup-agent": "Post trip check in and review request",
       analyst: "Update funnel metrics and generate report",
+      "romance-specialist": "Build emotional profile and romance arc",
+      "proposal-agent": "Generate story-driven proposal with investment",
+      "market-analyst": "Analyse market signals and scenarios",
+      "supplier-analyst": "Score suppliers for luxury & romance fit",
+      "ops-coordinator": "Orchestrate 9-leg operations plan",
+      "finance-agent": "Compute unit economics and margins",
+      "marketing-agent": "Generate cross-channel campaign",
+      "distribution-agent": "Plan channel mix and yield",
+      "partnership-agent": "Score partnership candidates",
+      "evaluation-agent": "Evaluate agent performance",
+      "platform-agent": "Report platform health & defensibility",
+      "lab-agent": "Log and track AI experiments",
     };
 
     return { agent, description: descriptions[agent] };

@@ -81,6 +81,11 @@ const NAV_ITEMS = [
   { label: "Blog", href: "/admin/blog", module: "blog" },
   { label: "Marketing", href: "/admin/marketing", module: "marketing" },
   { label: "Media Library", href: "/admin/media", module: "media" },
+  // ── Intelligence ────────────────────────────────────────────────────
+  { label: "Market Intelligence", href: "/admin/intelligence", module: "analytics" },
+  { label: "Platform Health", href: "/admin/platform-intelligence", module: "analytics" },
+  { label: "AI Lab", href: "/admin/ai-lab", module: "analytics" },
+  { label: "Agent Registry", href: "/admin/agent-registry", module: "analytics" },
   // ── Administration ──────────────────────────────────────────────────
   { label: "Suppliers", href: "/admin/suppliers", module: "suppliers" },
   { label: "Users", href: "/admin/users", module: "users" },

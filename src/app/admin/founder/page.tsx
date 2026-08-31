@@ -193,11 +193,26 @@ export default function FounderDashboard() {
   };
 
   useEffect(() => {
-    loadDaily();
+    let active = true;
+    void Promise.resolve().then(() => {
+      if (active) return loadDaily();
+      return undefined;
+    });
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
-    if (tab === "weekly" && !review) loadWeekly();
+    if (tab !== "weekly" || review) return;
+    let active = true;
+    void Promise.resolve().then(() => {
+      if (active) return loadWeekly();
+      return undefined;
+    });
+    return () => {
+      active = false;
+    };
   }, [tab, review]);
 
   const handleRefresh = () => {
@@ -243,6 +258,28 @@ export default function FounderDashboard() {
           >
             {t.label}
           </button>
+        ))}
+      </div>
+
+      {/* Intelligence Hub links */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {[
+          { href: "/admin/intelligence", label: "Market Intelligence", desc: "Demand, budgets, opportunities" },
+          { href: "/admin/platform-intelligence", label: "Platform Health", desc: "The organisation's operating score" },
+          { href: "/admin/ai-lab", label: "AI Lab", desc: "Experiments & the monthly question" },
+          { href: "/admin/agent-registry", label: "Agent Registry", desc: "Governance for every AI agent" },
+        ].map((link) => (
+          <a
+            key={link.href}
+            href={link.href}
+            className="group bg-white border border-gray-100 p-4 hover:border-soft-black/30 hover:shadow-sm transition-all"
+          >
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold text-gray-900">{link.label}</p>
+              <ArrowRightLeft className="w-4 h-4 text-gray-300 group-hover:text-soft-black transition-colors" />
+            </div>
+            <p className="text-xs text-gray-500 mt-1">{link.desc}</p>
+          </a>
         ))}
       </div>
 

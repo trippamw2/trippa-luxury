@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { LogOut, User, ChevronDown, LayoutDashboard } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -30,6 +30,10 @@ const PAGE_TITLES: Record<string, string> = {
   "/admin/users": "Users",
   "/admin/settings": "Settings",
   "/admin/analytics": "Analytics",
+  "/admin/intelligence": "Market Intelligence",
+  "/admin/platform-intelligence": "Platform Health",
+  "/admin/ai-lab": "AI Lab",
+  "/admin/agent-registry": "Agent Registry",
 };
 
 /* ─── Props ───────────────────────────────────────────── */
@@ -40,6 +44,7 @@ interface AdminShellProps {
 /* ─── Component ───────────────────────────────────────── */
 export function AdminShell({ children }: AdminShellProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -68,8 +73,9 @@ export function AdminShell({ children }: AdminShellProps) {
   const profile = useAdminProfile();
 
   const handleLogout = async () => {
-    createClient().auth.signOut();
-    window.location.href = "/admin/login";
+    await createClient().auth.signOut();
+    router.push("/admin/login");
+    router.refresh();
   };
 
   // Determine title and breadcrumbs

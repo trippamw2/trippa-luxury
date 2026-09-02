@@ -237,7 +237,6 @@ async function main() {
 
   // ── STEP 6: Payment initiation (wire transfer path, real instructions) ──
   console.log("STEP 6 — PAYMENT INITIATION (wire transfer)\n");
-  let paymentRes = null;
   if (bookingId) {
     // 6a: unified initiation endpoint — needs auth (guest or admin)
     try {
@@ -247,7 +246,6 @@ async function main() {
       });
       if (res.status === 200 || res.status === 302) {
         steps.paymentRef = res.data?.reference || steps.paymentRef;
-        paymentRes = res.data;
         record("Payment initiation (wire)", true, `ref=${res.data?.reference || "N/A"}, amount=${res.data?.amount}`);
       } else {
         record("Payment initiation (wire)", res.status === 200, `status=${res.status}, data=${JSON.stringify(res.data)}`);

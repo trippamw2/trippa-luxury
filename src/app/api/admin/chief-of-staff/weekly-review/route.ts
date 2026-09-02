@@ -7,7 +7,7 @@ import { generateWeeklyReview } from "@/lib/ai/chief-of-staff";
  * Returns the weekly CEO review: what happened, what worked, what failed,
  * what to automate, what stays human, and the highest-leverage next action.
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     await requireAdmin({ module: "dashboard", minRole: "agent" });
 

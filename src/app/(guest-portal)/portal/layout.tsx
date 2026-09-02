@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function GuestPortalLayout({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   return (
     <div className="min-h-screen bg-[#FAF7F2]">
       <header className="border-b border-[#EDE5DA] bg-white">
@@ -19,7 +21,7 @@ export default function GuestPortalLayout({ children }: { children: React.ReactN
             <button
               onClick={async () => {
                 await fetch("/api/guest/auth", { method: "DELETE" });
-                window.location.href = "/portal/login";
+                router.push("/portal/login");
               }}
               className="hover:text-[#C9A96E] transition-colors"
             >

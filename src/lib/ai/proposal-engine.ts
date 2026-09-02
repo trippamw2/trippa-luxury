@@ -9,6 +9,7 @@ import { JourneyEngine } from "./journey-engine";
 import { runQualityGate, type QcVerdict } from "./quality-gate";
 import type { GuestProfile, CuratedJourney } from "./types";
 import type { EmotionalProfile } from "./romance-engine";
+import { callLlmJson } from "./llm";
 import { journeyIntro, journeyOverview } from "@/lib/voice";
 
 const engine = new JourneyEngine();
@@ -40,7 +41,12 @@ function openingFor(profile: EmotionalProfile, name: string, destinations: strin
 }
 
 export class ProposalEngine {
-  generateProposal(profile: GuestProfile, emotion: EmotionalProfile): Proposal {
+  /**
+   * Generate a full story-driven proposal. The opening narrative is written by
+   * the LLM in Kivara's voice when available, with a deterministic template
+   * fallback. Never throws.
+   */
+  async generateProposal(profile: GuestProfile, emotion: EmotionalProfile): Promise<Proposal> {
     const journey = engine.generate(profile);
     const total = journey.pricing.total;
     const subtotal = journey.pricing.subtotal;
@@ -51,11 +57,45 @@ export class ProposalEngine {
 
     const quality = runQualityGate(journey, depositRequired);
 
+    const fallbackNarrative = openingFor(emotion, profile.name, journey.destinations);
+
+    // LLM narrative with graceful fallback to the template.
+    let openingNarrative = fallbackNarrative;
+    try {
+      const { data } = await callLlmJson<{ narrative: string }>(
+        [
+          {
+            role: "system",
+            content:
+              "You are Kivara's senior proposal writer for an ultra-luxury Zambian travel house. " +
+              "Write a 2-3 sentence opening narrative (max 60 words) that leads with the emotional 'why' of the journey. " +
+              "Use warm, understated, editorial luxury language. Mention the journey's destination(s). " +
+              "Never mention pricing, itineraries, or logistics in the opening.",
+          },
+          {
+            role: "user",
+            content: [
+              `Guest: ${profile.name}`,
+              `Occasion: ${emotion.occasionLabel}`,
+              `Couple psychology: ${emotion.couplePsychology}`,
+              `Privacy needs: ${emotion.privacyNeeds}`,
+              `Destinations: ${journey.destinations.join(", ")}`,
+            ].join("\n"),
+          },
+        ],
+        { temperature: 0.8, maxTokens: 260 }
+      );
+      const narrative = data.narrative?.trim();
+      if (narrative) openingNarrative = narrative;
+    } catch (err: unknown) {
+      console.warn("Proposal narrative LLM unavailable, using template:", err instanceof Error ? err.message : String(err));
+    }
+
     return {
       ref: `P-${journey.id}`,
       createdFor: profile.name,
       emotionalProfile: emotion,
-      openingNarrative: openingFor(emotion, profile.name, journey.destinations),
+      openingNarrative,
       journey,
       investment: {
         subtotal,

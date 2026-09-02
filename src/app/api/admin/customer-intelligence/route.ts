@@ -7,7 +7,7 @@ import { getAllCustomerIntelligence } from "@/lib/ai/customer-intelligence";
  * Returns lightweight intelligence summary for all customers +
  * aggregate platform summary. Powers the CRM dashboard.
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     await requireAdmin({ module: "guest-profiles", minRole: "agent" });
 

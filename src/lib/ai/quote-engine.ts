@@ -39,73 +39,73 @@ export class QuoteEngine {
     const lineItems = j.pricing.accommodation
       .map((a) => `
         <tr>
-          <td style="padding: 10px 0; border-bottom: 1px solid #EDE5DA; font-size: 14px; color: #1A1A1A;">${a.label}</td>
-          <td style="padding: 10px 0; border-bottom: 1px solid #EDE5DA; font-size: 14px; color: #8B7D6B; text-align: center;">${a.nights}</td>
-          <td style="padding: 10px 0; border-bottom: 1px solid #EDE5DA; font-size: 14px; color: #8B7D6B; text-align: right;">$${a.ratePerNight.toLocaleString()}</td>
-          <td style="padding: 10px 0; border-bottom: 1px solid #EDE5DA; font-size: 14px; color: #1A1A1A; text-align: right; font-weight: 600;">$${a.subtotal.toLocaleString()}</td>
+          <td style="padding: 10px 0; border-bottom: 1px solid #D8CBB8; font-size: 14px; color: #1C1A17;">${a.label}</td>
+          <td style="padding: 10px 0; border-bottom: 1px solid #D8CBB8; font-size: 14px; color: #C2B39C; text-align: center;">${a.nights}</td>
+          <td style="padding: 10px 0; border-bottom: 1px solid #D8CBB8; font-size: 14px; color: #C2B39C; text-align: right;">$${a.ratePerNight.toLocaleString()}</td>
+          <td style="padding: 10px 0; border-bottom: 1px solid #D8CBB8; font-size: 14px; color: #1C1A17; text-align: right; font-weight: 600;">$${a.subtotal.toLocaleString()}</td>
         </tr>`)
       .join("");
 
     const highlightsHtml = j.highlights
-      .map((h) => `<li style="font-size: 13px; color: #4A4A4A; margin-bottom: 6px; line-height: 1.6;">${h}</li>`)
+      .map((h) => `<li style="font-size: 13px; color: #C2B39C; margin-bottom: 6px; line-height: 1.6;">${h}</li>`)
       .join("");
 
     const itineraryHtml = j.itinerary
       .map(
         (d) => `
-        <div style="margin-bottom: 16px; padding: 16px; background: #F5F0EB; border-left: 3px solid #C9A96E;">
-          <p style="font-size: 11px; color: #C9A96E; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 4px;">Day ${d.day}</p>
-          <h3 style="font-size: 16px; color: #1A1A1A; margin: 0 0 4px; font-family: 'Times New Roman', serif;">${d.title}</h3>
-          <p style="font-size: 12px; color: #8B7D6B; margin: 0 0 8px;">${d.accommodation} · ${d.location}</p>
+        <div style="margin-bottom: 16px; padding: 16px; background: #F4F0E8; border-left: 3px solid #C2A46D;">
+          <p style="font-size: 11px; color: #C2A46D; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 4px;">Day ${d.day}</p>
+          <h3 style="font-size: 16px; color: #1C1A17; margin: 0 0 4px; font-family: 'Times New Roman', serif;">${d.title}</h3>
+          <p style="font-size: 12px; color: #C2B39C; margin: 0 0 8px;">${d.accommodation} · ${d.location}</p>
           <ul style="margin: 0; padding-left: 16px;">
-            ${d.activities.slice(0, 2).map((a) => `<li style="font-size: 12px; color: #4A4A4A; margin-bottom: 2px;">${a.title}</li>`).join("")}
+            ${d.activities.slice(0, 2).map((a) => `<li style="font-size: 12px; color: #C2B39C; margin-bottom: 2px;">${a.title}</li>`).join("")}
           </ul>
         </div>`)
       .join("");
 
     return `
-    <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #FAF7F2; color: #1A1A1A;">
-      <div style="background: #141414; padding: 44px 60px 36px; text-align: center;">
+    <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #F4F0E8; color: #1C1A17;">
+      <div style="background: #1C1A17; padding: 44px 60px 36px; text-align: center;">
         <svg viewBox="0 0 400 145" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: block; width: 220px; height: auto; margin: 0 auto;" aria-label="Kivara">
           <path d="M 105,12 Q 200,24 295,12 Q 200,40 105,12 Z" fill="#F4F0E8" opacity="0.7"/>
           <path d="M 105,46 Q 200,36 295,46 Q 200,22 105,46 Z" fill="#D4BC8A" opacity="0.8"/>
-          <text x="200" y="88" text-anchor="middle" font-family="'Trajan Pro','Times New Roman',Georgia,serif" font size="44" font weight="400" fill="#F4F0E8" style="letter-spacing: 28px;">KIVARA</text>
-          <text x="200" y="120" text-anchor="middle" font-family="'Inter','Helvetica Neue',Arial,sans-serif" font size="7" font weight="300" fill="#D8CBB8" style="letter-spacing: 5px;">BUSH ● BEACH ● ROMANCE</text>
+          <text x="200" y="88" text-anchor="middle" font-family="'Trajan Pro','Times New Roman',Georgia,serif" font-size="44" font-weight="400" fill="#F4F0E8" style="letter-spacing: 28px;">KIVARA</text>
+          <text x="200" y="120" text-anchor="middle" font-family="'Inter','Helvetica Neue',Arial,sans-serif" font-size="7" font-weight="300" fill="#D8CBB8" style="letter-spacing: 5px;">BUSH ● BEACH ● ROMANCE</text>
         </svg>
-        <p style="color: #A89880; font-size: 9px; text-transform: uppercase; letter-spacing: 3px; margin: 8px 0 0;">Your Curated Journey</p>
+        <p style="color: #C2B39C; font-size: 9px; text-transform: uppercase; letter-spacing: 3px; margin: 8px 0 0;">Your Curated Journey</p>
       </div>
 
       <div style="padding: 40px;">
-        <h2 style="font-family: 'Times New Roman', serif; font-size: 22px; color: #1A1A1A; margin: 0 0 8px;">${j.guestProfile.name},</h2>
-        <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 24px;">
+        <h2 style="font-family: 'Times New Roman', serif; font-size: 22px; color: #1C1A17; margin: 0 0 8px;">${j.guestProfile.name},</h2>
+        <p style="font-size: 14px; color: #C2B39C; line-height: 1.7; margin: 0 0 24px;">
           ${journeyIntro(j.guestProfile.name, j.destinations.join(" and "))}
         </p>
 
-        <div style="background: #1A1A1A; padding: 20px; text-align: center; margin-bottom: 24px;">
-          <p style="font-size: 10px; color: #A89880; text-transform: uppercase; letter-spacing: 2px; margin: 0;">Quote Reference</p>
+        <div style="background: #1C1A17; padding: 20px; text-align: center; margin-bottom: 24px;">
+          <p style="font-size: 10px; color: #C2B39C; text-transform: uppercase; letter-spacing: 2px; margin: 0;">Quote Reference</p>
           <p style="font-size: 20px; color: #D4BC8A; margin: 4px 0 0; font-family: 'Times New Roman', serif;">${quote.quoteRef}</p>
         </div>
 
         <div style="margin-bottom: 24px;">
-          <h3 style="font-size: 14px; color: #1A1A1A; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 12px; border-bottom: 1px solid #EDE5DA; padding-bottom: 8px;">Your Journey</h3>
-          <p style="font-size: 15px; color: #1A1A1A; margin: 0; font-weight: 600;">${j.title}</p>
-          <p style="font-size: 13px; color: #8B7D6B; margin: 4px 0 0;">${j.duration} nights · ${j.destinations.length} destinations</p>
+          <h3 style="font-size: 14px; color: #1C1A17; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 12px; border-bottom: 1px solid #D8CBB8; padding-bottom: 8px;">Your Journey</h3>
+          <p style="font-size: 15px; color: #1C1A17; margin: 0; font-weight: 600;">${j.title}</p>
+          <p style="font-size: 13px; color: #C2B39C; margin: 4px 0 0;">${j.duration} nights · ${j.destinations.length} destinations</p>
         </div>
 
         <div style="margin-bottom: 24px;">
-          <h3 style="font-size: 14px; color: #1A1A1A; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 12px; border-bottom: 1px solid #EDE5DA; padding-bottom: 8px;">Itinerary Overview</h3>
+          <h3 style="font-size: 14px; color: #1C1A17; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 12px; border-bottom: 1px solid #D8CBB8; padding-bottom: 8px;">Itinerary Overview</h3>
           ${itineraryHtml}
         </div>
 
         <div style="margin-bottom: 24px;">
-          <h3 style="font-size: 14px; color: #1A1A1A; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 12px; border-bottom: 1px solid #EDE5DA; padding-bottom: 8px;">Investment</h3>
+          <h3 style="font-size: 14px; color: #1C1A17; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 12px; border-bottom: 1px solid #D8CBB8; padding-bottom: 8px;">Investment</h3>
           <table style="width: 100%; border-collapse: collapse;">
             <thead>
-              <tr style="font-size: 11px; color: #8B7D6B; text-transform: uppercase; letter-spacing: 1px;">
-                <th style="text-align: left; padding: 8px 0; border-bottom: 1px solid #EDE5DA;">Accommodation</th>
-                <th style="text-align: center; padding: 8px 0; border-bottom: 1px solid #EDE5DA;">Nights</th>
-                <th style="text-align: right; padding: 8px 0; border-bottom: 1px solid #EDE5DA;">Rate/Night</th>
-                <th style="text-align: right; padding: 8px 0; border-bottom: 1px solid #EDE5DA;">Total</th>
+              <tr style="font-size: 11px; color: #C2B39C; text-transform: uppercase; letter-spacing: 1px;">
+                <th style="text-align: left; padding: 8px 0; border-bottom: 1px solid #D8CBB8;">Accommodation</th>
+                <th style="text-align: center; padding: 8px 0; border-bottom: 1px solid #D8CBB8;">Nights</th>
+                <th style="text-align: right; padding: 8px 0; border-bottom: 1px solid #D8CBB8;">Rate/Night</th>
+                <th style="text-align: right; padding: 8px 0; border-bottom: 1px solid #D8CBB8;">Total</th>
               </tr>
             </thead>
             <tbody>
@@ -115,12 +115,12 @@ export class QuoteEngine {
               ${(() => {
                 const transferCost = j.pricing.transfers.reduce((s, t) => s + t.cost, 0);
                 const accomSub = j.pricing.subtotal - transferCost;
-                let rows = `<tr><td colspan="3" style="text-align: right; padding: 12px 0 4px; font-size: 13px; color: #8B7D6B;">Accommodation Subtotal</td><td style="text-align: right; padding: 12px 0 4px; font-size: 14px; color: #1A1A1A;">$${accomSub.toLocaleString()}</td></tr>`;
+                let rows = `<tr><td colspan="3" style="text-align: right; padding: 12px 0 4px; font-size: 13px; color: #C2B39C;">Accommodation Subtotal</td><td style="text-align: right; padding: 12px 0 4px; font-size: 14px; color: #1C1A17;">$${accomSub.toLocaleString()}</td></tr>`;
                 if (transferCost > 0) {
-                  rows += `<tr><td colspan="3" style="text-align: right; padding: 4px 0; font-size: 13px; color: #8B7D6B;">Private Charters & Transfers</td><td style="text-align: right; padding: 4px 0; font-size: 14px; color: #1A1A1A;">$${transferCost.toLocaleString()}</td></tr>`;
+                  rows += `<tr><td colspan="3" style="text-align: right; padding: 4px 0; font-size: 13px; color: #C2B39C;">Private Charters & Transfers</td><td style="text-align: right; padding: 4px 0; font-size: 14px; color: #1C1A17;">$${transferCost.toLocaleString()}</td></tr>`;
                 }
-                rows += `<tr><td colspan="3" style="text-align: right; padding: 4px 0; font-size: 13px; color: #8B7D6B;">Taxes & Fees (10%)</td><td style="text-align: right; padding: 4px 0; font-size: 14px; color: #1A1A1A;">$${j.pricing.taxes.toLocaleString()}</td></tr>`;
-                rows += `<tr><td colspan="3" style="text-align: right; padding: 8px 0; font-size: 16px; color: #1A1A1A; font-weight: 700; border-top: 2px solid #1A1A1A;">Total Investment</td><td style="text-align: right; padding: 8px 0; font-size: 18px; color: #C9A96E; font-weight: 700; border-top: 2px solid #1A1A1A;">$${j.pricing.total.toLocaleString()} ${j.pricing.currency}</td></tr>`;
+                rows += `<tr><td colspan="3" style="text-align: right; padding: 4px 0; font-size: 13px; color: #C2B39C;">Taxes & Fees (10%)</td><td style="text-align: right; padding: 4px 0; font-size: 14px; color: #1C1A17;">$${j.pricing.taxes.toLocaleString()}</td></tr>`;
+                rows += `<tr><td colspan="3" style="text-align: right; padding: 8px 0; font-size: 16px; color: #1C1A17; font-weight: 700; border-top: 2px solid #1C1A17;">Total Investment</td><td style="text-align: right; padding: 8px 0; font-size: 18px; color: #C2A46D; font-weight: 700; border-top: 2px solid #1C1A17;">$${j.pricing.total.toLocaleString()} ${j.pricing.currency}</td></tr>`;
                 return rows;
               })()}
             </tfoot>
@@ -128,28 +128,28 @@ export class QuoteEngine {
         </div>
 
         <div style="margin-bottom: 24px;">
-          <h3 style="font-size: 14px; color: #1A1A1A; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 12px; border-bottom: 1px solid #EDE5DA; padding-bottom: 8px;">Journey Highlights</h3>
+          <h3 style="font-size: 14px; color: #1C1A17; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 12px; border-bottom: 1px solid #D8CBB8; padding-bottom: 8px;">Journey Highlights</h3>
           <ul style="margin: 0; padding-left: 20px;">${highlightsHtml}</ul>
         </div>
 
-        <div style="margin-bottom: 24px; padding: 16px; background: #F5F0EB;">
-          <p style="font-size: 11px; color: #8B7D6B; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 8px;">Terms & Validity</p>
-          <p style="font-size: 12px; color: #4A4A4A; margin: 0 0 4px;">Quote valid until: <strong>${quote.validUntil}</strong></p>
-          <p style="font-size: 12px; color: #4A4A4A; margin: 0 0 4px;">${quote.paymentTerms}</p>
-          <p style="font-size: 12px; color: #4A4A4A; margin: 0;">Deposit requested: <strong style="color: #C9A96E;">$${quote.depositRequired.toLocaleString()} (${quote.depositPercent}%)</strong></p>
+        <div style="margin-bottom: 24px; padding: 16px; background: #D8CBB8;">
+          <p style="font-size: 11px; color: #C2B39C; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 8px;">Terms & Validity</p>
+          <p style="font-size: 12px; color: #1C1A17; margin: 0 0 4px;">Quote valid until: <strong>${quote.validUntil}</strong></p>
+          <p style="font-size: 12px; color: #1C1A17; margin: 0 0 4px;">${quote.paymentTerms}</p>
+          <p style="font-size: 12px; color: #1C1A17; margin: 0;">Deposit requested: <strong style="color: #C2A46D;">$${quote.depositRequired.toLocaleString()} (${quote.depositPercent}%)</strong></p>
         </div>
 
         <div style="text-align: center; margin-bottom: 24px;">
-          <a href="${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/payment?ref=${quote.quoteRef}" style="display: inline-block; padding: 14px 40px; background: #1A1A1A; color: #FAF7F2; text-decoration: none; font-size: 11px; text-transform: uppercase; letter-spacing: 2px;">Reserve Your Journey</a>
+          <a href="${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/payment?ref=${quote.quoteRef}" style="display: inline-block; padding: 14px 40px; background: #1C1A17; color: #F4F0E8; text-decoration: none; font-size: 11px; text-transform: uppercase; letter-spacing: 2px;">Reserve Your Journey</a>
         </div>
 
-        <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0;">Should you wish to refine any element of this journey, simply reply to this email. Your personal concierge is ready to adjust every detail until it feels perfectly yours.</p>
-        <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 16px 0 0;">With warmest regards,<br><strong style="color: #C9A96E;">Your Kivara Concierge</strong></p>
+        <p style="font-size: 14px; color: #1C1A17; line-height: 1.7; margin: 0;">Should you wish to refine any element of this journey, simply reply to this email. Your personal concierge is ready to adjust every detail until it feels perfectly yours.</p>
+        <p style="font-size: 14px; color: #1C1A17; line-height: 1.7; margin: 16px 0 0;">With warmest regards,<br><strong style="color: #C2A46D;">Your Kivara Concierge</strong></p>
       </div>
 
-      <div style="background: #EDE5DA; padding: 20px 40px; text-align: center;">
-        <p style="font-size: 10px; color: #8B7D6B; margin: 0;">Kivara Luxury Travel · concierge@kivara.luxury</p>
-        <p style="font-size: 10px; color: #8B7D6B; margin: 4px 0 0;">${process.env.NEXT_PUBLIC_SITE_URL || "kivara.com"}</p>
+      <div style="background: #D8CBB8; padding: 20px 40px; text-align: center;">
+        <p style="font-size: 10px; color: #C2B39C; margin: 0;">Kivara Luxury Travel · concierge@kivara.luxury</p>
+        <p style="font-size: 10px; color: #C2B39C; margin: 4px 0 0;">${process.env.NEXT_PUBLIC_SITE_URL || "kivara.com"}</p>
       </div>
     </div>`;
   }

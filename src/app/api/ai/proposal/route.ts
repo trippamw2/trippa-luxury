@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
       occasion: body?.occasion || undefined,
     });
 
-    const proposal = proposalEngine.generateProposal(profile, emotion);
+    const proposal = await proposalEngine.generateProposal(profile, emotion);
     return NextResponse.json({ proposal }, { status: 200 });
   } catch (error) {
     console.error("Proposal generation error:", error);

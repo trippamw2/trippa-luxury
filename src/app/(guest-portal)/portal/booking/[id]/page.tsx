@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Calendar, MapPin, Users, ArrowLeft, CreditCard, Banknote } from "lucide-react";
 
 interface BookingDetail {
@@ -23,6 +23,7 @@ interface BookingDetail {
 export default function PortalBookingDetailPage() {
   const params = useParams();
   const bookingId = params.id as string;
+  const router = useRouter();
   const [booking, setBooking] = useState<BookingDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -39,13 +40,13 @@ export default function PortalBookingDetailPage() {
       })
       .catch((err) => {
         if (err.message.includes("Not authenticated")) {
-          window.location.href = "/portal/login";
+          router.push("/portal/login");
           return;
         }
         setError(err.message);
       })
       .finally(() => setLoading(false));
-  }, [bookingId]);
+  }, [bookingId, router]);
 
   if (loading) {
     return (

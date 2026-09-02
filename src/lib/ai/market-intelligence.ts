@@ -8,6 +8,7 @@
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { callLlmJson } from "./llm";
+import { getBrandKnowledge } from "./knowledge";
 
 export interface MarketSignal {
   destination: string;
@@ -275,8 +276,7 @@ export class MarketIntelligence {
 
 function getTagline(): string {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const brand = require("./knowledge").getBrandKnowledge();
+    const brand = getBrandKnowledge();
     return brand?.tagline || "";
   } catch {
     return "";

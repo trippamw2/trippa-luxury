@@ -116,7 +116,7 @@ export function buildOpsPlan(
   };
 }
 
-function timingFor(leg: string, startDate?: string, nights?: number): string {
+function timingFor(leg: string, startDate?: string, _nights?: number): string {
   if (!startDate) return "To be scheduled";
   if (leg === "arrival") return `Day 1 · ${startDate}`;
   if (leg === "departure") return `Final day`;

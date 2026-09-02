@@ -153,7 +153,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to update journey" }, { status: 500 });
     }
 
-    return NextResponse.json({ journey: updated });
+    // LLM-assisted next-step advice for the concierge (graceful fallback).
+    const nextStep = await workflowEngine.suggestNextStep(targetState, {
+      clientName: current.clientName,
+      destination: current.destination,
+    });
+
+    return NextResponse.json({ journey: updated, nextStep });
   } catch (error) {
     console.error("Workflow POST error:", error);
     return NextResponse.json({ error: "Failed to process workflow action" }, { status: 500 });

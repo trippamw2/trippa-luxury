@@ -122,7 +122,6 @@ export async function generateDailyBriefing(): Promise<DailyBriefing> {
     const isUrgent = task.priority === "urgent" || task.priority === "high";
     const overdue = due && due < now;
     const dueToday = due && due.toDateString() === now.toDateString();
-    const isSlaRelevant = !task.assignee_id;
     const isUnassigned = !task.assignee_id;
 
     if (isUrgent && (overdue || dueToday || isUnassigned)) {

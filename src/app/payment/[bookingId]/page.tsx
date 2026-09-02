@@ -65,7 +65,7 @@ function PaymentContent() {
   }, [bookingId]);
 
   useEffect(() => {
-    fetchBooking();
+    Promise.resolve().then(fetchBooking);
   }, [fetchBooking]);
 
   const handlePayPal = async () => {

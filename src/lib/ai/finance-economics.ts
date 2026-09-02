@@ -7,6 +7,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { callLlmJson } from "./llm";
 
 export interface UnitEconomicsInput {
   bookings: Record<string, unknown>[];
@@ -38,6 +39,8 @@ export interface UnitEconomics {
   conversionRatePct: number;
   profitabilityByProduct: ProfitabilityBreakdown[];
   profitabilityByDestination: ProfitabilityBreakdown[];
+  /** Optional LLM-written founder narrative for the summary (graceful fallback: omitted). */
+  narrative?: string;
 }
 
 function num(v: unknown): number {
@@ -49,7 +52,7 @@ function num(v: unknown): number {
  * Pure unit-economics computation. Unit-testable.
  */
 export function computeUnitEconomics(input: UnitEconomicsInput): UnitEconomics {
-  const { bookings, payments, transactions, invoices, expenses } = input;
+  const { bookings, payments, expenses } = input;
 
   const revenue = bookings.reduce((s, b) => s + num(b.final_amount || b.total_amount), 0);
   const expensesTotal = expenses.reduce((s, e) => s + num(e.amount), 0);
@@ -152,6 +155,44 @@ export class FinanceEconomics {
     const totalBookings = (bookingsR.data || []).length;
     ui.conversionRatePct =
       totalInquiries > 0 ? Math.round((totalBookings / totalInquiries) * 10000) / 100 : 0;
+
+    // LLM founder narrative with graceful fallback (bounded so the admin
+    // dashboard never blocks for more than a few seconds). Consumes the
+    // transactions + invoices context that feeds the pure computation.
+    try {
+      const { data } = await Promise.race([
+        callLlmJson<{ narrative: string }>(
+          [
+            {
+              role: "system",
+              content:
+                "You are Kivara's finance chief-of-staff for an ultra-luxury Zambian travel house. " +
+                "Write a concise founder narrative (2-3 sentences, max 80 words) interpreting the " +
+                "unit economics: what is healthy, what needs attention, one suggested action. " +
+                "Use warm, precise, understated-luxury language. Never invent numbers outside those provided.",
+            },
+            {
+              role: "user",
+              content: [
+                `Revenue: $${ui.revenue.toLocaleString()} (net margin ${ui.netMarginPct}%, gross margin ${ui.grossMarginPct}%)`,
+                `Cash inflow: $${ui.cashInflow.toLocaleString()} | Outstanding balance: $${ui.outstandingBalance.toLocaleString()}`,
+                `Expenses: $${ui.expensesTotal.toLocaleString()} | Commissions est.: $${ui.commissionsEstimated.toLocaleString()}`,
+                `Average booking value: $${ui.averageBookingValue.toLocaleString()} | Est. CLV: $${ui.customerLifetimeValue.toLocaleString()}`,
+                `Conversion: ${ui.conversionRatePct}% | Active transactions: ${(transactionsR.data || []).length} | Invoices: ${(invoicesR.data || []).length}`,
+                `Top product: ${ui.profitabilityByProduct[0]?.product ?? "n/a"} (${ui.profitabilityByProduct[0]?.marginPct ?? 0}% margin)`,
+              ].join("\n"),
+            },
+          ],
+          { temperature: 0.4, maxTokens: 260 }
+        ),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("finance narrative timeout")), 6000)
+        ),
+      ]);
+      if (data.narrative?.trim()) ui.narrative = data.narrative.trim();
+    } catch (err: unknown) {
+      console.warn("Finance narrative LLM unavailable:", err instanceof Error ? err.message : String(err));
+    }
 
     return ui;
   }

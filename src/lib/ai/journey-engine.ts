@@ -331,7 +331,7 @@ const PARK_FEES_PER_DAY = 120;           // South Luangwa park fees per person p
  * Load transfer pricing from platform_settings (falls back to hardcoded defaults).
  * Called once per journey generation request for accurate pricing.
  */
-async function loadTransferPricing(): Promise<{
+async function _loadTransferPricing(): Promise<{
   charterCosts: Record<string, number>;
   defaultCharterCost: number;
   roadTransferCost: number;
@@ -1020,29 +1020,6 @@ export class JourneyEngine {
    */
   async llmGenerate(guest: GuestProfile): Promise<CuratedJourney> {
     try {
-      // Build a compact representation of our available inventory
-      const inventorySummary = DESTINATIONS.map((d) => {
-        const destProps = d.properties
-          .map((pid) => PROPERTIES.find((p) => p.id === pid)!)
-          .filter(Boolean);
-        return {
-          destination: d.title,
-          id: d.id,
-          tagline: d.tagline,
-          properties: destProps.map((p) => ({
-            id: p.id,
-            name: p.name,
-            location: p.location,
-            tagline: p.tagline,
-            priceRange: p.priceRange,
-            roomTypes: p.roomTypes,
-            amenities: p.amenities,
-            romanticHighlights: p.romanticHighlights,
-            heroImage: p.heroImage,
-          })),
-        };
-      });
-
       const systemPrompt = `You are Kivara's lead journey curator — a world-class luxury travel designer with decades of experience crafting bespoke African journeys for ultra-high-net-worth couples. You understand that luxury is not about price — it is about emotional resonance, exclusivity, and the feeling of being truly known.
 
 KIVARA BRAND VOICE:

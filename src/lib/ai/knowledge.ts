@@ -17,7 +17,6 @@
 // catalog.
 
 import { createAdminClient } from "@/lib/supabase/admin";
-import { mapKeysToCamel } from "@/lib/api-helpers";
 
 // ─── 1. Types ─────────────────────────────────────────────────────────────
 

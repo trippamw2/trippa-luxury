@@ -8,7 +8,7 @@ import { generateDailyBriefing } from "@/lib/ai/chief-of-staff";
  * high-value leads, pending decisions, bottlenecks, risks, and opportunities,
  * along with founder-level routing recommendations.
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     await requireAdmin({ module: "dashboard", minRole: "agent" });
 

@@ -11,6 +11,7 @@ import { FollowUpEngine, generateFollowUpSchedules, type FollowUpContent } from 
 import { salesFunnel, type FunnelEntry } from "./sales-funnel";
 import type { CuratedJourney, GuestProfile } from "./types";
 import type { ConciergeState } from "./workflow-engine";
+import { callLlmJson } from "./llm";
 
 // Schedule item types derived from the schedule generators.
 type ReminderScheduleItem = ReturnType<typeof generateReminderSchedules>[number];
@@ -59,6 +60,8 @@ export interface OrchestrationResult {
   errors: string[];
   documentsGenerated: string[];
   emailsSent: string[];
+  /** Optional LLM-generated concierge handoff note summarising the inquiry. */
+  handoffNote?: string;
 }
 
 // ─── Orchestrator ──────────────────────────────────────────────────────
@@ -148,6 +151,43 @@ export class AIOrchestrator {
     if (completedTasks.includes("journey_curation")) state = "curating";
     if (completedTasks.includes("quote_generation")) state = "quoted";
 
+    // LLM-generated concierge handoff note summarising the inquiry (graceful fallback).
+    let handoffNote: string | undefined;
+    try {
+      const { data } = await callLlmJson<{ handoffNote: string }>(
+        [
+          {
+            role: "system",
+            content:
+              "You are Kivara's concierge chief-of-staff for an ultra-luxury Zambian travel house. " +
+              "Write a concise handoff note (2-3 sentences, max 55 words) for the human concierge team " +
+              "about a newly processed inquiry. Summarise who the guest is, what was generated, and the " +
+              "one action the concierge should take next. Warm, precise, understated-luxury language.",
+          },
+          {
+            role: "user",
+            content: [
+              `Guest: ${profiled.name}`,
+              profiled.isCouple ? "Travelling as a couple" : "",
+              profiled.specialOccasion ? `Occasion: ${profiled.specialOccasion}` : "",
+              profiled.extractedPreferences?.length
+                ? `Preferences: ${profiled.extractedPreferences.join(", ")}`
+                : "",
+              journey ? `Journey generated: ${journey.title} (${journey.destinations.join(", ")}, ${journey.duration})` : "No journey generated yet",
+              `Current state: ${state}`,
+              `Errors: ${errors.length > 0 ? errors.join("; ") : "none"}`,
+              `Completed: ${completedTasks.join(", ") || "none"}`,
+              `Pending: ${pendingTasks.join(", ") || "none"}`,
+            ].filter(Boolean).join("\n"),
+          },
+        ],
+        { temperature: 0.3, maxTokens: 200 }
+      );
+      if (data.handoffNote?.trim()) handoffNote = data.handoffNote.trim();
+    } catch (err: unknown) {
+      console.warn("Orchestrator handoff note LLM unavailable:", err instanceof Error ? err.message : String(err));
+    }
+
     return {
       journeyId: journey?.id || profiled.id,
       guestProfile: profiled,
@@ -158,6 +198,7 @@ export class AIOrchestrator {
       errors,
       documentsGenerated,
       emailsSent,
+      handoffNote,
     };
   }
 

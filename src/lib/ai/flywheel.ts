@@ -88,9 +88,6 @@ export function computeDefensibility(
     factors.reduce((s, f) => s + f.score, 0) / factors.length * 10
   );
 
-  const strong = factors.filter((f) => f.score >= 7).length;
-  const developing = factors.filter((f) => f.score >= 4 && f.score < 7).length;
-
   const assessment =
     overall >= 70
       ? "Kivara has a strong, compounding defensibility moat across multiple factors."

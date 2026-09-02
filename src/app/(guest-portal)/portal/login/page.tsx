@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function PortalLoginPage() {
   const [email, setEmail] = useState("");
@@ -8,6 +9,7 @@ export default function PortalLoginPage() {
   const [step, setStep] = useState<"email" | "otp">("email");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const router = useRouter();
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +48,7 @@ export default function PortalLoginPage() {
         setError(json.error || "Invalid code. Please try again.");
         return;
       }
-      window.location.href = "/portal";
+      router.push("/portal");
     } catch {
       setError("Something went wrong. Please try again.");
     }

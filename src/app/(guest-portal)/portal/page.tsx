@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Calendar, MapPin, Users, DollarSign } from "lucide-react";
 
 interface GuestBooking {
@@ -32,6 +33,7 @@ export default function PortalDashboardPage() {
   const [bookings, setBookings] = useState<GuestBooking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
     fetch("/api/guest/bookings")
@@ -45,13 +47,13 @@ export default function PortalDashboardPage() {
       })
       .catch((err) => {
         if (err.message === "Not authenticated") {
-          window.location.href = "/portal/login";
+          router.push("/portal/login");
           return;
         }
         setError(err.message);
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [router]);
 
   if (loading) {
     return (

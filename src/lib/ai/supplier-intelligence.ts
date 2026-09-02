@@ -139,8 +139,6 @@ function round1(v: number): number {
   return Math.round(v * 10) / 10;
 }
 
-type PromiseLike<T> = T | Promise<T>;
-
 export class SupplierIntelligence {
   private async withNarrative<T>(input: T, build: (t: T) => Promise<string | null>): Promise<T> {
     return build(input).then(() => input).catch(() => input);

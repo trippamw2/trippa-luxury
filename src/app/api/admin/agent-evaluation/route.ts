@@ -4,7 +4,7 @@ import { agentEvaluation } from "@/lib/ai/agent-evaluation";
 
 /**
  * Admin Agent Evaluation API.
- * GET /api/admin/agent-evaluation?agent=NAME  → list events + metrics
+ * GET /api/admin/agent-evaluation?agent=NAME  → list events + metrics + optional LLM insight
  * POST /api/admin/agent-evaluation             → record an AgentEvent
  * Body: { agent, type, meta?: { promptTokens?, completionTokens?, latencyMs?, revenue? } }
  */
@@ -14,8 +14,16 @@ export async function GET(request: NextRequest) {
     const agent = request.nextUrl.searchParams.get("agent") || undefined;
 
     const events = agentEvaluation.listEvents(agent);
-    const metrics = agent ? agentEvaluation.evaluate(agent) : null;
-    return NextResponse.json({ events, metrics });
+
+    // Quantitative metrics always available; LLM insight layered on top for
+    // named-agent requests (admin dashboard latency is acceptable here).
+    const insight = agent ? await agentEvaluation.evaluateWithInsight(agent) : null;
+
+    return NextResponse.json({
+      events,
+      metrics: insight?.metrics ?? null,
+      insight: insight?.insight || null,
+    });
   } catch (err) {
     if (err instanceof AdminAuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });

@@ -2,6 +2,8 @@
 // State machine managing the full client lifecycle.
 // Each "agent" is an automated step that transitions the state.
 
+import { callLlmJson } from "./llm";
+
 export type ConciergeState =
   | "new"              // Enquiry received : auto-triggered
   | "qualifying"       // Concierge reviewing needs
@@ -108,6 +110,51 @@ export class WorkflowEngine {
     const transition = TRANSITIONS.find((t) => t.from.includes(state) || t.from.includes("*"));
     if (!transition) return null;
     return { agent: transition.agent, description: transition.description };
+  }
+
+  /**
+   * Suggest the next step for a journey. Deterministic state-machine advice is
+   * always returned; an LLM-generated personalised note is layered on top when
+   * available. Never throws.
+   */
+  async suggestNextStep(
+    state: ConciergeState,
+    context?: { clientName?: string; destination?: string }
+  ): Promise<{ agent: string; description: string; advice: string } | null> {
+    const next = this.getNextAgent(state);
+    if (!next) return null;
+
+    let advice = next.description;
+    try {
+      const { data } = await callLlmJson<{ advice: string }>(
+        [
+          {
+            role: "system",
+            content:
+              "You are Kivara's concierge chief-of-staff for an ultra-luxury Zambian travel house. " +
+              "For a given client journey state, write ONE short, actionable next-step note for the " +
+              "concierge team (max 35 words) in warm, precise, understated-luxury language. " +
+              "Do not mention the state machine, agents, or internal processes.",
+          },
+          {
+            role: "user",
+            content: [
+              `Client: ${context?.clientName || "a valued guest"}`,
+              context?.destination ? `Destination: ${context.destination}` : "Destination: Zambia",
+              `Journey stage: ${this.getStateLabel(state)}`,
+            ].join("\n"),
+          },
+        ],
+        { temperature: 0.4, maxTokens: 140 }
+      );
+      const note = data.advice?.trim();
+      if (note) advice = note;
+    } catch (err: unknown) {
+      // Deterministic advice stays authoritative.
+      console.warn("Workflow advice LLM unavailable, using default:", err instanceof Error ? err.message : String(err));
+    }
+
+    return { agent: next.agent, description: next.description, advice };
   }
 
   /**

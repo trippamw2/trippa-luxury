@@ -5,6 +5,8 @@
 // In-memory event log for MVP with an interface that permits later persistence.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { callLlmJson } from "./llm";
+
 export type AgentEventType =
   | "success"
   | "error"
@@ -40,12 +42,20 @@ export interface AgentMetrics {
   revenueImpact: number; // sum revenue from revenue-outcome events
   errorRate: number; // 0–100
   escalationRate: number; // 0–100
+  totalTokens: number; // raw token usage across events
+}
+
+/** Optional LLM-written qualitative assessment for an agent. */
+export interface AgentInsight {
+  agent: string;
+  metrics: AgentMetrics;
+  insight: string;
 }
 
 const USD_PER_1K_PROMPT = 0.00015;
 const USD_PER_1K_COMPLETION = 0.0006;
 
-let events: AgentEvent[] = [];
+const events: AgentEvent[] = [];
 
 function uid(): string {
   return `evt_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
@@ -102,6 +112,7 @@ export function evaluateAgent(name: string, evts: AgentEvent[]): AgentMetrics | 
     revenueImpact,
     errorRate,
     escalationRate,
+    totalTokens,
   };
 }
 
@@ -128,6 +139,47 @@ export class AgentEvaluation {
 
   evaluate(agent: string): AgentMetrics | null {
     return evaluateAgent(agent, events);
+  }
+
+  /**
+   * Quantitative metrics plus an optional LLM-written qualitative insight for a
+   * named agent. Deterministic metrics always present; insight may be absent.
+   */
+  async evaluateWithInsight(agent: string): Promise<AgentInsight | null> {
+    const metrics = evaluateAgent(agent, events);
+    if (!metrics) return null;
+
+    let insight = "";
+    try {
+      const { data } = await callLlmJson<{ insight: string }>(
+        [
+          {
+            role: "system",
+            content:
+              "You are Kivara's operations analyst for an ultra-luxury Zambian travel house. " +
+              "Write a concise, actionable insight (max 45 words) about an AI agent's performance. " +
+              "Reference the metrics provided, identify one strength, one risk, and one suggested action. " +
+              "Use warm, precise, understated-luxury language. Never invent numbers outside those provided.",
+          },
+          {
+            role: "user",
+            content: [
+              `Agent: ${agent}`,
+              `Events: ${metrics.eventCount} | Accuracy: ${metrics.accuracy}% | Completion: ${metrics.completionRate}%`,
+              `Error rate: ${metrics.errorRate}% | Escalation: ${metrics.escalationRate}%`,
+              `Cost: $${metrics.cost} | Avg latency: ${metrics.speedMs}ms | Tokens: ${metrics.totalTokens}`,
+              `Revenue impact: $${metrics.revenueImpact} | Customer impact: ${metrics.customerImpact}`,
+            ].join("\n"),
+          },
+        ],
+        { temperature: 0.3, maxTokens: 180 }
+      );
+      if (data.insight?.trim()) insight = data.insight.trim();
+    } catch (err: unknown) {
+      console.warn("Agent evaluation insight LLM unavailable:", err instanceof Error ? err.message : String(err));
+    }
+
+    return { agent, metrics, insight };
   }
 }
 

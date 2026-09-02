@@ -2,8 +2,14 @@
 // The governance layer for every AI agent in the Kivara organisation (Master OS
 // §23 — AI Agent Permissions). Each agent has a defined objective, scope, tools,
 // knowledge, permissions (minimum necessary authority), output and escalation
-// process. It is a PURE, data-driven module — no database required.
+// process.
+//
+// The registry is persisted to Postgres (agents table) so the catalogue is a
+// single source of truth shared across processes. It is seeded by migration
+// 020 from the KIVARA_AGENTS catalogue below.
 // ─────────────────────────────────────────────────────────────────────────────
+
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export type AgentTool =
   | "llm"
@@ -33,17 +39,9 @@ export interface AgentSpec {
   successMetrics: string[];
 }
 
-const readOnlyTools: AgentTool[] = [
-  "read_inquiries",
-  "read_bookings",
-  "read_guests",
-  "read_analytics",
-  "read_knowledge",
-];
-
-const fullCrmTools: AgentTool[] = [...readOnlyTools, "update_crm", "send_email"];
-
 // ─── The full catalogue of Kivara AI agents (per Master OS) ────────────────
+// Mirrors the seed applied by migration 020. Kept as the canonical reference
+// used to seed a fresh database and to validate registerAgent input.
 export const KIVARA_AGENTS: AgentSpec[] = [
   // Executive layer
   {
@@ -512,28 +510,88 @@ export const KIVARA_AGENTS: AgentSpec[] = [
   },
 ];
 
-// ─── Registry accessors ─────────────────────────────────────────────────────
+// ─── Registry accessors (DB-backed) ─────────────────────────────────────────
 
-export function getAgent(name: string): AgentSpec | undefined {
-  return KIVARA_AGENTS.find((a) => a.name === name);
+// Map a snake_case DB row back to the camelCase AgentSpec shape.
+function mapRow(row: {
+  name: string;
+  department: string;
+  objective: string;
+  scope: string;
+  tools: AgentTool[];
+  knowledge: string[];
+  permissions: string;
+  output: string;
+  escalation: string;
+  success_metrics: string[];
+}): AgentSpec {
+  return {
+    name: row.name,
+    department: row.department,
+    objective: row.objective,
+    scope: row.scope,
+    tools: row.tools,
+    knowledge: row.knowledge,
+    permissions: row.permissions,
+    output: row.output,
+    escalation: row.escalation,
+    successMetrics: row.success_metrics,
+  };
 }
 
-export function getAllAgents(): AgentSpec[] {
-  return KIVARA_AGENTS;
+export async function getAgent(name: string): Promise<AgentSpec | undefined> {
+  const client = createAdminClient();
+  const { data, error } = await client
+    .from("agents")
+    .select("*")
+    .eq("name", name)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? mapRow(data) : undefined;
 }
 
-export function getAgentsByDepartment(department: string): AgentSpec[] {
-  return KIVARA_AGENTS.filter((a) => a.department === department);
+export async function getAllAgents(): Promise<AgentSpec[]> {
+  const client = createAdminClient();
+  const { data, error } = await client
+    .from("agents")
+    .select("*")
+    .order("department", { ascending: true });
+  if (error) throw error;
+  return (data || []).map((row) => mapRow(row));
 }
 
-export function registerAgent(spec: AgentSpec): AgentSpec[] {
-  const existing = KIVARA_AGENTS.findIndex((a) => a.name === spec.name);
-  if (existing >= 0) {
-    KIVARA_AGENTS[existing] = spec;
-  } else {
-    KIVARA_AGENTS.push(spec);
-  }
-  return KIVARA_AGENTS;
+export async function getAgentsByDepartment(department: string): Promise<AgentSpec[]> {
+  const client = createAdminClient();
+  const { data, error } = await client
+    .from("agents")
+    .select("*")
+    .eq("department", department)
+    .order("name", { ascending: true });
+  if (error) throw error;
+  return (data || []).map((row) => mapRow(row));
+}
+
+export async function registerAgent(spec: AgentSpec): Promise<AgentSpec[]> {
+  const client = createAdminClient();
+  const now = new Date().toISOString();
+  const { error } = await client.from("agents").upsert(
+    {
+      name: spec.name,
+      department: spec.department,
+      objective: spec.objective,
+      scope: spec.scope,
+      tools: spec.tools,
+      knowledge: spec.knowledge,
+      permissions: spec.permissions,
+      output: spec.output,
+      escalation: spec.escalation,
+      success_metrics: spec.successMetrics,
+      updated_at: now,
+    },
+    { onConflict: "name" }
+  );
+  if (error) throw error;
+  return getAllAgents();
 }
 
 export const agentRegistry = {

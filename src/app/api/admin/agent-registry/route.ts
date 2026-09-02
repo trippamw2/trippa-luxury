@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
   try {
     await requireAdmin({ module: "analytics", minRole: "editor" });
     const department = request.nextUrl.searchParams.get("department") || undefined;
-    const agents = department ? getAgentsByDepartment(department) : getAllAgents();
+    const agents = department ? await getAgentsByDepartment(department) : await getAllAgents();
     return NextResponse.json({ agents });
   } catch (err) {
     if (err instanceof AdminAuthError) {
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     if (!body?.spec?.name) {
       return NextResponse.json({ error: "Missing spec.name" }, { status: 400 });
     }
-    const agents = registerAgent(body.spec);
+    const agents = await registerAgent(body.spec);
     return NextResponse.json({ agents }, { status: 201 });
   } catch (err) {
     if (err instanceof AdminAuthError) {

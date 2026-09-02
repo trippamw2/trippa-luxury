@@ -9,24 +9,24 @@ export const KIVARA_BRAND = {
   website: "https://kivara.luxury",
   address: "Cape Town, South Africa",
   colors: {
-    primary: "#1A1A1A",
-    gold: "#C9A96E",
+    primary: "#1C1A17",
+    gold: "#C2A46D",
     goldLight: "#D4BC8A",
-    goldDark: "#B8944A",
-    cream: "#FAF7F2",
-    warmWhite: "#F5F0EB",
-    warmWhiteDark: "#EDE5DA",
-    sand: "#D4C5A9",
-    earth: "#8B7D6B",
-    earthLight: "#A89880",
+    goldDark: "#B08A4D",
+    cream: "#F4F0E8",
+    warmWhite: "#F4F0E8",
+    warmWhiteDark: "#EBE5DA",
+    sand: "#D8CBB8",
+    earth: "#C2B39C",
+    earthLight: "#D8CBB8",
     white: "#FFFFFF",
-    darkBg: "#1A1A1A",
-    textPrimary: "#1A1A1A",
+    darkBg: "#1C1A17",
+    textPrimary: "#1C1A17",
     textSecondary: "#4A4A4A",
-    textMuted: "#8B7D6B",
+    textMuted: "#C2B39C",
   },
   fonts: {
-    heading: "'Trajan Pro', 'Times New Roman', serif",
+    heading: "'Cormorant Garamond', 'Playfair Display', serif",
     body: "'Inter', 'Helvetica Neue', Arial, sans-serif",
     mono: "'Courier New', monospace",
   },
@@ -48,7 +48,7 @@ export function wrapDocument(html: string, meta?: { title?: string }): string {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${meta?.title || "Kivara Luxury Travel"} | Kivara</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
     
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
@@ -56,8 +56,8 @@ export function wrapDocument(html: string, meta?: { title?: string }): string {
     
     body {
       font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
-      background: #F4EFE8;
-      color: #1A1A1A;
+      background: #F4F0E8;
+      color: #1C1A17;
       -webkit-font-smoothing: antialiased;
     }
     
@@ -72,13 +72,13 @@ export function wrapDocument(html: string, meta?: { title?: string }): string {
       max-width: 800px;
       margin: 0 auto;
       background: white;
-      border: 1px solid rgba(201, 169, 110, 0.15);
+      border: 1px solid rgba(194, 164, 109, 0.15);
       box-shadow: 0 8px 40px rgba(0, 0, 0, 0.07);
     }
     
     /* ── Header ──────────────────────────────────────── */
     .document-header {
-      background: #141414;
+      background: #1C1A17;
       padding: 44px 60px 36px;
       position: relative;
     }
@@ -90,7 +90,7 @@ export function wrapDocument(html: string, meta?: { title?: string }): string {
       left: 0;
       right: 0;
       height: 3px;
-      background: linear-gradient(90deg, #C9A96E, #D4BC8A, #C9A96E);
+      background: linear-gradient(90deg, #C2A46D, #D4BC8A, #C2A46D);
     }
     
     .document-header::after {
@@ -100,7 +100,7 @@ export function wrapDocument(html: string, meta?: { title?: string }): string {
       left: 60px;
       right: 60px;
       height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(201, 169, 110, 0.5), transparent);
+      background: linear-gradient(90deg, transparent, rgba(194, 164, 109, 0.5), transparent);
     }
     
     .document-brand {
@@ -121,13 +121,13 @@ export function wrapDocument(html: string, meta?: { title?: string }): string {
     
     .document-badge-label {
       font-size: 9px;
-      color: #A89880;
+      color: #D8CBB8;
       text-transform: uppercase;
       letter-spacing: 3px;
     }
     
     .document-badge-title {
-      font-family: 'Playfair Display', serif;
+      font-family: 'Cormorant Garamond', 'Playfair Display', serif;
       font-size: 22px;
       color: #D4BC8A;
       margin-top: 2px;
@@ -141,14 +141,14 @@ export function wrapDocument(html: string, meta?: { title?: string }): string {
     
     /* ── Footer ───────────────────────────────────────── */
     .document-footer {
-      border-top: 1px solid rgba(201, 169, 110, 0.2);
+      border-top: 1px solid rgba(194, 164, 109, 0.2);
       padding: 20px 60px;
       text-align: center;
     }
     
     .document-footer p {
       font-size: 8.5px;
-      color: #8B7D6B;
+      color: #C2B39C;
       margin-bottom: 3px;
       letter-spacing: 0.8px;
       line-height: 1.6;
@@ -156,35 +156,35 @@ export function wrapDocument(html: string, meta?: { title?: string }): string {
     
     .document-footer .footer-brand {
       font-size: 11px;
-      font-family: 'Playfair Display', serif;
-      color: #C9A96E;
+      font-family: 'Cormorant Garamond', 'Playfair Display', serif;
+      color: #C2A46D;
       letter-spacing: 2px;
       margin-bottom: 6px;
     }
     
     /* ── Typography ───────────────────────────────────── */
     h1 {
-      font-family: 'Playfair Display', serif;
+      font-family: 'Cormorant Garamond', 'Playfair Display', serif;
       font-size: 26px;
       font-weight: 500;
       margin-bottom: 10px;
-      color: #1A1A1A;
+      color: #1C1A17;
       line-height: 1.3;
     }
     
     h2 {
-      font-family: 'Playfair Display', serif;
+      font-family: 'Cormorant Garamond', 'Playfair Display', serif;
       font-size: 20px;
       font-weight: 500;
       margin-bottom: 16px;
-      color: #1A1A1A;
+      color: #1C1A17;
     }
     
     h3 {
       font-size: 10px;
       text-transform: uppercase;
       letter-spacing: 2.5px;
-      color: #8B7D6B;
+      color: #C2B39C;
       margin-bottom: 12px;
       padding-bottom: 8px;
       position: relative;
@@ -198,10 +198,10 @@ export function wrapDocument(html: string, meta?: { title?: string }): string {
       content: '';
       flex: 1;
       height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(201, 169, 110, 0.3), transparent);
+      background: linear-gradient(90deg, transparent, rgba(194, 164, 109, 0.3), transparent);
     }
     
-    h3::before { flex: none; width: 24px; background: #C9A96E; }
+    h3::before { flex: none; width: 24px; background: #C2A46D; }
     
     p {
       font-size: 13px;
@@ -221,11 +221,11 @@ export function wrapDocument(html: string, meta?: { title?: string }): string {
       text-align: left;
       padding: 10px 8px;
       font-size: 9px;
-      color: #8B7D6B;
+      color: #C2B39C;
       text-transform: uppercase;
       letter-spacing: 1.5px;
       font-weight: 600;
-      border-bottom: 1px solid rgba(201, 169, 110, 0.3);
+      border-bottom: 1px solid rgba(194, 164, 109, 0.3);
     }
     
     td {
@@ -241,13 +241,13 @@ export function wrapDocument(html: string, meta?: { title?: string }): string {
     }
     
     /* ── Utilities ────────────────────────────────────── */
-    .gold { color: #C9A96E; }
-    .gold-dark { color: #B8944A; }
+    .gold { color: #C2A46D; }
+    .gold-dark { color: #B08A4D; }
     .text-right { text-align: right; }
     .text-center { text-align: center; }
     .font-bold { font-weight: 700; }
     .font-mono { font-family: 'Courier New', monospace; }
-    .text-earth { color: #8B7D6B; }
+    .text-earth { color: #C2B39C; }
     .text-xs { font-size: 11px; }
     .text-sm { font-size: 12px; }
     .mt-2 { margin-top: 8px; }
@@ -256,21 +256,21 @@ export function wrapDocument(html: string, meta?: { title?: string }): string {
     /* ── Reference Box ────────────────────────────────── */
     .ref-box {
       background: #F6F2EC;
-      border-left: 3px solid #C9A96E;
+      border-left: 3px solid #C2A46D;
       padding: 16px 20px;
       margin-bottom: 24px;
     }
     
     .ref-box p {
       font-size: 11px;
-      color: #8B7D6B;
+      color: #C2B39C;
       margin-bottom: 2px;
     }
     
     .ref-box .ref-value {
       font-size: 15px;
       font-weight: 700;
-      color: #1A1A1A;
+      color: #1C1A17;
       font-family: 'Courier New', monospace;
     }
     
@@ -289,7 +289,7 @@ export function wrapDocument(html: string, meta?: { title?: string }): string {
     
     .info-item label {
       font-size: 9px;
-      color: #8B7D6B;
+      color: #C2B39C;
       text-transform: uppercase;
       letter-spacing: 1px;
       display: block;
@@ -298,7 +298,7 @@ export function wrapDocument(html: string, meta?: { title?: string }): string {
     
     .info-item span {
       font-size: 14px;
-      color: #1A1A1A;
+      color: #1C1A17;
       font-weight: 500;
     }
     
@@ -306,7 +306,7 @@ export function wrapDocument(html: string, meta?: { title?: string }): string {
     .divider {
       border: none;
       height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(201, 169, 110, 0.3), transparent);
+      background: linear-gradient(90deg, transparent, rgba(194, 164, 109, 0.3), transparent);
       margin: 32px 0;
     }
     
@@ -314,7 +314,7 @@ export function wrapDocument(html: string, meta?: { title?: string }): string {
       text-align: center;
       margin: 28px 0;
       font-size: 14px;
-      color: #C9A96E;
+      color: #C2A46D;
       letter-spacing: 12px;
       opacity: 0.5;
     }
@@ -324,25 +324,25 @@ export function wrapDocument(html: string, meta?: { title?: string }): string {
       font-size: 16px;
       font-weight: 700;
       padding-top: 16px;
-      border-top: 2px solid #C9A96E;
+      border-top: 2px solid #C2A46D;
     }
     
     .total-amount {
       font-size: 22px;
-      color: #C9A96E;
+      color: #C2A46D;
       font-weight: 700;
     }
     
     .subtotal-label {
       font-size: 12px;
-      color: #8B7D6B;
+      color: #C2B39C;
     }
     
     /* ── Print Button ─────────────────────────────────── */
     .print-button {
-      background: #141414;
-      color: #FAF7F2;
-      border: 1px solid rgba(201, 169, 110, 0.3);
+      background: #1C1A17;
+      color: #F4F0E8;
+      border: 1px solid rgba(194, 164, 109, 0.3);
       padding: 12px 32px;
       font-size: 10px;
       text-transform: uppercase;
@@ -353,8 +353,8 @@ export function wrapDocument(html: string, meta?: { title?: string }): string {
     }
 
     .print-button:hover {
-      background: #2C2C2C;
-      border-color: #C9A96E;
+      background: #2C2A27;
+      border-color: #C2A46D;
     }
   </style>
 </head>
@@ -377,8 +377,8 @@ export function documentHeader(meta: { title: string; reference: string; clientN
           <svg class="brand-logo-svg" viewBox="0 0 400 145" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Kivara">
             <path d="M 105,12 Q 200,24 295,12 Q 200,40 105,12 Z" fill="#F4F0E8" opacity="0.7"/>
             <path d="M 105,46 Q 200,36 295,46 Q 200,22 105,46 Z" fill="#D4BC8A" opacity="0.8"/>
-            <text x="200" y="88" text-anchor="middle" font-family="'Trajan Pro','Times New Roman',Georgia,serif" font size="44" font weight="400" fill="#F4F0E8" style="letter-spacing: 28px;">KIVARA</text>
-            <text x="200" y="120" text-anchor="middle" font-family="'Inter','Helvetica Neue',Arial,sans-serif" font size="7" font weight="300" fill="#D8CBB8" style="letter-spacing: 5px;">BUSH ● BEACH ● ROMANCE</text>
+            <text x="200" y="88" text-anchor="middle" font-family="'Cormorant Garamond','Playfair Display','Times New Roman',Georgia,serif" font-size="44" font-weight="400" fill="#F4F0E8" style="letter-spacing: 28px;">KIVARA</text>
+            <text x="200" y="120" text-anchor="middle" font-family="'Inter','Helvetica Neue',Arial,sans-serif" font-size="7" font-weight="300" fill="#D8CBB8" style="letter-spacing: 5px;">BUSH ● BEACH ● ROMANCE</text>
           </svg>
         </div>
         <div class="document-badge">

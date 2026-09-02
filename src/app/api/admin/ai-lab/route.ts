@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ suggested: aiLab.suggestedExperiments() });
     }
     const category = request.nextUrl.searchParams.get("category") as Experiment["category"] | null;
-    const experiments = aiLab.listExperiments(category || undefined);
+    const experiments = await aiLab.listExperiments(category || undefined);
     return NextResponse.json({ experiments });
   } catch (err) {
     if (err instanceof AdminAuthError) {
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     if (!body?.title || !body?.category || !body?.hypothesis) {
       return NextResponse.json({ error: "Missing title, category, hypothesis" }, { status: 400 });
     }
-    const experiment = aiLab.logExperiment({
+    const experiment = await aiLab.logExperiment({
       title: body.title,
       category: body.category,
       hypothesis: body.hypothesis,
@@ -62,7 +62,7 @@ export async function PATCH(request: NextRequest) {
     if (!body?.id || !body?.status) {
       return NextResponse.json({ error: "Missing id, status" }, { status: 400 });
     }
-    const experiment = aiLab.updateStatus(body.id, body.status);
+    const experiment = await aiLab.updateStatus(body.id, body.status);
     if (!experiment) return NextResponse.json({ error: "Experiment not found" }, { status: 404 });
     return NextResponse.json({ experiment });
   } catch (err) {

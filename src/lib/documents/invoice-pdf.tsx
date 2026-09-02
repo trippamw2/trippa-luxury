@@ -12,14 +12,15 @@ import {
 } from "@react-pdf/renderer";
 
 // ── Brand Constants ────────────────────────────────────────────────────
-const GOLD = "#C9A96E";
+// Unified with the frontend design tokens (src/app/globals.css).
+const GOLD = "#C2A46D";
 const GOLD_LIGHT = "#D4BC8A";
-const DARK = "#141414";
-const TEXT_PRIMARY = "#1A1A1A";
+const DARK = "#1C1A17";
+const TEXT_PRIMARY = "#1C1A17";
 const TEXT_SECONDARY = "#4A4A4A";
-const TEXT_MUTED = "#8B7D6B";
-const WARM_WHITE = "#F5F0EB";
-const BORDER = "#EDE5DA";
+const TEXT_MUTED = "#C2B39C";
+const WARM_WHITE = "#F4F0E8";
+const BORDER = "#EBE5DA";
 
 // ── Data Types ─────────────────────────────────────────────────────────
 export interface InvoicePDFData {

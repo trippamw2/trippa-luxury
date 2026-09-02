@@ -4,7 +4,13 @@
 // business models, distribution opportunities and revenue streams.
 // Each month it asks: "What became possible this month that was not practical
 // last month?"
+//
+// The experiment ledger is persisted to Postgres (ai_lab_experiments) so it
+// survives restarts and is shared across processes. The starting catalogue is
+// seeded by migration 019.
 // ─────────────────────────────────────────────────────────────────────────────
+
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export type ExperimentStatus = "idea" | "running" | "won" | "failed" | "paused";
 
@@ -36,7 +42,8 @@ export const EXPERIMENT_CATEGORIES: Experiment["category"][] = [
   "revenue-stream",
 ];
 
-// A starting catalogue of concrete, actionable experiments aligned to §26.
+// The canonical starting catalogue, aligned with the seed in migration 019.
+// Returned by preferredExperiments() for the "suggested experiments" view.
 export const SUGGESTED_EXPERIMENTS: Omit<Experiment, "id" | "createdAt" | "updatedAt">[] = [
   {
     title: "Model-agnostic fallback ladder",
@@ -82,34 +89,87 @@ export const SUGGESTED_EXPERIMENTS: Omit<Experiment, "id" | "createdAt" | "updat
   },
 ];
 
-let experiments: Experiment[] = [];
+// Map a snake_case DB row back to the camelCase Experiment API shape.
+function mapRow(row: {
+  id: string;
+  title: string;
+  category: Experiment["category"];
+  hypothesis: string;
+  status: ExperimentStatus;
+  notes?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}): Experiment {
+  return {
+    id: row.id,
+    title: row.title,
+    category: row.category,
+    hypothesis: row.hypothesis,
+    status: row.status,
+    createdAt: row.created_at || new Date().toISOString(),
+    updatedAt: row.updated_at || row.created_at || new Date().toISOString(),
+    ...(row.notes !== undefined && row.notes !== null ? { notes: row.notes } : {}),
+  };
+}
 
 function uid(): string {
   return `exp_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
 export class AiLab {
-  logExperiment(
+  async logExperiment(
     input: Omit<Experiment, "id" | "createdAt" | "updatedAt">
-  ): Experiment {
+  ): Promise<Experiment> {
+    const client = createAdminClient();
     const now = new Date().toISOString();
-    const exp: Experiment = { ...input, id: uid(), createdAt: now, updatedAt: now };
-    experiments.push(exp);
-    return exp;
+    const id = uid();
+    const { data, error } = await client
+      .from("ai_lab_experiments")
+      .insert({
+        id,
+        title: input.title,
+        category: input.category,
+        hypothesis: input.hypothesis,
+        status: input.status,
+        notes: input.notes ?? null,
+        created_at: now,
+        updated_at: now,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    if (!data) throw new Error("Failed to create experiment");
+    return mapRow(data);
   }
 
-  listExperiments(category?: Experiment["category"]): Experiment[] {
-    if (!category) return [...experiments];
-    return experiments.filter((e) => e.category === category);
+  async listExperiments(category?: Experiment["category"]): Promise<Experiment[]> {
+    const client = createAdminClient();
+    let query = client
+      .from("ai_lab_experiments")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (category) query = query.eq("category", category);
+    const { data, error } = await query;
+    if (error) throw error;
+    return (data || []).map((row) => mapRow(row));
   }
 
-  updateStatus(id: string, status: ExperimentStatus): Experiment | undefined {
-    const exp = experiments.find((e) => e.id === id);
-    if (exp) {
-      exp.status = status;
-      exp.updatedAt = new Date().toISOString();
+  async updateStatus(id: string, status: ExperimentStatus): Promise<Experiment | undefined> {
+    const client = createAdminClient();
+    const now = new Date().toISOString();
+    const { data, error } = await client
+      .from("ai_lab_experiments")
+      .update({ status, updated_at: now })
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) {
+      if (error.code === "PGRST116") return undefined; // no matching row
+      throw error;
     }
-    return exp;
+    if (!data) return undefined;
+    return mapRow(data);
   }
 
   /**

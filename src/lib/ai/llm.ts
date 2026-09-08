@@ -4,8 +4,8 @@
 // ─────────────────────────────────────────────────────────────────────────
 
 const OPENROUTER_BASE = "https://openrouter.ai/api/v1/chat/completions";
-const DEFAULT_MODEL = "openai/gpt-4o-mini";
-const FALLBACK_MODEL = "anthropic/claude-3-haiku";
+const DEFAULT_MODEL = "deepseek/deepseek-v4-flash";
+const FALLBACK_MODEL = "qwen/qwen3.8-flash";
 const TIMEOUT_MS = 30_000;
 
 export interface LlmMessage {

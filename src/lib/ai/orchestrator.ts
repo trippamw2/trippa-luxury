@@ -162,7 +162,8 @@ export class AIOrchestrator {
               "You are Kivara's concierge chief-of-staff for an ultra-luxury Zambian travel house. " +
               "Write a concise handoff note (2-3 sentences, max 55 words) for the human concierge team " +
               "about a newly processed inquiry. Summarise who the guest is, what was generated, and the " +
-              "one action the concierge should take next. Warm, precise, understated-luxury language.",
+              "one action the concierge should take next. Warm, precise, understated-luxury language. " +
+              'Respond with a single JSON object in exactly this shape: {"handoffNote": "<your note here>"}. Do not wrap the JSON in markdown fences.',
           },
           {
             role: "user",

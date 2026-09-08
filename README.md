@@ -11,7 +11,7 @@ A full-stack luxury travel platform for a Zambia-based tour company (brand: **Ki
 | Database / Auth / Storage | [Supabase](https://supabase.com) (Postgres + RLS, Auth, Storage) — 14 migrations |
 | Admin UI | Tiptap rich text, Recharts dashboards, lucide-react icons |
 | Documents | `@react-pdf/renderer` (quote & invoice PDFs), iCal exports |
-| AI concierge | OpenRouter (journey engine, guest profiler, quote engine, sales funnel) |
+| AI concierge | Google Gemini + DeepSeek (journey engine, guest profiler, quote engine, sales funnel) |
 | Email | Brevo (`@getbrevo/brevo`) transactional |
 | E2E | Playwright (`e2e/`) |
 
@@ -30,7 +30,8 @@ All variables are documented inline in [`.env.example`](.env.example). Required 
 - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Supabase project URL + anon key
 - `SUPABASE_SERVICE_ROLE_KEY` — server-only key powering the admin panel, data merges, documents, and AI workflows
 - `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_SITE_PHONE`, `NEXT_PUBLIC_WHATSAPP_NUMBER`, `NEXT_PUBLIC_GA_ID` — site identity
-- `OPENROUTER_API_KEY` — AI concierge
+- `GEMINI_API_KEY` — AI concierge (primary LLM provider)
+- `DEEPSEEK_API_KEY` — AI concierge fallback provider
 - `NEXT_BREVO_KEY` — transactional email
 - `CRON_SECRET`, `ADMIN_SEED_SECRET` — protect cron + seed endpoints
 
@@ -93,7 +94,7 @@ src/
 ├── lib/
 │   ├── supabase/           client (memoized, env-guarded), server, admin clients
 │   ├── ai/                 journey-engine, orchestrator, quote-engine,
-│   │                       guest-profiler, sales-funnel, llm (OpenRouter)
+│   │                       guest-profiler, sales-funnel, llm (Gemini/DeepSeek)
 │   ├── documents/          quote/invoice PDFs, itinerary
 │   ├── services/           shared domain services
 │   ├── voice/              voice-input transform

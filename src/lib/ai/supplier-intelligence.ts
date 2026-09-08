@@ -3,7 +3,7 @@
 // suitability, Guest experience, Value, Responsiveness and Brand alignment.
 // It deliberately does NOT recommend suppliers merely because they are cheap.
 // Rule-based scoring, with optional LLM refinement for an appraisal narrative
-// that falls back gracefully when OPENROUTER_API_KEY is absent.
+// that falls back gracefully when no LLM API key is configured.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { createAdminClient } from "@/lib/supabase/admin";

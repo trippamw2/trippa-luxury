@@ -1,6 +1,6 @@
 // ─── Kivara AI Guest Profiler ──────────────────────────────────────────
 // Extracts structured guest preferences from raw inquiry text.
-// Uses LLM (via OpenRouter) for deep analysis, with rule-based fallback.
+// Uses LLM (Gemini/DeepSeek) for deep analysis, with rule-based fallback.
 
 import type { GuestProfile } from "./types";
 import { callLlmJson, type LlmMessage } from "./llm";

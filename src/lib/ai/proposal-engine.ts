@@ -70,7 +70,8 @@ export class ProposalEngine {
               "You are Kivara's senior proposal writer for an ultra-luxury Zambian travel house. " +
               "Write a 2-3 sentence opening narrative (max 60 words) that leads with the emotional 'why' of the journey. " +
               "Use warm, understated, editorial luxury language. Mention the journey's destination(s). " +
-              "Never mention pricing, itineraries, or logistics in the opening.",
+              "Never mention pricing, itineraries, or logistics in the opening. " +
+              'Respond with a single JSON object in exactly this shape: {"narrative": "<your narrative here>"}. Do not wrap the JSON in markdown fences.',
           },
           {
             role: "user",

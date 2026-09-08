@@ -97,7 +97,17 @@ function labelFor(occasion: Occasion): string {
     couples: "A journey for two",
     unknown: "A journey for two",
   };
-  return map[occasion];
+  return map[occasion] ?? map.unknown;
+}
+
+/**
+ * Normalise an arbitrary client-supplied occasion string into a valid Occasion.
+ * Client input (e.g. "Honeymoon" or "romantic escape") must never bypass the
+ * enum — labelFor/profileFor are only safe for canonical values.
+ */
+export function normalizeOccasion(value: string): Occasion {
+  const normalized = value.trim().toLowerCase().replace(/\s+/g, "-");
+  return OCCASIONS.includes(normalized as Occasion) ? (normalized as Occasion) : "unknown";
 }
 
 function profileFor(occasion: Occasion): EmotionalProfile {
@@ -183,7 +193,7 @@ export class RomanceEngine {
   async buildEmotionalProfile(rawInquiry: { text?: string; occasion?: string }): Promise<EmotionalProfile> {
     const text = rawInquiry.text || "";
     const detected = rawInquiry.occasion
-      ? { occasion: rawInquiry.occasion as Occasion, confidence: 0.8 }
+      ? { occasion: normalizeOccasion(rawInquiry.occasion), confidence: 0.8 }
       : detectOccasion(text);
 
     const profile = profileFor(detected.occasion);

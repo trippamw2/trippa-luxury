@@ -57,7 +57,7 @@ export class WorkflowPersistence {
   async list(filters: WorkflowFilters = {}): Promise<{ data: ClientJourney[]; count: number }> {
     let query = this.getDb()
       .from("bookings")
-      .select("*, inquiries(*)")
+      .select("*, inquiries!bookings_inquiry_id_fkey(*)")
       .order("created_at", { ascending: false });
 
     if (filters.state && filters.state !== "all") {
@@ -107,7 +107,7 @@ export class WorkflowPersistence {
   async get(id: string): Promise<ClientJourney | null> {
     const { data, error } = await this.getDb()
       .from("bookings")
-      .select("*, inquiries(*)")
+      .select("*, inquiries!bookings_inquiry_id_fkey(*)")
       .eq("id", id)
       .single();
 
@@ -146,7 +146,7 @@ export class WorkflowPersistence {
     const { data, error } = await this.getDb()
       .from("bookings")
       .insert({
-        inquiry_id: inquiryId,
+        inquiry_id: inquiryId || null,
         client_name: clientName,
         client_email: email,
         client_phone: phone || null,

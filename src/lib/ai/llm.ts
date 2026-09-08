@@ -1,13 +1,15 @@
-// ─── Kivara LLM Client (Gemini + DeepSeek, direct) ────────────────────────
-// Central client for all LLM calls, calling Google Gemini and DeepSeek
-// directly via their OpenAI-compatible chat/completions endpoints.
-// Provides structured JSON output, error handling, and provider fallback.
+// ─── Kivara LLM Client (Gemini + Groq + DeepSeek, direct) ─────────────────
+// Central client for all LLM calls, calling Google Gemini, Groq and DeepSeek
+// directly via their OpenAI-compatible chat/completions endpoints (Gemini uses
+// its native generateContent endpoint). Provides structured JSON output,
+// error handling, and provider fallback.
 // ─────────────────────────────────────────────────────────────────────────
 
 const TIMEOUT_MS = 30_000;
 
 /**
- * Provider order is fallback order: Gemini is primary, DeepSeek is backup.
+ * Provider order is fallback order: Gemini is primary, Groq is the free
+ * fallback, DeepSeek is the final backup.
  *
  * `kind` selects the request/response protocol:
  * - "gemini-native"  → Google's `generateContent` REST API. Used because the
@@ -15,12 +17,12 @@ const TIMEOUT_MS = 30_000;
  *   hidden thinking phase silently consumes the `max_tokens` budget (a call
  *   with maxTokens 260 produced 0 bytes of visible output). Thinking is
  *   disabled here so token budgets go entirely to visible content.
- * - "openai"         → standard OpenAI chat/completions contract (DeepSeek).
+ * - "openai"         → standard OpenAI chat/completions contract (Groq, DeepSeek).
  */
 type ProviderKind = "gemini-native" | "openai";
 
 interface LlmProvider {
-  name: "gemini" | "deepseek";
+  name: "gemini" | "groq" | "deepseek";
   kind: ProviderKind;
   baseUrl: string;
   keyEnv: string;
@@ -34,6 +36,13 @@ const PROVIDERS: LlmProvider[] = [
     baseUrl: "https://generativelanguage.googleapis.com/v1beta",
     keyEnv: "GEMINI_API_KEY",
     defaultModel: "gemini-2.5-flash",
+  },
+  {
+    name: "groq",
+    kind: "openai",
+    baseUrl: "https://api.groq.com/openai/v1/chat/completions",
+    keyEnv: "GROQ_API_KEY",
+    defaultModel: "openai/gpt-oss-120b",
   },
   {
     name: "deepseek",

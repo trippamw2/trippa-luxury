@@ -7,6 +7,6 @@ UPDATE platform_settings
 SET value = 'concierge@kivara.africa'
 WHERE key = 'contact_email';
 
--- Journal author default → Kivara Concierge (was 'Trippa Concierge' from 001)
-ALTER TABLE journal_posts
+-- Blog author default → Kivara Concierge (was 'Trippa Concierge' from 001)
+ALTER TABLE blog_posts
 ALTER COLUMN author SET DEFAULT 'Kivara Concierge';

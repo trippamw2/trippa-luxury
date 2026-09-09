@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Terms & Conditions | Kivara",
-  description: "Kivara Luxury Travel Terms and Conditions. Please read these terms carefully before booking your journey.",
+  description: "kivara.africa Terms and Conditions. Please read these terms carefully before booking your journey.",
   robots: { index: true, follow: true },
 };
 
@@ -32,7 +32,7 @@ export default function TermsPage() {
 
             <div>
               <h2 className="text-xl font-heading font-medium text-soft-black mb-3">1. Introduction</h2>
-              <p>These Terms and Conditions govern your use of the Kivara website and the booking of any travel services through Kivara Luxury Travel (&ldquo;Kivara,&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;). By accessing our website or making a booking, you agree to be bound by these terms.</p>
+              <p>These Terms and Conditions govern your use of the Kivara website and the booking of any travel services through kivara.africa (&ldquo;Kivara,&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;). By accessing our website or making a booking, you agree to be bound by these terms.</p>
             </div>
 
             <div>
@@ -89,7 +89,7 @@ export default function TermsPage() {
 
             <div>
               <h2 className="text-xl font-heading font-medium text-soft-black mb-3">11. Contact</h2>
-              <p>For questions about these terms, please contact us at <a href="mailto:concierge@kivara.com" className="text-gold hover:text-gold-dark">concierge@kivara.com</a> or via our <a href="/contact" className="text-gold hover:text-gold-dark">contact page</a>.</p>
+              <p>For questions about these terms, please contact us at <a href="mailto:concierge@kivara.africa" className="text-gold hover:text-gold-dark">concierge@kivara.africa</a> or via our <a href="/contact" className="text-gold hover:text-gold-dark">contact page</a>.</p>
             </div>
           </div>
         </div>

@@ -95,14 +95,14 @@ export async function POST(request: NextRequest) {
             <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 16px 0 0;">With warmest regards,<br><strong style="color: #C9A96E;">Your Kivara Concierge</strong></p>
           </div>
           <div style="background: #EDE5DA; padding: 20px 40px; text-align: center;">
-            <p style="font-size: 10px; color: #8B7D6B; margin: 0;">Kivara Luxury Travel : concierge@kivara.luxury</p>
+            <p style="font-size: 10px; color: #8B7D6B; margin: 0;">kivara.africa : concierge@kivara.africa</p>
           </div>
         </div>`;
 
       try {
         await sendEmail({
           to: [{ email: booking.client_email, name: clientName }],
-          subject: `Balance Payment Reminder : ${bookingRef} : Kivara Luxury Travel`,
+          subject: `Balance Payment Reminder : ${bookingRef} : kivara.africa`,
           htmlContent,
         });
 

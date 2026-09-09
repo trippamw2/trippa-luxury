@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       images: [{ url: post.image, width: 1200, height: 630, alt: post.title }],
       type: "article",
       locale: "en_US",
-      siteName: "Kivara Luxury Travel",
+      siteName: "kivara.africa",
       publishedTime: post.date ? new Date(post.date).toISOString() : undefined,
     },
     twitter: {

@@ -60,13 +60,13 @@ const defaultTransferPricing: TransferPricingData = {
 
 function loadLocal(): SettingsData {
   if (typeof window === "undefined") {
-    return { siteName: "Kivara", whatsapp: "+27871234567", email: "concierge@kivara.luxury", currency: "USD", bankDetails: defaultBankDetails, transferPricing: defaultTransferPricing };
+    return { siteName: "Kivara", whatsapp: "+27871234567", email: "concierge@kivara.africa", currency: "USD", bankDetails: defaultBankDetails, transferPricing: defaultTransferPricing };
   }
   try {
     const raw = localStorage.getItem(LS_KEY);
     if (raw) return JSON.parse(raw);
   } catch {}
-  return { siteName: "Kivara", whatsapp: "+27871234567", email: "concierge@kivara.luxury", currency: "USD", bankDetails: defaultBankDetails, transferPricing: defaultTransferPricing };
+  return { siteName: "Kivara", whatsapp: "+27871234567", email: "concierge@kivara.africa", currency: "USD", bankDetails: defaultBankDetails, transferPricing: defaultTransferPricing };
 }
 
 export default function AdminSettings() {

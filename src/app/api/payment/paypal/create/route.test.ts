@@ -71,7 +71,7 @@ function makeRequest(body: unknown): NextRequest {
 beforeEach(() => {
   vi.clearAllMocks();
   mockGetUser.mockResolvedValue({
-    data: { user: { id: "user-1", email: "admin@kivara.com" } },
+    data: { user: { id: "user-1", email: "admin@kivara.africa" } },
   });
   mockGeneratePaymentReference.mockReturnValue({
     reference: "KVR-20260828-A1B2C3D4-BALANCE",

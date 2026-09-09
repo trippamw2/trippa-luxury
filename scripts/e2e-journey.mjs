@@ -134,7 +134,7 @@ async function main() {
   console.log("");
 
   // ── STEP 1b: Check confirmation email side-effect flag ───────────────
-  // Emails are sent via Brevo to concierge@kivara.luxury and the customer.
+  // Emails are sent via Brevo to concierge@kivara.africa and the customer.
   record("Inquiry emails triggered", inquiryOk, "concierge + confirmation queued via Brevo");
 
   // ── STEP 2: Admin login (hardened) ───────────────────────────────────

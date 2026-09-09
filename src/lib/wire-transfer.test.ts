@@ -9,7 +9,7 @@ import {
 
 const SAMPLE_BANK: BankDetails = {
   bankName: "Standard Chartered Zambia",
-  accountName: "Kivara Luxury Travel Ltd",
+  accountName: "kivara.africa Ltd",
   accountNumber: "0100123456789",
   iban: "ZM0000000000000000000000",
   swiftCode: "SCBLZMLX",
@@ -48,7 +48,7 @@ describe("getBankDetailsFromSettings", () => {
   it("extracts bank details from a settings key-value map", () => {
     const details = getBankDetailsFromSettings({
       bank_name: "Standard Chartered Zambia",
-      bank_account_name: "Kivara Luxury Travel Ltd",
+      bank_account_name: "kivara.africa Ltd",
       bank_account_number: "0100123456789",
       bank_iban: "ZM0000000000000000000000",
       bank_swift_code: "SCBLZMLX",
@@ -59,7 +59,7 @@ describe("getBankDetailsFromSettings", () => {
     });
 
     expect(details.bankName).toBe("Standard Chartered Zambia");
-    expect(details.accountName).toBe("Kivara Luxury Travel Ltd");
+    expect(details.accountName).toBe("kivara.africa Ltd");
     expect(details.accountNumber).toBe("0100123456789");
     expect(details.iban).toBe("ZM0000000000000000000000");
     expect(details.swiftCode).toBe("SCBLZMLX");
@@ -117,7 +117,7 @@ describe("formatBankDetailsPlainText", () => {
   it("renders bank details as plain text lines", () => {
     const text = formatBankDetailsPlainText(SAMPLE_BANK);
     expect(text).toContain("Bank Name: Standard Chartered Zambia");
-    expect(text).toContain("Account Name: Kivara Luxury Travel Ltd");
+    expect(text).toContain("Account Name: kivara.africa Ltd");
     expect(text).toContain("Account Number: 0100123456789");
     expect(text).toContain("IBAN: ZM0000000000000000000000");
     expect(text).toContain("SWIFT/BIC: SCBLZMLX");

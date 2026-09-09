@@ -22,7 +22,7 @@ export function generateReferralDocument(clientName: string, bookingRef: string)
       </div>
 
       <p>To refer someone, simply reply to this email with their contact details, or share this link:</p>
-      <p style="text-align: center; font-size: 14px; color: #C9A96E; margin: 16px 0;"><strong>kivara.luxury/refer</strong></p>
+      <p style="text-align: center; font-size: 14px; color: #C9A96E; margin: 16px 0;"><strong>kivara.africa/refer</strong></p>
 
       <p>Thank you for being part of the Kivara family.</p>
       <p>With gratitude,<br><strong style="color: #C9A96E;">Your Kivara Team</strong></p>

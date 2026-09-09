@@ -180,7 +180,7 @@ export function generateItineraryDocument(journey: CuratedJourney): string {
       <div style="background: #F5F0EB; padding: 20px; margin-bottom: 24px;">
         <h3 style="font-size: 12px; color: #C9A96E; border: none; padding: 0; margin-bottom: 8px;">Concierge Contact</h3>
         <p style="font-size: 13px; color: #4A4A4A; margin-bottom: 4px;">Your personal concierge is available 24/7 during your travels.</p>
-        <p style="font-size: 13px; color: #4A4A4A; margin-bottom: 2px;">Email: <strong>concierge@kivara.luxury</strong></p>
+        <p style="font-size: 13px; color: #4A4A4A; margin-bottom: 2px;">Email: <strong>concierge@kivara.africa</strong></p>
         <p style="font-size: 13px; color: #4A4A4A; margin: 0;">WhatsApp: <strong>+27 87 123 4567</strong></p>
       </div>
 

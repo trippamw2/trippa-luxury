@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       images: pkg.image ? [{ url: pkg.image, width: 1200, height: 630, alt: pkg.title }] : [],
       type: "website",
       locale: "en_US",
-      siteName: "Kivara Luxury Travel",
+      siteName: "kivara.africa",
     },
     twitter: {
       card: "summary_large_image",

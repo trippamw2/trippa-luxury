@@ -141,7 +141,7 @@ export default function PortalLoginPage() {
 
         <p className="text-center text-[11px] text-[#8B7D6B] mt-6">
           Need help? Contact us at{" "}
-          <a href="mailto:concierge@kivara.luxury" className="text-[#C9A96E] hover:underline">concierge@kivara.luxury</a>
+          <a href="mailto:concierge@kivara.africa" className="text-[#C9A96E] hover:underline">concierge@kivara.africa</a>
         </p>
       </div>
     </div>

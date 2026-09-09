@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     images: [{ url: "/images/puku-ridge-3.jpg", width: 1200, height: 630, alt: "South Luangwa: Kakumbi Floodplain at Sunset" }],
     type: "website",
     locale: "en_US",
-    siteName: "Kivara Luxury Travel",
+    siteName: "kivara.africa",
   },
   twitter: {
     card: "summary_large_image",

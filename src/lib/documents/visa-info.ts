@@ -50,7 +50,7 @@ export function generateVisaInfoDocument(): string {
         <p style="font-size: 12px; color: #8B7D6B; margin: 0;"><strong>Important:</strong> Visa requirements change frequently. We recommend verifying requirements with the relevant embassy or consulate at least 4 weeks before your departure. Your Kivara concierge can assist with visa applications for certain destinations.</p>
       </div>
 
-      <p>For questions, contact your Kivara concierge at <strong style="color: #C9A96E;">concierge@kivara.luxury</strong></p>
+      <p>For questions, contact your Kivara concierge at <strong style="color: #C9A96E;">concierge@kivara.africa</strong></p>
     `)}
     ${documentFooter()}
   `;

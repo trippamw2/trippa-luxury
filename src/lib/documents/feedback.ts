@@ -31,7 +31,7 @@ export function generateFeedbackDocument(clientName: string, bookingRef: string,
 
       <div style="background: #F5F0EB; padding: 16px; text-align: center; margin-bottom: 24px;">
         <p style="font-size: 12px; color: #8B7D6B; margin-bottom: 8px;">Share your feedback online:</p>
-        <p style="font-size: 16px; color: #C9A96E; font-weight: 600;">kivara.luxury/review</p>
+        <p style="font-size: 16px; color: #C9A96E; font-weight: 600;">kivara.africa/review</p>
       </div>
 
       <p>Alternatively, simply reply to this email with your thoughts. We treasure every word.</p>

@@ -1,5 +1,5 @@
 // ─── Kivara Currency Utility ────────────────────────────────────────────
-// Multi-currency formatting and conversion for the Kivara luxury travel platform.
+// Multi-currency formatting and conversion for the kivara.africa travel platform.
 // Uses static exchange rates — quotes are locked in at booking time.
 
 export type Currency = "USD" | "EUR" | "GBP" | "ZAR";

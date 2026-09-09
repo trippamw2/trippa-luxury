@@ -56,7 +56,7 @@ function emailHtml(bodyContent: string): string {
         ${bodyContent}
       </div>
       <div style="background: #EDE5DA; padding: 16px 40px; text-align: center;">
-        <p style="font-size: 10px; color: #8B7D6B; margin: 0;">Kivara Luxury Travel : concierge@kivara.luxury</p>
+        <p style="font-size: 10px; color: #8B7D6B; margin: 0;">kivara.africa : concierge@kivara.africa</p>
       </div>
     </div>`;
 }

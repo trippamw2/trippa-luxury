@@ -530,8 +530,8 @@ const QuotePDF: React.FC<QuotePDFProps> = ({
         <View style={styles.footer}>
           <Text style={styles.footerBrand}>KIVARA</Text>
           <Text style={styles.footerText}>
-            concierge@kivara.luxury &nbsp;&middot;&nbsp; +27 87 123 4567 &nbsp;&middot;&nbsp;{" "}
-            https://kivara.luxury
+            concierge@kivara.africa &nbsp;&middot;&nbsp; +27 87 123 4567 &nbsp;&middot;&nbsp;{" "}
+            https://kivara.africa
           </Text>
           <Text style={[styles.footerText, { opacity: 0.6 }]}>
             Cape Town, South Africa &nbsp;&middot;&nbsp; Where Your Love Story Meets the Wild.

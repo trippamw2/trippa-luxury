@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     title: "Kivara: Africa's Most Coveted Romance Sanctuary",
     description:
       "Where your love story meets the wild. African romance escapes for couples who seek beauty, intimacy, and wonder: Lake Malawi, South Luangwa, and Zanzibar.",
-    images: [{ url: "/images/chinzombo-wildlife.jpg", width: 1200, height: 630, alt: "Kivara Luxury Travel" }],
+    images: [{ url: "/images/chinzombo-wildlife.jpg", width: 1200, height: 630, alt: "kivara.africa" }],
   },
   twitter: {
     card: "summary_large_image",
@@ -79,7 +79,7 @@ export default function RootLayout({
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "TravelAgency",
-            name: "Kivara Luxury Travel",
+            name: "kivara.africa",
             url: SITE_URL,
             image: `${SITE_URL}/images/kivara-icon.svg`,
             description: "A handcrafted collection of Africa's most exquisite beach and bush escapes. Curated exclusively for couples who refuse to compromise on beauty, intimacy, or refinement.",

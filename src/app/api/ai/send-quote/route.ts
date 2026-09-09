@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     // 4. Send via Brevo (with PDF attachment if generated)
     const emailResult = await sendEmail({
       to: [{ email: profile.email, name: profile.name }],
-      subject: `Your Curated Journey : ${quote.quoteRef} : Kivara Luxury Travel`,
+      subject: `Your Curated Journey : ${quote.quoteRef} : kivara.africa`,
       htmlContent: html,
       ...(pdfAttachment ? { attachment: [pdfAttachment] } : {}),
     });

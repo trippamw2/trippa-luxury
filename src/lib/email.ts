@@ -37,7 +37,7 @@ interface EmailParams {
   attachment?: EmailAttachment[];
 }
 
-const FROM_EMAIL = "concierge@kivara.luxury";
+const FROM_EMAIL = "concierge@kivara.africa";
 const FROM_NAME = "Kivara Concierge";
 
 export async function sendEmail(params: EmailParams) {
@@ -81,8 +81,8 @@ export function emailShell(subjectLine: string, bodyHtml: string): string {
         ${bodyHtml}
       </div>
       <div style="background: #EDE5DA; padding: 20px 40px; text-align: center;">
-        <p style="font-size: 10px; color: #8B7D6B; margin: 0;">Kivara Luxury Travel &mdash; Curating Africa's Finest Journeys</p>
-        <p style="font-size: 9px; color: #8B7D6B; margin: 4px 0 0;">concierge@kivara.luxury</p>
+        <p style="font-size: 10px; color: #8B7D6B; margin: 0;">kivara.africa &mdash; Curating Africa's Finest Journeys</p>
+        <p style="font-size: 9px; color: #8B7D6B; margin: 4px 0 0;">concierge@kivara.africa</p>
       </div>
     </div>`;
 }
@@ -99,7 +99,7 @@ export function newInquiryEmail(data: {
   message: string;
 }) {
   return {
-    subject: `New Inquiry from ${data.fullName} : Kivara Luxury Travel`,
+    subject: `New Inquiry from ${data.fullName} : kivara.africa`,
     htmlContent: emailShell("New Inquiry Received", `
       <h2 style="font-family: 'Times New Roman', serif; font-size: 20px; color: #1A1A1A; margin: 0 0 24px;">A new traveler has reached out</h2>
       <table style="width: 100%; border-collapse: collapse;">
@@ -126,7 +126,7 @@ export function inquiryConfirmationEmail(data: {
   destination?: string;
 }) {
   return {
-    subject: "Your Inquiry Has Been Received with Care : Kivara Luxury Travel",
+    subject: "Your Inquiry Has Been Received with Care : kivara.africa",
     htmlContent: emailShell("Your Journey Begins", `
       <h2 style="font-family: 'Times New Roman', serif; font-size: 20px; color: #1A1A1A; margin: 0 0 16px;">${data.fullName},</h2>
       <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 16px;">Thank you for reaching out to Kivara. Your inquiry has been received with the attention it deserves, and our concierge team is already beginning to understand the contours of your perfect escape.</p>
@@ -205,7 +205,7 @@ export function quoteEmail(data: {
   htmlContent: string;
 }) {
   return {
-    subject: `Your Curated Journey : ${data.quoteRef} : Kivara Luxury Travel`,
+    subject: `Your Curated Journey : ${data.quoteRef} : kivara.africa`,
     htmlContent: data.htmlContent,
   };
 }
@@ -219,7 +219,7 @@ export function inquiryReplyEmail(data: {
   replyHtml: string;
 }) {
   return {
-    subject: `Re: Your Journey Inquiry : Kivara Luxury Travel`,
+    subject: `Re: Your Journey Inquiry : kivara.africa`,
     htmlContent: emailShell("Your Personal Concierge", `
       <h2 style="font-family: 'Times New Roman', serif; font-size: 20px; color: #1A1A1A; margin: 0 0 16px;">Dear ${data.clientName},</h2>
       <div style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 24px;">
@@ -242,7 +242,7 @@ export function paymentLinkEmail(data: {
 }) {
   const label = data.type === "deposit" ? "deposit" : data.type === "balance" ? "balance" : "full";
   return {
-    subject: `Payment Reserved : ${data.bookingRef} : Kivara Luxury Travel`,
+    subject: `Payment Reserved : ${data.bookingRef} : kivara.africa`,
     htmlContent: emailShell("Payment Reserved", `
       <h2 style="font-family: 'Times New Roman', serif; font-size: 20px; color: #1A1A1A; margin: 0 0 16px;">${data.clientName},</h2>
       <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 16px;">Your journey proposal for booking <strong>${data.bookingRef}</strong> remains reserved pending a ${label} payment of <strong style="color: #C9A96E; font-size: 18px;">${data.amount}</strong>. Once received, we will proceed with finalising every element of your itinerary.</p>

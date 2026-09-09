@@ -79,7 +79,7 @@ export function generatePackingListDocument(): string {
         <p style="font-size: 12px; color: #8B7D6B; margin: 0;"><strong>Packing Tip:</strong> Most luxury lodges offer laundry service, so you can pack lighter than you think. We recommend soft-sided luggage for bush flights (weight limits typically 15-20kg).</p>
       </div>
 
-      <p>For questions, contact your Kivara concierge at <strong style="color: #C9A96E;">concierge@kivara.luxury</strong></p>
+      <p>For questions, contact your Kivara concierge at <strong style="color: #C9A96E;">concierge@kivara.africa</strong></p>
     `)}
     ${documentFooter()}
   `;

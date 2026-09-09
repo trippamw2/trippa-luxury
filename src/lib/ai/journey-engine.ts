@@ -998,7 +998,7 @@ export class JourneyEngine {
         <div style="background: ${KIVARA_BRAND.colors.cream}; padding: 20px; margin-bottom: 24px;">
           <h3 style="font-size: 12px; color: ${KIVARA_BRAND.colors.gold}; border: none; padding: 0; margin-bottom: 8px;">Your Personal Concierge</h3>
           <p style="font-size: 13px; color: ${KIVARA_BRAND.colors.textSecondary}; margin-bottom: 4px;">Your personal concierge is available 24/7 to refine every detail of this journey.</p>
-          <p style="font-size: 13px; color: ${KIVARA_BRAND.colors.textSecondary}; margin-bottom: 2px;">Email: <strong>concierge@kivara.luxury</strong></p>
+          <p style="font-size: 13px; color: ${KIVARA_BRAND.colors.textSecondary}; margin-bottom: 2px;">Email: <strong>concierge@kivara.africa</strong></p>
           <p style="font-size: 13px; color: ${KIVARA_BRAND.colors.textSecondary}; margin: 0;">WhatsApp: <strong>+27 87 123 4567</strong></p>
         </div>
 

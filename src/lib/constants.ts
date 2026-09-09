@@ -1,4 +1,4 @@
-// ─── Kivara Luxury Travel ──────────────────────────────────────────────
+// ─── kivara.africa ──────────────────────────────────────────────
 // Africa's most coveted romance sanctuary.
 // We occupy the space between Aman's serenity and &Beyond's wilderness.
 // ──────────────────────────────────────────────────────────────────────
@@ -100,14 +100,14 @@ export const BRAND_POSITIONING = {
 };
 
 /** Single canonical URL : all absolute URLs derive from this */
-export const SITE_URL = "https://kivarajourneys.com";
+export const SITE_URL = "https://kivara.africa";
 
 export const SITE_CONFIG = {
   name: "Kivara",
   tagline: BRAND_POSITIONING.tagline,
   description: BRAND_POSITIONING.description,
   url: SITE_URL,
-  email: "concierge@kivara.luxury",
+  email: "concierge@kivara.africa",
   phone: "+27 87 123 4567",
   whatsapp: "+27871234567",
   social: {

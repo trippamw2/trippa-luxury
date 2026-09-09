@@ -51,12 +51,12 @@ export function generateTravelInsuranceDocument(): string {
       <div style="margin-bottom: 24px;">
         <h3 style="color: #C9A96E; font-size: 16px; margin-bottom: 12px;">Emergency Contacts</h3>
         <table style="width: 100%; border-collapse: collapse;">
-          <tr><td style="padding: 8px 0; font-size: 12px; color: #8B7D6B; border-bottom: 1px solid #EDE5DA;">Kivara Concierge</td><td style="padding: 8px 0; font-size: 14px; border-bottom: 1px solid #EDE5DA;">concierge@kivara.luxury</td></tr>
+          <tr><td style="padding: 8px 0; font-size: 12px; color: #8B7D6B; border-bottom: 1px solid #EDE5DA;">Kivara Concierge</td><td style="padding: 8px 0; font-size: 14px; border-bottom: 1px solid #EDE5DA;">concierge@kivara.africa</td></tr>
           <tr><td style="padding: 8px 0; font-size: 12px; color: #8B7D6B; border-bottom: 1px solid #EDE5DA;">Kivara Emergency</td><td style="padding: 8px 0; font-size: 14px; border-bottom: 1px solid #EDE5DA;">+260 97 123 4567</td></tr>
         </table>
       </div>
 
-      <p>For questions, contact your Kivara concierge at <strong style="color: #C9A96E;">concierge@kivara.luxury</strong></p>
+      <p>For questions, contact your Kivara concierge at <strong style="color: #C9A96E;">concierge@kivara.africa</strong></p>
     `)}
     ${documentFooter()}
   `;

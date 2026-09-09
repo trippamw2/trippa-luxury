@@ -187,7 +187,7 @@ export const DEPARTMENT_VOICES: Record<string, VoiceConfig> = {
     avoid: ["casual", "abbreviated"],
     salutation: "",
     closing: "With warmest regards",
-    signatureName: "Kivara Luxury Travel",
+    signatureName: "kivara.africa",
   },
   operations: {
     formality: "moderate",

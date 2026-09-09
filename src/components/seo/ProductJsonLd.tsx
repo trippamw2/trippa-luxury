@@ -17,7 +17,7 @@ export function ProductJsonLd({
   description,
   image,
   offers,
-  brand = "Kivara Luxury Travel",
+  brand = "kivara.africa",
   category = "Luxury Travel Package",
 }: ProductJsonLdProps) {
   return (

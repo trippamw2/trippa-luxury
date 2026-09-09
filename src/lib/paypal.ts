@@ -71,7 +71,7 @@ export class PayPalClient {
           },
         ],
         application_context: {
-          brand_name: "Kivara Luxury Travel",
+          brand_name: "kivara.africa",
           landing_page: "BILLING",
           user_action: "PAY_NOW",
           return_url: params.returnUrl,

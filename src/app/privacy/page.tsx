@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Privacy Policy | Kivara",
-  description: "Kivara Luxury Travel Privacy Policy. How we collect, use, and protect your personal information.",
+  description: "kivara.africa Privacy Policy. How we collect, use, and protect your personal information.",
   robots: { index: true, follow: true },
 };
 
@@ -34,7 +34,7 @@ export default function PrivacyPage() {
             <div>
               <h2 className="text-xl md:text-2xl font-heading font-medium text-soft-black mb-3">1. Introduction</h2>
               <p>
-                Kivara Luxury Travel (&ldquo;Kivara,&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;) respects your privacy and is committed to protecting your personal data. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website at kivara.luxury.
+                kivara.africa (&ldquo;Kivara,&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;) respects your privacy and is committed to protecting your personal data. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website at kivara.luxury.
               </p>
               <p className="mt-3">
                 We are a South African luxury travel company. By using our website and services, you consent to the practices described in this policy.
@@ -123,7 +123,7 @@ export default function PrivacyPage() {
                 <li><strong>Withdrawal of Consent:</strong> Withdraw consent at any time where processing is based on consent</li>
               </ul>
               <p className="mt-3">
-                To exercise any of these rights, please contact us at <a href="mailto:concierge@kivara.luxury" className="text-gold-dark hover:text-gold transition-colors underline">concierge@kivara.luxury</a>.
+                To exercise any of these rights, please contact us at <a href="mailto:concierge@kivara.africa" className="text-gold-dark hover:text-gold transition-colors underline">concierge@kivara.africa</a>.
               </p>
             </div>
 
@@ -150,10 +150,10 @@ export default function PrivacyPage() {
                 If you have questions about this Privacy Policy or wish to exercise your data rights, please contact our Data Protection Officer:
               </p>
               <div className="mt-3 p-6 bg-warm-white border border-sand-light/30">
-                <p className="text-sm"><strong>Kivara Luxury Travel</strong></p>
+                <p className="text-sm"><strong>kivara.africa</strong></p>
                 <p className="text-sm text-earth mt-1">Cape Town, South Africa</p>
                 <p className="text-sm text-earth mt-1">
-                  Email: <a href="mailto:concierge@kivara.luxury" className="text-gold-dark hover:text-gold transition-colors">concierge@kivara.luxury</a>
+                  Email: <a href="mailto:concierge@kivara.africa" className="text-gold-dark hover:text-gold transition-colors">concierge@kivara.africa</a>
                 </p>
                 <p className="text-sm text-earth mt-1">
                   Phone: {process.env.NEXT_PUBLIC_SITE_PHONE || "+27 87 123 4567"}

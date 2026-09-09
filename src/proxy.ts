@@ -3,10 +3,10 @@ import type { NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
 /** Canonical domain : all traffic redirects here */
-const CANONICAL_HOST = "kivarajourneys.com";
+const CANONICAL_HOST = "kivara.africa";
 
 /** Domains that should redirect to the canonical host */
-const ALIAS_HOSTS = new Set(["kivara.com", "www.kivara.com", "www.kivarajourneys.com"]);
+const ALIAS_HOSTS = new Set(["kivara.com", "www.kivara.com", "www.kivara.africa"]);
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;

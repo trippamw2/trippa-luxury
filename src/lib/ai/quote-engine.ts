@@ -148,8 +148,8 @@ export class QuoteEngine {
       </div>
 
       <div style="background: #D8CBB8; padding: 20px 40px; text-align: center;">
-        <p style="font-size: 10px; color: #C2B39C; margin: 0;">Kivara Luxury Travel · concierge@kivara.luxury</p>
-        <p style="font-size: 10px; color: #C2B39C; margin: 4px 0 0;">${process.env.NEXT_PUBLIC_SITE_URL || "kivara.com"}</p>
+        <p style="font-size: 10px; color: #C2B39C; margin: 0;">kivara.africa · concierge@kivara.africa</p>
+        <p style="font-size: 10px; color: #C2B39C; margin: 4px 0 0;">${process.env.NEXT_PUBLIC_SITE_URL || "kivara.africa"}</p>
       </div>
     </div>`;
   }

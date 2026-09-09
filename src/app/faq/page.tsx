@@ -8,7 +8,7 @@ const faqs = [
   {
     category: "Booking",
     questions: [
-      { q: "How do I book a journey with Kivara?", a: "You can book by filling out the inquiry form on our website, emailing concierge@kivara.com, or messaging us on WhatsApp. A member of our concierge team will respond within 24 hours to begin crafting your bespoke itinerary." },
+      { q: "How do I book a journey with Kivara?", a: "You can book by filling out the inquiry form on our website, emailing concierge@kivara.africa, or messaging us on WhatsApp. A member of our concierge team will respond within 24 hours to begin crafting your bespoke itinerary." },
       { q: "What is the booking process?", a: "After your initial inquiry, we will create a personalized itinerary. Once you approve it, we require a 30% deposit to secure your reservation. The balance is due 60 days before departure." },
       { q: "Is a deposit required?", a: "Yes, a non refundable deposit of 30% is required to confirm all bookings. Full payment is due 60 days prior to travel." },
       { q: "Can I modify my booking after confirmation?", a: "Yes, amendments can be made up to 14 days before departure. A $100 administration fee applies per change, plus any costs from suppliers." },

@@ -30,7 +30,7 @@ export function generateICal(events: ICalEvent[]): string {
 
   lines.push("BEGIN:VCALENDAR");
   lines.push("VERSION:2.0");
-  lines.push("PRODID:-//Kivara Luxury Travel//Bookings//EN");
+  lines.push("PRODID:-//kivara.africa//Bookings//EN");
   lines.push("CALSCALE:GREGORIAN");
   lines.push("METHOD:PUBLISH");
 
@@ -83,11 +83,11 @@ export function bookingToICalEvent(booking: {
   const ref = booking.bookingReference || booking.id.slice(0, 8).toUpperCase();
 
   return {
-    uid: `${booking.id}@kivara.luxury`,
+    uid: `${booking.id}@kivara.africa`,
     start,
     end: endExclusive,
     summary: `${booking.clientName} : ${ref}`,
-    description: `Kivara Luxury Travel Booking\nReference: ${ref}\nClient: ${booking.clientName}\nDestination: ${location}`,
+    description: `kivara.africa Booking\nReference: ${ref}\nClient: ${booking.clientName}\nDestination: ${location}`,
     location: location || "TBD",
     organizer: booking.clientEmail,
   };

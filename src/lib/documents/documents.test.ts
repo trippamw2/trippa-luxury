@@ -27,7 +27,7 @@ describe("generateVisaInfoDocument", () => {
 
   it("includes the Kivara brand footer", () => {
     const html = generateVisaInfoDocument();
-    expect(html).toContain("kivara.luxury");
+    expect(html).toContain("kivara.africa");
   });
 });
 
@@ -46,7 +46,7 @@ describe("generatePackingListDocument", () => {
   });
 
   it("includes the Kivara brand footer", () => {
-    expect(generatePackingListDocument()).toContain("kivara.luxury");
+    expect(generatePackingListDocument()).toContain("kivara.africa");
   });
 });
 
@@ -65,6 +65,6 @@ describe("generateTravelInsuranceDocument", () => {
   });
 
   it("includes the Kivara brand footer", () => {
-    expect(generateTravelInsuranceDocument()).toContain("kivara.luxury");
+    expect(generateTravelInsuranceDocument()).toContain("kivara.africa");
   });
 });

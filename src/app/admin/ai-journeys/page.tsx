@@ -158,7 +158,7 @@ export default function AIJourneysPage() {
         const accomSub = journey.pricing.subtotal - xfTotal;
         const lines = [
           "═══════════════════════════════════════",
-          "  KIVARA LUXURY TRAVEL : JOURNEY PROPOSAL",
+          "  KIVARA.AFRICA : JOURNEY PROPOSAL",
           "═══════════════════════════════════════",
           "",
           `  ${journey.title}`,
@@ -191,7 +191,7 @@ export default function AIJourneysPage() {
           `  Proposal ID: ${journey.id}`,
           `  Created: ${new Date(journey.createdAt).toLocaleDateString()}`,
           "",
-          "  Kivara Concierge: concierge@kivara.luxury",
+          "  Kivara Concierge: concierge@kivara.africa",
           "═══════════════════════════════════════",
         ];
         setPdfContent(lines.join("\n"));
@@ -254,7 +254,7 @@ export default function AIJourneysPage() {
       `Total Investment: $${journey.pricing.total.toLocaleString()} ${journey.pricing.currency}\n\n` +
       `Please find the full itinerary attached below.\n\n` +
       `We look forward to bringing this journey to life.\n\n` +
-      `Warmly,\nKivara Concierge\nconcierge@kivara.luxury\n\n` +
+      `Warmly,\nKivara Concierge\nconcierge@kivara.africa\n\n` +
       `---\n${journey.title}\n${journey.subtitle}\n` +
       `${journey.duration} nights | $${journey.pricing.total.toLocaleString()}\n\n` +
       `Highlights:\n` +

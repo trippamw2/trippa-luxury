@@ -35,7 +35,7 @@ export default function JournalPostPage() {
     datePublished: post.date ? new Date(post.date).toISOString() : undefined,
     author: {
       "@type": "Organization",
-      name: "Kivara Luxury Travel",
+      name: "kivara.africa",
     },
   };
 

@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     images: [{ url: "/images/baraza-beach.jpg", width: 1200, height: 630, alt: "Zanzibar: Baraza Resort & Spa" }],
     type: "website",
     locale: "en_US",
-    siteName: "Kivara Luxury Travel",
+    siteName: "kivara.africa",
   },
   twitter: {
     card: "summary_large_image",

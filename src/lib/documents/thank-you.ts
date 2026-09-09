@@ -24,8 +24,8 @@ export function generateThankYouDocument(clientName: string, bookingRef: string,
       <p>We would be honored if you would share your experience with others who might treasure a Kivara journey. Your voice is our greatest endorsement.</p>
 
       <h3>Share Your Experience</h3>
-      <p>Leave a review: <strong style="color: #C9A96E;">kivara.luxury/review</strong></p>
-      <p>Refer a friend: <strong style="color: #C9A96E;">kivara.luxury/refer</strong></p>
+      <p>Leave a review: <strong style="color: #C9A96E;">kivara.africa/review</strong></p>
+      <p>Refer a friend: <strong style="color: #C9A96E;">kivara.africa/refer</strong></p>
 
       <hr class="divider" />
 

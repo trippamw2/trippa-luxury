@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     // 4. Send email with PDF attachment
     const result = await sendEmail({
       to: [{ email: clientEmail, name: clientName }],
-      subject: `${typeLabel} Required : ${bookingRef} : Kivara Luxury Travel`,
+      subject: `${typeLabel} Required : ${bookingRef} : kivara.africa`,
       htmlContent: html,
       ...(pdfAttachment ? { attachment: [pdfAttachment] } : {}),
     });

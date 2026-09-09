@@ -45,7 +45,7 @@ function CancelContent() {
           </div>
         </div>
         <p className="text-[11px] text-[#8B7D6B] mt-6">
-          Need help? Contact <a href="mailto:concierge@kivara.luxury" className="text-[#C9A96E] hover:underline">concierge@kivara.luxury</a>
+          Need help? Contact <a href="mailto:concierge@kivara.africa" className="text-[#C9A96E] hover:underline">concierge@kivara.africa</a>
         </p>
       </div>
     </div>

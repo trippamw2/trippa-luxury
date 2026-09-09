@@ -376,7 +376,7 @@ export default function AdminInquiries() {
                   placeholder="Subject (optional)"
                   className="w-full px-4 py-2.5 border border-sand-light text-sm focus:outline-none focus:border-gold"
                 />
-                <textarea value={replyText} onChange={(e) => setReplyText(e.target.value)} className="w-full px-4 py-3 border border-sand-light text-sm h-40" placeholder="Write your reply here... It will be sent as a real email from concierge@kivara.luxury" />
+                <textarea value={replyText} onChange={(e) => setReplyText(e.target.value)} className="w-full px-4 py-3 border border-sand-light text-sm h-40" placeholder="Write your reply here... It will be sent as a real email from concierge@kivara.africa" />
                 <p className="text-[11px] text-earth">Sending marks the inquiry as contacted, records first-response time, and logs the exchange on the guest&apos;s communication timeline.</p>
               </div>
               <div className="flex gap-3 px-6 py-4 border-t border-sand-light flex-shrink-0"><button onClick={() => setShowReplyModal(false)} className="flex-1 px-4 py-2 border border-sand-light text-earth text-sm">Cancel</button><button onClick={handleSendReply} disabled={!replyText.trim() || sending} className="flex-1 px-4 py-2 bg-gold text-soft-black text-sm font-medium rounded hover:bg-gold/90 disabled:opacity-50">{sending ? "Sending..." : "Send Reply"}</button></div>

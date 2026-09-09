@@ -84,7 +84,7 @@ export default function AdminLoginPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@kivarajourneys.com"
+              placeholder="admin@kivara.africa"
               required
               autoComplete="email"
               className="w-full px-3 py-2 border border-sand-light/50 text-sm focus:outline-none focus:border-gold transition-colors bg-white"
@@ -137,7 +137,7 @@ export default function AdminLoginPage() {
 
         {/* Footer */}
         <p className="text-center text-xs text-earth mt-6">
-          Kivara Luxury Travel &mdash; Admin Access Only
+          kivara.africa &mdash; Admin Access Only
         </p>
       </div>
     </div>

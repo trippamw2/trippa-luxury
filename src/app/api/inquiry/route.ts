@@ -207,7 +207,7 @@ export async function POST(request: Request) {
 
       await sendEmail({
         ...enhancedNotification,
-        to: [{ email: "concierge@kivara.luxury", name: "Kivara Concierge" }],
+        to: [{ email: "concierge@kivara.africa", name: "Kivara Concierge" }],
         replyTo: { email, name: fullName },
       });
     } catch (emailError) {

@@ -42,7 +42,7 @@ const PROVIDERS: LlmProvider[] = [
     kind: "openai",
     baseUrl: "https://api.groq.com/openai/v1/chat/completions",
     keyEnv: "GROQ_API_KEY",
-    defaultModel: "openai/gpt-oss-120b",
+    defaultModel: "groq/compound",
   },
   {
     name: "deepseek",
@@ -276,15 +276,60 @@ async function callGeminiNative(
   }
 }
 
-/** Dispatch to the provider's protocol implementation. */
-function callProvider(
+const MAX_TRANSIENT_RETRIES = 1;
+const MAX_RETRY_DELAY_MS = 15_000;
+const DEFAULT_5XX_BACKOFF_MS = 2_500;
+
+/**
+ * Extract a provider-supplied "retry in Ns" / "try again in Ns" hint.
+ * Returns null when absent or too long to wait (e.g. Gemini free-tier daily
+ * quota reports 18–42s "retry in ..." hints that will not actually clear).
+ */
+function parseRetryDelayMs(message: string): number | null {
+  const match = message.match(/(?:retry|try again) in (\d+(?:\.\d+)?)s/i);
+  if (!match) return null;
+  const seconds = Number.parseFloat(match[1]);
+  if (!Number.isFinite(seconds)) return null;
+  const ms = seconds * 1000;
+  return ms >= 1 && ms <= MAX_RETRY_DELAY_MS ? ms : null;
+}
+
+function isTransientStatus(message: string): boolean {
+  return /\b(429|500|502|503|504)\b/.test(message);
+}
+
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+/** Dispatch to the provider's protocol implementation, retrying transient throttles once. */
+async function callProvider(
   provider: LlmProvider,
   messages: LlmMessage[],
   config: LlmConfig
 ): Promise<LlmResponse> {
-  return provider.kind === "gemini-native"
-    ? callGeminiNative(provider, messages, config)
-    : callOpenAICompat(provider, messages, config);
+  let lastError: unknown = null;
+  for (let attempt = 0; attempt <= MAX_TRANSIENT_RETRIES; attempt++) {
+    try {
+      return provider.kind === "gemini-native"
+        ? await callGeminiNative(provider, messages, config)
+        : await callOpenAICompat(provider, messages, config);
+    } catch (err) {
+      lastError = err;
+      const message = err instanceof Error ? err.message : String(err);
+      if (attempt < MAX_TRANSIENT_RETRIES && isTransientStatus(message)) {
+        let delayMs = parseRetryDelayMs(message);
+        if (delayMs === null && /\b(500|502|503|504)\b/.test(message)) {
+          delayMs = DEFAULT_5XX_BACKOFF_MS;
+        }
+        if (delayMs !== null) {
+          console.warn(`LLM provider ${provider.name} transient ${message.slice(0, 40)}… retrying in ${delayMs}ms`);
+          await sleep(delayMs);
+          continue;
+        }
+      }
+      throw err;
+    }
+  }
+  throw lastError;
 }
 
 /**

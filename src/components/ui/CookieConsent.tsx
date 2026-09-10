@@ -42,8 +42,8 @@ export function CookieConsent() {
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           className="fixed bottom-0 left-0 right-0 z-50 p-4 md:p-6"
         >
-          <div className="max-w-5xl mx-auto bg-soft-black/95 backdrop-blur-md border border-white/10 p-4 md:p-6 shadow-2xl">
-            <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+          <div className="max-w-2xl mx-auto bg-soft-black/95 backdrop-blur-md border border-white/10 p-4 md:p-5 shadow-2xl">
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
               <div className="flex-1">
                 <p className="text-sm text-cream/80 leading-relaxed">
                   We use cookies to enhance your browsing experience, analyze site traffic, and personalize your journey.
@@ -57,13 +57,13 @@ export function CookieConsent() {
               <div className="flex items-center gap-3 shrink-0">
                 <button
                   onClick={acceptEssential}
-                  className="px-4 py-2.5 text-xs tracking-widest uppercase text-cream/70 border border-white/20 hover:border-white/40 hover:text-cream transition-all duration-300"
+                  className="px-3 py-2 text-xs tracking-widest uppercase text-cream/70 border border-white/20 hover:border-white/40 hover:text-cream transition-all duration-300"
                 >
                   Essential Only
                 </button>
                 <button
                   onClick={acceptAll}
-                  className="px-5 py-2.5 text-xs tracking-widest uppercase bg-gold text-soft-black hover:bg-gold-dark transition-all duration-300"
+                  className="px-4 py-2 text-xs tracking-widest uppercase bg-gold text-soft-black hover:bg-gold-dark transition-all duration-300"
                 >
                   Accept All
                 </button>

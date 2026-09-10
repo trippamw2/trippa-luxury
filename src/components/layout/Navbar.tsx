@@ -17,8 +17,6 @@ const COLLECTION_CHILDREN = JOURNEY_COLLECTIONS.map((collection) => ({
 }));
 
 const NAV_ITEMS = [
-  { label: "Home", href: "/" },
-  { label: "Experiences", href: "/experiences" },
   {
     label: "Destinations",
     href: "#",
@@ -41,7 +39,6 @@ const NAV_ITEMS = [
       },
     ],
   },
-  { label: "About", href: "/about" },
   { label: "Journal", href: "/journal" },
   { label: "Contact", href: "/contact" },
 ];
@@ -104,7 +101,7 @@ export function Navbar() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center gap-10">
+          <div className="hidden lg:flex items-center gap-6">
             {NAV_ITEMS.map((item) =>
               item.children ? (
                 <div

@@ -18,6 +18,7 @@ const footerLinks = {
     { label: "Luxury Island Retreat", href: "/packages#island-romance-retreat" },
   ],
   explore: [
+    { label: "Experiences", href: "/experiences" },
     { label: "About Kivara", href: "/about" },
     { label: "Journal", href: "/journal" },
     { label: "FAQ", href: "/faq" },

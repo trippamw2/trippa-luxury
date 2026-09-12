@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Container } from "@/components/ui/container";
-import { Heart, Globe, Leaf, Sparkles } from "lucide-react";
+import { Heart, Globe, Leaf } from "lucide-react";
 
 const values = [
   {
@@ -19,7 +19,7 @@ const values = [
       "Nature is the setting for your romance. Pristine beaches, untamed wilderness, and soul stirring landscapes that become the backdrop to your most treasured memories.",
   },
   {
-    icon: Sparkles,
+    icon: Heart,
     title: "Wellness & Restoration",
     description:
       "Wellness restores you so romance can flourish. Slow mornings, spa rituals, healing environments: space to surrender to stillness together.",

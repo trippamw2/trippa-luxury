@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Container } from "@/components/ui/container";
-import { Waves, TreePine, Sparkles } from "lucide-react";
+import { Waves, TreePine, Heart } from "lucide-react";
 
 export function PhilosophySection() {
   return (
@@ -49,7 +49,7 @@ export function PhilosophySection() {
             <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-6">
               {[
                 {
-                  icon: Sparkles,
+                  icon: Heart,
                   title: "Romance",
                   desc: "The foundation of every journey. Private beach dinners, sunset cruises, couple spa rituals: each moment designed for intimacy and reconnection.",
                 },
@@ -94,7 +94,7 @@ export function PhilosophySection() {
               <div className="text-center">
                 <div className="w-24 h-24 mx-auto border border-gold/30 rounded-full flex items-center justify-center mb-6">
                   <div className="w-16 h-16 border border-gold/20 rounded-full flex items-center justify-center">
-                    <Sparkles className="w-6 h-6 text-gold-light" />
+                    <Heart className="w-6 h-6 text-gold-light" />
                   </div>
                 </div>
                 <p className="text-cream/40 font-heading text-6xl md:text-7xl font-bold select-none">

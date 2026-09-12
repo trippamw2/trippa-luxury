@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { StarIcon, QuoteIcon } from "@/components/ui/icons";
+import { HeartIcon, QuoteIcon } from "@/components/ui/icons";
 import { Container } from "@/components/ui/container";
 import { BRAND_POSITIONING, TESTIMONIALS } from "@/lib/constants";
 
@@ -48,10 +48,10 @@ export function TestimonialsSection() {
             >
               <QuoteIcon className="absolute top-6 right-6 w-8 h-8 text-gold/10" />
               
-              {/* Stars */}
+              {/* Rating hearts */}
               <div className="flex items-center gap-1 mb-4">
                 {[...Array(testimonial.rating)].map((_, i) => (
-                  <StarIcon key={i} className="w-4 h-4 fill-gold text-gold" />
+                  <HeartIcon key={i} className="w-4 h-4 fill-gold text-gold" />
                 ))}
               </div>
 

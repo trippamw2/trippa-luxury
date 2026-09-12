@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
-import { Plane, PlaneLanding, PlaneTakeoff, Car, Ship, Sparkles, MapPin, ArrowRight } from "lucide-react";
+import { Plane, PlaneLanding, PlaneTakeoff, Car, Ship, Heart, MapPin, ArrowRight } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { cn } from "@/lib/utils";
 import { useExperiences } from "@/lib/use-public-data";
@@ -37,7 +37,7 @@ const MODE_ICONS: Record<MovementMode, typeof Plane> = {
 function StopIcon({ stop }: { stop: RouteStop }) {
   if (stop.kind === "departure") return <PlaneTakeoff className="w-4 h-4" />;
   if (stop.kind === "gateway") return <PlaneLanding className="w-4 h-4" />;
-  if (stop.kind === "experience") return <Sparkles className="w-4 h-4" />;
+  if (stop.kind === "experience") return <Heart className="w-4 h-4" />;
   if (stop.arrival) {
     const Icon = MODE_ICONS[stop.arrival];
     return <Icon className="w-4 h-4" />;
@@ -119,7 +119,7 @@ export function ExperiencesSection() {
   const experiences = useExperiences();
   return (
     <section className="py-24 md:py-32 bg-soft-black relative overflow-hidden">
-      <div className="absolute inset-0 opacity-[0.03]">
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none" aria-hidden="true">
         <div className="w-full h-full" style={{
           backgroundImage: `radial-gradient(circle at 50% 50%, rgba(201,169,110,0.5) 0%, transparent 50%)`,
         }} />

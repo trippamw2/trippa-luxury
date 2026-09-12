@@ -64,12 +64,12 @@ export const IMAGES = {
   barazaRoyalVilla: "/images/baraza-royal-villa.jpg",
 
   // Experiences (real property photography)
-  dining: "/images/dining.jpg",
-  walking: "/images/lrc-walking.jpg",
+  dining: "/images/bz-beach-dining.jpg",
+  walking: "/images/pr-walking.jpg",
   dhow: "/images/zanzibar-dhow.jpg",
   spa: "/images/baraza-spa.jpg",
   starbed: "/images/pr-starbed.jpg",
-  bushDining: "/images/lrc-dining.jpg",
+  bushDining: "/images/bush-dining.jpg",
 
   // Journal
   journalHoneymoon: "/images/journal-honeymoon.jpg",

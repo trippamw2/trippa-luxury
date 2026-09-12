@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { StarIcon } from "@/components/ui/icons";
+import { HeartIcon } from "@/components/ui/icons";
 
 interface PropertyCardProps {
   name: string;
@@ -64,7 +64,7 @@ export function PropertyCard({
           {/* Content */}
           <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
             <div className="flex items-center gap-2 mb-2 translate-y-2 opacity-0 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-y-0 group-hover:opacity-100">
-              <StarIcon className="w-4 h-4 fill-gold text-gold" />
+              <HeartIcon className="w-4 h-4 fill-gold text-gold" />
               <span className="text-sm text-cream/90">{rating.toFixed(1)}</span>
             </div>
             <h3 className="text-xl md:text-2xl font-heading font-medium text-cream mb-1">

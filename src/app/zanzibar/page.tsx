@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ArrowRight, Heart, Sparkles, Sun, Camera } from "lucide-react";
+import { ArrowRight, Heart, Sun, Camera } from "lucide-react";
 import Image from "next/image";
 import { Container } from "@/components/ui/container";
 import { PropertyCard } from "@/components/ui/property-card";
@@ -199,7 +199,7 @@ export default function ZanzibarPage() {
               <div className="mt-8 flex flex-wrap gap-6">
                 {[
                   { icon: Heart, label: "Ultimate romantic escape" },
-                  { icon: Sparkles, label: "World class spa & wellness" },
+                  { icon: Heart, label: "World class spa & wellness" },
                   { icon: Sun, label: "Year round tropical paradise" },
                 ].map((item) => (
                   <div key={item.label} className="flex items-center gap-2 text-sm text-earth">

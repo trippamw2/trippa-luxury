@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import {
   HeartIcon,
   CompassIcon,
-  SparklesIcon,
   SunIcon,
   CameraIcon,
 } from "lucide-react";
@@ -28,7 +27,7 @@ const PROCESS_STEPS = [
   },
   {
     number: "03",
-    icon: SparklesIcon,
+    icon: HeartIcon,
     title: "Crafted Around You",
     description:
       "Every detail designed around your story, the destinations, the stays, the moments that matter.",

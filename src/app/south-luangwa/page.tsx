@@ -116,7 +116,7 @@ export default function SouthLuangwaPage() {
         </video>
         <div className="absolute inset-0 bg-gradient-to-br from-soft-black/80 via-soft-black/60 to-earth/40" />
         <div className="absolute inset-0 bg-gradient-to-t from-soft-black/70 via-transparent to-soft-black/20" />
-        <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] rounded-full opacity-[0.06]"
+        <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] rounded-full opacity-[0.06] pointer-events-none" aria-hidden="true"
           style={{ background: "radial-gradient(circle, rgba(139,125,107,0.4) 0%, transparent 70%)" }} />
 
         <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6">

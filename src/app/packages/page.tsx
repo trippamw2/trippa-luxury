@@ -248,7 +248,7 @@ export default function PackagesPage() {
 
       {/* Final CTA */}
       <section className="py-24 bg-soft-black relative overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.04]">
+        <div className="absolute inset-0 opacity-[0.04] pointer-events-none" aria-hidden="true">
           <div className="w-full h-full" style={{
             backgroundImage: `radial-gradient(circle at 50% 50%, rgba(201,169,110,0.5) 0%, transparent 50%)`,
           }} />

@@ -118,7 +118,7 @@ export default function ZanzibarPage() {
         </video>
         <div className="absolute inset-0 bg-gradient-to-br from-soft-black/80 via-sand-dark/40 to-gold/20" />
         <div className="absolute inset-0 bg-gradient-to-t from-soft-black/50 via-transparent to-soft-black/30" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full opacity-[0.06]"
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full opacity-[0.06] pointer-events-none" aria-hidden="true"
           style={{ background: "radial-gradient(circle, rgba(201,169,110,0.3) 0%, transparent 70%)" }} />
 
         <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6">

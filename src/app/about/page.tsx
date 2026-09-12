@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Container } from "@/components/ui/container";
-import { Heart, Globe, Leaf } from "lucide-react";
+import { Heart, Globe, Leaf, Flower2 } from "lucide-react";
 
 const values = [
   {
@@ -19,7 +19,7 @@ const values = [
       "Nature is the setting for your romance. Pristine beaches, untamed wilderness, and soul stirring landscapes that become the backdrop to your most treasured memories.",
   },
   {
-    icon: Heart,
+    icon: Flower2,
     title: "Wellness & Restoration",
     description:
       "Wellness restores you so romance can flourish. Slow mornings, spa rituals, healing environments: space to surrender to stillness together.",
@@ -253,7 +253,7 @@ export default function AboutPage() {
 
       {/* CTA */}
       <section className="py-24 bg-soft-black relative overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.04]">
+        <div className="absolute inset-0 opacity-[0.04] pointer-events-none" aria-hidden="true">
           <div className="w-full h-full" style={{
             backgroundImage: `radial-gradient(circle at 50% 50%, rgba(201,169,110,0.5) 0%, transparent 50%)`,
           }} />

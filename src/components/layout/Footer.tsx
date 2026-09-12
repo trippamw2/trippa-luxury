@@ -172,7 +172,7 @@ export function Footer() {
               rel="noopener noreferrer"
               className="mt-8 inline-flex items-center gap-2 px-5 py-3 border border-gold/50 text-gold-light text-sm tracking-widest uppercase hover:bg-gold/10 transition-all duration-300"
             >
-                <HeartIcon className="w-4 h-4" />
+              <HeartIcon className="w-4 h-4" />
               Chat with Concierge
             </a>
           </div>

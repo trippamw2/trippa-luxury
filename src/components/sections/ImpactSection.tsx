@@ -39,7 +39,7 @@ export function ImpactSection() {
   return (
     <section className="relative py-28 md:py-36 overflow-hidden bg-soft-black">
       {/* Background texture */}
-      <div className="absolute inset-0 opacity-[0.04]">
+      <div className="absolute inset-0 opacity-[0.04] pointer-events-none" aria-hidden="true">
         <div
           className="w-full h-full"
           style={{

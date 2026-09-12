@@ -85,7 +85,7 @@ export default function ExperiencesPage() {
                     "px-6 py-2 text-sm font-medium tracking-[0.1em] uppercase transition-all duration-300 border",
                     isActive
                       ? "bg-gold text-soft-black border-gold"
-                      : "bg-transparent text-cream border-gold/30 hover:border-gold/60"
+                      : "bg-transparent text-soft-black border-gold/30 hover:border-gold/60"
                   )}
                 >
                   {cat}
@@ -97,7 +97,7 @@ export default function ExperiencesPage() {
       </section>
 
       {/* Experiences Grid */}
-      <section className="py-16">
+      <section className="py-24 md:py-32">
         <Container>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filtered.map((exp) => (
@@ -117,7 +117,7 @@ export default function ExperiencesPage() {
                       </span>
                     </div>
                   </div>
-                  <h3 className="text-xl font-heading font-medium text-cream mb-2 group-hover:text-gold transition-colors">
+                  <h3 className="text-xl font-heading font-medium text-soft-black mb-2 group-hover:text-gold transition-colors">
                     {exp.title}
                   </h3>
                   <p className="text-sm text-earth-light mb-3 leading-relaxed">

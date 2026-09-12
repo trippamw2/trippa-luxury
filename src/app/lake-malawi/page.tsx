@@ -125,7 +125,7 @@ export default function LakeMalawiPage() {
         <div className="absolute inset-0 bg-gradient-to-t from-soft-black/60 via-transparent to-soft-black/30" />
         
         {/* Animated light */}
-        <div className="absolute top-1/3 right-1/4 w-[600px] h-[600px] rounded-full opacity-[0.08]" 
+        <div className="absolute top-1/3 right-1/4 w-[600px] h-[600px] rounded-full opacity-[0.08] pointer-events-none" aria-hidden="true"
           style={{ background: "radial-gradient(circle, rgba(212,197,169,0.4) 0%, transparent 70%)" }} />
 
         <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6">

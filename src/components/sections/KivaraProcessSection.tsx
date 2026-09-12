@@ -6,6 +6,7 @@ import {
   CompassIcon,
   SunIcon,
   CameraIcon,
+  GemIcon,
 } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { BRAND_POSITIONING } from "@/lib/constants";
@@ -27,7 +28,7 @@ const PROCESS_STEPS = [
   },
   {
     number: "03",
-    icon: HeartIcon,
+    icon: GemIcon,
     title: "Crafted Around You",
     description:
       "Every detail designed around your story, the destinations, the stays, the moments that matter.",

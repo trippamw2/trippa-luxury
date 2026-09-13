@@ -928,7 +928,7 @@ export const PACKAGES = [
     id: "african-love-story",
     title: "The African Love Story",
     subtitle: "Lake, bush and island : a three chapter romance",
-    image: IMAGES.chinzombo,
+    image: IMAGES.zanzibarDhow,
     description:
       "Kivara's signature journey across three worlds : the hidden beaches of Lake Malawi, the untamed wilderness of South Luangwa, and the spice scented shores of Zanzibar. Twelve nights composed for two, each chapter more extraordinary than the last.",
     duration: "12 nights",
@@ -980,7 +980,7 @@ export const PACKAGES = [
     id: "private-proposal-journey",
     title: "The Private Proposal Journey",
     subtitle: "The most important question, perfectly composed",
-    image: IMAGES.lakeMalawiRomanceHero,
+    image: "/images/kaya-mawa-nkhwazi-terrace.jpg",
     description:
       "A four night journey built around the moment you ask the question. A private proposal setup with photographer, flowers and champagne, a candlelit dinner, and a sunset cruise : every detail arranged in secret, so the only thing you think about is the words.",
     duration: "4 nights",
@@ -1229,7 +1229,7 @@ export const PACKAGES = [
     id: "ultimate-african-romance",
     title: "The Ultimate African Romance",
     subtitle: "Kivara's premier journey for two",
-    image: IMAGES.southLuangwaRomanceHero,
+    image: "/images/xanadu.jpg",
     description:
       "Fourteen nights across the finest of Africa : the hidden beaches of Kaya Mawa, the untamed wild of Time+Tide Chinzombo, and the artistic luxury of Xanadu on Zanzibar. Private transfers, curated dining, and a dedicated Journey Concierge : the journey of a lifetime, in every sense.",
     duration: "14 nights",
@@ -1279,7 +1279,7 @@ export const PACKAGES = [
     id: "kivara-bespoke-private-journey",
     title: "Kivara Bespoke Private Journey",
     subtitle: "Africa, composed entirely around you",
-    image: "/images/xanadu-1.jpg",
+    image: "/images/xanadu-10.jpg",
     description:
       "A fully customised itinerary built around your vision : a honeymoon, a proposal, an anniversary, a wellness retreat, or a multi country African adventure. Kivara's Journey Concierge composes every detail around your wishes, your rhythm, and your story.",
     duration: "Fully customised",
@@ -1336,7 +1336,7 @@ export const JOURNEY_COLLECTIONS = [
     id: "bespoke",
     title: "Bespoke Journeys",
     description: "Fully customised journeys composed entirely around your vision.",
-    image: "/images/xanadu-1.jpg",
+    image: "/images/xanadu-10.jpg",
   },
 ];
 

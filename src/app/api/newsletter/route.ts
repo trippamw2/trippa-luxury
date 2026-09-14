@@ -48,6 +48,7 @@ export async function POST(request: Request) {
     }
 
     // Send welcome email via Brevo
+    let emailStatus: "sent" | "failed" = "failed";
     try {
       const welcomeEmail = newsletterWelcomeEmail();
       await sendEmail({
@@ -55,6 +56,7 @@ export async function POST(request: Request) {
         htmlContent: welcomeEmail.htmlContent,
         to: [{ email, name: email.split("@")[0] }],
       });
+      emailStatus = "sent";
     } catch (emailError) {
       console.error("Newsletter welcome email error:", emailError);
     }
@@ -62,6 +64,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       message: "Welcome to Kivara! Check your inbox for a confirmation.",
+      email: { welcome: emailStatus },
     });
   } catch (error) {
     console.error("Newsletter error:", error);

@@ -97,6 +97,7 @@ export async function POST(
     });
 
     // Send receipt email
+    let receiptEmailStatus: "sent" | "failed" | "skipped" = "skipped";
     if (booking.client_email) {
       try {
         const receipt = paymentReceiptEmail({
@@ -111,8 +112,10 @@ export async function POST(
           subject: receipt.subject,
           htmlContent: receipt.htmlContent,
         });
+        receiptEmailStatus = "sent";
       } catch (emailErr) {
         console.error("Failed to send receipt email:", emailErr);
+        receiptEmailStatus = "failed";
       }
     }
 
@@ -122,6 +125,7 @@ export async function POST(
       status: newStatus,
       paidAmount,
       balanceRemaining: newBalance,
+      email: { receipt: receiptEmailStatus },
     });
   } catch (err: unknown) {
     if (err instanceof AdminAuthError) {

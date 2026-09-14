@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CheckCircle, AlertCircle, CreditCard, Plane } from "lucide-react";
+import { CheckCircle, AlertCircle, CreditCard, Plane, Mail } from "lucide-react";
 
 interface BankDetailsData {
   bankName: string;
@@ -75,6 +75,38 @@ export default function AdminSettings() {
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState<string | null>(null);
   const [useApi, setUseApi] = useState(true);
+
+  // ── Email pipeline diagnostics ─────────────────────────────────────
+  const [emailTesting, setEmailTesting] = useState(false);
+  const [emailResult, setEmailResult] = useState<{
+    ok: boolean;
+    keyPresent?: boolean;
+    keyValid?: boolean;
+    sender?: { email: string; name: string } | null;
+    testSend?: { ok: boolean; messageId?: string | null; error?: string } | null;
+    guidance?: string[];
+  } | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
+
+  async function runEmailTest() {
+    setEmailTesting(true);
+    setEmailError(null);
+    setEmailResult(null);
+    try {
+      const res = await fetch("/api/admin/settings/email-test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ to: form.email }),
+      });
+      const json = await res.json();
+      if (json.error) throw new Error(json.error);
+      setEmailResult(json);
+    } catch (err: unknown) {
+      setEmailError(err instanceof Error ? err.message : "Email test failed");
+    } finally {
+      setEmailTesting(false);
+    }
+  }
 
   // Load from API on mount
   useEffect(() => {
@@ -195,6 +227,83 @@ export default function AdminSettings() {
               <option value="GBP">GBP (£)</option>
               <option value="ZAR">ZAR (R)</option>
             </select>
+          </div>
+
+          {/* ─── Email Pipeline Section ─────────────────────────────── */}
+          <div className="pt-6 border-t border-sand-light/50">
+            <div className="flex items-center gap-2 mb-4">
+              <Mail className="w-4 h-4 text-gold" />
+              <h2 className="text-sm font-semibold text-soft-black uppercase tracking-wider">Email Pipeline (Brevo)</h2>
+            </div>
+            <p className="text-xs text-earth mb-4">
+              Tests the transactional email pipeline end-to-end: API key validity, sender identity, and a live delivery
+              to the contact email above. Every send attempt is also recorded in the email log.
+            </p>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={runEmailTest}
+                disabled={emailTesting || !form.email}
+                className="px-4 py-2 bg-soft-black text-cream text-sm tracking-widest uppercase hover:bg-soft-black-light transition-colors disabled:opacity-40"
+              >
+                {emailTesting ? "Sending..." : "Run Email Test"}
+              </button>
+              {!form.email && (
+                <span className="text-xs text-amber-600">Set a contact email above to run the test.</span>
+              )}
+            </div>
+            {emailError && (
+              <p className="text-sm text-red-600 flex items-center gap-1 mt-4">
+                <AlertCircle className="w-4 h-4" />
+                {emailError}
+              </p>
+            )}
+            {emailResult && (
+              <div className={`mt-4 p-4 border ${emailResult.ok ? "border-emerald-200 bg-emerald-50/40" : "border-amber-200 bg-amber-50/40"}`}>
+                <p className="flex items-center gap-1.5 text-sm font-medium text-soft-black">
+                  {emailResult.ok ? (
+                    <><CheckCircle className="w-4 h-4 text-emerald-600" /> Email pipeline working</>
+                  ) : (
+                    <><AlertCircle className="w-4 h-4 text-amber-600" /> Email pipeline has issues</>
+                  )}
+                </p>
+                <dl className="mt-3 grid grid-cols-1 gap-2 text-sm">
+                  <div className="flex gap-2">
+                    <dt className="w-32 text-earth">API key</dt>
+                    <dd className={emailResult.keyPresent ? "text-emerald-700" : "text-red-600"}>
+                      {emailResult.keyPresent ? "present" : "missing / placeholder"}
+                    </dd>
+                  </div>
+                  <div className="flex gap-2">
+                    <dt className="w-32 text-earth">Key valid</dt>
+                    <dd className={emailResult.keyValid ? "text-emerald-700" : "text-red-600"}>
+                      {emailResult.keyValid ? "valid" : "rejected by Brevo"}
+                    </dd>
+                  </div>
+                  <div className="flex gap-2">
+                    <dt className="w-32 text-earth">Sender</dt>
+                    <dd className="text-soft-black">{emailResult.sender ? `${emailResult.sender.name} <${emailResult.sender.email}>` : "not configured"}</dd>
+                  </div>
+                  <div className="flex gap-2">
+                    <dt className="w-32 text-earth">Test send</dt>
+                    <dd className={emailResult.testSend?.ok ? "text-emerald-700" : "text-red-600"}>
+                      {emailResult.testSend?.ok
+                        ? `delivered${emailResult.testSend.messageId ? ` (${emailResult.testSend.messageId})` : ""}`
+                        : emailResult.testSend?.error || "not attempted"}
+                    </dd>
+                  </div>
+                </dl>
+                {emailResult.guidance && emailResult.guidance.length > 0 && (
+                  <ul className="mt-3 space-y-1 text-xs text-amber-800">
+                    {emailResult.guidance.map((g, i) => (
+                      <li key={i} className="flex gap-1.5">
+                        <span className="text-amber-600">•</span>
+                        <span>{g}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
           </div>
 
           {/* ─── Bank Details Section ─────────────────────────────── */}

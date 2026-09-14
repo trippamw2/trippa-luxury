@@ -194,6 +194,10 @@ export async function POST(request: Request) {
     }
 
     // ── 3. Send notification email to concierge team ──
+    const emailStatus: { notification: "sent" | "failed" | "skipped"; confirmation: "sent" | "failed" | "skipped" } = {
+      notification: "skipped",
+      confirmation: "skipped",
+    };
     try {
       const enhancedNotification = newInquiryEmail({
         fullName,
@@ -210,8 +214,10 @@ export async function POST(request: Request) {
         to: [{ email: "concierge@kivara.africa", name: "Kivara Concierge" }],
         replyTo: { email, name: fullName },
       });
+      emailStatus.notification = "sent";
     } catch (emailError) {
       console.error("Failed to send notification email:", emailError);
+      emailStatus.notification = "failed";
     }
 
     // ── 4. Send confirmation email to the inquirer ──
@@ -220,8 +226,10 @@ export async function POST(request: Request) {
         ...inquiryConfirmationEmail({ fullName, destination }),
         to: [{ email, name: fullName }],
       });
+      emailStatus.confirmation = "sent";
     } catch (emailError) {
       console.error("Failed to send confirmation email:", emailError);
+      emailStatus.confirmation = "failed";
     }
 
     return NextResponse.json({
@@ -229,6 +237,7 @@ export async function POST(request: Request) {
       message: "Thank you for your inquiry. Our concierge team will respond within 24 hours.",
       inquiryId: inquiry?.id || null,
       guestProfileId,
+      email: emailStatus,
       ai: {
         profile: aiProfile,
         leadScore: aiLeadScore,

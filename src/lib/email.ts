@@ -5,16 +5,64 @@
 
 import { BrevoClient } from "@getbrevo/brevo";
 import { formatDestination } from "@/lib/utils";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 let client: BrevoClient | null = null;
+
+const BREVO_KEY_PLACEHOLDERS = ["", "xkeysib-xxxxxxxx", "your-brevo-api-key"];
+
+/**
+ * Resolve the Brevo API key. Fails loudly with actionable guidance when the
+ * key is missing or still a template placeholder, so a misconfigured email
+ * pipeline can never silently degrade into "no emails sent".
+ */
+function requireBrevoKey(): string {
+  const key = process.env.NEXT_BREVO_KEY || "";
+  if (BREVO_KEY_PLACEHOLDERS.includes(key.trim())) {
+    throw new Error(
+      "Brevo is not configured: NEXT_BREVO_KEY is missing or still a placeholder. " +
+        "Get a real key at https://app.brevo.com/settings/keys/api, put it in .env.local " +
+        "and in the deployment environment, then restart."
+    );
+  }
+  return key.trim();
+}
 
 function getClient(): BrevoClient {
   if (!client) {
     client = new BrevoClient({
-      apiKey: process.env.NEXT_BREVO_KEY || "",
+      apiKey: requireBrevoKey(),
     });
   }
   return client;
+}
+
+/**
+ * Best-effort persistence of every send attempt to the email_log table so
+ * failures are observable in the admin panel. Never throws — a logging
+ * failure must not take down the send path itself.
+ */
+async function logEmailDelivery(params: {
+  status: "sent" | "failed";
+  toEmail: string;
+  toName?: string;
+  subject: string;
+  messageId?: string;
+  error?: string;
+}) {
+  try {
+    const supabase = createAdminClient();
+    await supabase.from("email_log").insert({
+      status: params.status,
+      to_email: params.toEmail,
+      to_name: params.toName || null,
+      subject: params.subject,
+      message_id: params.messageId || null,
+      error: params.error || null,
+    });
+  } catch (logError) {
+    console.error("Failed to write email_log entry:", logError);
+  }
 }
 
 interface EmailAddress {
@@ -37,10 +85,11 @@ interface EmailParams {
   attachment?: EmailAttachment[];
 }
 
-const FROM_EMAIL = "concierge@kivara.africa";
-const FROM_NAME = "Kivara Concierge";
+const FROM_EMAIL = process.env.KIVARA_EMAIL_FROM || "concierge@kivara.africa";
+const FROM_NAME = process.env.KIVARA_EMAIL_FROM_NAME || "Kivara Concierge";
 
 export async function sendEmail(params: EmailParams) {
+  let toEmail = "";
   try {
     const instance = getClient();
     const payload: Record<string, unknown> = {
@@ -60,10 +109,33 @@ export async function sendEmail(params: EmailParams) {
       }));
     }
 
+    toEmail = params.to[0]?.email || "";
+
     const response = await instance.transactionalEmails.sendTransacEmail(payload);
-    return { success: true, messageId: response.messageId };
+    const messageId =
+      response.messageId || (Array.isArray(response.messageIds) ? response.messageIds[0] : undefined);
+    await logEmailDelivery({
+      status: "sent",
+      toEmail,
+      toName: params.to[0]?.name,
+      subject: params.subject,
+      messageId,
+    });
+    return { success: true, messageId };
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
     console.error("Brevo email error:", error);
+    // Persist the failure even when the BREVO key is misconfigured, so the
+    // admin panel shows what happened instead of a silent void.
+    if (toEmail || params.to[0]?.email) {
+      await logEmailDelivery({
+        status: "failed",
+        toEmail: toEmail || params.to[0]?.email || "",
+        toName: params.to[0]?.name,
+        subject: params.subject,
+        error: message,
+      });
+    }
     throw error;
   }
 }

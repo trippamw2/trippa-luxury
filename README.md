@@ -123,3 +123,28 @@ Every admin API route is protected by the `requireAdmin` guard (`src/lib/api-hel
 ## Deployment
 
 The app deploys as a standard Next.js app (e.g. Vercel). Set all env vars from `.env.example` in the deployment environment, apply migrations to the production Supabase project, and configure the cron endpoints (`/api/cron/release-provisional-holds`, `/api/ai/trigger-reminders`) with the `CRON_SECRET` header.
+
+## Email pipeline (Brevo) — setup & diagnostics
+
+Every transactional email (inquiries, quotes, receipts, reminders, payment links, newsletters) is sent through `src/lib/email.ts`. **If emails are not arriving, do not guess — run the diagnostic**:
+
+```bash
+curl -X POST http://localhost:3000/api/admin/settings/email-test \
+  -H "Content-Type: application/json" \
+  -H "Cookie: <your admin session cookie>" \
+  -d '{"to":"you@example.com"}'
+```
+
+The endpoint checks, in order: key presence → key validity (live call to the Brevo API) → sender identity → an actual test send, and returns actionable guidance per failure.
+
+To make email work end-to-end:
+
+1. **Register the sender domain** — `kivara.africa` must exist in public DNS (any registrar).
+2. **Verify it in Brevo** — Brew → Senders → Domains → follow the steps, then publish:
+   - SPF: `TXT kivara.africa = "v=spf1 include:spf.brevo.com ~all"`
+   - DKIM: `TXT brevo._domainkey.kivara.africa = <value from the Brevo dashboard>`
+   - Hosted email/MX if the concierge inbox must receive replies.
+3. **Generate a Brevo API key** — https://app.brevo.com/settings/keys/api → set `NEXT_BREVO_KEY` in `.env.local` and in the deployment environment.
+4. **Optional** — send from a different verified address via `KIVARA_EMAIL_FROM` / `KIVARA_EMAIL_FROM_NAME`.
+
+Every send attempt is recorded in the `email_log` table (migration `023`): status, recipient, subject, Brevo message id, and the error on failure — so a silent `success: true` from the inquiry API can never hide a broken pipeline again.

@@ -90,6 +90,7 @@ const NAV_ITEMS = [
   { label: "Suppliers", href: "/admin/suppliers", module: "suppliers" },
   { label: "Users", href: "/admin/users", module: "users" },
   { label: "Settings", href: "/admin/settings", module: "settings" },
+  { label: "Email Log", href: "/admin/email-log", module: "settings" },
   { label: "Audit Log", href: "/admin/audit-log", module: "audit-log" },
   { label: "Analytics", href: "/admin/analytics", module: "analytics" },
 ];

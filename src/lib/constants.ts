@@ -1229,7 +1229,7 @@ export const PACKAGES = [
     id: "ultimate-african-romance",
     title: "The Ultimate African Romance",
     subtitle: "Kivara's premier journey for two",
-    image: "/images/xanadu.jpg",
+    image: "/images/xanadu-11.jpg",
     description:
       "Fourteen nights across the finest of Africa : the hidden beaches of Kaya Mawa, the untamed wild of Time+Tide Chinzombo, and the artistic luxury of Xanadu on Zanzibar. Private transfers, curated dining, and a dedicated Journey Concierge : the journey of a lifetime, in every sense.",
     duration: "14 nights",

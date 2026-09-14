@@ -1,12 +1,11 @@
 import { Fragment } from "react";
-import { Plane, PlaneLanding, Car, Ship, MapPin, ArrowRight } from "lucide-react";
+import { Plane, PlaneLanding, Car, MapPin, ArrowRight } from "lucide-react";
 import type { TransferStep } from "@/lib/journey-routes";
 import { cn } from "@/lib/utils";
 
 const modeIcons: Record<TransferStep["mode"], typeof Plane> = {
   fly: Plane,
   drive: Car,
-  boat: Ship,
 };
 
 function StepIcon({ step, className }: { step: TransferStep; className?: string }) {

@@ -7,7 +7,7 @@ import { PROPERTIES, EXPERIENCES } from "@/lib/constants";
  */
 
 export type RouteStopKind = "gateway" | "stay" | "experience" | "departure";
-export type MovementMode = "fly" | "drive" | "boat";
+export type MovementMode = "fly" | "drive";
 
 /** IATA-style airport codes used across the portfolio's transfer network. */
 export type AirportCode = "llw" | "blz" | "cmk" | "lix" | "mfu" | "lun" | "znz";
@@ -158,7 +158,6 @@ export const INTERNATIONAL_GATEWAYS: Record<string, AirportCode> = {
 export const MOVEMENT_LABELS: Record<MovementMode, string> = {
   fly: "Private flight",
   drive: "Road transfer",
-  boat: "Boat transfer",
 };
 
 /** How the guest leaves the gateway for the first stay of each destination. */
@@ -170,7 +169,7 @@ const GATEWAY_ARRIVAL: Record<string, MovementMode> = {
 
 /** How the guest moves between stays within a single destination. */
 const STAY_TO_STAY: Record<string, MovementMode> = {
-  "lake-malawi": "boat",
+  "lake-malawi": "fly",
   "south-luangwa": "drive",
   "zanzibar": "drive",
 };

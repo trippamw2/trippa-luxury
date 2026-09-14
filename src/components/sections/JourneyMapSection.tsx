@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
-import { Plane, Car, Ship } from "lucide-react";
+import { Plane, Car } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import {
   MOVEMENT_LABELS,
@@ -24,7 +24,6 @@ const JourneyRouteMap = dynamic(
 const MOVEMENT_ICONS: Record<MovementMode, typeof Plane> = {
   fly: Plane,
   drive: Car,
-  boat: Ship,
 };
 
 /** Compact "how you move" legend rendered under the map. */

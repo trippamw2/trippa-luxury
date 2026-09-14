@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
-import { Plane, PlaneLanding, PlaneTakeoff, Car, Ship, Heart, MapPin, ArrowRight } from "lucide-react";
+import { Plane, PlaneLanding, PlaneTakeoff, Car, Heart, MapPin, ArrowRight } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { cn } from "@/lib/utils";
 import { useExperiences } from "@/lib/use-public-data";
@@ -31,7 +31,6 @@ const JourneyRouteMap = dynamic(
 const MODE_ICONS: Record<MovementMode, typeof Plane> = {
   fly: Plane,
   drive: Car,
-  boat: Ship,
 };
 
 function StopIcon({ stop }: { stop: RouteStop }) {

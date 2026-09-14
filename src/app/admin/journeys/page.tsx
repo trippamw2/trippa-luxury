@@ -169,7 +169,6 @@ const ACTIVITY_TYPES: { value: Activity["type"]; label: string }[] = [
 const TRANSFER_MODES: { value: Transfer["mode"]; label: string }[] = [
   { value: "flight", label: "Flight" },
   { value: "road", label: "Road Transfer" },
-  { value: "boat", label: "Boat" },
   { value: "helicopter", label: "Helicopter" },
 ];
 

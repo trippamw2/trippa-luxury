@@ -2,11 +2,11 @@
   "crons": [
     {
       "path": "/api/cron/release-provisional-holds",
-      "schedule": "*/30 * * * *"
+      "schedule": "30 0 * * *"
     },
     {
       "path": "/api/cron/publish-scheduled-posts",
-      "schedule": "*/15 * * * *"
+      "schedule": "0 6 * * *"
     },
     {
       "path": "/api/cron/balance-reminders",

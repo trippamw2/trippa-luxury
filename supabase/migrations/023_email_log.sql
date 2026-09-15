@@ -2,9 +2,12 @@
 -- Records every Brevo send attempt so failures are observable instead of
 -- silent. The service-role key bypasses RLS; the policy exists so an admin
 -- session can read/reconcile the log from the admin panel.
+-- Uses gen_random_uuid() (core since Postgres 13) - the uuid-ossp extension
+-- lives in the extensions schema and is not always on the migration
+-- connection's search_path, which broke uuid_generate_v4() on remote pushes.
 
 CREATE TABLE IF NOT EXISTS email_log (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   status VARCHAR(20) NOT NULL CHECK (status IN ('sent', 'failed')),
   provider VARCHAR(20) NOT NULL DEFAULT 'brevo',

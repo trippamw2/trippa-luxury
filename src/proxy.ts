@@ -38,6 +38,8 @@ export async function proxy(request: NextRequest) {
     !pathname.startsWith("/admin/_next") &&
     !pathname.match(/\.(ico|png|jpg|jpeg|svg|webp|css|js)$/)
   ) {
+    let proxyResponse = NextResponse.next({ request });
+
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -46,20 +48,30 @@ export async function proxy(request: NextRequest) {
           getAll() {
             return request.cookies.getAll();
           },
-          setAll() {
-            // Read-only in the proxy : we only check, never set cookies here
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+            proxyResponse = NextResponse.next({ request });
+            cookiesToSet.forEach(({ name, value, options }) =>
+              proxyResponse.cookies.set(name, value, options)
+            );
           },
         },
       }
     );
 
-    const { data: sessionData } = await supabase.auth.getSession();
+    // getUser() also refreshes the session when the access token is close
+    // to expiry and writes the new cookies via setAll above.
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    if (!sessionData.session) {
+    if (!user) {
       const loginUrl = new URL("/admin/login", request.url);
       loginUrl.searchParams.set("redirect", pathname);
       return NextResponse.redirect(loginUrl);
     }
+
+    return proxyResponse;
   }
 
   return NextResponse.next();
@@ -71,3 +83,4 @@ export const config = {
     "/((?!_next/static|_next/image|favicon.ico|images/|videos/|fonts/).*)",
   ],
 };
+

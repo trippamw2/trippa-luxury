@@ -1,0 +1,20 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/release-provisional-holds",
+      "schedule": "*/30 * * * *"
+    },
+    {
+      "path": "/api/cron/publish-scheduled-posts",
+      "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/cron/balance-reminders",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/ai/trigger-reminders",
+      "schedule": "0 9 * * *"
+    }
+  ]
+}

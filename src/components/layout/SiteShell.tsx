@@ -16,6 +16,8 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
   return (
     <>
       <Navbar />
+      {/* Fixed cinematic film-grain overlay — low-visual-weight depth, never intercepts pointer events */}
+      <div aria-hidden="true" className="film-grain" />
       <AnimatePresence mode="wait">
         <motion.main
           key={pathname}

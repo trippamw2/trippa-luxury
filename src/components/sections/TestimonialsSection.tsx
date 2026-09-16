@@ -7,7 +7,7 @@ import { BRAND_POSITIONING, TESTIMONIALS } from "@/lib/constants";
 
 export function TestimonialsSection() {
   return (
-    <section className="py-24 md:py-32 bg-cream overflow-hidden">
+    <section className="py-28 md:py-40 bg-cream overflow-hidden">
       <Container>
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -85,7 +85,7 @@ export function TestimonialsSection() {
           </p>
           <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-6">
             <span className="text-sm text-earth/40 font-medium tracking-wider uppercase">
-              Condé Nast Traveller
+              CondÃ© Nast Traveller
             </span>
             <span className="w-px h-6 bg-sand-light/50 hidden md:block" />
             <span className="text-sm text-earth/40 font-medium tracking-wider uppercase">

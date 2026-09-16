@@ -1,5 +1,5 @@
 /* KIVARA — Brand Typography */
-/* Fonts self-hosted via next/font (Cormorant Garamond + Inter) — see layout.tsx */
+/* Fonts self-hosted via next/font (Cormorant Garamond + Geist) — see layout.tsx */
 @import "leaflet/dist/leaflet.css";
 @import "tailwindcss";
 
@@ -39,7 +39,7 @@
 
   /* KIVARA Fonts — self-hosted via next/font; variables set on <html> in layout.tsx */
   --font-heading: var(--font-cormorant), "Trajan Pro", "Cinzel", "Playfair Display", serif;
-  --font-body: var(--font-inter), "Helvetica Neue", Arial, sans-serif;
+  --font-body: var(--font-geist), "Helvetica Neue", Arial, sans-serif;
 
   /* KIVARA Typographic Scale */
   --text-xs: 0.688rem;
@@ -80,7 +80,7 @@
   --accent-coral-dark: #A05950;
 }
 
-/* Inter loaded via Google Fonts — refined sans-serif for body copy */
+/* Geist loaded via Google Fonts — refined sans-serif for body copy */
 /* Trajan Pro — system/Adobe font with luxury serif fallbacks */
 
 /* Smooth scrolling */
@@ -523,3 +523,87 @@ input:focus, textarea:focus, select:focus {
 /* Panes keep Leaflet's default stacking (tile 200 < overlay 400 < marker
    600 < popup 700) so markers render ABOVE the base tiles. The map-pane
    (z-index 400) already sits above the grid overlay (z-index 1). */
+
+/* ─── DOUBLE-BEZEL LAYERED FRAME ───────────────────────────────────── */
+/* Nested frame architecture: a hairline outer ring, a padded gap, and an
+   inner plate with a top-edge highlight. Reads as machined, tactile luxury
+   instead of a flat 1px border. Usage:
+     <figure class="bezel-outer"><div class="bezel-inner">…content…</div></figure> */
+
+.bezel-outer {
+  position: relative;
+  padding: 1px;
+  border-radius: 1.75rem;
+  background: linear-gradient(
+    165deg,
+    rgba(194, 164, 109, 0.55) 0%,
+    rgba(194, 164, 109, 0.18) 22%,
+    rgba(28, 26, 23, 0.08) 60%,
+    rgba(28, 26, 23, 0.05) 100%
+  );
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset,
+    0 24px 48px -24px rgba(28, 26, 23, 0.18);
+}
+
+.bezel-inner {
+  position: relative;
+  border-radius: calc(1.75rem - 1px);
+  background: var(--color-warm-ivory);
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+.bezel-inner img {
+  display: block;
+  width: 100%;
+}
+
+/* ─── ISLAND BUTTON ────────────────────────────────────────────────── */
+/* Trailing icon island: a circular medallion that lifts and slides on
+   hover. Use on primary CTAs in place of naked arrows:
+     <a class="island-btn"><span>Label</span><span class="island-icon">→svg</span></a> */
+
+.island-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.375rem 0.5rem 0.375rem 1.5rem;
+  border-radius: 9999px;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: background-color var(--duration-base) var(--ease-luxury),
+    border-color var(--duration-base) var(--ease-luxury);
+}
+
+.island-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
+  transition: transform 0.5s var(--ease-out-expo);
+}
+
+.island-btn:hover .island-icon {
+  transform: translateX(0.125rem) scale(1.06);
+}
+
+/* ─── FILM-GRAIN OVERLAY ───────────────────────────────────────────── */
+/* Fixed, full-viewport cinematic grain. pointer-events-none so it never
+   intercepts interaction. Rendered above content but below nothing that
+   needs to stay crisp — sits at z-40, under fixed widgets (z-50). */
+
+.film-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+}

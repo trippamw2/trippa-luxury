@@ -77,7 +77,7 @@ export function JourneyMapSection({
   if (stops.length < 2) return null;
 
   return (
-    <section className={dark ? "py-24 md:py-32 bg-soft-black" : "py-24 md:py-32 bg-warm-white"}>
+    <section className={dark ? "py-28 md:py-40 bg-soft-black" : "py-28 md:py-40 bg-warm-white"}>
       <Container>
         <motion.div
           initial={{ opacity: 0, y: 30 }}

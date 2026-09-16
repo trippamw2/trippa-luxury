@@ -158,9 +158,9 @@ export function HeroSection() {
               href="/contact"
               variant="gold"
               size="lg"
+              icon={<ArrowRightIcon className="w-4 h-4" />}
             >
               Begin Your Love Story
-              <ArrowRightIcon className="w-4 h-4 transition-transform duration-500 group-hover:translate-x-1" />
             </Button>
             <Button
               href="/packages"

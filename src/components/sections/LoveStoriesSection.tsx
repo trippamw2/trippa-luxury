@@ -44,7 +44,7 @@ const LOVE_STORIES = [
 
 export function LoveStoriesSection() {
   return (
-    <section className="py-24 md:py-32 bg-warm-white">
+    <section className="py-28 md:py-40 bg-warm-white">
       <Container>
         {/* Header */}
         <motion.div
@@ -104,7 +104,9 @@ export function LoveStoriesSection() {
                   </p>
                   <span className="mt-4 inline-flex items-center gap-2 text-xs font-medium tracking-widest uppercase text-cream/80 group-hover:text-cream transition-colors">
                     Begin Your Love Story
-                    <ArrowRightIcon className="w-3 h-3 transition-transform duration-500 group-hover:translate-x-1" />
+                    <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-cream/10 ring-1 ring-cream/30 text-cream transition-all duration-500 group-hover:bg-gold group-hover:text-soft-black group-hover:translate-x-0.5">
+                      <ArrowRightIcon className="w-3 h-3" />
+                    </span>
                   </span>
                 </div>
               </Link>

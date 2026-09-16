@@ -8,7 +8,7 @@ import { useDestinations } from "@/lib/use-public-data";
 export function FeaturedDestinations() {
   const destinations = useDestinations();
   return (
-    <section className="py-24 md:py-32 bg-warm-white">
+    <section className="py-28 md:py-40 bg-warm-white">
       <Container>
         <motion.div
           initial={{ opacity: 0, y: 30 }}

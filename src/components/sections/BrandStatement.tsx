@@ -31,7 +31,7 @@ export function BrandStatement() {
   const { storyBrand, betweenAmanAndBeyond } = BRAND_POSITIONING;
 
   return (
-    <section className="py-24 md:py-32 bg-cream">
+    <section className="py-28 md:py-40 bg-cream">
       <Container>
         {/* StoryBrand: Problem + Guide + Stakes */}
         <motion.div
@@ -103,8 +103,9 @@ export function BrandStatement() {
               href="/about"
               variant="ghost"
               size="sm"
+              icon={<ArrowRightIcon className="w-3 h-3" />}
             >
-              Discover Your Journey <ArrowRightIcon className="w-3 h-3" />
+              Discover Your Journey
             </Button>
           </div>
         </motion.div>

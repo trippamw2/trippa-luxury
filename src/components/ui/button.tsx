@@ -10,6 +10,8 @@ interface ButtonProps {
   className?: string;
   type?: "button" | "submit";
   disabled?: boolean;
+  /** Trailing island: rendered as a circular medallion that lifts on hover. */
+  icon?: React.ReactNode;
 }
 
 export function Button({
@@ -21,9 +23,10 @@ export function Button({
   className,
   type = "button",
   disabled = false,
+  icon,
 }: ButtonProps) {
   const baseStyles =
-    "inline-flex items-center justify-center gap-2 font-medium tracking-[0.15em] uppercase transition-all duration-500";
+    "group inline-flex items-center justify-center gap-2 rounded-full font-medium tracking-[0.15em] uppercase transition-all duration-500";
 
   const sizeStyles = {
     sm: "px-5 py-2.5 text-xs",
@@ -48,10 +51,23 @@ export function Button({
 
   const classes = cn(baseStyles, sizeStyles[size], variantStyles[variant], className);
 
+  // Trailing island medallion — lifts and slides on hover
+  const trailing = icon ? (
+    <span
+      className={cn(
+        "island-icon group-hover:translate-x-0.5",
+        variant === "ghost" ? "bg-soft-black/5 text-soft-black" : "bg-soft-black/10 text-current"
+      )}
+    >
+      {icon}
+    </span>
+  ) : null;
+
   if (href) {
     return (
       <Link href={href} className={classes}>
         {children}
+        {trailing}
       </Link>
     );
   }
@@ -64,6 +80,7 @@ export function Button({
       className={cn(classes, disabled && "opacity-50 cursor-not-allowed")}
     >
       {children}
+      {trailing}
     </button>
   );
 }

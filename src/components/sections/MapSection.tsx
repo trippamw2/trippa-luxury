@@ -14,7 +14,7 @@ const LeafletMap = dynamic(
 
 export function MapSection() {
   return (
-    <section className="py-24 md:py-32 bg-soft-black">
+    <section className="py-28 md:py-40 bg-soft-black">
       <Container>
         <motion.div
           initial={{ opacity: 0, y: 30 }}

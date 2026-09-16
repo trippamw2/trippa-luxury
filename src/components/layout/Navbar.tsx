@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { MenuIcon, XIcon, ChevronDownIcon } from "@/components/ui/icons";
+import { ChevronDownIcon, ArrowRightIcon } from "@/components/ui/icons";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { KivaraLogo } from "@/components/ui/KivaraLogo";
@@ -43,6 +43,20 @@ const NAV_ITEMS = [
   { label: "Contact", href: "/contact" },
 ];
 
+const EASE_LUXURY: [number, number, number, number] = [0.32, 0.72, 0, 1];
+const STAGGER_OVERLAY = {
+  hidden: { opacity: 0, transition: { duration: 0.3, ease: EASE_LUXURY } },
+  show: {
+    opacity: 1,
+    transition: { duration: 0.5, ease: EASE_LUXURY, staggerChildren: 0.08, delayChildren: 0.1 },
+  },
+  exit: { opacity: 0, transition: { duration: 0.3, ease: EASE_LUXURY } },
+};
+const STAGGER_ITEM = {
+  hidden: { opacity: 0, y: 24 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: EASE_LUXURY } },
+};
+
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -70,32 +84,32 @@ export function Navbar() {
   }
 
   return (
-    <header
-      className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-700",
-        isScrolled
-          ? "bg-cream/95 backdrop-blur-md shadow-sm"
-          : "bg-transparent"
-      )}
-    >
-      <nav className="container-luxury">
-        <div className="flex items-center justify-between h-20 md:h-24">
+    <header className="fixed top-0 left-0 right-0 z-50 flex justify-center px-4">
+      <nav
+        className={cn(
+          "mt-4 md:mt-6 flex w-full max-w-4xl items-center justify-between gap-6 rounded-full py-2.5 pl-5 pr-2.5 transition-all duration-700 will-change-transform",
+          isScrolled
+            ? "bg-cream/85 backdrop-blur-2xl ring-1 ring-black/5 shadow-[0_12px_40px_-12px_rgba(28,26,23,0.18)]"
+            : "bg-white/10 backdrop-blur-xl ring-1 ring-white/15"
+        )}
+      >
+        <div className="flex items-center justify-between h-12 md:h-14">
           {/* Logo */}
           <Link href="/" className="relative z-10 block shrink-0">
             {/* Dark logo : shown when scrolled (light background) */}
             <KivaraLogo
               variant="dark"
               className={cn(
-                "h-10 sm:h-12 md:h-14 w-auto max-w-[200px] sm:max-w-[260px] md:max-w-[320px] transition-all duration-500",
-                isScrolled ? "opacity-100" : "opacity-0 absolute"
+              "h-8 sm:h-10 md:h-11 w-auto max-w-[150px] sm:max-w-[200px] md:max-w-[240px] transition-all duration-500",
+              isScrolled ? "opacity-100" : "opacity-0 absolute"
               )}
             />
             {/* Light logo : shown on hero (dark background) */}
             <KivaraLogo
               variant="light"
               className={cn(
-                "h-10 sm:h-12 md:h-14 w-auto max-w-[200px] sm:max-w-[260px] md:max-w-[320px] transition-all duration-500",
-                isScrolled ? "opacity-0 absolute" : "opacity-100"
+              "h-8 sm:h-10 md:h-11 w-auto max-w-[150px] sm:max-w-[200px] md:max-w-[240px] transition-all duration-500",
+              isScrolled ? "opacity-0 absolute" : "opacity-100"
               )}
             />
           </Link>
@@ -121,18 +135,18 @@ export function Navbar() {
                     {item.label}
                     <ChevronDownIcon className="w-3 h-3" />
                   </button>
-                  <AnimatePresence>
-                    {openDropdown === item.label && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        transition={{ duration: 0.3 }}
-                        className={cn(
-                          "absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-cream shadow-xl border border-sand-light/30 p-5",
-                          item.children.length >= 4 ? "w-[820px]" : "w-[580px]"
-                        )}
-                      >
+<AnimatePresence>
+                  {openDropdown === item.label && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 12, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 12, scale: 0.98 }}
+                      transition={{ duration: 0.35, ease: EASE_LUXURY }}
+                      className={cn(
+                        "absolute top-full left-1/2 -translate-x-1/2 mt-4 bg-cream/95 backdrop-blur-xl rounded-2xl shadow-[0_24px_60px_-12px_rgba(28,26,23,0.25)] ring-1 ring-black/5 p-5",
+                        item.children.length >= 4 ? "w-[820px]" : "w-[580px]"
+                      )}
+                    >
                         <div
                           className={cn(
                             "grid gap-4",
@@ -145,7 +159,7 @@ export function Navbar() {
                               href={child.href}
                               className="group block"
                             >
-                              <div className="relative aspect-[4/3] overflow-hidden mb-3">
+                              <div className="relative aspect-[4/3] overflow-hidden rounded-xl mb-3">
                                 {child.image && (
                                   <Image
                                     src={child.image}
@@ -186,48 +200,67 @@ export function Navbar() {
               )
             )}
 
-            {/* CTA Button */}
+            {/* CTA — island button */}
             <Link
               href="/contact"
               className={cn(
-                "px-6 py-2.5 text-sm font-medium tracking-widest uppercase border transition-all duration-500",
+                "group flex items-center gap-0.5 rounded-full py-1.5 pl-6 pr-1.5 text-[13px] font-medium tracking-widest uppercase transition-all duration-500",
                 isScrolled
-                  ? "border-soft-black text-soft-black hover:bg-soft-black hover:text-cream"
-                  : "border-white text-white hover:bg-white hover:text-soft-black"
+                  ? "bg-soft-black text-cream hover:bg-soft-black-light"
+                  : "bg-white/15 text-white ring-1 ring-white/25 backdrop-blur-sm hover:bg-white/25"
               )}
             >
               Begin Your Love Story
+              <span
+                className={cn(
+                  "ml-3 flex items-center justify-center w-8 h-8 rounded-full transition-transform duration-500 ease-out",
+                  isScrolled ? "bg-cream text-soft-black" : "bg-white text-soft-black",
+                  "group-hover:translate-x-0.5"
+                )}
+              >
+                <ArrowRightIcon className="w-4 h-4" />
+              </span>
             </Link>
           </div>
 
-          {/* Mobile Menu Toggle */}
+          {/* Mobile Menu Toggle — two bars morph into an X */}
           <button
             onClick={() => setIsMobileOpen(!isMobileOpen)}
             className={cn(
-              "lg:hidden relative z-10 p-2 transition-colors",
+              "lg:hidden relative z-10 flex items-center justify-center w-11 h-11 rounded-full transition-colors duration-300",
               isScrolled || isMobileOpen ? "text-soft-black" : "text-white"
             )}
-            aria-label="Toggle menu"
+            aria-label={isMobileOpen ? "Close menu" : "Open menu"}
+            aria-expanded={isMobileOpen}
           >
-            {isMobileOpen ? <XIcon className="w-6 h-6" /> : <MenuIcon className="w-6 h-6" />}
+            <motion.span
+              animate={isMobileOpen ? { rotate: 45, y: 0 } : { rotate: 0, y: -3.5 }}
+              transition={{ duration: 0.4, ease: EASE_LUXURY }}
+              className="absolute block w-6 h-[1.5px] rounded-full bg-current"
+            />
+            <motion.span
+              animate={isMobileOpen ? { rotate: -45, y: 0 } : { rotate: 0, y: 3.5 }}
+              transition={{ duration: 0.4, ease: EASE_LUXURY }}
+              className="absolute block w-6 h-[1.5px] rounded-full bg-current"
+            />
           </button>
         </div>
       </nav>
 
-      {/* Mobile Navigation */}
+      {/* Mobile Navigation — full-screen with staggered items */}
       <AnimatePresence>
         {isMobileOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "100dvh" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="lg:hidden fixed inset-0 top-0 bg-cream z-[5] overflow-y-auto"
+            variants={STAGGER_OVERLAY}
+            initial="hidden"
+            animate="show"
+            exit="exit"
+            className="lg:hidden fixed inset-0 top-0 bg-cream z-[5] overflow-y-auto texture-noise"
           >
             <div className="flex flex-col justify-center min-h-screen px-8 py-24">
               {NAV_ITEMS.map((item) =>
                 item.children ? (
-                  <div key={item.label} className="border-b border-sand-light/30">
+                  <motion.div key={item.label} variants={STAGGER_ITEM} className="border-b border-sand-light/30">
                     <button
                       onClick={() => setOpenMobileDropdown(openMobileDropdown === item.label ? null : item.label)}
                       className="flex items-center justify-between w-full py-5 text-2xl font-heading text-soft-black"
@@ -277,27 +310,34 @@ export function Navbar() {
                         </motion.div>
                       )}
                     </AnimatePresence>
-                  </div>
+                  </motion.div>
                 ) : (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    onClick={() => setIsMobileOpen(false)}
-                    className="py-5 text-2xl font-heading text-soft-black border-b border-sand-light/30 hover:text-gold-dark transition-colors"
-                  >
-                    {item.label}
-                  </Link>
+                  <motion.div key={item.label} variants={STAGGER_ITEM}>
+                    <Link
+                      key={item.label}
+                      href={item.href}
+                      onClick={() => setIsMobileOpen(false)}
+                      className="py-5 text-2xl font-heading text-soft-black border-b border-sand-light/30 hover:text-gold-dark transition-colors"
+                    >
+                      {item.label}
+                    </Link>
+                  </motion.div>
                 )
               )}
 
-              {/* Mobile CTA */}
-              <Link
-                href="/contact"
-                onClick={() => setIsMobileOpen(false)}
-                className="mt-8 w-full text-center px-8 py-4 bg-soft-black text-cream text-sm font-medium tracking-widest uppercase hover:bg-soft-black-light transition-colors"
-              >
-                Begin Your Love Story
-              </Link>
+              {/* Mobile CTA — island button */}
+              <motion.div variants={STAGGER_ITEM} className="mt-8">
+                <Link
+                  href="/contact"
+                  onClick={() => setIsMobileOpen(false)}
+                  className="group flex items-center gap-0.5 w-full px-7 py-4 bg-soft-black text-cream text-sm font-medium tracking-widest uppercase rounded-full transition-colors hover:bg-soft-black-light"
+                >
+                  Begin Your Love Story
+                  <span className="ml-auto flex items-center justify-center w-9 h-9 rounded-full bg-cream text-soft-black transition-transform duration-500 ease-out group-hover:translate-x-0.5">
+                    <ArrowRightIcon className="w-4 h-4" />
+                  </span>
+                </Link>
+              </motion.div>
             </div>
           </motion.div>
         )}

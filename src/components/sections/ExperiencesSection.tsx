@@ -57,7 +57,7 @@ function stopEyebrow(stop: RouteStop): string {
   }
 }
 
-/** Vertical travel log : arrival gateway → every location → departure point. */
+/** Vertical travel log : arrival gateway â†’ every location â†’ departure point. */
 function ItineraryTimeline({ stops }: { stops: RouteStop[] }) {
   return (
     <ol className="relative mt-10">
@@ -117,7 +117,7 @@ function ItineraryTimeline({ stops }: { stops: RouteStop[] }) {
 export function ExperiencesSection() {
   const experiences = useExperiences();
   return (
-    <section className="py-24 md:py-32 bg-soft-black relative overflow-hidden">
+    <section className="py-28 md:py-40 bg-soft-black relative overflow-hidden">
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none" aria-hidden="true">
         <div className="w-full h-full" style={{
           backgroundImage: `radial-gradient(circle at 50% 50%, rgba(201,169,110,0.5) 0%, transparent 50%)`,

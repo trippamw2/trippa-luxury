@@ -10,7 +10,7 @@ const PROPERTY_BADGES: Record<string, string> = {
   "pumulani-lodge": "Robin Pope Safaris",
   chinzombo: "Best New Property Africa 2014 & 2015",
   "puku-ridge-camp": "Award Winning Guiding",
-  "baraza-resort-spa": "Condé Nast Top 30 Beach",
+  "baraza-resort-spa": "CondÃ© Nast Top 30 Beach",
 };
 
 export function FeaturedProperties() {
@@ -21,7 +21,7 @@ export function FeaturedProperties() {
     ...allProperties.filter(p => !p.awards || p.awards.length === 0),
   ].slice(0, 3);
   return (
-    <section className="py-24 md:py-32 bg-warm-white">
+    <section className="py-28 md:py-40 bg-warm-white">
       <Container>
         <motion.div
           initial={{ opacity: 0, y: 30 }}

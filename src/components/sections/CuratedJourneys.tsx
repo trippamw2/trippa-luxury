@@ -11,7 +11,7 @@ import { usePackages } from "@/lib/use-public-data";
 export function CuratedJourneys() {
   const highlights = usePackages().slice(0, 3);
   return (
-    <section className="py-24 md:py-32 bg-cream">
+    <section className="py-28 md:py-40 bg-cream">
       <Container>
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -45,44 +45,46 @@ export function CuratedJourneys() {
               className="group"
             >
               <Link href={`/packages/${pkg.id}`} className="block">
-                <div className="relative overflow-hidden bg-warm-white-dark aspect-[16/10]">
-                  <Image
-                    src={pkg.image}
-                    alt={pkg.title}
-                    fill
-                    loading="lazy"
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                  />
-                  {/* Persistent cinematic darken */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-soft-black/60 via-soft-black/10 to-transparent" />
-                  <div className="absolute inset-0 bg-gradient-to-br from-soft-black/20 to-transparent" />
-                  
-                  {/* Number */}
-                  <div className="absolute top-4 left-4 text-5xl font-heading font-bold text-cream/10 select-none">
-                    {String(index + 1).padStart(2, '0')}
-                  </div>
+                <div className="bezel-outer">
+                  <div className="bezel-inner relative overflow-hidden bg-warm-white-dark aspect-[16/10]">
+                    <Image
+                      src={pkg.image}
+                      alt={pkg.title}
+                      fill
+                      loading="lazy"
+                      className="object-cover transition-transform duration-700 group-hover:scale-105"
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                    />
+                    {/* Persistent cinematic darken */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-soft-black/60 via-soft-black/10 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-soft-black/20 to-transparent" />
 
-                  {/* Content */}
-                  <div className="absolute bottom-0 left-0 right-0 p-6">
-                    <h3 className="text-xl md:text-2xl font-heading font-medium text-cream mb-1">
-                      {pkg.title}
-                    </h3>
-                    <p className="text-sm text-cream/70 mb-3">{pkg.subtitle}</p>
-                    <div className="flex items-center gap-4 text-xs text-cream/60">
-                      <span className="flex items-center gap-1.5">
-                        <ClockIcon className="w-3.5 h-3.5" />
-                        {pkg.duration}
-                      </span>
-                      <span className="flex items-center gap-1.5">
-                        <MapPinIcon className="w-3.5 h-3.5" />
-                        {pkg.destinations.length} destinations
-                      </span>
+                    {/* Number */}
+                    <div className="absolute top-4 left-4 text-5xl font-heading font-bold text-cream/10 select-none">
+                      {String(index + 1).padStart(2, '0')}
                     </div>
-                  </div>
 
-                  {/* Hover overlay */}
-                  <div className="absolute inset-0 bg-soft-black/0 group-hover:bg-soft-black/20 transition-all duration-700" />
+                    {/* Content */}
+                    <div className="absolute bottom-0 left-0 right-0 p-6">
+                      <h3 className="text-xl md:text-2xl font-heading font-medium text-cream mb-1">
+                        {pkg.title}
+                      </h3>
+                      <p className="text-sm text-cream/70 mb-3">{pkg.subtitle}</p>
+                      <div className="flex items-center gap-4 text-xs text-cream/60">
+                        <span className="flex items-center gap-1.5">
+                          <ClockIcon className="w-3.5 h-3.5" />
+                          {pkg.duration}
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <MapPinIcon className="w-3.5 h-3.5" />
+                          {pkg.destinations.length} destinations
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Hover overlay */}
+                    <div className="absolute inset-0 bg-soft-black/0 group-hover:bg-soft-black/20 transition-all duration-700" />
+                  </div>
                 </div>
 
                 <div className="mt-4">
@@ -91,9 +93,11 @@ export function CuratedJourneys() {
                   </p>
                   <div className="mt-3 flex items-center justify-between">
                     <span className="text-xs text-gold/70 font-medium">Begin This Story</span>
-                    <span className="inline-flex items-center gap-1 text-xs text-soft-black tracking-widest uppercase group-hover:text-gold-dark transition-colors">
+                    <span className="inline-flex items-center gap-2 text-xs text-soft-black tracking-widest uppercase group-hover:text-gold-dark transition-colors">
                       Read the Story
-                      <ArrowRightIcon className="w-3 h-3 transition-transform group-hover:translate-x-1" />
+                      <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-soft-black/5 ring-1 ring-soft-black/10 text-soft-black transition-all duration-500 group-hover:bg-gold group-hover:text-soft-black group-hover:translate-x-0.5">
+                        <ArrowRightIcon className="w-3 h-3" />
+                      </span>
                     </span>
                   </div>
                 </div>
@@ -109,14 +113,14 @@ export function CuratedJourneys() {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="mt-12 text-center"
         >
-          <Button
+<Button
               href="/packages"
               variant="outline"
               size="lg"
+              icon={<ArrowRightIcon className="w-4 h-4" />}
             >
-            Explore Romantic Journeys
-                     <ArrowRightIcon className="w-4 h-4" />
-          </Button>
+              Explore Romantic Journeys
+            </Button>
         </motion.div>
       </Container>
     </section>

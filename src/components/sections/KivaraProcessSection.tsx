@@ -53,7 +53,7 @@ export function KivaraProcessSection() {
   const { storyBrand } = BRAND_POSITIONING;
 
   return (
-    <section className="py-24 md:py-32 bg-soft-black">
+    <section className="py-28 md:py-40 bg-soft-black">
       <Container>
         {/* Header */}
         <motion.div

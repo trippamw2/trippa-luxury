@@ -43,7 +43,7 @@ const socialItems = [
 
 export function SocialContentSection() {
   return (
-    <section className="py-24 md:py-32 bg-cream">
+    <section className="py-28 md:py-40 bg-cream">
       <Container>
         <motion.div
           initial={{ opacity: 0, y: 30 }}

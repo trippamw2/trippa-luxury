@@ -195,8 +195,8 @@ export default function SouthLuangwaPage() {
                 Here, your love story finds its wildest, most beautiful chapter.
               </p>
               <p className="text-base text-earth leading-relaxed">
-                Our collection of two hand-selected properties spans the full spectrum of South 
-                Luangwa luxury. From the award-winning architectural marvel of Time+Tide Chinzombo 
+                Our collection of two hand selected properties spans the full spectrum of South 
+                Luangwa luxury. From the award winning architectural marvel of Time+Tide Chinzombo 
                 with its private plunge pools overlooking the river, to the hilltop grandeur of 
                 Puku Ridge Camp with its star bed towers. Each offers a distinct 
                 window into the Valley of the Leopard.

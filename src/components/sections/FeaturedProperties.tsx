@@ -39,7 +39,7 @@ export function FeaturedProperties() {
             <span className="italic text-earth">Extraordinary Memories</span>
           </h2>
           <p className="mt-4 text-base text-earth leading-relaxed">
-            Each property in our collection is hand-selected for its architectural beauty, 
+            Each property in our collection is hand selected for its architectural beauty, 
             exceptional service, and ability to inspire romance.
           </p>
         </motion.div>

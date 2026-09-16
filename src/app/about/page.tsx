@@ -196,7 +196,7 @@ export default function AboutPage() {
                   </div>
                   <h4 className="text-lg font-heading font-medium text-soft-black mb-3">Wildlife Conservation</h4>
                   <p className="text-sm text-earth leading-relaxed">
-                    Every Kivara booking contributes directly to anti-poaching patrols and wildlife 
+                    Every Kivara booking contributes directly to anti poaching patrols and wildlife 
                     monitoring programs in South Luangwa National Park. We partner with Conservation 
                     South Luangwa to fund ranger units, tracker dogs, and community education programs 
                     that protect Zambia&apos;s wildlife for generations to come.
@@ -223,7 +223,7 @@ export default function AboutPage() {
                   <h4 className="text-lg font-heading font-medium text-soft-black mb-3">Sustainable Operations</h4>
                   <p className="text-sm text-earth leading-relaxed">
                     From solar-powered camps in Zambia to plastic-free initiatives on Lake Malawi and 
-                    reef-safe marine policies in Zanzibar, every property in the Kivara collection meets 
+                    reef safe marine policies in Zanzibar, every property in the Kivara collection meets 
                     our rigorous sustainability standards. We measure not just luxury, but legacy.
                   </p>
                 </div>

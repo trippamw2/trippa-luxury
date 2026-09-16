@@ -1032,8 +1032,8 @@ export const PACKAGES = [
       "Full board: all meals, house wines and spirits",
       "Morning and afternoon game drives",
       "Guided walking safaris",
-      "20-minute welcome massage",
-      "In-villa spa treatments",
+      "20 minute welcome massage",
+      "In villa spa treatments",
       "Sleepout under the stars experience",
       "Airport transfers",
       "Domestic flights where applicable",
@@ -1390,7 +1390,7 @@ export const EXPERIENCES = [
   {
     id: "walking-safari",
     title: "Walking Safaris",
-    description: "South Luangwa is the birthplace of the walking safari. Follow ancient elephant paths with award-winning guides from Chinzombo or Puku Ridge, connecting with Africa on foot — the most intimate way to experience the wild.",
+    description: "South Luangwa is the birthplace of the walking safari. Follow ancient elephant paths with award winning guides from Chinzombo or Puku Ridge, connecting with Africa on foot — the most intimate way to experience the wild.",
     image: IMAGES.walking,
     category: "Safari",
     destination: "south-luangwa",
@@ -1408,7 +1408,7 @@ export const EXPERIENCES = [
   {
     id: "couples-spa",
     title: "Couples Spa Rituals",
-    description: "Side by side treatments using indigenous ingredients. Baraza's Frangipani Spa, Xanadu's beachside Kiota Spa, and Chinzombo's in-villa treatments offer connection deepens with every breath.",
+    description: "Side by side treatments using indigenous ingredients. Baraza's Frangipani Spa, Xanadu's beachside Kiota Spa, and Chinzombo's in villa treatments offer connection deepens with every breath.",
     image: IMAGES.spa,
     category: "Wellness",
     destination: "zanzibar",
@@ -1453,7 +1453,7 @@ export const EXPERIENCES = [
   {
     id: "night-game-drive",
     title: "Night Game Drives",
-    description: "Discover the Luangwa Valley after dark with Puku Ridge's award-winning red light protocol. Observe nocturnal predators — leopard, hyena, bushbaby — undisturbed in their natural behaviour. A safari experience unique to South Luangwa.",
+    description: "Discover the Luangwa Valley after dark with Puku Ridge's award winning red light protocol. Observe nocturnal predators — leopard, hyena, bushbaby — undisturbed in their natural behaviour. A safari experience unique to South Luangwa.",
     image: IMAGES.southLuangwaSafari,
     category: "Safari",
     destination: "south-luangwa",

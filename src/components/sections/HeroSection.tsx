@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
 import { ArrowRightIcon } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
@@ -43,26 +43,31 @@ export function HeroSection() {
         style={{ scale: videoScale, opacity: videoOpacity }}
       >
         {/* Video layers with crossfade */}
-        {HERO_VIDEOS.map((video, index) => (
-          <motion.div
-            key={video.label}
-            className="absolute inset-0"
-            animate={{ opacity: index === activeIndex ? 1 : 0 }}
-            transition={{ duration: 1.5, ease: "easeInOut" }}
-          >
-            <video
-              autoPlay
-              loop
-              muted
-              playsInline
-              poster={IMAGES.heroPoster}
-              className="absolute inset-0 w-full h-full object-cover"
-              preload="auto"
-            >
-              <source src={video.src} type="video/mp4" />
-            </video>
-          </motion.div>
-        ))}
+        <AnimatePresence mode="wait">
+          {HERO_VIDEOS.map((video, index) => (
+            index === activeIndex && (
+              <motion.div
+                key={video.label}
+                className="absolute inset-0"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1.5, ease: "easeInOut" }}
+              >
+                <video
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  poster={IMAGES.heroPoster}
+                  className="absolute inset-0 w-full h-full object-cover"
+                >
+                  <source src={video.src} type="video/mp4" />
+                </video>
+              </motion.div>
+            )
+          ))}
+        </AnimatePresence>
 
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-soft-black/60 via-soft-black/30 to-soft-black/70" />

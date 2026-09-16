@@ -151,7 +151,7 @@ export const DESTINATIONS = [
     description:
       "Lake Malawi. Africa's third largest lake holds crystal waters, shores untouched by mass tourism, and an atmosphere of such profound serenity that couples find themselves recalibrating to a slower, more meaningful rhythm.",
     positioning:
-      "The Warm Heart of Africa. This is the chapter where your story meets the heart of a people who have faced hardship with resilience, and greet every visitor with hope, dignity and kindness. An infinity of water and sky. Kayak at dawn across coves discovered only by those who know. Dine beneath constellations on a private beach where the only footsteps in the sand are your own. Kaya Mawa, Pumulani, and The Makokola Retreat : each a chapter in a love story that few will ever read. Africa's hidden luxury beach escape. Reserved for those who know where to look.",
+       "The Warm Heart of Africa. This is the chapter where your story meets the heart of a people who have faced hardship with resilience, and greet every visitor with hope, dignity and kindness. An infinity of water and sky. Kayak at dawn across coves discovered only by those who know. Dine beneath constellations on a private beach where the only footsteps in the sand are your own. Each a chapter in a love story that few will ever read. Africa's hidden luxury beach escape. Reserved for those who know where to look.",
     heroImage: IMAGES.lakeMalawiRomanceHero,
     slug: "lake-malawi",
     properties: ["kaya-mawa", "pumulani-lodge", "makokola-retreat"],
@@ -192,7 +192,7 @@ export const DESTINATIONS = [
     description:
       "South Luangwa. The birthplace of the walking safari. An unfiltered communion with wilderness that strips away everything unnecessary and leaves only what matters : you, your partner, and Africa in its purest form.",
     positioning:
-      "Africa as it was before fences, before crowds, before compromise. Here, luxury means falling asleep to the rumble of lions and waking to the call of fish eagles, knowing you are among a fortunate few who will ever know this silence. Two signature properties : Time+Tide Chinzombo and Puku Ridge Camp : each offers a different window into this ancient world. From award winning riverside villas to silent electric safaris, this is safari luxury for those who seek not just to see Africa but to be remade by it.",
+       "Africa as it was before fences, before crowds, before compromise. Here, luxury means falling asleep to the rumble of lions and waking to the call of fish eagles, knowing you are among a fortunate few who will ever know this silence. Two extraordinary camps : each offers a different window into this ancient world. From award winning riverside villas to silent electric safaris, this is safari luxury for those who seek not just to see Africa but to be remade by it.",
     heroImage: IMAGES.southLuangwaRomanceHero,
     slug: "south-luangwa",
     properties: ["chinzombo", "puku-ridge-camp"],
@@ -233,7 +233,7 @@ export const DESTINATIONS = [
     description:
       "Zanzibar. A love letter written in cinnamon and clove. Stone Town's ancient corridors lead to beaches of impossible beauty. The Indian Ocean trades in shades of turquoise reserved for those with the discernment to find them.",
     positioning:
-      "Culture and coastline intertwined. Spice scented corridors, dhows sailing into fiery sunsets, and two peerless properties : Xanadu Luxury Villas & Retreat and Baraza Resort & Spa : each a sanctuary of romance known only to those who seek the remarkable. From the artistic vision of Xanadu to the Swahili grandeur of Baraza. Tropical elegance, refined to perfection, reserved for the discerning.",
+       "Culture and coastline intertwined. Spice scented corridors, dhows sailing into fiery sunsets, and two peerless sanctuaries : each a sanctuary of romance known only to those who seek the remarkable — tropical elegance, refined to perfection, reserved for the discerning.",
     heroImage: IMAGES.zanzibarRomanceHero,
     slug: "zanzibar",
     properties: ["xanadu-villas", "baraza-resort-spa"],

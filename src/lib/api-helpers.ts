@@ -62,6 +62,11 @@ const TABLE_AUTH: Record<string, AdminAuthOptions> = {
   guest_profiles: { module: "guest-profiles", minRole: "agent" },
   guest_communications: { module: "guest-profiles", minRole: "agent" },
   tasks: { module: "tasks", minRole: "agent" },
+  leads: { module: "leads", minRole: "agent" },
+  lead_activities: { module: "leads", minRole: "agent" },
+  lead_status_history: { module: "leads", minRole: "agent" },
+  concierge_requests: { module: "concierge", minRole: "agent" },
+  proposals: { module: "proposals", minRole: "agent" },
   // Editor-level: content & operations
   properties: { module: "properties", minRole: "editor" },
   packages: { module: "journeys", minRole: "editor" },
@@ -71,7 +76,9 @@ const TABLE_AUTH: Record<string, AdminAuthOptions> = {
   destinations: { module: "destinations", minRole: "editor" },
   suppliers: { module: "suppliers", minRole: "editor" },
   supplier_services: { module: "suppliers", minRole: "editor" },
-  supplier_categories: { module: "suppliers", minRole: "editor" },
+  services: { module: "services", minRole: "editor" },
+  itinerary_items: { module: "itinerary", minRole: "editor" },
+  categories: { module: "categories", minRole: "editor" },
   blog_posts: { module: "blog", minRole: "editor" },
   media_assets: { module: "media", minRole: "editor" },
   newsletter_subscribers: { module: "marketing", minRole: "editor" },
@@ -88,6 +95,7 @@ const TABLE_AUTH: Record<string, AdminAuthOptions> = {
   admin_profiles: { module: "users", minRole: "admin" },
   platform_settings: { module: "settings", minRole: "admin" },
   audit_log: { module: "audit-log", minRole: "admin" },
+  journeys: { module: "journeys", minRole: "editor" },
 };
 
 /** Resolve the auth context for a table, falling back to legacy admin/editor gate. */

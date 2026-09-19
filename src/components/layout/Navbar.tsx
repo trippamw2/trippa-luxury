@@ -255,9 +255,9 @@ export function Navbar() {
             initial="hidden"
             animate="show"
             exit="exit"
-            className="lg:hidden fixed inset-0 top-0 bg-cream z-[5] overflow-y-auto texture-noise"
+            className="lg:hidden fixed inset-0 top-0 bg-cream z-[60] overflow-y-auto texture-noise"
           >
-            <div className="flex flex-col justify-center min-h-screen px-8 py-24">
+            <div className="flex flex-col px-6 py-24">
               {NAV_ITEMS.map((item) =>
                 item.children ? (
                   <motion.div key={item.label} variants={STAGGER_ITEM} className="border-b border-sand-light/30">

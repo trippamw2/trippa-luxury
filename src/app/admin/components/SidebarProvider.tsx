@@ -65,13 +65,17 @@ const NAV_ITEMS = [
   { label: "Dashboard", href: "/admin", module: "dashboard" },
   { label: "Founder Dashboard", href: "/admin/founder", module: "dashboard" },
   { label: "Inquiries", href: "/admin/inquiries", module: "inquiries" },
+  { label: "Leads", href: "/admin/leads", module: "leads" },
   { label: "AI Journeys", href: "/admin/ai-journeys", module: "journeys" },
   { label: "Journey Editor", href: "/admin/journeys", module: "journeys" },
+  { label: "Proposals", href: "/admin/proposals", module: "proposals" },
+  { label: "Itinerary", href: "/admin/itinerary", module: "itinerary" },
   { label: "Bookings", href: "/admin/bookings", module: "bookings" },
   { label: "Finance", href: "/admin/finance", module: "finance" },
   // ── Guest Operations ────────────────────────────────────────────────
   { label: "Guest Profiles", href: "/admin/guest-profiles", module: "guest-profiles" },
   { label: "Tasks", href: "/admin/tasks", module: "tasks" },
+  { label: "Concierge", href: "/admin/concierge", module: "concierge" },
   // ── Content Management ──────────────────────────────────────────────
   { label: "Destinations", href: "/admin/destinations", module: "destinations" },
   { label: "Properties", href: "/admin/properties", module: "properties" },
@@ -88,6 +92,7 @@ const NAV_ITEMS = [
   { label: "Agent Registry", href: "/admin/agent-registry", module: "analytics" },
   // ── Administration ──────────────────────────────────────────────────
   { label: "Suppliers", href: "/admin/suppliers", module: "suppliers" },
+  { label: "Services", href: "/admin/services", module: "services" },
   { label: "Users", href: "/admin/users", module: "users" },
   { label: "Settings", href: "/admin/settings", module: "settings" },
   { label: "Email Log", href: "/admin/email-log", module: "settings" },

@@ -255,86 +255,88 @@ export function Navbar() {
             initial="hidden"
             animate="show"
             exit="exit"
-            className="lg:hidden fixed inset-0 top-0 bg-cream z-[60] overflow-y-auto texture-noise"
+            className="lg:hidden fixed inset-0 top-0 bg-cream z-[60] h-screen overflow-y-auto overscroll-contain texture-noise"
           >
-            <div className="flex flex-col px-6 py-24">
-              {NAV_ITEMS.map((item) =>
-                item.children ? (
-                  <motion.div key={item.label} variants={STAGGER_ITEM} className="border-b border-sand-light/30">
-                    <button
-                      onClick={() => setOpenMobileDropdown(openMobileDropdown === item.label ? null : item.label)}
-                      className="flex items-center justify-between w-full py-5 text-2xl font-heading text-soft-black"
-                    >
-                      {item.label}
-                      <ChevronDownIcon
-                        className={cn(
-                          "w-5 h-5 transition-transform duration-300",
-                          openMobileDropdown === item.label && "rotate-180"
+            <div className="flex flex-col px-6 pt-24 pb-20 min-h-full">
+              <div className="space-y-2 flex-1">
+                {NAV_ITEMS.map((item) =>
+                  item.children ? (
+                    <motion.div key={item.label} variants={STAGGER_ITEM} className="border-b border-sand-light/40">
+                      <button
+                        onClick={() => setOpenMobileDropdown(openMobileDropdown === item.label ? null : item.label)}
+                        className="flex items-center justify-between w-full py-4 text-xl font-heading text-soft-black"
+                      >
+                        <span>{item.label}</span>
+                        <ChevronDownIcon
+                          className={cn(
+                            "w-4 h-4 transition-transform duration-300",
+                            openMobileDropdown === item.label && "rotate-180"
+                          )}
+                        />
+                      </button>
+                      <AnimatePresence>
+                        {openMobileDropdown === item.label && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="pb-4 space-y-2.5">
+                              {item.children.map((child: { label: string; href: string; description: string; image?: string }) => (
+                                <Link
+                                  key={child.href}
+                                  href={child.href}
+                                  onClick={() => setIsMobileOpen(false)}
+                                  className="flex items-center gap-3.5 py-2.5 pl-3 pr-2 rounded-xl bg-white/60 hover:bg-white text-earth hover:text-soft-black transition-all group shadow-xs"
+                                >
+                                  <div className="relative w-14 h-10 shrink-0 overflow-hidden rounded-lg">
+                                    {child.image && (
+                                      <Image
+                                        src={child.image}
+                                        alt={child.label}
+                                        fill
+                                        className="object-cover"
+                                        sizes="56px"
+                                      />
+                                    )}
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <span className="block text-sm font-medium text-soft-black truncate">{child.label}</span>
+                                    <span className="block text-xs text-earth/70 truncate">{child.description}</span>
+                                  </div>
+                                </Link>
+                              ))}
+                            </div>
+                          </motion.div>
                         )}
-                      />
-                    </button>
-                    <AnimatePresence>
-                      {openMobileDropdown === item.label && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          className="overflow-hidden"
-                        >
-                          <div className="pb-4 space-y-3">
-                            {item.children.map((child: { label: string; href: string; description: string; image?: string }) => (
-                              <Link
-                                key={child.href}
-                                href={child.href}
-                                onClick={() => setIsMobileOpen(false)}
-                                className="flex items-center gap-4 py-3 pl-4 pr-2 text-earth hover:text-soft-black transition-colors group"
-                              >
-                                <div className="relative w-16 h-12 shrink-0 overflow-hidden">
-                                  {child.image && (
-                                    <Image
-                                      src={child.image}
-                                      alt={child.label}
-                                      fill
-                                      className="object-cover"
-                                      sizes="64px"
-                                    />
-                                  )}
-                                </div>
-                                <div>
-                                  <span className="block text-lg font-medium">{child.label}</span>
-                                  <span className="block text-sm text-earth/70">{child.description}</span>
-                                </div>
-                              </Link>
-                            ))}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </motion.div>
-                ) : (
-                  <motion.div key={item.label} variants={STAGGER_ITEM}>
-                    <Link
-                      key={item.label}
-                      href={item.href}
-                      onClick={() => setIsMobileOpen(false)}
-                      className="py-5 text-2xl font-heading text-soft-black border-b border-sand-light/30 hover:text-gold-dark transition-colors"
-                    >
-                      {item.label}
-                    </Link>
-                  </motion.div>
-                )
-              )}
+                      </AnimatePresence>
+                    </motion.div>
+                  ) : (
+                    <motion.div key={item.label} variants={STAGGER_ITEM} className="border-b border-sand-light/40">
+                      <Link
+                        key={item.label}
+                        href={item.href}
+                        onClick={() => setIsMobileOpen(false)}
+                        className="block py-4 text-xl font-heading text-soft-black hover:text-gold-dark transition-colors"
+                      >
+                        {item.label}
+                      </Link>
+                    </motion.div>
+                  )
+                )}
+              </div>
 
-              {/* Mobile CTA — island button */}
-              <motion.div variants={STAGGER_ITEM} className="mt-8">
+              {/* Mobile CTA — compact refined island button */}
+              <motion.div variants={STAGGER_ITEM} className="mt-8 pt-4 border-t border-sand-light/40 shrink-0">
                 <Link
                   href="/contact"
                   onClick={() => setIsMobileOpen(false)}
-                  className="group flex items-center gap-0.5 w-full px-7 py-4 bg-soft-black text-cream text-sm font-medium tracking-widest uppercase rounded-full transition-colors hover:bg-soft-black-light"
+                  className="group flex items-center justify-between w-full px-5 py-3.5 bg-soft-black text-cream text-xs font-medium tracking-widest uppercase rounded-full transition-colors hover:bg-soft-black/90 shadow-sm"
                 >
-                  Begin Your Love Story
-                  <span className="ml-auto flex items-center justify-center w-9 h-9 rounded-full bg-cream text-soft-black transition-transform duration-500 ease-out group-hover:translate-x-0.5">
-                    <ArrowRightIcon className="w-4 h-4" />
+                  <span>Begin Your Love Story</span>
+                  <span className="flex items-center justify-center w-7 h-7 rounded-full bg-cream text-soft-black transition-transform duration-500 ease-out group-hover:translate-x-0.5">
+                    <ArrowRightIcon className="w-3.5 h-3.5" />
                   </span>
                 </Link>
               </motion.div>

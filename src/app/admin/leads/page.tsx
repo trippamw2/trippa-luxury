@@ -17,6 +17,7 @@ import {
   Clock,
   AlertCircle,
   CheckCircle,
+  X,
 } from "lucide-react";
 
 interface Lead {
@@ -85,8 +86,21 @@ export default function AdminLeads() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    full_name: "",
+    email: "",
+    phone: "",
+    country: "Zambia",
+    traveller_type: "couple",
+    priority: "medium",
+    estimated_budget: "",
+    source: "direct",
+  });
 
-  useEffect(() => {
+  const fetchLeads = () => {
+    setLoading(true);
     fetch("/api/admin/leads")
       .then((r) => r.json())
       .then((json) => {
@@ -95,15 +109,19 @@ export default function AdminLeads() {
       })
       .catch((err) => console.error("Leads fetch error:", err))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchLeads();
   }, []);
 
   function mapApiLead(item: ApiLead): Lead {
     return {
       id: item.id,
-      full_name: item.full_name || "",
+      full_name: item.full_name || "Unnamed Lead",
       email: item.email || "",
       phone: item.phone || "",
-      country: item.country || "",
+      country: item.country || "Zambia",
       traveller_type: item.traveller_type || "couple",
       lead_status: item.lead_status || "new",
       priority: item.priority || "medium",
@@ -113,12 +131,52 @@ export default function AdminLeads() {
       assigned_name: item.assigned_name || null,
       last_contacted_at: item.last_contacted_at || null,
       next_follow_up: item.next_follow_up || null,
-      source: item.source || "website",
+      source: item.source || "direct",
       created_at: item.created_at || "",
       guest_profile_id: item.guest_profile_id || null,
       inquiry_id: item.inquiry_id || null,
     };
   }
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/admin/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          full_name: formData.full_name,
+          email: formData.email,
+          phone: formData.phone,
+          country: formData.country,
+          traveller_type: formData.traveller_type,
+          priority: formData.priority,
+          estimated_budget: formData.estimated_budget ? parseFloat(formData.estimated_budget) : null,
+          source: formData.source,
+          lead_status: "new",
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to create lead");
+      setIsModalOpen(false);
+      setFormData({
+        full_name: "",
+        email: "",
+        phone: "",
+        country: "Zambia",
+        traveller_type: "couple",
+        priority: "medium",
+        estimated_budget: "",
+        source: "direct",
+      });
+      fetchLeads();
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Failed to create lead");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const filtered = leads.filter(
     (l) =>
@@ -146,7 +204,10 @@ export default function AdminLeads() {
             className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gold/20"
           />
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-soft-black text-cream text-sm font-medium rounded-lg hover:bg-soft-black-light transition-colors">
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-soft-black text-cream text-sm font-medium rounded-lg hover:bg-soft-black/90 transition-colors cursor-pointer"
+        >
           <Plus className="w-4 h-4" />
           Add Lead
         </button>
@@ -176,13 +237,13 @@ export default function AdminLeads() {
       </div>
 
       {/* Leads Table */}
-      <div className="bg-white border border-gray-100">
+      <div className="bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm">
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="text-sm text-gray-400">Loading leads...</div>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="p-8 text-center text-sm text-gray-400">No leads found.</div>
+          <div className="p-12 text-center text-sm text-gray-400">No leads found. Click &quot;Add Lead&quot; to create one.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -242,7 +303,7 @@ export default function AdminLeads() {
                     <td className="px-5 py-3 text-right">
                       <button
                         onClick={() => router.push(`/admin/leads/${lead.id}`)}
-                        className="text-xs text-gold hover:text-gold-dark font-medium"
+                        className="text-xs text-gold hover:text-gold-dark font-medium cursor-pointer"
                       >
                         View
                       </button>
@@ -254,6 +315,126 @@ export default function AdminLeads() {
           </div>
         )}
       </div>
+
+      {/* Add Lead Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl border border-gray-100">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-900">Add New Lead</h3>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleCreate} className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Full Name</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Arabella Sinclair"
+                  value={formData.full_name}
+                  onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Email Address</label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="arabella@example.com"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Phone Number</label>
+                  <input
+                    type="text"
+                    placeholder="+260 97..."
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Traveller Type</label>
+                  <select
+                    value={formData.traveller_type}
+                    onChange={(e) => setFormData({ ...formData, traveller_type: e.target.value })}
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                  >
+                    <option value="couple">Couple</option>
+                    <option value="family">Family</option>
+                    <option value="honeymoon">Honeymoon</option>
+                    <option value="solo">Solo</option>
+                    <option value="group">Private Group</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Priority</label>
+                  <select
+                    value={formData.priority}
+                    onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                  >
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Estimated Budget (USD)</label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 15000"
+                    value={formData.estimated_budget}
+                    onChange={(e) => setFormData({ ...formData, estimated_budget: e.target.value })}
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Source</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. website, referral"
+                    value={formData.source}
+                    onChange={(e) => setFormData({ ...formData, source: e.target.value })}
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-4 py-2 bg-soft-black text-cream text-sm font-medium rounded-lg hover:bg-soft-black/90 transition-colors disabled:opacity-50 cursor-pointer"
+                >
+                  {submitting ? "Adding..." : "Save Lead"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

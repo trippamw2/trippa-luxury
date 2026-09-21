@@ -50,8 +50,18 @@ export default function AdminProposals() {
   const router = useRouter();
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    title: "",
+    customer_name: "",
+    journey_name: "",
+    total_investment: "",
+    currency: "USD",
+  });
 
-  useEffect(() => {
+  const fetchProposals = () => {
+    setLoading(true);
     fetch("/api/admin/proposals")
       .then((r) => r.json())
       .then((json) => {
@@ -60,12 +70,16 @@ export default function AdminProposals() {
       })
       .catch((err) => console.error("Proposals fetch error:", err))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchProposals();
   }, []);
 
   function mapApi(item: ApiProposal): Proposal {
     return {
       id: item.id,
-      proposal_reference: item.proposal_reference || "",
+      proposal_reference: item.proposal_reference || `PROP-${Math.floor(1000 + Math.random() * 9000)}`,
       title: item.title || "",
       status: item.status || "draft",
       total_investment: item.total_investment ?? null,
@@ -80,16 +94,46 @@ export default function AdminProposals() {
     };
   }
 
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/admin/proposals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: formData.title,
+          customer_name: formData.customer_name,
+          journey_name: formData.journey_name,
+          total_investment: formData.total_investment ? parseFloat(formData.total_investment) : null,
+          currency: formData.currency,
+          status: "draft",
+          proposal_reference: `KIV-${Math.floor(100000 + Math.random() * 900000)}`,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to create proposal");
+      setIsModalOpen(false);
+      setFormData({ title: "", customer_name: "", journey_name: "", total_investment: "", currency: "USD" });
+      fetchProposals();
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Failed to create proposal");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Proposals</h1>
-        <p className="text-sm text-gray-500 mt-1">Curated journey proposals sent to customers.</p>
-      </div>
-
-      <div className="flex items-center justify-between mb-6">
-        <div />
-        <button className="flex items-center gap-2 px-4 py-2 bg-soft-black text-cream text-sm font-medium rounded-lg hover:bg-soft-black-light transition-colors">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Proposals</h1>
+          <p className="text-sm text-gray-500 mt-1">Curated journey proposals sent to customers.</p>
+        </div>
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-soft-black text-cream text-sm font-medium rounded-lg hover:bg-soft-black/90 transition-colors cursor-pointer"
+        >
           <Plus className="w-4 h-4" />
           Create Proposal
         </button>
@@ -107,13 +151,13 @@ export default function AdminProposals() {
         ))}
       </div>
 
-      <div className="bg-white border border-gray-100">
+      <div className="bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm">
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="text-sm text-gray-400">Loading proposals...</div>
           </div>
         ) : proposals.length === 0 ? (
-          <div className="p-8 text-center text-sm text-gray-400">No proposals yet.</div>
+          <div className="p-12 text-center text-sm text-gray-400">No proposals yet. Click &quot;Create Proposal&quot; to get started.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -159,12 +203,12 @@ export default function AdminProposals() {
                     <td className="px-5 py-3 text-right">
                       <button
                         onClick={() => router.push(`/admin/proposals/${p.id}`)}
-                        className="text-xs text-gold hover:text-gold-dark font-medium mr-3"
+                        className="text-xs text-gold hover:text-gold-dark font-medium mr-3 cursor-pointer"
                       >
                         View
                       </button>
                       {p.status === "ready" && (
-                        <button className="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                        <button className="text-xs text-blue-600 hover:text-blue-800 font-medium cursor-pointer">
                           Send
                         </button>
                       )}
@@ -176,6 +220,99 @@ export default function AdminProposals() {
           </div>
         )}
       </div>
+
+      {/* Create Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl border border-gray-100">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-900">Create New Proposal</h3>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleCreate} className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Proposal Title</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Zambian Safari & Zanzibar Escape"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Customer Name</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Eleanor & Harrison Vance"
+                  value={formData.customer_name}
+                  onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Journey Name / Theme</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. South Luangwa & Mnemba Island"
+                  value={formData.journey_name}
+                  onChange={(e) => setFormData({ ...formData, journey_name: e.target.value })}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Total Investment</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="e.g. 24500"
+                    value={formData.total_investment}
+                    onChange={(e) => setFormData({ ...formData, total_investment: e.target.value })}
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Currency</label>
+                  <select
+                    value={formData.currency}
+                    onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                  >
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                    <option value="GBP">GBP (£)</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-4 py-2 bg-soft-black text-cream text-sm font-medium rounded-lg hover:bg-soft-black/90 transition-colors disabled:opacity-50 cursor-pointer"
+                >
+                  {submitting ? "Creating..." : "Save Proposal"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

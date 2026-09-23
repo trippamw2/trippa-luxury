@@ -226,6 +226,7 @@ export default function SouthLuangwaPage() {
                 src={IMAGES.pukuRidgeSunset}
                 alt="Golden sunset over South Luangwa floodplain from Puku Ridge"
                 fill
+                quality={90}
                 className="object-cover storytelling-image"
                 sizes="(max-width: 1024px) 100vw, 50vw"
               />
@@ -398,6 +399,7 @@ export default function SouthLuangwaPage() {
                   src={experienceImages[exp] || IMAGES.southLuangwaSafari}
                   alt={exp}
                   fill
+                  quality={90}
                   className="object-cover transition-transform duration-700 group-hover:scale-105"
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 />
@@ -515,8 +517,9 @@ export default function SouthLuangwaPage() {
                   src={item.image}
                   alt={item.label}
                   fill
+                  quality={90}
                   className="object-cover transition-transform duration-700 group-hover:scale-105"
-                  sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  sizes={index === 0 ? "(max-width: 768px) 100vw, (max-width: 1024px) 66vw, 50vw" : "(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"}
                 />
                 {/* Persistent cinematic darken */}
                 <div className="absolute inset-0 bg-gradient-to-t from-soft-black/20 to-transparent" />

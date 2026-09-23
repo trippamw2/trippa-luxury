@@ -112,6 +112,7 @@ export default function PropertyDetailPage() {
             fill
             className="object-cover"
             priority
+            quality={90}
             sizes="100vw"
           />
         )}
@@ -388,8 +389,9 @@ export default function PropertyDetailPage() {
                   src={imgPath}
                   alt={`${property.name} : ${item === 0 ? "hero view" : item <= 3 ? "suite interior" : item <= 6 ? "pool & grounds" : item <= 9 ? "bath & details" : "activities & dining"}`}
                   fill
+                  quality={90}
                   className="object-cover group-hover:scale-105 transition-transform duration-700"
-                  sizes="(max-width: 768px) 50vw, 25vw"
+                  sizes={item === 0 ? "(max-width: 768px) 100vw, 50vw" : "(max-width: 768px) 50vw, 25vw"}
                 />
                 {/* Persistent cinematic darken */}
                 <div className="absolute inset-0 bg-gradient-to-t from-soft-black/15 to-transparent" />
@@ -446,6 +448,7 @@ export default function PropertyDetailPage() {
                           src={imgPath}
                           alt={`${room.name} : image ${idx + 1}`}
                           fill
+                          quality={90}
                           className="object-cover group-hover:scale-105 transition-transform duration-700"
                           sizes="(max-width: 768px) 50vw, 25vw"
                         />

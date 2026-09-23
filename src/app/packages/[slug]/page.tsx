@@ -69,6 +69,7 @@ export default function PackageDetailPage() {
             fill
             className="object-cover"
             priority
+            quality={90}
             sizes="100vw"
           />
         )}

@@ -83,14 +83,15 @@ export function HeroSection() {
 
       {/* Parallax still image fallback (shows while video loads or if video fails) */}
       <div className="absolute inset-0 opacity-0 pointer-events-none">
-        <Image
-          src={IMAGES.heroPoster}
-          alt="" /* decorative fallback: hidden while video loads */
-          fill
-          className="object-cover"
-          priority
-          sizes="100vw"
-        />
+                      <Image
+                        src={IMAGES.heroPoster}
+                        alt="" /* decorative fallback: hidden while video loads */
+                        fill
+                        className="object-cover"
+                        priority
+                        quality={90}
+                        sizes="100vw"
+                      />
       </div>
 
       {/* Overlay */}

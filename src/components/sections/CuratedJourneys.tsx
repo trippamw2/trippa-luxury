@@ -47,14 +47,15 @@ export function CuratedJourneys() {
               <Link href={`/packages/${pkg.id}`} className="block">
                 <div className="bezel-outer">
                   <div className="bezel-inner relative overflow-hidden bg-warm-white-dark aspect-[16/10]">
-                    <Image
-                      src={pkg.image}
-                      alt={pkg.title}
-                      fill
-                      loading="lazy"
-                      className="object-cover transition-transform duration-700 group-hover:scale-105"
-                      sizes="(max-width: 768px) 100vw, 33vw"
-                    />
+                      <Image
+                        src={pkg.image}
+                        alt={pkg.title}
+                        fill
+                        loading="lazy"
+                        quality={90}
+                        className="object-cover transition-transform duration-700 group-hover:scale-105"
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                      />
                     {/* Persistent cinematic darken */}
                     <div className="absolute inset-0 bg-gradient-to-t from-soft-black/60 via-soft-black/10 to-transparent" />
                     <div className="absolute inset-0 bg-gradient-to-br from-soft-black/20 to-transparent" />

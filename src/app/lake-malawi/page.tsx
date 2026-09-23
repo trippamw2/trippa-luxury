@@ -116,8 +116,9 @@ export default function LakeMalawiPage() {
             src={IMAGES.lakeMalawiRomanceHero}
             alt="Lake Malawi"
             fill
-            className="object-cover"
             priority
+            quality={90}
+            className="object-cover"
             sizes="100vw"
           />
         </motion.div>
@@ -227,6 +228,7 @@ export default function LakeMalawiPage() {
                 src={IMAGES.kayaMawa}
                 alt="Kaya Mawa beach swing at sunset on Lake Malawi"
                 fill
+                quality={90}
                 className="object-cover storytelling-image"
                 sizes="(max-width: 1024px) 100vw, 50vw"
               />

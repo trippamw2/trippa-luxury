@@ -40,6 +40,7 @@ export function DestinationCard({
             alt={title}
             fill
             loading="lazy"
+            quality={90}
             className="object-cover transition-transform duration-1000 group-hover:scale-105"
             sizes="(max-width: 768px) 100vw, 33vw"
           />

@@ -135,18 +135,18 @@ export function Navbar() {
                     {item.label}
                     <ChevronDownIcon className="w-3 h-3" />
                   </button>
-<AnimatePresence>
-                  {openDropdown === item.label && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 12, scale: 0.98 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 12, scale: 0.98 }}
-                      transition={{ duration: 0.35, ease: EASE_LUXURY }}
-                      className={cn(
-                        "absolute top-full left-1/2 -translate-x-1/2 mt-4 bg-cream/95 backdrop-blur-xl rounded-2xl shadow-[0_24px_60px_-12px_rgba(28,26,23,0.25)] ring-1 ring-black/5 p-5",
-                        item.children.length >= 4 ? "w-[820px]" : "w-[580px]"
-                      )}
-                    >
+                  <AnimatePresence>
+                    {openDropdown === item.label && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 12, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 12, scale: 0.98 }}
+                        transition={{ duration: 0.35, ease: EASE_LUXURY }}
+                        className={cn(
+                          "absolute top-full left-1/2 -translate-x-1/2 mt-4 bg-cream/95 backdrop-blur-xl rounded-2xl shadow-[0_24px_60px_-12px_rgba(28,26,23,0.25)] ring-1 ring-black/5 p-5",
+                          item.children.length >= 4 ? "w-[820px]" : "w-[580px]"
+                        )}
+                      >
                         <div
                           className={cn(
                             "grid gap-4",

@@ -1,22 +1,16 @@
 import { Fragment } from "react";
 import { Plane, PlaneLanding, Car, MapPin, ArrowRight } from "lucide-react";
-import type { TransferStep } from "@/lib/journey-routes";
+import type { MovementMode, TransferStep } from "@/lib/journey-routes";
 import { cn } from "@/lib/utils";
 
-const modeIcons: Record<TransferStep["mode"], typeof Plane> = {
-  fly: Plane,
+const modeIcons: Record<MovementMode, typeof Plane> = {
+  international: PlaneLanding,
+  private: Plane,
   drive: Car,
 };
 
 function StepIcon({ step, className }: { step: TransferStep; className?: string }) {
   if (step.kind === "property") return <MapPin className={className} />;
-  if (step.mode === "fly") {
-    return step.duration === "International arrival" ? (
-      <PlaneLanding className={className} />
-    ) : (
-      <Plane className={className} />
-    );
-  }
   const Icon = modeIcons[step.mode];
   return <Icon className={className} />;
 }

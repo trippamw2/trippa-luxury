@@ -29,7 +29,8 @@ const JourneyRouteMap = dynamic(
 );
 
 const MODE_ICONS: Record<MovementMode, typeof Plane> = {
-  fly: Plane,
+  international: PlaneLanding,
+  private: Plane,
   drive: Car,
 };
 

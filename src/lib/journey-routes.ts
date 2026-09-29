@@ -7,7 +7,7 @@ import { PROPERTIES, EXPERIENCES } from "@/lib/constants";
  */
 
 export type RouteStopKind = "gateway" | "stay" | "experience" | "departure";
-export type MovementMode = "fly" | "drive";
+export type MovementMode = "international" | "private" | "drive";
 
 /** IATA-style airport codes used across the portfolio's transfer network. */
 export type AirportCode = "llw" | "blz" | "cmk" | "lix" | "mfu" | "lun" | "znz";
@@ -156,20 +156,21 @@ export const INTERNATIONAL_GATEWAYS: Record<string, AirportCode> = {
 };
 
 export const MOVEMENT_LABELS: Record<MovementMode, string> = {
-  fly: "Private flight",
+  international: "International flight",
+  private: "Private flight",
   drive: "Road transfer",
 };
 
 /** How the guest leaves the gateway for the first stay of each destination. */
 const GATEWAY_ARRIVAL: Record<string, MovementMode> = {
-  "lake-malawi": "fly",
-  "south-luangwa": "fly",
+  "lake-malawi": "private",
+  "south-luangwa": "private",
   "zanzibar": "drive",
 };
 
 /** How the guest moves between stays within a single destination. */
 const STAY_TO_STAY: Record<string, MovementMode> = {
-  "lake-malawi": "fly",
+  "lake-malawi": "private",
   "south-luangwa": "drive",
   "zanzibar": "drive",
 };
@@ -202,7 +203,7 @@ function assembleStops(destinations: string[], propertyIds: string[]): RouteStop
     const gateway = ARRIVAL_GATEWAYS[dest];
     if (!gateway) return;
     // Reaching a second (or later) destination means flying from the previous one.
-    stops.push(destIndex === 0 ? { ...gateway } : { ...gateway, arrival: "fly" });
+    stops.push(destIndex === 0 ? { ...gateway } : { ...gateway, arrival: "private" });
 
     const destProperties = propertyIds.filter((pid) => propertyById(pid)?.destination === dest);
     destProperties.forEach((pid, idx) => {
@@ -299,7 +300,7 @@ export function buildExperienceStops(experience: { id: string }): RouteStop[] {
     lat: gateway.lat,
     lng: gateway.lng,
     kind: "departure",
-    arrival: "fly",
+    arrival: "private",
   });
 
   return stops;
@@ -342,13 +343,14 @@ const propertyCoordinates = (id: string) =>
 /** Gateway step shared by every route : the international arrival airport. */
 function gatewayStep(code: AirportCode, note: string): TransferStep {
   const a = AIRPORTS[code];
+  const isInternational = code === "llw" || code === "lun" || code === "znz"; // Gateways that handle international flights
   return {
     id: a.id,
     label: a.label,
     sublabel: a.sublabel,
     code: a.code,
     kind: "airport",
-    mode: "fly",
+    mode: isInternational ? "international" : "private",
     duration: "International arrival",
     note,
     lat: a.lat,
@@ -365,7 +367,7 @@ function airportStep(code: AirportCode, duration: string, note?: string): Transf
     sublabel: a.sublabel,
     code: a.code,
     kind: "airport",
-    mode: "fly",
+    mode: "private",
     duration,
     note,
     lat: a.lat,

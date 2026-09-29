@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
-import { Plane, Car } from "lucide-react";
+import { Plane, PlaneLanding, Car } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import {
   MOVEMENT_LABELS,
@@ -22,7 +22,8 @@ const JourneyRouteMap = dynamic(
 );
 
 const MOVEMENT_ICONS: Record<MovementMode, typeof Plane> = {
-  fly: Plane,
+  international: PlaneLanding,
+  private: Plane,
   drive: Car,
 };
 

@@ -19,7 +19,11 @@ export async function createAuditLog(entry: AuditEntry): Promise<void> {
   try {
     const supabase = createAdminClient();
 
-    await supabase.from("audit_log").insert({
+    // supabase-js resolves with an `error` field rather than throwing for
+    // PostgREST failures (e.g. a missing relation, PGRST205), so the result
+    // must be destructured and checked. Relying on try/catch alone silently
+    // discarded every audit failure.
+    const { error } = await supabase.from("audit_log").insert({
       table_name: entry.tableName,
       record_id: entry.recordId,
       action: entry.action,
@@ -28,6 +32,13 @@ export async function createAuditLog(entry: AuditEntry): Promise<void> {
       performed_by: entry.performedBy ?? null,
       ip_address: entry.ipAddress ?? null,
     });
+
+    if (error) {
+      console.error(
+        `Failed to write audit log for ${entry.tableName} (${entry.action}):`,
+        error
+      );
+    }
   } catch (err) {
     // Audit failures should never break the calling operation
     console.error("Failed to write audit log:", err);

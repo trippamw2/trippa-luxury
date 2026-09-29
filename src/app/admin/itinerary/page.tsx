@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Plus, Calendar, MapPin, Clock, ArrowRight, CheckCircle, X } from "lucide-react";
+import { Search, Plus, Calendar, MapPin, ArrowRight, X } from "lucide-react";
 
 interface ItineraryItem {
   id: string;
@@ -23,6 +23,20 @@ interface ApiItinerary {
   end_date?: string;
   destination?: string;
   created_at?: string;
+}
+
+/** Pure API -> view-model mapper. Module scope keeps its identity stable across renders. */
+function mapApi(item: ApiItinerary): ItineraryItem {
+  return {
+    id: item.id,
+    title: item.title || "Untitled Itinerary",
+    client_name: item.client_name || "",
+    status: item.status || "active",
+    start_date: item.start_date || "",
+    end_date: item.end_date || "",
+    destination: item.destination || "",
+    created_at: item.created_at || "",
+  };
 }
 
 export default function AdminItineraries() {
@@ -51,22 +65,27 @@ export default function AdminItineraries() {
       .finally(() => setLoading(false));
   };
 
+  // Initial load only. The request is awaited before any state update, so nothing is
+  // set synchronously inside the effect body; post-mutation refreshes go through
+  // fetchItineraries() from event handlers instead.
   useEffect(() => {
-    fetchItineraries();
-  }, []);
-
-  function mapApi(item: ApiItinerary): ItineraryItem {
-    return {
-      id: item.id,
-      title: item.title || "Untitled Itinerary",
-      client_name: item.client_name || "",
-      status: item.status || "active",
-      start_date: item.start_date || "",
-      end_date: item.end_date || "",
-      destination: item.destination || "",
-      created_at: item.created_at || "",
+    let active = true;
+    (async () => {
+      try {
+        const r = await fetch("/api/admin/itinerary");
+        const json = await r.json();
+        if (json.error) throw new Error(json.error);
+        if (active) setItineraries((json.data || json || []).map(mapApi));
+      } catch (err) {
+        console.error("Itineraries fetch error:", err);
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
     };
-  }
+  }, []);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();

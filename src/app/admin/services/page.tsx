@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Plus, Tag, DollarSign, CheckCircle, X, ArrowRight } from "lucide-react";
+import { Search, Plus, Tag, DollarSign, ArrowRight } from "lucide-react";
 
 interface ServiceItem {
   id: string;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, ArrowRight, Clock, AlertCircle, CheckCircle, X, Calendar, User, Sparkles } from "lucide-react";
+import { Plus, Calendar, User, Sparkles } from "lucide-react";
 
 interface ConciergeRequest {
   id: string;
@@ -15,20 +15,6 @@ interface ConciergeRequest {
   cost: number | null;
   selling_price: number | null;
   created_at: string;
-}
-
-interface ApiConcierge {
-  id: string;
-  category?: string;
-  request?: string;
-  description?: string | null;
-  priority?: string;
-  status?: string;
-  due_date?: string | null;
-  assigned_staff_name?: string | null;
-  cost?: number | null;
-  selling_price?: number | null;
-  created_at?: string;
 }
 
 const PRIORITY_COLORS: Record<string, string> = {
@@ -64,7 +50,7 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
 
 export default function AdminConcierge() {
   const [requests, setRequests] = useState<ConciergeRequest[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/admin/concierge")

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, ArrowRight, Calendar, DollarSign, Eye, Send, CheckCircle, X, Clock, User } from "lucide-react";
+import { Plus, Send, X, Clock } from "lucide-react";
 
 interface Proposal {
   id: string;
@@ -46,6 +46,25 @@ const STATUS_COLORS: Record<string, string> = {
   expired: "bg-amber-50 text-amber-700",
 };
 
+/** Pure API -> view-model mapper. Module scope keeps its identity stable across renders. */
+function mapApi(item: ApiProposal): Proposal {
+  return {
+    id: item.id,
+    proposal_reference: item.proposal_reference || `PROP-${Math.floor(1000 + Math.random() * 9000)}`,
+    title: item.title || "",
+    status: item.status || "draft",
+    total_investment: item.total_investment ?? null,
+    currency: item.currency || "USD",
+    sent_date: item.sent_date || null,
+    viewed_date: item.viewed_date || null,
+    accepted_date: item.accepted_date || null,
+    expiry_date: item.expiry_date || null,
+    customer_name: item.customer_name || null,
+    journey_name: item.journey_name || null,
+    created_at: item.created_at || "",
+  };
+}
+
 export default function AdminProposals() {
   const router = useRouter();
   const [proposals, setProposals] = useState<Proposal[]>([]);
@@ -72,27 +91,27 @@ export default function AdminProposals() {
       .finally(() => setLoading(false));
   };
 
+  // Initial load only. The request is awaited before any state update, so nothing is
+  // set synchronously inside the effect body; post-mutation refreshes go through
+  // fetchProposals() from event handlers instead.
   useEffect(() => {
-    fetchProposals();
-  }, []);
-
-  function mapApi(item: ApiProposal): Proposal {
-    return {
-      id: item.id,
-      proposal_reference: item.proposal_reference || `PROP-${Math.floor(1000 + Math.random() * 9000)}`,
-      title: item.title || "",
-      status: item.status || "draft",
-      total_investment: item.total_investment ?? null,
-      currency: item.currency || "USD",
-      sent_date: item.sent_date || null,
-      viewed_date: item.viewed_date || null,
-      accepted_date: item.accepted_date || null,
-      expiry_date: item.expiry_date || null,
-      customer_name: item.customer_name || null,
-      journey_name: item.journey_name || null,
-      created_at: item.created_at || "",
+    let active = true;
+    (async () => {
+      try {
+        const r = await fetch("/api/admin/proposals");
+        const json = await r.json();
+        if (json.error) throw new Error(json.error);
+        if (active) setProposals((json.data || []).map(mapApi));
+      } catch (err) {
+        console.error("Proposals fetch error:", err);
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
     };
-  }
+  }, []);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,7 +160,7 @@ export default function AdminProposals() {
 
       {/* Status Summary */}
       <div className="grid grid-cols-7 gap-2 mb-8">
-        {Object.entries(STATUS_COLORS).map(([status, color]) => (
+        {Object.entries(STATUS_COLORS).map(([status]) => (
           <div key={status} className="bg-white border border-gray-100 p-3 rounded-lg text-center">
             <p className="text-xs font-medium text-gray-900 capitalize">{status}</p>
             <p className="text-lg font-bold text-gray-900">

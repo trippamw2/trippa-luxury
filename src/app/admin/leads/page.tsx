@@ -2,21 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import {
   Search,
   Plus,
-  Mail,
-  Phone,
-  MapPin,
-  Calendar,
-  ArrowRight,
-  Filter,
-  MoreHorizontal,
-  UserPlus,
   Clock,
-  AlertCircle,
-  CheckCircle,
   X,
 } from "lucide-react";
 
@@ -81,6 +70,30 @@ const PRIORITY_COLORS: Record<string, string> = {
   urgent: "bg-red-50 text-red-700",
 };
 
+/** Pure API -> view-model mapper. Module scope keeps its identity stable across renders. */
+function mapApiLead(item: ApiLead): Lead {
+  return {
+    id: item.id,
+    full_name: item.full_name || "Unnamed Lead",
+    email: item.email || "",
+    phone: item.phone || "",
+    country: item.country || "Zambia",
+    traveller_type: item.traveller_type || "couple",
+    lead_status: item.lead_status || "new",
+    priority: item.priority || "medium",
+    estimated_budget: item.estimated_budget ?? null,
+    preferred_start_date: item.preferred_start_date || null,
+    assigned_to: item.assigned_to || null,
+    assigned_name: item.assigned_name || null,
+    last_contacted_at: item.last_contacted_at || null,
+    next_follow_up: item.next_follow_up || null,
+    source: item.source || "direct",
+    created_at: item.created_at || "",
+    guest_profile_id: item.guest_profile_id || null,
+    inquiry_id: item.inquiry_id || null,
+  };
+}
+
 export default function AdminLeads() {
   const router = useRouter();
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -111,32 +124,27 @@ export default function AdminLeads() {
       .finally(() => setLoading(false));
   };
 
+  // Initial load only. The request is awaited before any state update, so nothing is
+  // set synchronously inside the effect body; post-mutation refreshes go through
+  // fetchLeads() from event handlers instead.
   useEffect(() => {
-    fetchLeads();
-  }, []);
-
-  function mapApiLead(item: ApiLead): Lead {
-    return {
-      id: item.id,
-      full_name: item.full_name || "Unnamed Lead",
-      email: item.email || "",
-      phone: item.phone || "",
-      country: item.country || "Zambia",
-      traveller_type: item.traveller_type || "couple",
-      lead_status: item.lead_status || "new",
-      priority: item.priority || "medium",
-      estimated_budget: item.estimated_budget ?? null,
-      preferred_start_date: item.preferred_start_date || null,
-      assigned_to: item.assigned_to || null,
-      assigned_name: item.assigned_name || null,
-      last_contacted_at: item.last_contacted_at || null,
-      next_follow_up: item.next_follow_up || null,
-      source: item.source || "direct",
-      created_at: item.created_at || "",
-      guest_profile_id: item.guest_profile_id || null,
-      inquiry_id: item.inquiry_id || null,
+    let active = true;
+    (async () => {
+      try {
+        const r = await fetch("/api/admin/leads");
+        const json = await r.json();
+        if (json.error) throw new Error(json.error);
+        if (active) setLeads((json.data || []).map(mapApiLead));
+      } catch (err) {
+        console.error("Leads fetch error:", err);
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
     };
-  }
+  }, []);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();

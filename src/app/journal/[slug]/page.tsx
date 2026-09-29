@@ -86,6 +86,7 @@ export default function JournalPostPage() {
                   src={post.image}
                   alt={post.title}
                   fill
+                  quality={90}
                   className="object-cover"
                   sizes="(max-width: 768px) 100vw, 768px"
                   priority

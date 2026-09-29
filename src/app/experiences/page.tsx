@@ -44,8 +44,9 @@ export default function ExperiencesPage() {
           src={experiences[0]?.image ?? ""}
           alt="Private beach dining beneath the stars"
           fill
-          className="object-cover"
           priority
+          quality={90}
+          className="object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-soft-black/80 via-soft-black/40 to-transparent" />
         <Container className="relative z-10 max-w-3xl">

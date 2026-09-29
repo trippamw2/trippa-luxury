@@ -41,8 +41,9 @@ export default function AboutPage() {
           src="/images/kaya-mawa-beach-swing.jpg"
           alt="About Kivara"
           fill
-          className="object-cover"
           priority
+          quality={90}
+          className="object-cover"
           sizes="100vw"
         />
         <div className="absolute inset-0 bg-gradient-to-br from-soft-black/80 via-soft-black/60 to-gold/15" />

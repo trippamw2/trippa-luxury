@@ -43,12 +43,13 @@ export default function PackagesPage() {
     <>
       {/* Hero */}
       <section className="relative h-[60vh] min-h-[500px] w-full overflow-hidden bg-soft-black">
-                <Image
-                  src={heroImage}
-                  alt="Kivara curated journeys"
-                  fill
-          className="object-cover"
+        <Image
+          src={heroImage}
+          alt="Kivara curated journeys"
+          fill
           priority
+          quality={90}
+          className="object-cover"
           sizes="100vw"
         />
         <div className="absolute inset-0 bg-gradient-to-br from-soft-black/80 via-soft-black/60 to-gold/20" />

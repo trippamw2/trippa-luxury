@@ -30,25 +30,31 @@ interface Lead {
   inquiry_id: string | null;
 }
 
+/**
+ * Shape returned by GET /api/admin/leads.
+ * The route goes through handleGetList, which runs mapKeysToCamel, so every
+ * DB column arrives camelCased. Declaring these in snake_case made every
+ * lookup below miss and silently fall back to its default.
+ */
 interface ApiLead {
   id: string;
-  full_name?: string;
+  fullName?: string;
   email?: string;
   phone?: string;
   country?: string;
-  traveller_type?: string;
-  lead_status?: string;
+  travellerType?: string;
+  leadStatus?: string;
   priority?: string;
-  estimated_budget?: number | null;
-  preferred_start_date?: string | null;
-  assigned_to?: string | null;
-  assigned_name?: string | null;
-  last_contacted_at?: string | null;
-  next_follow_up?: string | null;
+  estimatedBudget?: number | null;
+  preferredStartDate?: string | null;
+  assignedTo?: string | null;
+  assignedName?: string | null;
+  lastContactedAt?: string | null;
+  nextFollowUp?: string | null;
   source?: string;
-  created_at?: string;
-  guest_profile_id?: string | null;
-  inquiry_id?: string | null;
+  createdAt?: string;
+  guestProfileId?: string | null;
+  inquiryId?: string | null;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -74,23 +80,23 @@ const PRIORITY_COLORS: Record<string, string> = {
 function mapApiLead(item: ApiLead): Lead {
   return {
     id: item.id,
-    full_name: item.full_name || "Unnamed Lead",
+    full_name: item.fullName || "Unnamed Lead",
     email: item.email || "",
     phone: item.phone || "",
     country: item.country || "Zambia",
-    traveller_type: item.traveller_type || "couple",
-    lead_status: item.lead_status || "new",
+    traveller_type: item.travellerType || "couple",
+    lead_status: item.leadStatus || "new",
     priority: item.priority || "medium",
-    estimated_budget: item.estimated_budget ?? null,
-    preferred_start_date: item.preferred_start_date || null,
-    assigned_to: item.assigned_to || null,
-    assigned_name: item.assigned_name || null,
-    last_contacted_at: item.last_contacted_at || null,
-    next_follow_up: item.next_follow_up || null,
+    estimated_budget: item.estimatedBudget ?? null,
+    preferred_start_date: item.preferredStartDate || null,
+    assigned_to: item.assignedTo || null,
+    assigned_name: item.assignedName || null,
+    last_contacted_at: item.lastContactedAt || null,
+    next_follow_up: item.nextFollowUp || null,
     source: item.source || "direct",
-    created_at: item.created_at || "",
-    guest_profile_id: item.guest_profile_id || null,
-    inquiry_id: item.inquiry_id || null,
+    created_at: item.createdAt || "",
+    guest_profile_id: item.guestProfileId || null,
+    inquiry_id: item.inquiryId || null,
   };
 }
 

@@ -20,20 +20,25 @@ interface Proposal {
   created_at: string;
 }
 
+/**
+ * Shape returned by GET /api/admin/proposals.
+ * Columns are camelCased by the route; customerName / journeyName are resolved
+ * server-side via the lead and journey joins.
+ */
 interface ApiProposal {
   id: string;
-  proposal_reference?: string;
+  proposalReference?: string;
   title?: string;
   status?: string;
-  total_investment?: number | null;
+  totalInvestment?: number | null;
   currency?: string;
-  sent_date?: string | null;
-  viewed_date?: string | null;
-  accepted_date?: string | null;
-  expiry_date?: string | null;
-  customer_name?: string | null;
-  journey_name?: string | null;
-  created_at?: string;
+  sentDate?: string | null;
+  viewedDate?: string | null;
+  acceptedDate?: string | null;
+  expiryDate?: string | null;
+  customerName?: string | null;
+  journeyName?: string | null;
+  createdAt?: string;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -50,18 +55,20 @@ const STATUS_COLORS: Record<string, string> = {
 function mapApi(item: ApiProposal): Proposal {
   return {
     id: item.id,
-    proposal_reference: item.proposal_reference || `PROP-${Math.floor(1000 + Math.random() * 9000)}`,
+    // Never fabricate a business identifier: the previous random PROP-####
+    // fallback rendered a plausible-looking reference that was not in the DB.
+    proposal_reference: item.proposalReference || "—",
     title: item.title || "",
     status: item.status || "draft",
-    total_investment: item.total_investment ?? null,
+    total_investment: item.totalInvestment ?? null,
     currency: item.currency || "USD",
-    sent_date: item.sent_date || null,
-    viewed_date: item.viewed_date || null,
-    accepted_date: item.accepted_date || null,
-    expiry_date: item.expiry_date || null,
-    customer_name: item.customer_name || null,
-    journey_name: item.journey_name || null,
-    created_at: item.created_at || "",
+    sent_date: item.sentDate || null,
+    viewed_date: item.viewedDate || null,
+    accepted_date: item.acceptedDate || null,
+    expiry_date: item.expiryDate || null,
+    customer_name: item.customerName || null,
+    journey_name: item.journeyName || null,
+    created_at: item.createdAt || "",
   };
 }
 

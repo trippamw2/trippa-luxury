@@ -14,15 +14,20 @@ interface ItineraryItem {
   created_at: string;
 }
 
+/**
+ * Shape returned by GET /api/admin/itinerary. Columns are camelCased by the
+ * route; clientName / journeyName are resolved server-side via journey -> lead.
+ * Rows are day-level items, so there is no date range.
+ */
 interface ApiItinerary {
   id: string;
   title?: string;
-  client_name?: string;
-  status?: string;
-  start_date?: string;
-  end_date?: string;
+  clientName?: string | null;
+  journeyName?: string | null;
+  date?: string | null;
   destination?: string;
-  created_at?: string;
+  bookingStatus?: string;
+  createdAt?: string;
 }
 
 /** Pure API -> view-model mapper. Module scope keeps its identity stable across renders. */
@@ -30,12 +35,14 @@ function mapApi(item: ApiItinerary): ItineraryItem {
   return {
     id: item.id,
     title: item.title || "Untitled Itinerary",
-    client_name: item.client_name || "",
-    status: item.status || "active",
-    start_date: item.start_date || "",
-    end_date: item.end_date || "",
+    client_name: item.clientName || "",
+    // booking_status is the real column; its values are pending/confirmed/cancelled.
+    status: item.bookingStatus || "pending",
+    start_date: item.date || "",
+    // itinerary_items has no end-date column - a row covers a single day.
+    end_date: "",
     destination: item.destination || "",
-    created_at: item.created_at || "",
+    created_at: item.createdAt || "",
   };
 }
 

@@ -108,6 +108,10 @@ function mapTourToApi(item: Partial<Tour>): Record<string, unknown> {
     hero_image: item.image,
     included: item.inclusions,
     excluded: item.exclusions,
+    // Backed by migration 027 - these were previously dropped on save.
+    meeting_point: item.meetingPoint,
+    group_size: item.groupSize,
+    itinerary: item.itinerary,
   };
 }
 
@@ -164,6 +168,8 @@ export default function AdminTours() {
       itinerary: formData.itinerary.filter(i => i.title),
       inclusions: formData.inclusions.split(",").map(i => i.trim()).filter(Boolean),
       exclusions: formData.exclusions.split(",").map(e => e.trim()).filter(Boolean),
+      meetingPoint: formData.meetingPoint,
+      groupSize: formData.groupSize,
     });
     if (result) {
       setShowModal(false);
@@ -185,6 +191,8 @@ export default function AdminTours() {
       itinerary: formData.itinerary.filter(i => i.title),
       inclusions: formData.inclusions.split(",").map(i => i.trim()).filter(Boolean),
       exclusions: formData.exclusions.split(",").map(e => e.trim()).filter(Boolean),
+      meetingPoint: formData.meetingPoint,
+      groupSize: formData.groupSize,
     });
     if (result) {
       setEditingTour(null);

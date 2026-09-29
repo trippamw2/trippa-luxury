@@ -5,17 +5,30 @@ import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 
 const TABLE = "suppliers";
 
-const SELECT_WITH_CATEGORY = "*, supplier_categories!left(slug, name)";
+/**
+ * category: raw FK is category_id; the UI shows the category slug (join).
+ * bookingsCount / totalRevenue are not columns - they are aggregates over
+ * booking_suppliers (count + sum of cost), computed from the embedded rows.
+ */
+const SELECT_WITH_CATEGORY = "*, supplier_categories!left(slug, name), booking_suppliers(cost)";
 
 type SupplierRow = Record<string, unknown> & {
   supplier_categories?: { slug?: string; name?: string } | null;
+  booking_suppliers?: { cost?: number | string | null }[] | null;
 };
 
 function mapRow(item: SupplierRow) {
   const mapped = mapKeysToCamel(item);
+  const supplierBookings = item.booking_suppliers ?? [];
+  const totalRevenue = supplierBookings.reduce(
+    (sum, booking) => sum + (Number(booking.cost) || 0),
+    0,
+  );
   return {
     ...mapped,
     category: item.supplier_categories?.slug || "lodge",
+    bookingsCount: supplierBookings.length,
+    totalRevenue,
   };
 }
 

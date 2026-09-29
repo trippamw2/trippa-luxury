@@ -14,7 +14,23 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const body = await request.json();
-  return handleUpdate(TABLE, id, body, request);
+  // The admin form always sends email, but admin_profiles has no email
+  // column - handleUpdate would fail with 42703. Email changes are not
+  // supported here, so drop it before the profile update.
+  delete body.email;
+  const res = await handleUpdate(TABLE, id, body, request);
+  // admin_profiles has no email column, and the admin list replaces its row
+  // with this response - re-attach the email from auth so it cannot blank out.
+  if (!res.ok) return res;
+  try {
+    const json = await res.json();
+    const supabase = createAdminClient();
+    const { data: authData } = await supabase.auth.admin.getUserById(id);
+    return NextResponse.json({ ...json, email: authData?.user?.email ?? "" }, { status: res.status });
+  } catch (err) {
+    console.error("Enriching admin profile update with email failed:", err);
+    return res;
+  }
 }
 
 /**

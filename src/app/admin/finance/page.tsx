@@ -74,6 +74,9 @@ interface ApiTransaction {
 interface ApiInvoice {
   id?: string | null;
   invoiceNumber?: string | null;
+  /** Resolved server-side from the related booking (invoices has no client column). */
+  clientName?: string | null;
+  bookingReference?: string | null;
   client?: string | null;
   bookingId?: string | null;
   totalAmount?: number | null;
@@ -140,7 +143,10 @@ function mapTransToApi(item: Partial<Transaction>): TransactionApiPayload {
 
 function mapInv(item: ApiInvoice): Invoice {
   return {
-    id: item.id || "", number: item.invoiceNumber || "", client: item.client || item.bookingId || "",
+    id: item.id || "", number: item.invoiceNumber || "",
+    // Prefer the joined client name; booking_reference is a human-readable
+    // identifier; the raw booking UUID is a last resort only.
+    client: item.clientName || item.client || item.bookingReference || item.bookingId || "",
     amount: item.totalAmount || item.amount || 0, status: item.status || "draft",
     dueDate: item.dueDate || "", items: (item.lineItems || []).map(li => li.description || ""),
   };

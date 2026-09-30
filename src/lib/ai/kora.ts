@@ -353,7 +353,7 @@ function detectExpiredProposals(m: KoraMetrics, t: KoraThresholds): GapFinding |
         "Close expired proposals explicitly and trigger a re-pricing pass, rather than leaving them to be revived ad hoc when a client re-engages.",
       implementationPlan:
         "1. Mark expired proposals expired on a daily schedule. 2. Re-price on re-engagement. 3. Track expiry-to-revival rate as a pricing-accuracy signal.",
-      expectedRoi: "Proterves delivery integrity and turns expiry data into a pricing-accuracy signal.",
+      expectedRoi: "Protects delivery integrity and turns expiry data into a pricing-accuracy signal.",
       risk: "Medium. Touches commercial records; must not auto-resend anything to a client.",
     },
     evidence

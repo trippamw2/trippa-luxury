@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
   CANONICAL_EVENT_TYPES,
+  OPERATIONAL_EVENT_TYPES,
   appendEvent,
   buildEventRow,
   createEventReader,
   isCanonicalEventType,
   isEventActorType,
+  isOperationalEventType,
+  isSystemEventType,
   newCorrelationId,
   normalizeUuid,
   parseEventRow,
@@ -113,6 +116,56 @@ describe("canonical event vocabulary", () => {
     expect(isCanonicalEventType("")).toBe(false);
     expect(isCanonicalEventType(null)).toBe(false);
     expect(isCanonicalEventType(7)).toBe(false);
+  });
+});
+
+describe("operational event vocabulary", () => {
+  it("contains exactly the three internal types", () => {
+    expect(OPERATIONAL_EVENT_TYPES).toHaveLength(3);
+    expect(new Set(OPERATIONAL_EVENT_TYPES).size).toBe(3);
+    expect([...OPERATIONAL_EVENT_TYPES].sort()).toEqual([
+      "AUTONOMY_ESCALATED",
+      "GAP_DETECTED",
+      "INSIGHT_RECORDED",
+    ]);
+  });
+
+  it("recognises every operational type", () => {
+    for (const t of OPERATIONAL_EVENT_TYPES) expect(isOperationalEventType(t)).toBe(true);
+  });
+
+  it("keeps the operational set disjoint from the canonical set", () => {
+    // An overlap would make the two guards indistinguishable and hide a typo
+    // in whichever list it landed in.
+    for (const t of OPERATIONAL_EVENT_TYPES) expect(isCanonicalEventType(t)).toBe(false);
+    for (const t of CANONICAL_EVENT_TYPES) expect(isOperationalEventType(t)).toBe(false);
+  });
+
+  it("rejects unknown or mis-cased operational types", () => {
+    expect(isOperationalEventType("gap_detected")).toBe(false);
+    expect(isOperationalEventType("SOMETHING_NEW")).toBe(false);
+    expect(isOperationalEventType("")).toBe(false);
+    expect(isOperationalEventType(null)).toBe(false);
+    expect(isOperationalEventType(7)).toBe(false);
+  });
+});
+
+describe("isSystemEventType", () => {
+  it("accepts the union of both vocabularies", () => {
+    for (const t of [...CANONICAL_EVENT_TYPES, ...OPERATIONAL_EVENT_TYPES]) {
+      expect(isSystemEventType(t)).toBe(true);
+    }
+    // The exact count guards against a type being added to one list only.
+    expect(CANONICAL_EVENT_TYPES.length + OPERATIONAL_EVENT_TYPES.length).toBe(18);
+  });
+
+  it("rejects anything outside both vocabularies", () => {
+    expect(isSystemEventType("SOMETHING_NEW")).toBe(false);
+    expect(isSystemEventType("gap_detected")).toBe(false);
+    expect(isSystemEventType("")).toBe(false);
+    expect(isSystemEventType(null)).toBe(false);
+    expect(isSystemEventType(7)).toBe(false);
+    expect(isSystemEventType(undefined)).toBe(false);
   });
 });
 
@@ -241,8 +294,27 @@ describe("parseEventRow", () => {
     expect(parsed?.payload).toEqual({ source: "website" });
   });
 
-  it("drops a row whose event type is not canonical", () => {
+  it("accepts an operational event type, not just a canonical one", () => {
+    const parsed = parseEventRow(rawRow({ event_type: "GAP_DETECTED" }));
+    expect(parsed).not.toBeNull();
+    expect(parsed?.eventType).toBe("GAP_DETECTED");
+  });
+
+  it("carries an operational event through the write and read paths unchanged", () => {
+    expect(isSystemEventType("AUTONOMY_ESCALATED")).toBe(true);
+    // The write path must not emit a type the read path would then drop.
+    const row = buildEventRow({
+      eventType: "AUTONOMY_ESCALATED",
+      entityType: "decision",
+      payload: { reason: "consequential_action_class" },
+    });
+    expect(row.event_type).toBe("AUTONOMY_ESCALATED");
+    expect(parseEventRow({ ...row, id: A_UUID })?.eventType).toBe("AUTONOMY_ESCALATED");
+  });
+
+  it("drops a row whose event type is outside both vocabularies", () => {
     expect(parseEventRow(rawRow({ event_type: "TOTALLY_MADE_UP" }))).toBeNull();
+    expect(parseEventRow(rawRow({ event_type: "gap_detected" }))).toBeNull();
     expect(parseEventRow(rawRow({ event_type: null }))).toBeNull();
   });
 

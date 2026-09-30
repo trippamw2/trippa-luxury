@@ -34,7 +34,14 @@ import { createAdminClient } from "@/lib/supabase/admin";
  * that rejects a new event type is a log that will be worked around, and the
  * whole point of the stream is to record what actually happened.
  */
-export type SystemEventType =
+/**
+ * The canonical event vocabulary (migration 028, §1): the fifteen events that
+ * describe a guest journey. Deliberately enforced here in TypeScript and NOT by
+ * a SQL CHECK constraint — an append-only log that rejects a new event type is a
+ * log that will be worked around, and the whole point of the stream is to
+ * record what actually happened.
+ */
+export type CanonicalEventType =
   | "ENQUIRY_CREATED"
   | "CLIENT_PROFILED"
   | "JOURNEY_DESIGNED"
@@ -51,7 +58,17 @@ export type SystemEventType =
   | "CLIENT_FEEDBACK_RECEIVED"
   | "JOURNEY_LEARNED";
 
-export const CANONICAL_EVENT_TYPES: readonly SystemEventType[] = [
+/**
+ * Operational events: the company auditing and governing itself. Separate from
+ * the canonical fifteen because these describe KIVARA's internal life rather
+ * than a guest's, and conflating the two would make "what happened to this
+ * client" impossible to read.
+ */
+export type OperationalEventType = "GAP_DETECTED" | "INSIGHT_RECORDED" | "AUTONOMY_ESCALATED";
+
+export type SystemEventType = CanonicalEventType | OperationalEventType;
+
+export const CANONICAL_EVENT_TYPES: readonly CanonicalEventType[] = [
   "ENQUIRY_CREATED",
   "CLIENT_PROFILED",
   "JOURNEY_DESIGNED",
@@ -69,8 +86,23 @@ export const CANONICAL_EVENT_TYPES: readonly SystemEventType[] = [
   "JOURNEY_LEARNED",
 ] as const;
 
-export function isCanonicalEventType(value: unknown): value is SystemEventType {
+export const OPERATIONAL_EVENT_TYPES: readonly OperationalEventType[] = [
+  "GAP_DETECTED",
+  "INSIGHT_RECORDED",
+  "AUTONOMY_ESCALATED",
+] as const;
+
+export function isCanonicalEventType(value: unknown): value is CanonicalEventType {
   return typeof value === "string" && (CANONICAL_EVENT_TYPES as readonly string[]).includes(value);
+}
+
+export function isOperationalEventType(value: unknown): value is OperationalEventType {
+  return typeof value === "string" && (OPERATIONAL_EVENT_TYPES as readonly string[]).includes(value);
+}
+
+/** Accepts the whole vocabulary, canonical plus operational. */
+export function isSystemEventType(value: unknown): value is SystemEventType {
+  return isCanonicalEventType(value) || isOperationalEventType(value);
 }
 
 /** Mirrors the `system_events_actor_type_check` constraint exactly. */
@@ -183,7 +215,10 @@ export function parseEventRow(raw: unknown): SystemEventRow | null {
   if (typeof raw !== "object" || raw === null) return null;
   const r = raw as Record<string, unknown>;
 
-  if (!isCanonicalEventType(r.event_type)) return null;
+  // Accepts the full vocabulary, not just the canonical fifteen: an event the
+  // company wrote about itself must survive the round trip just as a guest
+  // journey event does.
+  if (!isSystemEventType(r.event_type)) return null;
   if (typeof r.entity_type !== "string" || r.entity_type === "") return null;
 
   const actorType = isEventActorType(r.actor_type) ? r.actor_type : "system";

@@ -8,6 +8,7 @@
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { callLlmJson } from "./llm";
+import { normalizeUuid } from "./uuid";
 
 export interface SupplierScoreDimensions {
   luxury: number; // 0–10
@@ -227,3 +228,147 @@ export class SupplierIntelligence {
 }
 
 export const supplierIntelligence = new SupplierIntelligence();
+
+// ─── Append-only performance ledger ─────────────────────────────────────────
+
+/** A subset of the `supplier_performance_observation_type_check` vocabulary. */
+export type SupplierObservationType =
+  | "booking"
+  | "issue"
+  | "complaint"
+  | "praise"
+  | "delay"
+  | "cancellation"
+  | "cost_variance"
+  | "satisfaction"
+  | "manual_review";
+
+/** The snake_case shape sent to the `supplier_performance` insert. */
+export interface SupplierPerformanceInsertRow {
+  supplier_id: string;
+  observation_type: SupplierObservationType;
+  responsiveness_score: number;
+  reliability_score: number;
+  quality_score: number;
+  /** Never observed by a table read. Stays null rather than being inferred. */
+  on_time_score: null;
+  client_satisfaction: null;
+  issue_severity: number;
+  notes: string | null;
+  source: "system" | "agent" | "human";
+}
+
+/** Dimensions are scored 0–10; the ledger columns are constrained to 0–100. */
+function toHundred(v: number): number {
+  if (!Number.isFinite(v)) return 0;
+  return Math.max(0, Math.min(100, Math.round(v * 10)));
+}
+
+/** For values already expressed on the 0–100 scale, such as `overall`. */
+function clampHundred(v: number): number {
+  if (!Number.isFinite(v)) return 0;
+  return Math.max(0, Math.min(100, Math.round(v)));
+}
+
+/**
+ * Map a scored supplier onto a `supplier_performance` row. Pure, so the
+ * column constraints and the honesty rules are testable without a database.
+ *
+ * Returns null when `supplier.id` is not a UUID: the column is a FK to
+ * `suppliers.id`, and a slug id would turn a clean skip into an FK violation.
+ *
+ * The observation type is `manual_review`, not `satisfaction`. A score computed
+ * from the suppliers table reads documented quality signals — rating, contract,
+ * insurance, certifications — and has observed no delivery at all. Recording it
+ * as `satisfaction` would assert a service outcome that never happened, which
+ * is precisely what this ledger must not contain. For the same reason
+ * `on_time_score` and `client_satisfaction` are left null: the schema documents
+ * NULL as "not observed, never guessed", and a score derived from static rows
+ * observed neither punctuality nor satisfaction.
+ */
+export function buildSupplierPerformanceRow(
+  supplier: ScoredSupplier
+): SupplierPerformanceInsertRow | null {
+  const supplierId = normalizeUuid(supplier.id);
+  if (supplierId === null) return null;
+
+  const notes = [
+    supplier.score.strengths.length ? `Strengths: ${supplier.score.strengths.join("; ")}` : null,
+    supplier.score.concerns.length ? `Concerns: ${supplier.score.concerns.join("; ")}` : null,
+  ]
+    .filter((n): n is string => n !== null)
+    .join(". ");
+
+  return {
+    supplier_id: supplierId,
+    observation_type: "manual_review",
+    responsiveness_score: toHundred(supplier.score.dimensions.responsiveness),
+    reliability_score: toHundred(supplier.score.dimensions.reliability),
+    quality_score: clampHundred(supplier.score.overall),
+    on_time_score: null,
+    client_satisfaction: null,
+    issue_severity: 0,
+    notes: notes || null,
+    source: "agent",
+  };
+}
+
+export interface SupplierPerformanceSink {
+  // PromiseLike, not Promise: the Supabase builder is a thenable, so declaring
+  // Promise would make the real client structurally unassignable here.
+  insert(row: SupplierPerformanceInsertRow): PromiseLike<{ error: { message: string } | null }>;
+}
+
+export interface SupplierPerformanceOutcome {
+  ok: boolean;
+  action: "recorded" | "skipped";
+  row: SupplierPerformanceInsertRow | null;
+  error: string | null;
+}
+
+export function createSupabaseSupplierPerformanceSink(): SupplierPerformanceSink {
+  // Built inline rather than through a structural adapter: matching Supabase's
+  // deeply generic client trips an excessively deep type instantiation. Env is
+  // read here, never at module load, so importing this module in a build or
+  // test without env vars does not throw.
+  const supabase = createAdminClient();
+  return {
+    insert: async (row) => {
+      const { error } = await supabase.from("supplier_performance").insert(row);
+      return { error: error ? { message: error.message } : null };
+    },
+  };
+}
+
+let cachedPerformanceSink: SupplierPerformanceSink | null = null;
+
+function defaultPerformanceSink(): SupplierPerformanceSink {
+  if (!cachedPerformanceSink) cachedPerformanceSink = createSupabaseSupplierPerformanceSink();
+  return cachedPerformanceSink;
+}
+
+/**
+ * Append the supplier's appraisal to the immutable performance ledger.
+ *
+ * Never throws and never rejects, matching `recordEvent` and `recordQcDecision`:
+ * losing an institutional-memory write must not fail the scoring run that
+ * produced it. The table is append-only, so a failed write leaves no partial
+ * state to clean up — only a missing entry, reported as data for the caller.
+ */
+export async function recordSupplierPerformance(
+  supplier: ScoredSupplier,
+  sink: SupplierPerformanceSink = defaultPerformanceSink()
+): Promise<SupplierPerformanceOutcome> {
+  const probe = buildSupplierPerformanceRow(supplier);
+  if (probe === null) {
+    return { ok: true, action: "skipped", row: null, error: null };
+  }
+
+  try {
+    const { error } = await sink.insert(probe);
+    return { ok: error === null, action: "recorded", row: probe, error: error?.message ?? null };
+  } catch (cause) {
+    const message = cause instanceof Error ? cause.message : String(cause);
+    return { ok: false, action: "skipped", row: probe, error: message };
+  }
+}

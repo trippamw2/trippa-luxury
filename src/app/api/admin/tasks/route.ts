@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    createAuditLog({
+    await createAuditLog({
       tableName: TABLE,
       recordId: task.id,
       action: "CREATE",

@@ -72,7 +72,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     }
 
     // Audit log
-    createAuditLog({
+    await createAuditLog({
       tableName: TABLE,
       recordId: id,
       action: "DELETE",

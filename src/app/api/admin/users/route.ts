@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
     }
 
     // ── 3. Audit log ─────────────────────────────────────────────────
-    createAuditLog({
+    await createAuditLog({
       tableName: TABLE,
       recordId: data?.id,
       action: "CREATE",

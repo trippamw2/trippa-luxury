@@ -79,7 +79,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    createAuditLog({
+    await createAuditLog({
       tableName: TABLE,
       recordId: id,
       action: "UPDATE",
@@ -141,7 +141,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    createAuditLog({
+    await createAuditLog({
       tableName: TABLE,
       recordId: id,
       action: "DELETE",

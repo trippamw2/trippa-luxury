@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     if (signInError || !user) {
       loginRateLimiter.recordFailure(ip);
 
-      createAuditLog({
+      await createAuditLog({
         tableName: "admin_profiles",
         action: "LOGIN_FAILED",
         newData: { email, ipAddress: ip },
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
       await supabase.auth.signOut();
       loginRateLimiter.recordFailure(ip);
 
-      createAuditLog({
+      await createAuditLog({
         tableName: "admin_profiles",
         action: "LOGIN_FAILED",
         newData: { email, userId: user.id, ipAddress: ip, reason: "not_staff_or_inactive" },
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
 
     const effectiveRole = resolveEffectiveRole(profile.role, undefined, profile.permissions);
 
-    createAuditLog({
+    await createAuditLog({
       tableName: "admin_profiles",
       action: "LOGIN_SUCCESS",
       recordId: profile.id,

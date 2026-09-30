@@ -258,7 +258,7 @@ export async function handleCreate(
     }
 
     // Audit log
-    createAuditLog({
+    await createAuditLog({
       tableName: table,
       recordId: data?.id,
       action: "CREATE",
@@ -314,7 +314,7 @@ export async function handleUpdate(
     }
 
     // Audit log
-    createAuditLog({
+    await createAuditLog({
       tableName: table,
       recordId: id,
       action: "UPDATE",
@@ -361,7 +361,7 @@ export async function handleDelete(
     }
 
     // Audit log
-    createAuditLog({
+    await createAuditLog({
       tableName: table,
       recordId: id,
       action: "DELETE",

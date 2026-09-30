@@ -80,7 +80,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    createAuditLog({
+    await createAuditLog({
       tableName: TABLE,
       action: "DELETE",
       oldData: sanitizeForAudit({ id: existing.id, email: existing.email }),
@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    createAuditLog({
+    await createAuditLog({
       tableName: TABLE,
       action: "CAMPAIGN_SEND",
       newData: sanitizeForAudit({ subject, recipients: sent }),

@@ -115,7 +115,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     // Audit log
-    createAuditLog({
+    await createAuditLog({
       tableName: TABLE,
       recordId: id,
       action: "UPDATE",

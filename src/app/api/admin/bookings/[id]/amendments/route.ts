@@ -79,7 +79,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    createAuditLog({
+    await createAuditLog({
       tableName: "booking_amendments",
       recordId: amendment.id,
       action: "CREATE",

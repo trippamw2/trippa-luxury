@@ -26,14 +26,13 @@
 //      payload instead of corrupting the column.
 
 import { coerceAutonomyLevel, type AutonomyLevel } from "./autonomy-policy";
+import { normalizeUuid } from "./uuid";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-/**
- * The canonical event vocabulary (migration 028, §1). Deliberately enforced
- * here in TypeScript and NOT by a SQL CHECK constraint: an append-only log
- * that rejects a new event type is a log that will be worked around, and the
- * whole point of the stream is to record what actually happened.
- */
+// Re-exported so existing importers of the bus keep a stable public surface;
+// the implementation is shared with every other UUID-column writer.
+export { normalizeUuid };
+
 /**
  * The canonical event vocabulary (migration 028, §1): the fifteen events that
  * describe a guest journey. Deliberately enforced here in TypeScript and NOT by
@@ -163,15 +162,6 @@ export interface EventInput {
   /** The authority this event was emitted at. */
   autonomyLevel?: AutonomyLevel;
   humanReviewed?: boolean;
-}
-
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-/** Return the value only if it is a real UUID, else null. Never throws. */
-export function normalizeUuid(value: unknown): string | null {
-  if (typeof value !== "string") return null;
-  const trimmed = value.trim();
-  return UUID_PATTERN.test(trimmed) ? trimmed.toLowerCase() : null;
 }
 
 export function newCorrelationId(): string {

@@ -86,6 +86,7 @@ const NAV_ITEMS = [
   { label: "Marketing", href: "/admin/marketing", module: "marketing" },
   { label: "Media Library", href: "/admin/media", module: "media" },
   // ── Intelligence ────────────────────────────────────────────────────
+  { label: "Mission Control", href: "/admin/mission-control", module: "mission-control" },
   { label: "Market Intelligence", href: "/admin/intelligence", module: "analytics" },
   { label: "Platform Health", href: "/admin/platform-intelligence", module: "analytics" },
   { label: "AI Lab", href: "/admin/ai-lab", module: "analytics" },

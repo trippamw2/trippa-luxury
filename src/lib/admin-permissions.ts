@@ -42,6 +42,11 @@ export const MODULE_MIN_ROLE: Record<string, AdminRole> = {
   users: "admin",
   settings: "admin",
   "audit-log": "admin",
+  // Mission Control is where level-4 human authorizations are granted:
+  // financial commitments, supplier contracts and rejections that block a
+  // send. It must be listed explicitly. An unlisted module falls back to
+  // "editor", which would let an editor approve consequential decisions.
+  "mission-control": "admin",
 };
 
 export function isRecord(value: unknown): value is Record<string, unknown> {

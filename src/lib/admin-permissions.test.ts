@@ -23,6 +23,14 @@ describe("admin permissions", () => {
       adminOnly.forEach((m) => expect(MODULE_MIN_ROLE[m]).toBe("admin"));
     });
 
+    it("keeps mission-control admin-only", () => {
+      // Reviewing an item here can release a financial or supplier commitment,
+      // which is level 4 in every case. If this module were ever dropped from
+      // the map it would silently inherit the "editor" default below, which is
+      // precisely the wrong answer for this surface.
+      expect(MODULE_MIN_ROLE["mission-control"]).toBe("admin");
+    });
+
     it("lets agents manage guest-facing modules", () => {
       ["dashboard", "bookings", "inquiries", "guest-profiles", "tasks"].forEach((m) =>
         expect(MODULE_MIN_ROLE[m]).toBe("agent")
@@ -115,6 +123,21 @@ describe("admin permissions", () => {
       expect(isModuleAllowed("admin", {}, "custom_module")).toBe(true);
       expect(isModuleAllowed("editor", {}, "custom_module")).toBe(true);
       expect(isModuleAllowed("agent", {}, "custom_module")).toBe(false);
+    });
+
+    it("refuses mission-control to editors and agents", () => {
+      // The distinction that matters: an unlisted module defaults to "editor",
+      // so the omission of this entry would have handed editors the ability to
+      // authorize level-4 commitments. Asserted per-role rather than once, so
+      // a future default change cannot quietly reopen it.
+      expect(isModuleAllowed("admin", {}, "mission-control")).toBe(true);
+      expect(isModuleAllowed("editor", {}, "mission-control")).toBe(false);
+      expect(isModuleAllowed("agent", {}, "mission-control")).toBe(false);
+    });
+
+    it("still honours an explicit override on mission-control", () => {
+      expect(isModuleAllowed("admin", { "mission-control": false }, "mission-control")).toBe(false);
+      expect(isModuleAllowed("agent", { "mission-control": "admin" }, "mission-control")).toBe(true);
     });
   });
 });

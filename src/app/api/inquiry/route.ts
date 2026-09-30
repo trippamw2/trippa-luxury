@@ -6,7 +6,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail, newInquiryEmail, inquiryConfirmationEmail } from "@/lib/email";
-import { guestProfiler } from "@/lib/ai/guest-profiler";
+import { guestProfiler, persistClientDna, type ProfiledGuest } from "@/lib/ai/guest-profiler";
 import { logInteraction } from "@/lib/ai/customer-intelligence";
 import { workflowPersistence } from "@/lib/workflow-persistence";
 
@@ -54,6 +54,9 @@ export async function POST(request: Request) {
     } | null = null;
     let aiLeadScore: { score: number; tier: string } | null = null;
     let aiWorkflow: { id: string } | null = null;
+    // Held beyond the AI block because Client DNA can only be written once the
+    // `guest_profiles.id` UUID exists, and that is resolved in the CRM step.
+    let profiledGuest: ProfiledGuest | null = null;
     try {
       const profile = await guestProfiler.llmProfile({
         fullName,
@@ -65,6 +68,7 @@ export async function POST(request: Request) {
         guests: guests || 2,
       });
 
+      profiledGuest = profile;
       aiProfile = {
         id: profile.id,
         isCouple: profile.isCouple,
@@ -186,6 +190,20 @@ export async function POST(request: Request) {
             body: message || "Inquiry via website",
             relatedInquiryId: inquiry?.id,
           });
+        }
+
+        // Persist the profile as this guest's active Client DNA — the memory
+        // every later AI step reads. Version bumps on re-profile, and
+        // `persistClientDna` never throws, so a lost write cannot fail the
+        // inquiry that produced it.
+        if (profiledGuest && guestProfileId) {
+          const dna = await persistClientDna(profiledGuest, {
+            leadId: null,
+            guestProfileId,
+          });
+          if (!dna.ok) {
+            console.error("Client DNA not persisted:", dna.error);
+          }
         }
       }
     } catch (crmError) {

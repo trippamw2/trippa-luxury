@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { quoteEngine } from "@/lib/ai/quote-engine";
-import { runQualityGate } from "@/lib/ai/quality-gate";
+import { runQualityGate, recordQcDecision } from "@/lib/ai/quality-gate";
 import { sendEmail } from "@/lib/email";
 import { persistQuote } from "@/lib/services/quote-persistence";
 import { generateQuotePDFBuffer } from "@/lib/documents/quote-pdf";
@@ -24,6 +24,19 @@ export async function POST(request: NextRequest) {
 
     // 2. Run the Quality Control gate — never send a broken/incoherent proposal.
     const qc = runQualityGate(quote.journey, quote.depositRequired);
+
+    // 2a. Persist the verdict BEFORE acting on it, so a blocked send is durable
+    // evidence too. `recordQcDecision` never throws: losing the history write
+    // must not change whether we send.
+    const qcRecord = await recordQcDecision({
+      verdict: qc,
+      journeyTitle: quote.journey.title,
+      journeyId: quote.journey.id,
+    });
+    if (!qcRecord.ok) {
+      console.error("Quality gate decision not persisted:", qcRecord.error);
+    }
+
     if (!qc.ok) {
       return NextResponse.json(
         {

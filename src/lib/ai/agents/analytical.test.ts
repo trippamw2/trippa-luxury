@@ -1,11 +1,15 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import {
   ANALYTICAL_AGENTS,
   analyticalAgentNames,
   isAnalyticalAgent,
   runAllAnalyticalAgents,
+  runAnalyticalAgent,
   type AnalyticalAgentName,
 } from "@/lib/ai/agents";
+import { SNAPSHOT_TABLES } from "@/lib/ai/capabilities/data";
 import type {
   AgentReport,
   GuestFact,
@@ -123,6 +127,7 @@ function snapshot(over: Partial<PlatformSnapshot> = {}): PlatformSnapshot {
       convertedInquiries: 0,
     },
     guests: [],
+    readFailures: [],
     ...over,
   };
 }
@@ -413,5 +418,127 @@ describe("runner typing", () => {
   it("accepts a narrowed agent name", () => {
     const name: AnalyticalAgentName = "itinerary-verification";
     expect(analyticalAgentNames()).toContain(name);
+  });
+});
+
+// ─── Evidence honesty ─────────────────────────────────────────────────────────
+// The layer's central claim is that a report never cites a table it did not read.
+// Two independent ways that claim can be false:
+//
+//   1. citing a table outside the snapshot (caught below, against SNAPSHOT_TABLES)
+//   2. citing a table whose read actually failed (caught by the read-failure suite)
+//
+// Both were live defects while this layer was being written: accommodation-agent
+// cited `properties`, which the snapshot never reads. These tests exist so that
+// class of bug fails the build instead of reaching a founder-facing briefing.
+
+describe("evidence honesty", () => {
+  it("no report cites a table the snapshot does not read", () => {
+    const reports = runAllAnalyticalAgents(populated());
+    const read = new Set<string>(SNAPSHOT_TABLES);
+
+    for (const [name, r] of Object.entries(reports)) {
+      for (const entry of r.evidenceBasis) {
+        const match = /^postgres:(.+)$/.exec(entry);
+        if (!match) continue;
+        expect(
+          read.has(match[1]),
+          `${name} cites postgres:${match[1]}, which readPlatformSnapshot never reads`
+        ).toBe(true);
+      }
+    }
+  });
+
+  it("reads no table outside the declared snapshot set", () => {
+    // Guards the two sides of the contract against drifting apart: if a future
+    // read is added without updating SNAPSHOT_TABLES, this fails.
+    const source = readFileSync(
+      join(process.cwd(), "src/lib/ai/capabilities/data.ts"),
+      "utf8"
+    );
+    const readTables = new Set(
+      [...source.matchAll(/supabase\s*\.\s*from\("([a-z_]+)"\)/g)].map((m) => m[1])
+    );
+    expect(readTables.size).toBeGreaterThan(0);
+    for (const table of readTables) {
+      expect(
+        (SNAPSHOT_TABLES as readonly string[]).includes(table),
+        `data.ts reads "${table}" but SNAPSHOT_TABLES does not declare it`
+      ).toBe(true);
+    }
+  });
+});
+
+describe("failed reads are reported as unavailable, never as empty", () => {
+  // The dangerous case: a read errors, degrades to [], and the agent reports
+  // "revenue 0 / zero bookings" while citing postgres:bookings as evidence.
+  // The platform would be inventing a fact about itself.
+
+  const broken = snapshot({
+    readFailures: [{ table: "bookings", reason: "permission denied for schema bookings" }],
+  });
+
+  it("removes the failed table from evidenceBasis on every affected report", () => {
+    const reports = runAllAnalyticalAgents(broken);
+    for (const [name, r] of Object.entries(reports)) {
+      expect(
+        r.evidenceBasis,
+        `${name} still cites postgres:bookings after that read failed`
+      ).not.toContain("postgres:bookings");
+    }
+  });
+
+  it("names the failure in unavailableInputs so the absence is legible", () => {
+    const reports = runAllAnalyticalAgents(broken);
+    const mentioning = Object.values(reports).filter((r) =>
+      r.unavailableInputs.some((u) => u.includes("postgres:bookings"))
+    );
+    expect(mentioning.length).toBeGreaterThan(0);
+    for (const r of mentioning) {
+      expect(
+        r.unavailableInputs.some((u) => u.includes("permission denied for schema bookings"))
+      ).toBe(true);
+    }
+  });
+
+  it("downgrades dataAvailability so a broken read cannot read as full", () => {
+    const reports = runAllAnalyticalAgents(broken);
+    for (const r of Object.values(reports)) {
+      if (r.unavailableInputs.some((u) => u.startsWith("postgres:"))) {
+        expect(r.dataAvailability).not.toBe("full");
+      }
+    }
+  });
+
+  it("leaves reports untouched when no read failed", () => {
+    const reports = runAllAnalyticalAgents(populated());
+    for (const r of Object.values(reports)) {
+      expect(r.unavailableInputs.some((u) => u.startsWith("postgres:"))).toBe(false);
+    }
+  });
+
+  it("reconciling a clean report is a no-op, not a downgrade", () => {
+    // strategist legitimately reports `partial` on a healthy snapshot because it
+    // has no competitor or market-price source. Reconciliation must not touch that:
+    // it only ever reacts to read failures, never to an agent's own honest gaps.
+    const clean = populated();
+    const raw = ANALYTICAL_AGENTS.strategist(clean);
+    const reconciled = runAnalyticalAgent("strategist", clean);
+
+    expect(reconciled).toEqual(raw);
+    expect(reconciled.unavailableInputs.some((u) => u.startsWith("postgres:"))).toBe(false);
+  });
+
+  it("a snapshot whose only read failed reports unavailable, not full", () => {
+    // Every table failed: there is no evidence at all, so nothing may claim to
+    // be operating on real data.
+    const allFailed = snapshot({
+      readFailures: SNAPSHOT_TABLES.map((table) => ({ table, reason: "upstream timeout" })),
+    });
+    const reports = runAllAnalyticalAgents(allFailed);
+    for (const r of Object.values(reports)) {
+      expect(r.evidenceBasis.filter((e) => e.startsWith("postgres:"))).toHaveLength(0);
+      expect(r.dataAvailability).toBe("unavailable");
+    }
   });
 });

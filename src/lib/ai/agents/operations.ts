@@ -1,10 +1,10 @@
-// Operations department (Master OS §8).
+// Operations department (Master OS Â§8).
 //
 // Ten agents: supplier-agent, booking-coordinator, transfer-agent,
 // accommodation-agent, safari-ops, activity-coordinator, guest-experience,
 // travel-docs, itinerary-verification, emergency-coordinator.
 //
-// ── WHY THIS DEPARTMENT IS THE DANGEROUS ONE ────────────────────────────────────
+// â”€â”€ WHY THIS DEPARTMENT IS THE DANGEROUS ONE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // The other departments produce recommendations that a founder can disagree with
 // at no cost. These ten produce verdicts about whether a real guest's journey
 // will work. A feasibility checker that wrongly reports "feasible" is worse than
@@ -62,7 +62,7 @@ function supplierIndex(snapshot: PlatformSnapshot) {
   return new Map(snapshot.suppliers.map((s) => [s.id, s]));
 }
 
-// ─── itinerary-verification ───────────────────────────────────────────────────
+// â”€â”€â”€ itinerary-verification â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
  * The highest-consequence agent in the catalogue: it decides whether an
@@ -198,7 +198,7 @@ export function runItineraryVerification(
   );
 }
 
-// ─── supplier-agent ───────────────────────────────────────────────────────────
+// â”€â”€â”€ supplier-agent â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface SupplierMatch {
   supplier: string;
@@ -278,7 +278,7 @@ export function runSupplierAgent(
   );
 }
 
-// ─── booking-coordinator ──────────────────────────────────────────────────────
+// â”€â”€â”€ booking-coordinator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface BookingCoordinationFinding {
   journeyId: string;
@@ -359,7 +359,7 @@ export function runBookingCoordinator(
   );
 }
 
-// ─── transfer-agent ───────────────────────────────────────────────────────────
+// â”€â”€â”€ transfer-agent â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface TransferFinding {
   journeyId: string;
@@ -414,7 +414,7 @@ export function runTransferAgent(
   );
 }
 
-// ─── accommodation-agent ──────────────────────────────────────────────────────
+// â”€â”€â”€ accommodation-agent â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface AccommodationFinding {
   destination: string;
@@ -452,10 +452,14 @@ export function runAccommodationAgent(
   return report(
     {
       agent: "accommodation-agent",
-      evidenceBasis: evidenceFor("tours", "properties", "suppliers"),
+      // Only `tours` is read here. `properties` and `suppliers` are genuinely
+      // absent from the snapshot, so naming them as evidence would claim a
+      // derivation that never happened.
+      evidenceBasis: evidenceFor("tours"),
       unavailableInputs: [
         "Room availability and live rates (no availability or rate source)",
         "Property room-type inventory (properties hold no room-level inventory)",
+        "Property and supplier detail (not read into this snapshot)",
         "Guest budget band (guest_profiles.budget_range is a label, not a limit)",
       ],
       requiresHumanApproval: true,
@@ -464,7 +468,7 @@ export function runAccommodationAgent(
   );
 }
 
-// ─── safari-ops ───────────────────────────────────────────────────────────────
+// â”€â”€â”€ safari-ops â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface SafariActivity {
   title: string;
@@ -550,7 +554,7 @@ export function runSafariOps(
   );
 }
 
-// ─── activity-coordinator ─────────────────────────────────────────────────────
+// â”€â”€â”€ activity-coordinator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface ActivitySlot {
   journeyId: string;
@@ -622,7 +626,7 @@ export function runActivityCoordinator(
   );
 }
 
-// ─── guest-experience ─────────────────────────────────────────────────────────
+// â”€â”€â”€ guest-experience â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface GuestExperienceFinding {
   kind: "unacknowledged-inquiry" | "long-uncontacted-guest" | "unevidenced-occasion" | "vip-without-contact";
@@ -689,7 +693,7 @@ export function runGuestExperience(
   );
 }
 
-// ─── travel-docs ──────────────────────────────────────────────────────────────
+// â”€â”€â”€ travel-docs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface DocumentCheck {
   id: string;
@@ -771,7 +775,7 @@ export function runTravelDocs(
   );
 }
 
-// ─── emergency-coordinator ────────────────────────────────────────────────────
+// â”€â”€â”€ emergency-coordinator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface EmergencyReadiness {
   supplierId: string;

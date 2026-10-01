@@ -12,7 +12,7 @@
 // that touches the database, and every agent is testable with a hand-built
 // snapshot and no Supabase connection at all.
 
-import { readPlatformSnapshot, type AgentReport, type PlatformSnapshot } from "@/lib/ai/capabilities/data";
+import { readPlatformSnapshot, applyReadFailures, type AgentReport, type PlatformSnapshot } from "@/lib/ai/capabilities/data";
 import { STRATEGY_AGENTS } from "./strategy";
 import { MARKETING_AGENTS } from "./marketing";
 import { OPERATIONS_AGENTS } from "./operations";
@@ -31,18 +31,18 @@ type AgentCore = (snapshot: PlatformSnapshot) => AgentReport<unknown>;
  * to eliminate.
  */
 export const ANALYTICAL_AGENTS = {
-  // Strategy & Intelligence (Master OS §5A)
+  // Strategy & Intelligence (Master OS Â§5A)
   strategist: STRATEGY_AGENTS.strategist,
   "market-research": STRATEGY_AGENTS["market-research"],
   "competitor-intelligence": STRATEGY_AGENTS["competitor-intelligence"],
   "opportunity-detection": STRATEGY_AGENTS["opportunity-detection"],
   "scenario-planning": STRATEGY_AGENTS["scenario-planning"],
 
-  // Romance Intelligence (Master OS §6)
+  // Romance Intelligence (Master OS Â§6)
   "romance-agent": ROMANCE_AGENTS["romance-agent"],
   "relationship-agent": ROMANCE_AGENTS["relationship-agent"],
 
-  // Operations (Master OS §8)
+  // Operations (Master OS Â§8)
   "supplier-agent": OPERATIONS_AGENTS["supplier-agent"],
   "booking-coordinator": OPERATIONS_AGENTS["booking-coordinator"],
   "transfer-agent": OPERATIONS_AGENTS["transfer-agent"],
@@ -54,7 +54,7 @@ export const ANALYTICAL_AGENTS = {
   "itinerary-verification": OPERATIONS_AGENTS["itinerary-verification"],
   "emergency-coordinator": OPERATIONS_AGENTS["emergency-coordinator"],
 
-  // Marketing (Master OS §15)
+  // Marketing (Master OS Â§15)
   "brand-strategist": MARKETING_AGENTS["brand-strategist"],
   "content-agent": MARKETING_AGENTS["content-agent"],
   "storytelling-agent": MARKETING_AGENTS["storytelling-agent"],
@@ -72,12 +72,15 @@ export function analyticalAgentNames(): AnalyticalAgentName[] {
 
 /**
  * Run one agent against a given snapshot. Pure - no database access.
+ *
+ * The returned report is reconciled against `snapshot.readFailures`, so a core
+ * that names a table it never successfully read cannot reach the caller.
  */
 export function runAnalyticalAgent(
   name: AnalyticalAgentName,
   snapshot: PlatformSnapshot
 ): AgentReport<unknown> {
-  return ANALYTICAL_AGENTS[name](snapshot);
+  return applyReadFailures(ANALYTICAL_AGENTS[name](snapshot), snapshot.readFailures);
 }
 
 /** Run every agent in the layer against one snapshot. */
@@ -86,7 +89,7 @@ export function runAllAnalyticalAgents(
 ): Record<AnalyticalAgentName, AgentReport<unknown>> {
   const out = {} as Record<AnalyticalAgentName, AgentReport<unknown>>;
   for (const name of analyticalAgentNames()) {
-    out[name] = ANALYTICAL_AGENTS[name](snapshot);
+    out[name] = applyReadFailures(ANALYTICAL_AGENTS[name](snapshot), snapshot.readFailures);
   }
   return out;
 }
@@ -106,7 +109,7 @@ export async function runAnalyticalAgents(
   const selected = names ?? analyticalAgentNames();
   const out: Record<string, AgentReport<unknown>> = {};
   for (const name of selected) {
-    out[name] = ANALYTICAL_AGENTS[name](snapshot);
+    out[name] = applyReadFailures(ANALYTICAL_AGENTS[name](snapshot), snapshot.readFailures);
   }
   return out;
 }

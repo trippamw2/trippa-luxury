@@ -160,6 +160,20 @@ export interface GuestFact {
   lastTripDate: string | null;
 }
 
+/**
+ * A table the snapshot could not read, and why.
+ *
+ * This exists to stop the most dangerous failure mode in the layer: a read that
+ * errors and degrades to `[]` is indistinguishable from a table that is genuinely
+ * empty. Without this, a permissions error on `bookings` renders "revenue 0,
+ * zero bookings" and cites `postgres:bookings` as evidence - the platform
+ * inventing a fact about itself. A failed read must be reported as unavailable.
+ */
+export interface ReadFailure {
+  table: string;
+  reason: string;
+}
+
 export interface PlatformSnapshot {
   suppliers: SupplierFact[];
   journeys: JourneyFact[];
@@ -168,6 +182,12 @@ export interface PlatformSnapshot {
   destinations: { slug: string; name: string; tagline: string | null }[];
   funnel: FunnelFact;
   guests: GuestFact[];
+  /**
+   * Tables this snapshot could not read. Empty when every read succeeded.
+   * Agent cores are pure and need not consult it - the runner reconciles
+   * reports against it - but it is on the snapshot so a test can build one.
+   */
+  readFailures: ReadFailure[];
 }
 
 function num(v: unknown): number | null {
@@ -229,6 +249,27 @@ const GUEST_COLUMNS =
   "id, full_name, email, notes, created_at, last_contacted_at, last_trip_date, total_bookings, total_spent, is_vip, source, tags, interests, wishlist, special_occasion, travel_style, activity_level, budget_range";
 
 /**
+ * Every table `readPlatformSnapshot` reads, and therefore the complete set of
+ * tables any agent may legitimately cite in `evidenceBasis`.
+ *
+ * This is the single source of truth for that rule, and it is enforced rather
+ * than merely documented: `analytical.test.ts` fails if any report cites a
+ * `postgres:<table>` outside this list. A cited table that was never read is a
+ * fabricated evidence claim - it tells the reader a number came from the
+ * database when it came from nowhere.
+ */
+export const SNAPSHOT_TABLES = [
+  "suppliers",
+  "journeys",
+  "itinerary_items",
+  "tours",
+  "destinations",
+  "inquiries",
+  "bookings",
+  "guest_profiles",
+] as const;
+
+/**
  * Read one coherent snapshot of everything the analytical agents need.
  *
  * A single call keeps the 22 reports comparable: two agents can never disagree
@@ -236,6 +277,11 @@ const GUEST_COLUMNS =
  * read degrades to an empty array on error rather than throwing, because a
  * failed read must leave the report saying "partial" instead of taking down the
  * admin page that renders it.
+ *
+ * Degrading to an empty array is NOT the same as the table being empty, so every
+ * error is recorded in `readFailures`. The runner reconciles every report
+ * against that list, which is what stops a permissions error from being
+ * published as "revenue 0, zero bookings".
  */
 export async function readPlatformSnapshot(): Promise<PlatformSnapshot> {
   const supabase = createAdminClient();
@@ -251,6 +297,19 @@ export async function readPlatformSnapshot(): Promise<PlatformSnapshot> {
       supabase.from("bookings").select(BOOKING_COLUMNS).limit(5000),
       supabase.from("guest_profiles").select(GUEST_COLUMNS).limit(2000),
     ]);
+
+  const readFailures: ReadFailure[] = [];
+  const noteFailure = (table: string, error: { message: string } | null) => {
+    if (error) readFailures.push({ table, reason: error.message });
+  };
+  noteFailure("suppliers", suppliersR.error);
+  noteFailure("journeys", journeysR.error);
+  noteFailure("itinerary_items", itemsR.error);
+  noteFailure("tours", toursR.error);
+  noteFailure("destinations", destinationsR.error);
+  noteFailure("inquiries", inquiriesR.error);
+  noteFailure("bookings", bookingsR.error);
+  noteFailure("guest_profiles", guestsR.error);
 
   const suppliers: SupplierFact[] = (suppliersR.data ?? []).map((r) => ({
     id: String(r.id),
@@ -400,6 +459,45 @@ export async function readPlatformSnapshot(): Promise<PlatformSnapshot> {
     destinations,
     funnel,
     guests,
+    readFailures,
+  };
+}
+
+/**
+ * Reconcile a report against the tables the snapshot could not read.
+ *
+ * An agent names the tables it consulted in `evidenceBasis` via `evidenceFor`.
+ * If one of those reads actually failed, the claim is false: the agent did not
+ * derive anything from `postgres:bookings`, it received an empty array. This
+ * moves that table from evidence to `unavailableInputs` and re-derives
+ * availability, so a report can never cite a table it did not actually read.
+ *
+ * Applied by the runner rather than by each core, so no agent can forget it.
+ */
+export function applyReadFailures(
+  report: AgentReport<unknown>,
+  readFailures: readonly ReadFailure[]
+): AgentReport<unknown> {
+  if (readFailures.length === 0) return report;
+
+  const failed = new Set(readFailures.map((f) => f.table));
+  const evidenceBasis = report.evidenceBasis.filter((e) => {
+    const match = /^postgres:(.+)$/.exec(e);
+    return !(match && failed.has(match[1]));
+  });
+
+  const removed = report.evidenceBasis.length - evidenceBasis.length;
+  if (removed === 0) return report;
+
+  const notes = readFailures
+    .filter((f) => report.evidenceBasis.includes(`postgres:${f.table}`))
+    .map((f) => `postgres:${f.table} (read failed: ${f.reason})`);
+
+  return {
+    ...report,
+    evidenceBasis,
+    unavailableInputs: [...report.unavailableInputs, ...notes],
+    dataAvailability: availabilityOf(evidenceBasis, [...report.unavailableInputs, ...notes]),
   };
 }
 

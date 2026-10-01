@@ -112,6 +112,11 @@ function mapTourToApi(item: Partial<Tour>): Record<string, unknown> {
     meeting_point: item.meetingPoint,
     group_size: item.groupSize,
     itinerary: item.itinerary,
+    // Backed by migration 031. `rating` is deliberately sent only when a real
+    // score exists: mapTour coerces an absent rating to 0 for display, so
+    // blindly writing that 0 back would overwrite a genuine "not yet rated".
+    rating: typeof item.rating === "number" && item.rating > 0 ? item.rating : null,
+    languages: item.languages?.length ? item.languages : null,
   };
 }
 
@@ -146,7 +151,7 @@ export default function AdminTours() {
     durationDays: "1", pricingFrom: "", status: "draft" as "active" | "draft" | "archived",
     featured: false, description: "", image: "",
     itinerary: [{ ...DEFAULT_ITINERARY }] as ItineraryDay[],
-    inclusions: "", exclusions: "", meetingPoint: "", groupSize: ""
+    inclusions: "", exclusions: "", meetingPoint: "", groupSize: "", rating: "", languages: ""
   });
 
   const filteredTours = tours.filter((t) => {
@@ -156,8 +161,13 @@ export default function AdminTours() {
   });
 
   const resetForm = () => {
-    setFormData({ title: "", category: "Safari", destination: "lake-malawi", durationDays: "1", pricingFrom: "", status: "draft", featured: false, description: "", image: "", itinerary: [{ ...DEFAULT_ITINERARY }], inclusions: "", exclusions: "", meetingPoint: "", groupSize: "" });
+    setFormData({ title: "", category: "Safari", destination: "lake-malawi", durationDays: "1", pricingFrom: "", status: "draft", featured: false, description: "", image: "", itinerary: [{ ...DEFAULT_ITINERARY }], inclusions: "", exclusions: "", meetingPoint: "", groupSize: "", rating: "", languages: "" });
   };
+
+  // Empty input means "not recorded", which must reach the DB as NULL rather
+  // than 0 - mapTourToApi collapses a 0/absent rating back to null on the way out.
+  const parseRating = () => parseFloat(formData.rating) || 0;
+  const parseLanguages = () => formData.languages.split(",").map(l => l.trim()).filter(Boolean);
 
   const handleAdd = async () => {
     const result = await create({
@@ -170,6 +180,8 @@ export default function AdminTours() {
       exclusions: formData.exclusions.split(",").map(e => e.trim()).filter(Boolean),
       meetingPoint: formData.meetingPoint,
       groupSize: formData.groupSize,
+      rating: parseRating(),
+      languages: parseLanguages(),
     });
     if (result) {
       setShowModal(false);
@@ -193,6 +205,8 @@ export default function AdminTours() {
       exclusions: formData.exclusions.split(",").map(e => e.trim()).filter(Boolean),
       meetingPoint: formData.meetingPoint,
       groupSize: formData.groupSize,
+      rating: parseRating(),
+      languages: parseLanguages(),
     });
     if (result) {
       setEditingTour(null);
@@ -230,7 +244,9 @@ export default function AdminTours() {
       inclusions: tour.inclusions?.join(", ") || "",
       exclusions: tour.exclusions?.join(", ") || "",
       meetingPoint: tour.meetingPoint || "",
-      groupSize: tour.groupSize || ""
+      groupSize: tour.groupSize || "",
+      rating: tour.rating > 0 ? tour.rating.toString() : "",
+      languages: tour.languages?.join(", ") || ""
     });
     setShowModal(true);
   };
@@ -393,6 +409,12 @@ export default function AdminTours() {
                   </div>
                 </FormGroup>
                 <FormInput label="Meeting Point" name="meetingPoint" value={formData.meetingPoint} onChange={(e) => setFormData({ ...formData, meetingPoint: e.target.value })} placeholder="Mfuwe Airport or Hotel lobby" />
+                <FormGroup>
+                  {/* Backed by migration 031. Empty means "not yet rated" (NULL),
+                      not a score of 0 - the card only draws a star when > 0. */}
+                  <FormInput label="Rating (0-10)" name="rating" type="number" value={formData.rating} onChange={(e) => setFormData({ ...formData, rating: e.target.value })} placeholder="Not rated yet" />
+                  <FormInput label="Languages" name="languages" value={formData.languages} onChange={(e) => setFormData({ ...formData, languages: e.target.value })} placeholder="English, Chichewa" />
+                </FormGroup>
 
                 {/* Itinerary */}
                 <div className="border-t border-sand-light pt-6">

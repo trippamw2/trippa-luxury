@@ -3,20 +3,30 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { XIcon } from "@/components/ui/icons";
 
 export function CookieConsent() {
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const pathname = usePathname();
+
+  // The admin panel is a dense workspace whose dialogs are fixed, full-screen
+  // overlays at the same z-50 as this banner. Because CookieConsent renders last
+  // in the root layout it won the paint order and covered the dialog controls.
+  // Consent is a public-site concern, so suppress it inside /admin entirely
+  // rather than papering over the overlap with a z-index bump.
+  const isAdmin = pathname?.startsWith("/admin");
 
   useEffect(() => {
+    if (isAdmin) return;
     const consent = localStorage.getItem("kivara-cookie-consent");
     if (!consent) {
       // Delay appearance so it doesn't show immediately on page load
       const timer = setTimeout(() => setVisible(true), 1500);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [isAdmin]);
 
   function acceptAll() {
     localStorage.setItem("kivara-cookie-consent", "all");
@@ -30,7 +40,7 @@ export function CookieConsent() {
     setDismissed(true);
   }
 
-  if (dismissed) return null;
+  if (dismissed || isAdmin) return null;
 
   return (
     <AnimatePresence>

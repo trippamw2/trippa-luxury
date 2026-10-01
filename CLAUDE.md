@@ -110,6 +110,21 @@ authority is the intersection of its capability's permissions and the action
 class's required level, so most of the table above cannot reach anything
 consequential.
 
+### The registry is a governance catalogue, not a headcount
+
+37 is the number of *catalogued roles*, not the number of running systems. Each
+entry is classified against evidence in `src/lib/ai/agent-runtime.ts`, and
+`agent-runtime.test.ts` fails if a role is added to the registry without a status:
+
+| Status | Count | Meaning |
+| --- | --- | --- |
+| `executable` | 9 | A dedicated module is invoked on a live request path. |
+| `orchestration-label` | 6 | Named by the concierge state machine and returned by `getNextAgent()`; nothing calls a module of that name. |
+| `declared` | 22 | Governance catalogue only — no code outside the registry names it. |
+
+So 28 of the 37 named agents are not invocable today. Do not quote 37 as a
+headcount; use `agentRuntimeCensus(KIVARA_AGENTS.map(a => a.name))` instead.
+
 ## What is actually enforced today
 
 Do not assume the model above is running. As of the last change:

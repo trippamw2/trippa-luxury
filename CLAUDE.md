@@ -90,7 +90,7 @@ observation base by definition.
 **This mapping is derived, not constitutional.** With no constitution in the
 repository there is no authoritative source to map *from*; it is inferred from
 each agent's `department`, `objective` and `permissions` in
-`src/lib/ai/agent-registry.ts` (37 agents, 12 departments, seeded by migration
+`src/lib/ai/agent-registry.ts` (37 catalogued roles, 12 departments, seeded by migration
 020). Treat it as a proposal for review, and correct it if the constitution
 disagrees.
 
@@ -119,11 +119,18 @@ entry is classified against evidence in `src/lib/ai/agent-runtime.ts`, and
 | Status | Count | Meaning |
 | --- | --- | --- |
 | `executable` | 9 | A dedicated module is invoked on a live request path. |
+| `analytical` | 22 | Implemented and tested, **read-only and recommend-only**. Invocable via `GET /api/admin/agent-briefing`; can never send, book, charge or write a decision. |
 | `orchestration-label` | 6 | Named by the concierge state machine and returned by `getNextAgent()`; nothing calls a module of that name. |
-| `declared` | 22 | Governance catalogue only — no code outside the registry names it. |
+| `declared` | 0 | No registry entry lacks an implementation or a status. |
 
-So 28 of the 37 named agents are not invocable today. Do not quote 37 as a
-headcount; use `agentRuntimeCensus(KIVARA_AGENTS.map(a => a.name))` instead.
+So 37 catalogued roles resolve to **9 actors and 22 advisers**, plus 6 labels that are
+accountability rather than software. The census reports this split as `canAct` and
+`canOnlyAdvise`. Do not quote 37 as a headcount, and do not count the 22 advisers as
+actors: use `agentRuntimeCensus(KIVARA_AGENTS.map(a => a.name))` instead.
+
+`analytical` was introduced specifically to stop "implemented" being read as "can act".
+The runtime test fails if an agent is upgraded to `executable` without evidence of a live
+caller, so the distinction cannot quietly rot back into an overclaim.
 
 ## What is actually enforced today
 

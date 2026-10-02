@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 import { quoteEngine } from "@/lib/ai/quote-engine";
 import { runQualityGate, recordQcDecision } from "@/lib/ai/quality-gate";
 import { sendEmail } from "@/lib/email";
@@ -6,8 +7,21 @@ import { persistQuote } from "@/lib/services/quote-persistence";
 import { generateQuotePDFBuffer } from "@/lib/documents/quote-pdf";
 import type { GuestProfile } from "@/lib/ai/types";
 
+/**
+ * POST /api/ai/send-quote
+ * Generates a quote, gates it on quality, persists it, and emails the guest.
+ *
+ * Admin-only - requires at least editor role.
+ *
+ * This endpoint sends real email to a caller-supplied address and writes to the
+ * database. Left unauthenticated it is an open relay: anyone who learns the URL
+ * can send arbitrary branded mail through the company Brevo account, exhaust the
+ * sending quota, and spam third parties from a trusted domain.
+ */
 export async function POST(request: NextRequest) {
   try {
+    await requireAdmin({ module: "finance", minRole: "editor" });
+
     const body = await request.json();
     const profile: GuestProfile = body.profile;
     const inquiryId: string | undefined = body.inquiryId;
@@ -103,11 +117,14 @@ export async function POST(request: NextRequest) {
       },
       { status: 200 }
     );
-  } catch (error) {
-    console.error("Send quote error:", error);
-    return NextResponse.json(
-      { error: "Failed to generate and send quote" },
-      { status: 500 }
-    );
-  }
+    } catch (error) {
+      if (error instanceof AdminAuthError) {
+        return NextResponse.json({ error: error.message }, { status: error.status });
+      }
+      console.error("Send quote error:", error);
+      return NextResponse.json(
+        { error: "Failed to generate and send quote" },
+        { status: 500 }
+      );
+    }
 }

@@ -15,6 +15,16 @@ export interface PaymentResult {
   approvalUrl: string;
 }
 
+export interface PayPalCapture {
+  id: string;
+  status: string;
+  currency: string;
+  /** NaN when PayPal returned no readable amount: treat as unknown, not zero. */
+  amount: number;
+  /** custom_id of the captured order, used to bind the payment to a booking. */
+  bookingReference: string | null;
+}
+
 async function getAccessToken(): Promise<string> {
   const clientId = process.env.PAYPAL_CLIENT_ID || "";
   const secret = process.env.PAYPAL_CLIENT_SECRET || "";
@@ -103,7 +113,14 @@ export class PayPalClient {
   /**
    * Execute (capture) a PayPal payment after approval.
    */
-  async executePayment(orderId: string): Promise<{ status: string; id: string }> {
+  /**
+   * A verified capture: what PayPal actually took, in the booking's terms.
+   *
+   * `amount` is NaN when the capture response did not carry a readable amount.
+   * Callers must treat NaN as "unknown, so do not confirm the booking" rather
+   * than coercing it to 0.
+   */
+  async executePayment(orderId: string): Promise<PayPalCapture> {
     const token = await getAccessToken();
     const base = getBaseUrl();
 
@@ -121,9 +138,16 @@ export class PayPalClient {
     }
 
     const data = await res.json();
+    const unit = data.purchase_units?.[0];
+    const capture = data.payments?.captures?.[0];
+    const raw = capture?.amount?.value ?? unit?.amount?.value;
+
     return {
       id: data.id,
       status: data.status || "COMPLETED",
+      currency: capture?.amount?.currency_code ?? unit?.amount?.currency_code ?? "",
+      amount: typeof raw === "string" || typeof raw === "number" ? Number(raw) : Number.NaN,
+      bookingReference: unit?.custom_id ?? null,
     };
   }
 }

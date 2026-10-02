@@ -5,13 +5,27 @@
 // DELETE /api/ai/workflow  : Delete a journey
 
 import { NextRequest, NextResponse } from "next/server";
+import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 import { workflowEngine, type ConciergeState, type WorkflowAction } from "@/lib/ai/workflow-engine";
 import { workflowPersistence } from "@/lib/workflow-persistence";
+
+/**
+ * Admin-only - requires at least editor role.
+ *
+ * This route is the client lifecycle: it lists journeys (client names, emails,
+ * travel dates), creates them, and DELETEs them through the service-role client
+ * that bypasses RLS. Unauthenticated it is both a PII disclosure and an
+ * unauthenticated destructive endpoint, so every method is gated.
+ */
+function authOptions() {
+  return { module: "bookings", minRole: "editor" as const };
+}
 
 // ─── GET: List journeys ─────────────────────────────────────────────────
 
 export async function GET(request: NextRequest) {
   try {
+    await requireAdmin(authOptions());
     const { searchParams } = new URL(request.url);
     const state = searchParams.get("state") || "all";
     const search = searchParams.get("search") || undefined;
@@ -31,16 +45,20 @@ export async function GET(request: NextRequest) {
       data: result.data,
       count: result.count,
     });
-  } catch (error) {
-    console.error("Workflow GET error:", error);
-    return NextResponse.json({ error: "Failed to list workflows" }, { status: 500 });
-  }
+    } catch (error) {
+      if (error instanceof AdminAuthError) {
+        return NextResponse.json({ error: error.message }, { status: error.status });
+      }
+      console.error("Workflow GET error:", error);
+      return NextResponse.json({ error: "Failed to list workflows" }, { status: 500 });
+    }
 }
 
 // ─── POST: Create or transition ─────────────────────────────────────────
 
 export async function POST(request: NextRequest) {
   try {
+    await requireAdmin(authOptions());
     const body = await request.json();
     const { action, journeyId, ...payload } = body as {
       action: WorkflowAction;
@@ -160,16 +178,21 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ journey: updated, nextStep });
-  } catch (error) {
-    console.error("Workflow POST error:", error);
-    return NextResponse.json({ error: "Failed to process workflow action" }, { status: 500 });
-  }
+    } catch (error) {
+      if (error instanceof AdminAuthError) {
+        return NextResponse.json({ error: error.message }, { status: error.status });
+      }
+      console.error("Workflow POST error:", error);
+      return NextResponse.json({ error: "Failed to process workflow action" }, { status: 500 });
+    }
 }
 
 // ─── DELETE: Remove journey ─────────────────────────────────────────────
 
 export async function DELETE(request: NextRequest) {
   try {
+    await requireAdmin({ module: "bookings", minRole: "admin" });
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
     if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
@@ -184,6 +207,9 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    if (error instanceof AdminAuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("Workflow DELETE error:", error);
     return NextResponse.json({ error: "Failed to delete journey" }, { status: 500 });
   }

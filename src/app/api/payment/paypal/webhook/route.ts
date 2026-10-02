@@ -1,44 +1,39 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail, paymentReceiptEmail } from "@/lib/email";
+import { readPayPalHeaders, verifyPayPalSignature } from "@/lib/payments/paypal-signature";
 
 /**
  * POST /api/payment/paypal/webhook
  * Handles PayPal webhook events (idempotent).
- * Verifies the webhook originated from PayPal using the transmission signature.
+ * Verifies the webhook cryptographically against PayPal's certificate.
  *
  * Handles: PAYMENT.CAPTURE.COMPLETED
  */
 export async function POST(request: NextRequest) {
   try {
-    // Verify the webhook is from PayPal by checking required headers
-    const authAlgo = request.headers.get("paypal-auth-algo");
-    const certUrl = request.headers.get("paypal-cert-url");
-    const transmissionSig = request.headers.get("paypal-transmission-sig");
-    const transmissionId = request.headers.get("paypal-transmission-id");
-
-    if (!authAlgo || !certUrl || !transmissionSig || !transmissionId) {
-      console.error("Webhook rejected: missing PayPal signature headers");
-      return NextResponse.json({ error: "Missing PayPal verification headers" }, { status: 401 });
-    }
-
+    // The raw body is required for verification and must be read BEFORE parsing:
+    // the CRC32 is computed over these exact bytes, so re-serialising the parsed
+    // object would invalidate an otherwise valid signature.
     const rawBody = await request.text();
+    const configuredWebhookId = process.env.PAYPAL_WEBHOOK_ID;
 
-    // In production, verify the signature against PayPal's certificate:
-    // 1. Fetch the certificate from certUrl
-    // 2. Verify transmissionSig matches the signed payload
-    // For now, reject if the required webhook ID is not configured
-    const webhookId = process.env.PAYPAL_WEBHOOK_ID;
-    if (!webhookId) {
-      console.error("Webhook rejected: PAYPAL_WEBHOOK_ID not configured");
-      return NextResponse.json({ error: "Webhook not configured" }, { status: 503 });
-    }
+    // Prove the notification came from PayPal. This is the only thing standing
+    // between an unauthenticated POST and a booking being marked paid, so it
+    // runs before the body is trusted for anything.
+    const outcome = await verifyPayPalSignature(
+      readPayPalHeaders(request.headers),
+      rawBody,
+      configuredWebhookId ?? ""
+    );
 
-    // Verify the webhook ID matches our configured one
-    const webhookIdHeader = request.headers.get("paypal-webhook-id");
-    if (webhookIdHeader !== webhookId) {
-      console.error("Webhook rejected: webhook ID mismatch", { expected: webhookId, received: webhookIdHeader });
-      return NextResponse.json({ error: "Webhook ID mismatch" }, { status: 401 });
+    if (!outcome.verified) {
+      // Never log the signature or the configured webhook id.
+      console.error("Webhook rejected: signature verification failed", {
+        reason: outcome.reason,
+        detail: outcome.detail,
+      });
+      return NextResponse.json({ error: "Invalid webhook signature" }, { status: 401 });
     }
 
     let event: Record<string, unknown>;

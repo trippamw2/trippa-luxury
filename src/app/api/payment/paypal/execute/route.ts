@@ -2,46 +2,45 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail, paymentReceiptEmail } from "@/lib/email";
 import { PayPalClient } from "@/lib/paypal";
+import { amountsEqual, derivePayableAmount, isPaymentType } from "@/lib/payments/amounts";
 
 /**
  * GET /api/payment/paypal/execute
  * Processes PayPal payment approval after guest completes payment.
- * Verifies the payment with PayPal before updating booking status.
- * Redirects to success or cancel page.
+ *
+ * Trust boundary: `bookingId`, `token` and `type` all arrive from the browser,
+ * so none of them is evidence that a booking was paid. A booking is confirmed
+ * only when the captured PayPal order proves all three of:
+ *   1. the capture completed,
+ *   2. the order was created for *this* booking (custom_id), and
+ *   3. the captured total and currency equal what this booking owes.
+ *
+ * Without (2) and (3) a guest could pay a token amount on their own order and
+ * have an unrelated booking marked paid.
  */
 export async function GET(request: NextRequest) {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const cancel = (error: string) =>
+    NextResponse.redirect(new URL(`/payment/cancel?error=${error}`, baseUrl));
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const paymentId = searchParams.get("paymentId");
     const payerID = searchParams.get("PayerID");
     const bookingId = searchParams.get("bookingId");
     const orderId = searchParams.get("token");
-    const type = searchParams.get("type") || "balance";
-
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const requestedType = searchParams.get("type") || "balance";
 
     if (!paymentId || !payerID || !bookingId || !orderId) {
-      return NextResponse.redirect(new URL("/payment/cancel?error=missing_params", baseUrl));
+      return cancel("missing_params");
     }
 
-    // Verify and capture the PayPal payment with PayPal's API
-    // This ensures funds are actually captured before we mark the booking as paid
-    let captureResult: { status: string; id: string };
-    try {
-      const paypal = new PayPalClient();
-      captureResult = await paypal.executePayment(orderId);
-    } catch (captureErr) {
-      console.error("PayPal capture failed:", captureErr);
-      return NextResponse.redirect(new URL("/payment/cancel?error=capture_failed", baseUrl));
+    if (!isPaymentType(requestedType)) {
+      return cancel("invalid_payment_type");
     }
 
-    // Only proceed if PayPal confirmed the capture
-    if (captureResult.status !== "COMPLETED" && captureResult.status !== "APPROVED") {
-      console.error("PayPal capture returned unexpected status:", captureResult.status);
-      return NextResponse.redirect(new URL("/payment/cancel?error=payment_not_captured", baseUrl));
-    }
-
-    // Update booking status
+    // Resolve what this booking owes BEFORE capturing, so the captured figure can
+    // be checked against it.
     const supabase = createAdminClient();
     const { data: booking, error: fetchError } = await supabase
       .from("bookings")
@@ -50,45 +49,90 @@ export async function GET(request: NextRequest) {
       .single();
 
     if (fetchError || !booking) {
-      return NextResponse.redirect(new URL("/payment/cancel?error=booking_not_found", baseUrl));
+      return cancel("booking_not_found");
     }
 
-    const totalAmount = booking.total_amount || 0;
-    const depositAmount = booking.deposit_amount || 0;
-    const balanceAmount = totalAmount - depositAmount;
-    const currency = booking.currency || "USD";
-
-    // Determine new status based on payment type
-    let newStatus: string;
-    let paidAmount: number;
-
-    if (type === "deposit") {
-      newStatus = "deposit_paid";
-      paidAmount = depositAmount || totalAmount * 0.3;
-    } else if (type === "balance") {
-      newStatus = "paid";
-      paidAmount = balanceAmount;
-    } else {
-      newStatus = "paid";
-      paidAmount = totalAmount;
+    const payable = derivePayableAmount(booking, requestedType);
+    if (!payable) {
+      return cancel("booking_not_payable");
     }
 
-    // Update booking
-    await supabase
+    let capture;
+    try {
+      capture = await new PayPalClient().executePayment(orderId);
+    } catch (captureErr) {
+      console.error("PayPal capture failed:", captureErr);
+      return cancel("capture_failed");
+    }
+
+    if (capture.status !== "COMPLETED" && capture.status !== "APPROVED") {
+      console.error("PayPal capture returned unexpected status:", capture.status);
+      return cancel("payment_not_captured");
+    }
+
+    // Bind the order to the booking. createOrder stamps custom_id with the
+    // bookingId, so a mismatch means this order was raised for a different
+    // booking and must not settle this one.
+    if (capture.bookingReference !== bookingId) {
+      console.error("PayPal order/booking mismatch", {
+        orderId,
+        bookingId,
+        orderBookingReference: capture.bookingReference,
+      });
+      return cancel("order_mismatch");
+    }
+
+    // An unreadable amount is unknown, not zero, and never a pass.
+    if (!Number.isFinite(capture.amount)) {
+      console.error("PayPal capture carried no readable amount", { orderId });
+      return cancel("amount_unverifiable");
+    }
+
+    if (capture.currency && capture.currency !== payable.currency) {
+      console.error("PayPal capture currency mismatch", {
+        orderId,
+        captured: capture.currency,
+        expected: payable.currency,
+      });
+      return cancel("currency_mismatch");
+    }
+
+    if (!amountsEqual(capture.amount, payable.amount)) {
+      console.error("PayPal capture amount mismatch", {
+        orderId,
+        bookingId,
+        captured: capture.amount,
+        expected: payable.amount,
+      });
+      return cancel("amount_mismatch");
+    }
+
+    const { error: updateError } = await supabase
       .from("bookings")
       .update({
-        status: newStatus,
+        status: payable.nextStatus,
         payment_method: "paypal",
-        balance_amount: type === "balance" ? 0 : balanceAmount,
+        balance_amount: payable.remainingBalance,
       })
       .eq("id", bookingId);
 
-    // Send receipt email
+    if (updateError) {
+      // The money is captured but the booking is not updated. Do not report
+      // success: the captured order id is needed for a manual reconciliation.
+      console.error("PayPal capture succeeded but booking update failed", {
+        orderId,
+        bookingId,
+        captured: capture.amount,
+        detail: updateError.message,
+      });
+      return cancel("booking_update_failed");
+    }
+
     if (booking.client_email) {
       try {
         const receipt = paymentReceiptEmail({
           clientName: booking.client_name || "Valued Guest",
-          amount: `${currency} ${paidAmount.toLocaleString()}`,
+          amount: `${payable.currency} ${payable.amount.toLocaleString()}`,
           bookingRef: booking.booking_reference || bookingId.slice(0, 8).toUpperCase(),
           paymentMethod: "PayPal",
         });
@@ -104,10 +148,11 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.redirect(new URL(`/payment/success?bookingId=${bookingId}&ref=${booking.booking_reference || ""}`, baseUrl));
+    const success = new URL(`/payment/success?bookingId=${bookingId}`, baseUrl);
+    if (booking.booking_reference) success.searchParams.set("ref", booking.booking_reference);
+    return NextResponse.redirect(success);
   } catch (err: unknown) {
     console.error("PayPal execute error:", err);
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-    return NextResponse.redirect(new URL("/payment/cancel?error=execution_failed", baseUrl));
+    return cancel("execution_failed");
   }
 }

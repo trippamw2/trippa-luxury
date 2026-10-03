@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { mapKeysToCamel } from "@/lib/api-helpers";
 import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
+import { createAuditLog, getIpFromRequest, sanitizeForAudit } from "@/lib/audit";
 
 type DestMeta = {
   name?: string;
@@ -62,7 +63,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireAdmin({ module: "destinations", minRole: "editor" });
+    const { profile } = await requireAdmin({ module: "destinations", minRole: "editor" });
     const { id } = await params;
     const body = await request.json();
     const supabase = createAdminClient();
@@ -81,14 +82,35 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (body.isFeatured !== undefined) updateData.is_featured = body.isFeatured;
 
     if (Object.keys(updateData).length > 0) {
-      const { error } = await supabase
+      // Capture what is being overwritten. Without this the trail records only
+      // the new state, and "what did this destination used to say?" is
+      // unanswerable after the fact.
+      const { data: oldRow } = await supabase
+        .from("destinations")
+        .select("*")
+        .eq("slug", id)
+        .maybeSingle();
+
+      const { data: updated, error } = await supabase
         .from("destinations")
         .update(updateData)
-        .eq("slug", id);
+        .eq("slug", id)
+        .select()
+        .maybeSingle();
 
       if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
       }
+
+      await createAuditLog({
+        tableName: "destinations",
+        recordId: updated?.id ?? oldRow?.id ?? id,
+        action: "UPDATE",
+        oldData: sanitizeForAudit(oldRow),
+        newData: sanitizeForAudit(updated ?? updateData),
+        performedBy: profile.id,
+        ipAddress: getIpFromRequest(request),
+      });
     }
 
     return NextResponse.json({ success: true });
@@ -101,9 +123,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireAdmin({ module: "destinations", minRole: "editor" });
+    const { profile } = await requireAdmin({ module: "destinations", minRole: "editor" });
     const { id } = await params;
     const supabase = createAdminClient();
 
@@ -119,6 +141,15 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
       );
     }
 
+    // Read the row before removing it. A delete with no recorded prior state
+    // leaves a permanent hole in the trail: the content existed, and now nothing
+    // says what it was.
+    const { data: doomed } = await supabase
+      .from("destinations")
+      .select("*")
+      .eq("slug", id)
+      .maybeSingle();
+
     const { error } = await supabase
       .from("destinations")
       .delete()
@@ -127,6 +158,15 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    await createAuditLog({
+      tableName: "destinations",
+      recordId: doomed?.id ?? id,
+      action: "DELETE",
+      oldData: sanitizeForAudit(doomed),
+      performedBy: profile.id,
+      ipAddress: getIpFromRequest(request),
+    });
 
     return NextResponse.json({ success: true });
   } catch (err: unknown) {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { reminderEngine, generateReminderSchedules } from "@/lib/ai/reminder-engine";
 import { followUpEngine, generateFollowUpSchedules } from "@/lib/ai/follow-up-engine";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { gateAiAction, ActionBlockedError, actionBlockedResponse } from "@/lib/ai/action-gate";
 import { sendEmail } from "@/lib/email";
 
 /**
@@ -49,6 +50,19 @@ export async function POST(request: NextRequest) {
 
     if (authToken !== expectedToken) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // The constitution treats unstaged unattended outbound as a structural
+    // refusal, not a dial the operator can raise past. This route composes and
+    // sends in one step and stages nothing, so the gate refuses it at every
+    // autonomy level — deliberately, before any guest is contacted. Making
+    // reminders work again means staging them for human review and dispatching
+    // from an admin-gated route, not relaxing this check.
+    try {
+      await gateAiAction("trigger-reminders");
+    } catch (gateError) {
+      if (gateError instanceof ActionBlockedError) return actionBlockedResponse(gateError);
+      throw gateError;
     }
 
     const supabase = createAdminClient();

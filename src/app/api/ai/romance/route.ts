@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { romanceEngine, detectOccasion } from "@/lib/ai/romance-engine";
 import { clientKey, llmCostLimiter, tooManyRequests } from "@/lib/public-rate-limiter";
+import { gateAiAction, ActionBlockedError, actionBlockedResponse } from "@/lib/ai/action-gate";
 
 /**
  * POST /api/ai/romance
@@ -11,7 +12,7 @@ export async function POST(request: NextRequest) {
   try {
       // Each call reaches a paid LLM, so an unbounded endpoint is a billing
       // denial-of-wallet as much as a security problem.
-      const verdict = llmCostLimiter.take(clientKey(request));
+      const verdict = await llmCostLimiter.take(clientKey(request));
       if (!verdict.allowed) {
         return tooManyRequests(verdict.retryAfterSeconds, "Too many requests. Please try again shortly.");
       }
@@ -21,6 +22,15 @@ export async function POST(request: NextRequest) {
     const detection = body?.occasion
       ? { occasion: body.occasion, confidence: 0.8 }
       : detectOccasion(text);
+
+    // Gated after occasion detection so the ledger can record what was being
+    // written about, but before the model call that costs money to produce it.
+    try {
+      await gateAiAction("romance", {}, { entityType: "narrative", entityId: null });
+    } catch (gateError) {
+      if (gateError instanceof ActionBlockedError) return actionBlockedResponse(gateError);
+      throw gateError;
+    }
 
     const profile = await romanceEngine.buildEmotionalProfile({
       text,

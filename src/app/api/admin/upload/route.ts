@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
+import { createAuditLog, getIpFromRequest, sanitizeForAudit } from "@/lib/audit";
 import { createAdminClient } from "@/lib/supabase/admin";
 import sharp from "sharp";
 
@@ -8,7 +9,7 @@ const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 
 export async function POST(request: NextRequest) {
   try {
-    await requireAdmin({ module: "media", minRole: "editor" });
+    const { profile } = await requireAdmin({ module: "media", minRole: "editor" });
 
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
@@ -138,6 +139,33 @@ export async function POST(request: NextRequest) {
         record = newRecord;
       }
     }
+
+// `record` is typed as `Record<string, unknown>`, so its `id` needs narrowing
+    // before it can be used as the audit `record_id`.
+    const recordId = typeof record?.id === "string" ? record.id : undefined;
+
+    // Recorded even when no `media_assets` row was written: the files are already
+    // in storage at that point, so an untracked upload is exactly the kind of
+    // orphaned asset the audit log exists to reveal. Binary content is never
+    // included — only the paths and dimensions it was written under.
+    await createAuditLog({
+      tableName: "media_assets",
+      recordId,
+      action: "CREATE",
+      newData: sanitizeForAudit({
+        filename: file.name,
+        content_type: contentType,
+        file_size: file.size,
+        width: originalWidth,
+        height: originalHeight,
+        original_path: originalPath,
+        variant_paths: variants.map((v) => v.path),
+        media_record_created: record !== null,
+        category: category || "uncategorized",
+      }),
+      performedBy: profile.id,
+      ipAddress: getIpFromRequest(request),
+    });
 
     return NextResponse.json({
       url: originalUrl,

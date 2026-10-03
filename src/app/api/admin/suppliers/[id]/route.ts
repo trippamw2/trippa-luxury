@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { mapKeysToCamel, mapKeysToSnake } from "@/lib/api-helpers";
 import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
+import { createAuditLog, getIpFromRequest, sanitizeForAudit } from "@/lib/audit";
 
 const TABLE = "suppliers";
 const SELECT_WITH_CATEGORY = "*, supplier_categories!left(slug, name)";
@@ -53,7 +54,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   let id: string;
   try { id = (await params).id; } catch { return NextResponse.json({ error: "Invalid id" }, { status: 400 }); }
   try {
-    await requireAdmin({ module: "suppliers", minRole: "editor" });
+    const { profile } = await requireAdmin({ module: "suppliers", minRole: "editor" });
     const body = await request.json();
     const supabase = createAdminClient();
 
@@ -71,6 +72,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const dbData = mapKeysToSnake(body);
     delete dbData.id;
 
+    const { data: oldRow } = await supabase.from(TABLE).select("*").eq("id", id).maybeSingle();
+
     const { data, error } = await supabase
       .from(TABLE)
       .update(dbData)
@@ -83,6 +86,16 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    await createAuditLog({
+      tableName: TABLE,
+      recordId: id,
+      action: "UPDATE",
+      oldData: sanitizeForAudit(oldRow),
+      newData: sanitizeForAudit(data),
+      performedBy: profile.id,
+      ipAddress: getIpFromRequest(request),
+    });
+
     return NextResponse.json(mapRow(data));
   } catch (err: unknown) {
     if (err instanceof AdminAuthError) {
@@ -94,18 +107,31 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   let id: string;
   try { id = (await params).id; } catch { return NextResponse.json({ error: "Invalid id" }, { status: 400 }); }
   try {
-    await requireAdmin({ module: "suppliers", minRole: "editor" });
+    const { profile } = await requireAdmin({ module: "suppliers", minRole: "editor" });
     const supabase = createAdminClient();
+
+    // Read before delete so the trail retains what was removed.
+    const { data: doomed } = await supabase.from(TABLE).select("*").eq("id", id).maybeSingle();
+
     const { error } = await supabase.from(TABLE).delete().eq("id", id);
 
     if (error) {
       console.error(`Error deleting ${TABLE}/${id}:`, error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    await createAuditLog({
+      tableName: TABLE,
+      recordId: id,
+      action: "DELETE",
+      oldData: sanitizeForAudit(doomed),
+      performedBy: profile.id,
+      ipAddress: getIpFromRequest(request),
+    });
 
     return NextResponse.json({ success: true });
   } catch (err: unknown) {

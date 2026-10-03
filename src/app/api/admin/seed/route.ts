@@ -13,6 +13,7 @@
 
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createAuditLog, getIpFromRequest, sanitizeForAudit } from "@/lib/audit";
 
 // ─── Auth guard ───────────────────────────────────────────────────────────
 function isAuthorized(request: Request): boolean {
@@ -217,6 +218,36 @@ export async function POST(request: Request) {
     }
 
     const hasError = results.destinations?.error || results.properties?.error || results.packages?.error;
+
+    // This endpoint deletes and re-inserts every seeded row, so it destroys any
+    // admin edit made to those destinations, properties, and packages. The
+    // slugs are recorded so the overwritten set is at least reconstructable.
+    // `performed_by` is intentionally null: this route is authenticated by the
+    // shared `ADMIN_SEED_SECRET` rather than by an admin session, so there is no
+    // admin profile to attribute the action to, and inventing one would be a lie.
+    await createAuditLog({
+      tableName: "seed",
+      action: "CREATE",
+      newData: sanitizeForAudit({
+        source: "admin_seed_endpoint",
+        auth: "shared_secret",
+        destructive: true,
+        destinations: {
+          overwritten_slugs: destSlugs,
+          result: results.destinations ?? null,
+        },
+        properties: {
+          overwritten_slugs: propSlugs,
+          result: results.properties ?? null,
+        },
+        packages: {
+          overwritten_slugs: pkgSlugs,
+          result: results.packages ?? null,
+        },
+      }),
+      ipAddress: getIpFromRequest(request),
+    });
+
     return NextResponse.json(
       { success: !hasError, results },
       { status: hasError ? 500 : 200 }

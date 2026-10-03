@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
+import { gateAiAction, ActionBlockedError, actionBlockedResponse } from "@/lib/ai/action-gate";
 import { workflowEngine, type ConciergeState, type WorkflowAction } from "@/lib/ai/workflow-engine";
 import { workflowPersistence } from "@/lib/workflow-persistence";
 
@@ -81,6 +82,28 @@ export async function POST(request: NextRequest) {
       travelStart?: string;
       travelEnd?: string;
     };
+
+    // Gated immediately after parsing, before the state machine advances. A
+    // workflow transition is an internal write to the concierge pipeline, so a
+    // move that quotes a price carries that amount as its exposure. `amount` and
+    // `quoteAmount` arrive inside the `payload` rest rather than as bindings.
+    const exposure =
+      typeof payload.amount === "number"
+        ? payload.amount
+        : typeof payload.quoteAmount === "number"
+          ? payload.quoteAmount
+          : undefined;
+
+    try {
+      await gateAiAction("workflow", {}, {
+        entityType: "workflow",
+        entityId: journeyId ?? null,
+        amount: exposure,
+      });
+    } catch (gateError) {
+      if (gateError instanceof ActionBlockedError) return actionBlockedResponse(gateError);
+      throw gateError;
+    }
 
     // Map action to target state
     const actionStateMap: Record<WorkflowAction, ConciergeState> = {

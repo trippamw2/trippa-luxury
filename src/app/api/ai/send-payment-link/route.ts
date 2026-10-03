@@ -3,6 +3,7 @@ import { paymentEngine } from "@/lib/ai/payment-engine";
 import { sendEmail } from "@/lib/email";
 import { generateInvoicePDFBuffer } from "@/lib/documents/invoice-pdf";
 import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
+import { gateAiAction, ActionBlockedError, actionBlockedResponse } from "@/lib/ai/action-gate";
 
 /**
  * POST /api/ai/send-payment-link
@@ -21,6 +22,20 @@ export async function POST(request: NextRequest) {
         { error: "Missing required fields: bookingRef, clientName, clientEmail, amount" },
         { status: 400 }
       );
+    }
+
+    // Gated before the link is minted. The requested amount is the exposure, so
+    // an invoice for an unusual sum has to escalate rather than inherit the
+    // route's static profile.
+    try {
+      await gateAiAction(
+        "send-payment-link",
+        {},
+        { entityType: "booking", entityId: bookingRef, amount: Number(amount) }
+      );
+    } catch (gateError) {
+      if (gateError instanceof ActionBlockedError) return actionBlockedResponse(gateError);
+      throw gateError;
     }
 
     // 1. Generate payment link

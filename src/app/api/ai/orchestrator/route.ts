@@ -1,18 +1,19 @@
-// ─── Kivara AI Orchestrator API ─────────────────────────────────────────
+// â”€â”€â”€ Kivara AI Orchestrator API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Coordinates full inquiry-to-quote pipeline via the AI orchestrator.
-// POST  /api/ai/orchestrator  : Process inquiry end-to-end (profile → curate → quote → persist)
+// POST  /api/ai/orchestrator  : Process inquiry end-to-end (profile â†’ curate â†’ quote â†’ persist)
 
 import { NextResponse } from "next/server";
 import { orchestrator } from "@/lib/ai/orchestrator";
 import { workflowPersistence } from "@/lib/workflow-persistence";
 import type { ConciergeState } from "@/lib/ai/workflow-engine";
 import { clientKey, llmCostLimiter, tooManyRequests } from "@/lib/public-rate-limiter";
+import { gateAiAction, ActionBlockedError, actionBlockedResponse } from "@/lib/ai/action-gate";
 
 export async function POST(request: Request) {
   try {
     // Each call reaches a paid LLM, so an unbounded endpoint is a billing
     // denial-of-wallet as much as a security problem.
-    const verdict = llmCostLimiter.take(clientKey(request));
+    const verdict = await llmCostLimiter.take(clientKey(request));
     if (!verdict.allowed) {
       return tooManyRequests(verdict.retryAfterSeconds, "Too many requests. Please try again shortly.");
     }
@@ -21,6 +22,16 @@ export async function POST(request: Request) {
 
     if (!fullName || !email) {
       return NextResponse.json({ error: "Name and email are required" }, { status: 400 });
+    }
+
+    // Gated before the pipeline runs: this route profiles, curates, prices, and
+    // persists in one call, so a refusal discovered afterwards would have
+    // already spent the LLM budget it exists to protect.
+    try {
+      await gateAiAction("orchestrator", {}, { entityType: "inquiry", entityId: inquiryId ?? null });
+    } catch (gateError) {
+      if (gateError instanceof ActionBlockedError) return actionBlockedResponse(gateError);
+      throw gateError;
     }
 
     // Run the orchestrator (profiles guest, curates journey, generates quote)

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
+import { gateAiAction, ActionBlockedError, actionBlockedResponse } from "@/lib/ai/action-gate";
 import { quoteEngine } from "@/lib/ai/quote-engine";
 import { runQualityGate, recordQcDecision } from "@/lib/ai/quality-gate";
 import { sendEmail } from "@/lib/email";
@@ -65,6 +66,28 @@ export async function POST(request: NextRequest) {
         `Quote ${quote.quoteRef} passed with warnings:`,
         qc.issues.map((i) => `[${i.code}] ${i.message}`)
       );
+    }
+
+    // 2b. Governance gate. Placed after QC and before any outward effect: the
+    // QC verdict above is deliberately persisted even for a send that never
+    // happens, so it must not sit behind a governance refusal. The quote total
+    // is passed as the exposure so a high-value dispatch raises
+    // `high_value_exposure` instead of being waved through on a stale default.
+    try {
+      await gateAiAction(
+        "send-quote",
+        {},
+        {
+          entityType: "quote",
+          entityId: quote.journey.id ?? null,
+          amount: quote.journey.pricing.total,
+        }
+      );
+    } catch (gateError) {
+      if (gateError instanceof ActionBlockedError) {
+        return actionBlockedResponse(gateError);
+      }
+      throw gateError;
     }
 
     // 3. Generate the HTML email

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
+import { createAuditLog, getIpFromRequest, sanitizeForAudit } from "@/lib/audit";
 import { sendEmail, paymentReceiptEmail } from "@/lib/email";
 
 /**
@@ -15,7 +16,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireAdmin({ module: "finance", minRole: "editor" });
+    const { profile } = await requireAdmin({ module: "finance", minRole: "editor" });
     const { id: bookingId } = await params;
     const body = await request.json();
     const { paymentReference, amount, currency = "USD", notes } = body;
@@ -118,6 +119,54 @@ export async function POST(
         receiptEmailStatus = "failed";
       }
     }
+
+    // ── Audit trail ────────────────────────────────────────────────────────
+    // Recorded last so the entry can state whether the guest actually received
+    // the receipt. This is the money path, so it persists both the declared
+    // amount and the amount the booking expected: `amount` arrives in the
+    // request body while `paidAmount` is derived from the booking and the
+    // reference suffix, and recording only one would hide a disagreement
+    // between the ledger and the bank.
+    await createAuditLog({
+      tableName: "bookings",
+      recordId: bookingId,
+      action: "UPDATE",
+      oldData: sanitizeForAudit({
+        status: booking.status,
+        balance_amount: balanceAmount,
+        deposit_amount: depositAmount,
+        deposit_confirmed_at: booking.deposit_confirmed_at,
+      }),
+      newData: sanitizeForAudit({
+        status: newStatus,
+        balance_amount: newBalance,
+        payment_method: "wire_transfer",
+        swift_confirmation_code: paymentReference,
+        declared_amount: amount,
+        expected_paid_amount: paidAmount,
+        currency: bookingCurrency,
+        receipt_email: receiptEmailStatus,
+      }),
+      performedBy: profile.id,
+      ipAddress: getIpFromRequest(request),
+    });
+
+    await createAuditLog({
+      tableName: "transactions",
+      recordId: bookingId,
+      action: "CREATE",
+      newData: sanitizeForAudit({
+        booking_id: bookingId,
+        type: "income",
+        amount,
+        expected_paid_amount: paidAmount,
+        currency: bookingCurrency,
+        description: `Wire transfer received — ${paymentReference}`,
+        payment_method: "wire_transfer",
+      }),
+      performedBy: profile.id,
+      ipAddress: getIpFromRequest(request),
+    });
 
     return NextResponse.json({
       success: true,

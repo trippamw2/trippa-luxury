@@ -6,7 +6,7 @@ import { clientKey, publicWriteLimiter } from "@/lib/public-rate-limiter";
 export async function POST(request: Request) {
   try {
     // Each accepted signup sends a welcome email, so this needs a bound too.
-    const verdict = publicWriteLimiter.take(clientKey(request));
+    const verdict = await publicWriteLimiter.take(clientKey(request));
     if (!verdict.allowed) {
       return NextResponse.json(
         { error: "Too many requests. Please try again shortly." },

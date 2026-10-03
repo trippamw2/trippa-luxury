@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { mapKeysToCamel, mapKeysToSnake } from "@/lib/api-helpers";
 import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
+import { createAuditLog, getIpFromRequest, sanitizeForAudit } from "@/lib/audit";
 
 const TABLE = "suppliers";
 
@@ -62,7 +63,7 @@ export async function GET(_request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    await requireAdmin({ module: "suppliers", minRole: "editor" });
+    const { profile } = await requireAdmin({ module: "suppliers", minRole: "editor" });
     const body = await request.json();
     const supabase = createAdminClient();
 
@@ -89,6 +90,15 @@ export async function POST(request: NextRequest) {
       console.error("Error creating supplier:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    await createAuditLog({
+      tableName: TABLE,
+      recordId: data?.id,
+      action: "CREATE",
+      newData: sanitizeForAudit(data),
+      performedBy: profile.id,
+      ipAddress: getIpFromRequest(request),
+    });
 
     return NextResponse.json(mapRow(data), { status: 201 });
   } catch (err: unknown) {

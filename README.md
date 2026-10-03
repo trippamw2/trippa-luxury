@@ -8,7 +8,7 @@ A full-stack luxury travel platform for a Zambia-based tour company (brand: **Ki
 |---|---|
 | Framework | [Next.js 16](https://nextjs.org) (App Router) + React 19, TypeScript |
 | Styling | Tailwind CSS v4, `tailwind-merge` + `clsx` (`cn`), framer-motion |
-| Database / Auth / Storage | [Supabase](https://supabase.com) (Postgres + RLS, Auth, Storage) — 31 migrations |
+| Database / Auth / Storage | [Supabase](https://supabase.com) (Postgres + RLS, Auth, Storage) — 32 migrations |
 | Admin UI | Tiptap rich text, Recharts dashboards, lucide-react icons |
 | Documents | `@react-pdf/renderer` (quote & invoice PDFs), iCal exports |
 | AI concierge | Google Gemini + Groq + DeepSeek (journey engine, guest profiler, quote engine, sales funnel) |
@@ -103,7 +103,7 @@ src/
 │                           audit, csv, email, workflow-persistence, constants
 ├── components/             layout (Navbar, SiteShell), UI cards, SEO (JSON-LD)
 supabase/
-└── migrations/             001–031: schema, RLS, seed data, AI-native governance
+└── migrations/             001–032: schema, RLS, seed data, AI-native governance, durable rate limiting
 e2e/                        Playwright specs (admin auth, admin API auth)
 ```
 
@@ -122,7 +122,9 @@ Every admin API route is protected by the `requireAdmin` guard (`src/lib/api-hel
 
 ## Deployment
 
-The app deploys as a standard Next.js app (e.g. Vercel). Set all env vars from `.env.example` in the deployment environment, apply migrations to the production Supabase project, and configure the cron endpoints (`/api/cron/release-provisional-holds`, `/api/ai/trigger-reminders`) with the `CRON_SECRET` header.
+The app deploys as a standard Next.js app (e.g. Vercel). Set all env vars from `.env.example` in the deployment environment, apply migrations to the production Supabase project, and configure the cron endpoints (`/api/cron/release-provisional-holds`, `/api/cron/prune-rate-limits`, `/api/ai/trigger-reminders`) with the `CRON_SECRET` header.
+
+`/api/cron/prune-rate-limits` should run daily. Rate-limit buckets are keyed by `x-forwarded-for`, which the caller controls, so without this sweep every distinct address a caller invents leaves a permanent row (migration `032`).
 
 ## Email pipeline (Brevo) — setup & diagnostics
 

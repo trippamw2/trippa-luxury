@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { mapKeysToCamel } from "@/lib/api-helpers";
 import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
+import { createAuditLog, getIpFromRequest, sanitizeForAudit } from "@/lib/audit";
 
 export async function GET(_request: NextRequest) {
   try {
@@ -63,12 +64,12 @@ export async function GET(_request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    await requireAdmin({ module: "destinations", minRole: "editor" });
+    const { profile } = await requireAdmin({ module: "destinations", minRole: "editor" });
     const body = await request.json();
     const supabase = createAdminClient();
 
     const slug = body.slug || body.name?.toLowerCase().replace(/\s+/g, "-");
-    const { error: destError } = await supabase
+    const { data: created, error: destError } = await supabase
       .from("destinations")
       .insert({
         slug,
@@ -83,11 +84,24 @@ export async function POST(request: NextRequest) {
         highlights: body.highlights || [],
         seasons: body.seasons || [],
         is_featured: body.isFeatured || false,
-      });
+      })
+      .select()
+      .single();
 
     if (destError) {
       return NextResponse.json({ error: destError.message }, { status: 500 });
     }
+
+    // The slug is the destination's public identity, so it is what a reader of
+    // the trail needs; the full row records what was actually published.
+    await createAuditLog({
+      tableName: "destinations",
+      recordId: created?.id ?? slug,
+      action: "CREATE",
+      newData: sanitizeForAudit(created ?? { slug }),
+      performedBy: profile.id,
+      ipAddress: getIpFromRequest(request),
+    });
 
     return NextResponse.json({ id: slug, slug, name: body.name }, { status: 201 });
   } catch (err: unknown) {

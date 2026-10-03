@@ -10,11 +10,14 @@
 >
 > It should be read alongside, never instead of:
 > - `src/lib/ai/autonomy-policy.ts` — the enforced authority model
+> - `src/lib/ai/action-gate.ts` — where that authority model is applied to every AI entry point
+> - `src/lib/ai/governance-settings.ts` — the operator's dial, kill switches, and ratification record
 > - `src/lib/ai/agent-registry.ts` — the canonical 37-role catalogue
 > - `src/lib/ai/agent-runtime.ts` — what is actually implemented, tested against the registry
 >
-> The enforcement tests live in `src/lib/ai/agent-runtime.test.ts` and
-> `src/lib/ai/agents/analytical.test.ts`. If this document ever claims something the tests
+> The enforcement tests live in `src/lib/ai/agent-runtime.test.ts`,
+> `src/lib/ai/agents/analytical.test.ts`, `src/lib/ai/action-gate.test.ts` and
+> `src/lib/ai/governance-settings.test.ts`. If this document ever claims something the tests
 > do not check, treat the claim as unsupported.
 
 ## The one honest question
@@ -117,8 +120,31 @@ Being explicit about the gaps matters more than sounding complete:
 - **No ratified constitution exists.** Section numbering in code comments (for example
   "constitution §III", "§XII") refers to a document that has not been written or adopted.
   Those references describe intent, and should eventually point at a real ratified text.
-- **The autonomy dial is not founder-tunable at runtime.** The levels and thresholds are
-  code constants. Changing them is a code change with a review, not a settings toggle.
+- **Ratification is now possible but has not happened.** `governance-settings.ts` keeps a
+  ratification record in `platform_settings` — who signed, when, and against which version of
+  this document — and the admin API exposes it. Deliberately, ratification requires typing
+  `GOVERNANCE_RATIFICATION_PHRASE` back; it never happens on first read, at build time, or
+  because an agent asked nicely. An agent able to sign this document would make the signature
+  meaningless. Until an owner does it, the STATUS line above stays **UNRATIFIED** and
+  `isRatified()` returns false. Ratification is bound to `GOVERNANCE_DOC_VERSION`, so a
+  material edit here invalidates an old sign-off instead of inheriting it.
+- **The autonomy dial is now operator-tunable, and the kill switches are real.**
+  `governance-settings.ts` persists the dial and the three switches in `platform_settings`,
+  read on every consequential AI path, with a 5-second cache that an incident lever bypasses.
+  Environment variables (`GOVERNANCE_LLM_ENABLED`, `GOVERNANCE_AUTONOMY_LEVEL`,
+  `GOVERNANCE_AI_OUTBOUND_ENABLED`) override the stored values, because a deploy is a
+  legitimate emergency control. Turning model spend off is enforced at `callLlm`, the single
+  choke point every model call passes through. Every change is audited with before/after state.
+- **Enforcement reaches the routes now, and it has teeth.** `action-gate.ts` evaluates
+  `AI_ACTION_PROFILES` at all thirteen AI entry points and writes each verdict to the
+  `decisions` ledger. Two consequences worth stating plainly rather than discovering in
+  production:
+  - A capability that may not perform an action is refused **even when a human signed off**.
+    Sterling still cannot send, whatever the finance screen says.
+  - `/api/ai/trigger-reminders` is refused at **every** autonomy level, because it composes and
+    sends in one step and the constitution treats unstaged outbound as a structural failure
+    rather than a threshold a dial can clear. Re-enabling it means staging those messages for
+    review before dispatch — a change to how they are produced, not a setting to turn up.
 - **Analytical agents have no persistence.** They produce reports and are discarded. Nothing
   in this charter claims they write history.
 - **The six orchestration labels are not software.** They name accountability, and

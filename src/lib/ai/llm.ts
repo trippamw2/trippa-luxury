@@ -5,6 +5,8 @@
 // error handling, and provider fallback.
 // ─────────────────────────────────────────────────────────────────────────
 
+import { getGovernanceSettings } from "@/lib/ai/governance-settings";
+
 const TIMEOUT_MS = 30_000;
 
 /**
@@ -341,6 +343,18 @@ export async function callLlm(
   messages: LlmMessage[],
   config: LlmConfig = {}
 ): Promise<LlmResponse> {
+  // The governance kill switch sits here, at the single choke point every model
+  // call passes through, so switching model spend off cannot be bypassed by a
+  // route that forgets to check. Throwing is deliberate: callers already treat
+  // a thrown model error as "use the deterministic path", so pulling the switch
+  // degrades the product to rules-based behaviour instead of failing requests.
+  const governance = await getGovernanceSettings();
+  if (!governance.llmEnabled) {
+    throw new Error(
+      "Model calls are disabled by the governance kill switch (governance.llm_enabled)"
+    );
+  }
+
   const enabled = getEnabledProviders();
   if (enabled.length === 0) {
     throw new Error("No LLM API key configured (set GEMINI_API_KEY and/or DEEPSEEK_API_KEY)");

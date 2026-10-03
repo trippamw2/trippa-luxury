@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
+import { createAuditLog, getIpFromRequest, sanitizeForAudit } from "@/lib/audit";
 import { mapKeysToCamel } from "@/lib/api-helpers";
 
 /**
@@ -56,7 +57,7 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    await requireAdmin({ module: "bookings", minRole: "agent" });
+    const { profile } = await requireAdmin({ module: "bookings", minRole: "agent" });
     const supabase = createAdminClient();
 
     const body = await request.json();
@@ -95,6 +96,27 @@ export async function POST(request: NextRequest) {
       console.error("Error releasing provisional holds:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    // One summary entry for the whole bulk release rather than one row per
+    // booking: the audit log has to stay readable when this expires hundreds of
+    // holds, but the exact set of affected bookings still has to be
+    // reconstructable. The ids are therefore listed alongside the count.
+    await createAuditLog({
+      tableName: "bookings",
+      action: "UPDATE",
+      newData: sanitizeForAudit({
+        bulk: true,
+        status_before: "provisional",
+        status_after: "cancelled",
+        cancellation_reason: "Auto released : provisional hold expired",
+        cutoff,
+        older_than_hours: olderThanHours,
+        affected_count: data?.length || 0,
+        affected_booking_ids: (data ?? []).map((b) => b?.id).filter(Boolean),
+      }),
+      performedBy: profile.id,
+      ipAddress: getIpFromRequest(request),
+    });
 
     return NextResponse.json({
       dryRun: false,

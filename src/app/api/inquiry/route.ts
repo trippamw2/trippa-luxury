@@ -1,6 +1,6 @@
-// ─── Kivara Inquiry API (with AI agent trigger) ─────────────────────────
+// â”€â”€â”€ Kivara Inquiry API (with AI agent trigger) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Receives guest inquiries, saves to Supabase, sends emails, and triggers
-// AI agent pipeline (profiler → curator → quote) automatically.
+// AI agent pipeline (profiler â†’ curator â†’ quote) automatically.
 // POST /api/inquiry
 
 import { NextResponse } from "next/server";
@@ -10,19 +10,20 @@ import { guestProfiler, persistClientDna, type ProfiledGuest } from "@/lib/ai/gu
 import { logInteraction } from "@/lib/ai/customer-intelligence";
 import { workflowPersistence } from "@/lib/workflow-persistence";
 import { clientKey, llmCostLimiter, publicWriteLimiter, tooManyRequests } from "@/lib/public-rate-limiter";
+import { gateAiAction, ActionBlockedError, actionBlockedResponse } from "@/lib/ai/action-gate";
 
 export async function POST(request: Request) {
   try {
     // This writes a row and sends two emails, so it is an open door to inbox
     // flooding and quota burn without a bound.
-    const verdict = publicWriteLimiter.take(clientKey(request));
+    const verdict = await publicWriteLimiter.take(clientKey(request));
     if (!verdict.allowed) {
       return tooManyRequests(verdict.retryAfterSeconds, "Too many enquiries. Please try again shortly.");
     }
 
     // The pipeline below profiles the guest with a paid LLM, so this endpoint is
     // publicly billable as well as publicly writable.
-    const llmVerdict = llmCostLimiter.take(clientKey(request));
+    const llmVerdict = await llmCostLimiter.take(clientKey(request));
     if (!llmVerdict.allowed) {
       return tooManyRequests(llmVerdict.retryAfterSeconds, "Too many requests. Please try again shortly.");
     }
@@ -53,7 +54,19 @@ export async function POST(request: Request) {
       }
     }
 
-    // ── 1. Save to Supabase ──
+    // â”€â”€ 1. Save to Supabase â”€â”€
+    // Gated after validation but before the first side effect: this route writes
+    // a row, profiles the guest with a paid LLM, and sends two emails. An
+    // inbound inquiry is an internal write (it notifies the business, not the
+    // guest), so it is gated as one â€” and refused before anything is stored if
+    // the operator has switched AI internal writes off.
+    try {
+      await gateAiAction("inquiry", {}, { entityType: "inquiry", entityId: null });
+    } catch (gateError) {
+      if (gateError instanceof ActionBlockedError) return actionBlockedResponse(gateError);
+      throw gateError;
+    }
+
     const supabase = createAdminClient();
     const { data: inquiry, error: dbError } = await supabase
       .from("inquiries")
@@ -75,7 +88,7 @@ export async function POST(request: Request) {
       console.error("Supabase insert error:", dbError);
     }
 
-    // ── 2. AI: Profile the guest (LLM-powered) ──
+    // â”€â”€ 2. AI: Profile the guest (LLM-powered) â”€â”€
     let aiProfile: {
       id: string;
       isCouple: boolean;
@@ -131,7 +144,7 @@ export async function POST(request: Request) {
       // Don't fail the request : still send emails and save inquiry
     }
 
-    // ── 2b. CRM: upsert guest profile + log inbound inquiry ───────────
+    // â”€â”€ 2b. CRM: upsert guest profile + log inbound inquiry â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // Every inquiry becomes a Customer Memory record so the AI chief of
     // staff and journey engine have persistent context on this guest.
     let guestProfileId: string | null = null;
@@ -217,13 +230,13 @@ export async function POST(request: Request) {
             guestProfileId,
             channel: "email",
             direction: "inbound",
-            subject: `Website inquiry${occasion ? ` — ${occasion}` : ""}`,
+            subject: `Website inquiry${occasion ? ` â€” ${occasion}` : ""}`,
             body: message || "Inquiry via website",
             relatedInquiryId: inquiry?.id,
           });
         }
 
-        // Persist the profile as this guest's active Client DNA — the memory
+        // Persist the profile as this guest's active Client DNA â€” the memory
         // every later AI step reads. Version bumps on re-profile, and
         // `persistClientDna` never throws, so a lost write cannot fail the
         // inquiry that produced it.
@@ -242,7 +255,7 @@ export async function POST(request: Request) {
       // Non-fatal : the inquiry is still recorded
     }
 
-    // ── 3. Send notification email to concierge team ──
+    // â”€â”€ 3. Send notification email to concierge team â”€â”€
     const emailStatus: { notification: "sent" | "failed" | "skipped"; confirmation: "sent" | "failed" | "skipped" } = {
       notification: "skipped",
       confirmation: "skipped",
@@ -269,7 +282,7 @@ export async function POST(request: Request) {
       emailStatus.notification = "failed";
     }
 
-    // ── 4. Send confirmation email to the inquirer ──
+    // â”€â”€ 4. Send confirmation email to the inquirer â”€â”€
     try {
       await sendEmail({
         ...inquiryConfirmationEmail({ fullName, destination }),

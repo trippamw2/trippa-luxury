@@ -1,29 +1,57 @@
 /**
  * Fixed-window rate limiting for public write endpoints.
  *
- * Scope, stated plainly: this is per-process state, so on a multi-instance or
- * serverless deployment each instance keeps its own counter and a caller can
- * still multiply their allowance by the number of instances. It is defence in
- * depth against casual abuse and runaway scripts, not a hard boundary.
+ * Counters live in Postgres when it is available, so the limit means the same
+ * thing on every instance and survives a cold start. That matters because the
+ * previous per-process counters were only real for one instance: on a serverless
+ * deployment a caller could multiply their allowance by the instance count, and
+ * a restart reset every counter to zero.
  *
- * The hard boundary belongs at the edge (WAF rules, a CAPTCHA, or provider-level
- * quotas). This exists so that a missing edge rule is not an open door.
+ * Two things this still is not:
+ *
+ *  1. **Not a hard boundary.** `clientKey` derives from `x-forwarded-for`, which
+ *     the caller controls, so an attacker who varies that header gets a fresh
+ *     bucket per request regardless of where the counter lives. Durable counting
+ *     makes the limit honest about what it can enforce; it does not make it an
+ *     authentication mechanism. The hard boundary belongs at the edge (WAF, a
+ *     CAPTCHA, provider-level quotas). This exists so a missing edge rule is not
+ *     an open door.
+ *  2. **Not available offline.** If the database is unreachable the limiter
+ *     degrades to in-process counting rather than failing every request. See
+ *     `@/lib/rate-limit-store` for why that trade is deliberate.
  */
 
-export interface PublicRateLimiter {
-  /** Consume one unit, returning whether the call is allowed. */
-  take(key: string, nowMs?: number): RateVerdict;
-  reset(): void;
-  /** Tracked keys. Exposed so the bound can be asserted in tests. */
-  size(): number;
-}
+import {
+  createMemoryRateLimitStore,
+  takeRateLimit,
+  type RateLimitStore,
+  type RateVerdict,
+} from "@/lib/rate-limit-store";
 
-export interface RateVerdict {
-  allowed: boolean;
-  /** Units left in the current window. */
-  remaining: number;
-  /** Seconds until the window resets. */
-  retryAfterSeconds: number;
+export type { RateVerdict };
+
+export interface PublicRateLimiter {
+  /**
+   * Consume one unit, returning whether the call is allowed.
+   *
+   * Async because the durable store is a network round-trip. Awaiting it is not
+   * optional bookkeeping: the count has to be committed before the endpoint acts,
+   * or concurrent requests all read the same pre-increment value and every one of
+   * them is admitted past the limit.
+   */
+  take(key: string, nowMs?: number): Promise<RateVerdict>;
+  /**
+   * Drop in-process state.
+   *
+   * Does **not** clear Postgres counters, which are shared with every other
+   * instance and cannot be reset by one process. Exists for tests and local use.
+   */
+  reset(): void;
+  /**
+   * Tracked in-process keys. Exposed so the bound can be asserted in tests.
+   * Always 0 for a limiter that is actually counting in Postgres.
+   */
+  size(): number;
 }
 
 export interface RateLimitOptions {
@@ -31,97 +59,80 @@ export interface RateLimitOptions {
   limit: number;
   /** Window length in milliseconds. */
   windowMs: number;
-}
-
-interface Window {
-  count: number;
-  resetAt: number;
+  /**
+   * Stable identity for this limiter's buckets in the shared store.
+   *
+   * Required when `durable`. It must not change when `limit` or `windowMs`
+   * change: the bucket key is where the counter lives, so a key derived from the
+   * limit would hand every caller a fresh allowance on each tuning change and
+   * defeat the point of counting durably.
+   */
+  name?: string;
+  /**
+   * Count in the shared store when it is available, falling back to in-process
+   * counting when it is not.
+   *
+   * Off by default so that a limiter constructed in a test stays hermetic: the
+   * durable path ignores `nowMs` and would talk to a real database.
+   */
+  durable?: boolean;
 }
 
 /**
- * Ceiling on tracked keys.
+ * Ceiling on the durable bucket key, leaving room for the name prefix.
  *
- * `clientKey` is derived from `x-forwarded-for`, which an attacker controls, so
- * the key space is effectively unbounded: a caller who varies that header on
- * every request would otherwise add a permanent map entry per request and grow
- * this process until it dies. Sweeping keeps the cost bounded regardless.
+ * `x-forwarded-for` is attacker-controlled, so without a clamp a large header
+ * would produce a key past the column's length check, the insert would fail, and
+ * every such request would quietly fall back to in-process counting — an easy way
+ * to opt out of the shared limit. Truncating collides distinct callers into one
+ * bucket, which makes the limit stricter for them; that is the safe direction for
+ * a failure, and a legitimate forwarded address is far shorter than this.
  */
-const MAX_TRACKED_KEYS = 10_000;
+const MAX_BUCKET_KEY = 200;
+
+function bucketKeyFor(name: string, key: string): string {
+  return `${name}:${key.length > MAX_BUCKET_KEY ? key.slice(0, MAX_BUCKET_KEY) : key}`;
+}
 
 export function createPublicRateLimiter(options: RateLimitOptions): PublicRateLimiter {
-  const { limit, windowMs } = options;
-  const windows = new Map<string, Window>();
+  const { limit, windowMs, durable = false } = options;
 
-  /**
-   * Keep the tracked key set bounded without making every request pay for it.
-   *
-   * Reclaiming finished windows is an O(n) scan of the map, so it runs at most
-   * once per window. Doing it per call would just trade the memory-growth
-   * problem for a CPU one: an attacker who varies the key on every request would
-   * keep the map at the cap and force a full scan each time.
-   *
-   * Enforcing the hard cap is separate and stays O(1) per evicted key, so the
-   * bound holds within a single window too.
-   */
-  let lastSweepAt = Number.NEGATIVE_INFINITY;
-
-  function sweep(nowMs: number): void {
-    if (windows.size < MAX_TRACKED_KEYS) return;
-
-    if (nowMs - lastSweepAt >= windowMs) {
-      lastSweepAt = nowMs;
-      for (const [key, window] of windows) {
-        if (nowMs >= window.resetAt) windows.delete(key);
-      }
-    }
-
-    // Evict below the cap, not down to it: `take` adds a key straight after this
-    // returns, so leaving the map at exactly MAX_TRACKED_KEYS would let the
-    // next request push it to MAX+1.
-    while (windows.size >= MAX_TRACKED_KEYS) {
-      const oldest = windows.keys().next();
-      if (oldest.done) break;
-      windows.delete(oldest.value);
-    }
+  if (durable && !options.name) {
+    // Fail at construction rather than silently sharing one bucket with every
+    // other durable limiter, which would let one endpoint's traffic exhaust
+    // another's allowance.
+    throw new Error(
+      "createPublicRateLimiter: a durable limiter needs a stable `name` to namespace its buckets"
+    );
   }
 
-  function take(key: string, nowMs = Date.now()): RateVerdict {
-    sweep(nowMs);
-
-    const existing = windows.get(key);
-
-    if (!existing || nowMs >= existing.resetAt) {
-      windows.set(key, { count: 1, resetAt: nowMs + windowMs });
-      return {
-        allowed: true,
-        remaining: limit - 1,
-        retryAfterSeconds: Math.ceil(windowMs / 1000),
-      };
-    }
-
-    if (existing.count >= limit) {
-      return {
-        allowed: false,
-        remaining: 0,
-        retryAfterSeconds: Math.max(1, Math.ceil((existing.resetAt - nowMs) / 1000)),
-      };
-    }
-
-    existing.count += 1;
-    return {
-      allowed: true,
-      remaining: limit - existing.count,
-      retryAfterSeconds: Math.max(1, Math.ceil((existing.resetAt - nowMs) / 1000)),
-    };
-  }
+  const fallback: RateLimitStore = createMemoryRateLimitStore();
 
   return {
-    take,
-    reset() {
-      windows.clear();
+    async take(key, nowMs) {
+      if (!durable || !options.name) {
+        return fallback.take(key, limit, windowMs, nowMs);
+      }
+
+      // Namespace the key: `inquiry` runs two limiters against the same client IP,
+      // and an un-namespaced shared store would have them spend each other's
+      // allowance.
+      const { verdict } = await takeRateLimit(
+        bucketKeyFor(options.name, key),
+        limit,
+        windowMs,
+        fallback,
+        nowMs
+      );
+      return verdict;
     },
+
+    reset() {
+      fallback.clear();
+    },
+
     size() {
-      return windows.size;
+      return fallback.size();
     },
   };
 }
@@ -130,6 +141,8 @@ export function createPublicRateLimiter(options: RateLimitOptions): PublicRateLi
 export const publicWriteLimiter = createPublicRateLimiter({
   limit: 5,
   windowMs: 60 * 60 * 1000, // 5 per hour
+  name: "public-write",
+  durable: true,
 });
 
 /**
@@ -141,6 +154,8 @@ export const publicWriteLimiter = createPublicRateLimiter({
 export const llmCostLimiter = createPublicRateLimiter({
   limit: 20,
   windowMs: 60 * 60 * 1000, // 20 per hour
+  name: "llm-cost",
+  durable: true,
 });
 
 /**

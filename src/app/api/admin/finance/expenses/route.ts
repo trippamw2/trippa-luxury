@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { mapKeysToCamel, mapKeysToSnake } from "@/lib/api-helpers";
 import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
+import { createAuditLog, getIpFromRequest, sanitizeForAudit } from "@/lib/audit";
 
 const TABLE = "expenses";
 const SELECT_WITH_CATEGORY = "*, expense_categories!left(name, slug)";
@@ -49,7 +50,7 @@ export async function GET(_request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    await requireAdmin({ module: "finance", minRole: "admin" });
+    const { profile } = await requireAdmin({ module: "finance", minRole: "admin" });
     const body = await request.json();
     const supabase = createAdminClient();
 
@@ -77,6 +78,17 @@ export async function POST(request: NextRequest) {
       console.error("Error creating expense:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    // An expense is money out of the business, so the amount and category are
+    // the two facts a later reader of the trail needs first.
+    await createAuditLog({
+      tableName: TABLE,
+      recordId: data?.id,
+      action: "CREATE",
+      newData: sanitizeForAudit(data),
+      performedBy: profile.id,
+      ipAddress: getIpFromRequest(request),
+    });
 
     return NextResponse.json(mapRow(data), { status: 201 });
   } catch (err: unknown) {

@@ -19,6 +19,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
+import { createAuditLog, getIpFromRequest, sanitizeForAudit } from "@/lib/audit";
 import { recordEvent } from "@/lib/ai/event-bus";
 import { normalizeUuid } from "@/lib/ai/uuid";
 
@@ -324,6 +325,34 @@ export async function PATCH(request: NextRequest) {
         subjectEntityType: asString(prior.entity_type),
         subjectEntityId: asString(prior.entity_id),
       },
+    });
+
+    // A human authorization is the one action in the system that overrides the
+    // gate's own conclusion, so it is written to `audit_log` and not only to
+    // `decisions`. `overridden` distinguishes agreeing with a machine rejection
+    // from plain approval, so the trail never reads as if the gate had allowed
+    // the underlying action.
+    await createAuditLog({
+      tableName: "decisions",
+      recordId: decisionId,
+      action: "UPDATE",
+      oldData: sanitizeForAudit({
+        status: asString(prior.status),
+        entity_type: asString(prior.entity_type),
+        entity_id: asString(prior.entity_id),
+        title: asString(prior.title),
+      }),
+      newData: sanitizeForAudit({
+        status: outcome,
+        overridden: outcome === "overridden",
+        decided_by: profile.id,
+        decided_at: now,
+        note: note || null,
+        subject_entity_type: asString(prior.entity_type),
+        subject_entity_id: asString(prior.entity_id),
+      }),
+      performedBy: profile.id,
+      ipAddress: getIpFromRequest(request),
     });
 
     return NextResponse.json({ success: true, id: decisionId, status: outcome, decidedAt: now });

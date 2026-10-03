@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
+import { gateAiAction, ActionBlockedError, actionBlockedResponse } from "@/lib/ai/action-gate";
 import { paymentEngine } from "@/lib/ai/payment-engine";
 import { sendEmail } from "@/lib/email";
 
@@ -26,6 +27,20 @@ export async function POST(request: NextRequest) {
         { error: "Missing required fields: bookingRef, clientName, clientEmail, amount" },
         { status: 400 }
       );
+    }
+
+    // A receipt is a claim that money arrived, so the amount is passed as the
+    // exposure: a large receipt must raise `high_value_exposure` rather than
+    // riding on the route's static profile.
+    try {
+      await gateAiAction(
+        "send-receipt",
+        {},
+        { entityType: "booking", entityId: bookingRef, amount: Number(amount) }
+      );
+    } catch (gateError) {
+      if (gateError instanceof ActionBlockedError) return actionBlockedResponse(gateError);
+      throw gateError;
     }
 
     const { receipt, html } = paymentEngine.generateReceipt({

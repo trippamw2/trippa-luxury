@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
+import { createAuditLog, getIpFromRequest, sanitizeForAudit } from "@/lib/audit";
 
 /**
  * POST /api/admin/import
@@ -23,7 +24,7 @@ const ALLOWED_TABLES = new Set([
 
 export async function POST(request: NextRequest) {
   try {
-    await requireAdmin({ module: "content", minRole: "editor" });
+    const { profile } = await requireAdmin({ module: "content", minRole: "editor" });
     const supabase = createAdminClient();
     const body = await request.json();
     const { table, rows } = body;
@@ -63,6 +64,26 @@ export async function POST(request: NextRequest) {
         results.success += (data || []).length;
       }
     }
+
+    // One summary entry per import rather than per row: a single import can
+    // create up to 500 rows, and 500 audit entries would bury every other
+    // change in the log while adding no information the count and error list
+    // below do not already carry. Row payloads are deliberately not recorded
+    // because imported rows are unbounded in size.
+    await createAuditLog({
+      tableName: table,
+      action: "CREATE",
+      newData: sanitizeForAudit({
+        bulk: true,
+        source: "csv_import",
+        requested_rows: rows.length,
+        inserted_rows: results.success,
+        failed_rows: results.errors.length,
+        errors: results.errors.slice(0, 20),
+      }),
+      performedBy: profile.id,
+      ipAddress: getIpFromRequest(request),
+    });
 
     return NextResponse.json(results);
   } catch (err: unknown) {

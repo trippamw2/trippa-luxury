@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getKnowledgeContext, searchProducts } from "@/lib/ai/knowledge";
 import { clientKey, llmCostLimiter, tooManyRequests } from "@/lib/public-rate-limiter";
+import { gateAiAction, ActionBlockedError, actionBlockedResponse } from "@/lib/ai/action-gate";
 
 /**
  * GET /api/ai/knowledge
@@ -14,7 +15,7 @@ import { clientKey, llmCostLimiter, tooManyRequests } from "@/lib/public-rate-li
  *
  * This endpoint exists to ground agent responses in real, on-brand data. It is
  * intentionally NOT gated behind admin auth because the orchestrator and other
- * server-side agents need it — but it returns only public catalog knowledge
+ * server-side agents need it â€” but it returns only public catalog knowledge
  * (no finances, no customer PII). Rate/firewall protection is handled at the
  * platform edge if deployed publicly.
  */
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
   try {
       // Each call reaches a paid LLM, so an unbounded endpoint is a billing
       // denial-of-wallet as much as a security problem.
-      const verdict = llmCostLimiter.take(clientKey(request));
+      const verdict = await llmCostLimiter.take(clientKey(request));
       if (!verdict.allowed) {
         return tooManyRequests(verdict.retryAfterSeconds, "Too many requests. Please try again shortly.");
       }
@@ -32,6 +33,16 @@ export async function GET(request: NextRequest) {
     const query = params.get("query") || undefined;
     const limitRaw = params.get("limitProducts");
     const limitProducts = limitRaw ? Number(limitRaw) : undefined;
+
+    // This is a read path, so the verdict is not written to the ledger: a lookup
+    // is not an action, and logging every retrieval would bury the entries that
+    // record something actually happening. The dial is still enforced.
+    try {
+      await gateAiAction("knowledge", {}, { entityType: "knowledge", record: false });
+    } catch (gateError) {
+      if (gateError instanceof ActionBlockedError) return actionBlockedResponse(gateError);
+      throw gateError;
+    }
 
     if (mode === "search" && query) {
       const results = await searchProducts(query, {

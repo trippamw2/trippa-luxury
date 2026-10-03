@@ -44,6 +44,60 @@ vi.mock("@/lib/email", () => ({
   sendEmail: (...args: unknown[]) => mockSendEmail(...args),
 }));
 
+// The governance gate is mocked so the tests below keep covering what this file
+// is actually about — reminder batching, `reminders_sent` persistence, and
+// email-failure isolation — rather than the constitution. The route is refused
+// by policy at every autonomy level, so with the real gate these cases could
+// only ever assert 403 and the batching logic would go untested.
+//
+// The refusal itself is asserted at the bottom of this file, with
+// `gateState.blocked` flipped on.
+const gateState = vi.hoisted(() => ({ blocked: false }));
+
+vi.mock("@/lib/ai/action-gate", () => {
+  class MockActionBlockedError extends Error {
+    readonly status = 403;
+    readonly result: unknown;
+    constructor(message: string, result: unknown) {
+      super(message);
+      this.name = "ActionBlockedError";
+      this.result = result;
+    }
+  }
+
+  return {
+    gateAiAction: vi.fn(async () => {
+      if (gateState.blocked) {
+        throw new MockActionBlockedError("Unstaged unattended outbound is not permitted.", {
+          allowed: false,
+          companyLevel: 2,
+          blockedBySwitch: null,
+          authorizedBy: null,
+          humanAuthorized: false,
+          decision: {
+            allowed: false,
+            requiresHumanReview: true,
+            requiredLevel: 3,
+            effectiveLevel: 2,
+            reason: "Unstaged unattended outbound is not permitted.",
+            escalatedBy: ["unstaged_outbound"],
+          },
+        });
+      }
+      return { allowed: true };
+    }),
+    ActionBlockedError: MockActionBlockedError,
+    // A plain `Response`, not `NextResponse`: vitest hoists mock factories above
+    // the imports, so referencing the imported binding here would hit the
+    // temporal dead zone and fail at call time rather than at load time.
+    actionBlockedResponse: (error: { message: string }) =>
+      new Response(JSON.stringify({ error: error.message }), {
+        status: 403,
+        headers: { "Content-Type": "application/json" },
+      }),
+  };
+});
+
 // Must import the route AFTER mocks are registered (hoisted).
 import { POST } from "@/app/api/ai/trigger-reminders/route";
 
@@ -82,6 +136,7 @@ function makeRequest(token: string | null): NextRequest {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  gateState.blocked = false;
   process.env.CRON_SECRET = "test-secret";
 });
 
@@ -235,5 +290,39 @@ describe("POST /api/ai/trigger-reminders", () => {
     const res = await POST(makeRequest("test-secret"));
     expect(res.status).toBe(500);
     expect(mockSendEmail).not.toHaveBeenCalled();
+  });
+
+  // ── Governance ──────────────────────────────────────────────────────────
+  // This route composes and sends in one step and stages nothing, so the
+  // constitution refuses it at every autonomy level. These cases pin that
+  // refusal: a cron job that mails guests unreviewed is exactly the failure the
+  // gate exists to prevent, and it must not be reintroduced by relaxing a test.
+  it("refuses to send when the gate blocks unattended outbound", async () => {
+    gateState.blocked = true;
+
+    const res = await POST(makeRequest("test-secret"));
+
+    expect(res.status).toBe(403);
+    expect(mockSendEmail).not.toHaveBeenCalled();
+  });
+
+  it("consults no bookings at all once the gate refuses", async () => {
+    // Ordering matters: the refusal has to land before any query, or the route
+    // would still be doing work on a path the constitution rejected.
+    gateState.blocked = true;
+
+    await POST(makeRequest("test-secret"));
+
+    expect(mockFrom).not.toHaveBeenCalled();
+  });
+
+  it("still authenticates before consulting the gate", async () => {
+    // A refused route must not become a way to probe governance state, so the
+    // 401 has to come first.
+    gateState.blocked = true;
+
+    const res = await POST(makeRequest("wrong-token"));
+
+    expect(res.status).toBe(401);
   });
 });

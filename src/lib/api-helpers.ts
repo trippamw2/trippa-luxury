@@ -2,68 +2,11 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin, AdminAuthError, type AdminAuthOptions } from "@/lib/admin-auth";
 import { createAuditLog, sanitizeForAudit, getIpFromRequest } from "@/lib/audit";
+import { clampLimit, clampOffset, resolveOrderBy } from "@/lib/pagination";
+
+export { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, clampLimit, clampOffset, resolveOrderBy } from "@/lib/pagination";
 
 /** Convert snake_case string to camelCase */
-/** Page size used when the caller does not ask for one. */
-export const DEFAULT_PAGE_SIZE = 50;
-/** Hard ceiling, so `?limit=10000000` cannot ask the database for the whole table. */
-export const MAX_PAGE_SIZE = 200;
-
-/** Columns a caller may sort by. Anything else falls back to recency. */
-const SORTABLE_COLUMNS = new Set([
-  "created_at",
-  "updated_at",
-  "name",
-  "title",
-  "full_name",
-  "client_name",
-  "status",
-  "amount",
-  "total_amount",
-  "booking_reference",
-  "slug",
-  "email",
-]);
-
-/**
- * Page size from the query string, clamped and de-NaN'd.
- *
- * An absent, unparseable or negative value falls back to the default rather than
- * becoming `NaN`, which would otherwise poison the range arithmetic and either
- * error out or silently drop the bound entirely.
- */
-export function clampLimit(raw: string | null): number {
-  if (raw === null) return DEFAULT_PAGE_SIZE;
-  const parsed = Number.parseInt(raw, 10);
-  if (!Number.isFinite(parsed) || parsed <= 0) return DEFAULT_PAGE_SIZE;
-  return Math.min(parsed, MAX_PAGE_SIZE);
-}
-
-export function clampOffset(raw: string | null): number {
-  if (raw === null) return 0;
-  const parsed = Number.parseInt(raw, 10);
-  if (!Number.isFinite(parsed) || parsed < 0) return 0;
-  return parsed;
-}
-
-/**
- * Sort order from the query string, restricted to known columns so the value
- * cannot be used to probe the schema or build a pathological sort.
- */
-export function resolveOrderBy(raw: string | null): { column: string; direction: "asc" | "desc" } {
-  if (!raw) return { column: "created_at", direction: "desc" };
-
-  const [rawColumn, rawDirection] = raw.split(":");
-  const column = String(rawColumn ?? "").trim().toLowerCase();
-  if (!SORTABLE_COLUMNS.has(column)) {
-    return { column: "created_at", direction: "desc" };
-  }
-  return {
-    column,
-    direction: rawDirection?.trim().toLowerCase() === "asc" ? "asc" : "desc",
-  };
-}
-
 export function toCamelCase(str: string): string {
   return str.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
 }

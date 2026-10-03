@@ -3,6 +3,7 @@
 // Replaces the in-memory storage in src/app/api/ai/workflow/route.ts
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { clampLimit, clampOffset } from "@/lib/pagination";
 import type { ClientJourney, ConciergeState } from "@/lib/ai/workflow-engine";
 
 type SupabaseClient = ReturnType<typeof createAdminClient>;
@@ -33,8 +34,13 @@ export interface WorkflowFilters {
   assignedTo?: string;
   fromDate?: string;
   toDate?: string;
-  limit?: number;
-  offset?: number;
+  /**
+   * Raw or parsed. Both are accepted because callers pass the query value
+   * straight through and let `clampLimit`/`clampOffset` do the sanitising in
+   * one place.
+   */
+  limit?: string | number;
+  offset?: string | number;
 }
 
 let sharedAdminDb: SupabaseClient | null = null;
@@ -81,12 +87,12 @@ export class WorkflowPersistence {
       query = query.lte("created_at", filters.toDate);
     }
 
-    if (filters.limit) {
-      query = query.limit(filters.limit);
-    }
-    if (filters.offset) {
-      query = query.range(filters.offset, filters.offset + (filters.limit || 20) - 1);
-    }
+    // Always bound the result set. The previous `if (filters.limit)` guard was
+    // false for both an absent limit and NaN, so a caller that passed neither
+    // got every booking row with its inquiry join attached.
+    const limit = clampLimit(filters.limit);
+    const offset = clampOffset(filters.offset);
+    query = query.range(offset, offset + limit - 1);
 
     const { data, error, count } = await query;
 

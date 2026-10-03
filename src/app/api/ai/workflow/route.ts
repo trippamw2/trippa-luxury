@@ -30,8 +30,11 @@ export async function GET(request: NextRequest) {
     const state = searchParams.get("state") || "all";
     const search = searchParams.get("search") || undefined;
     const assignedTo = searchParams.get("assignedTo") || undefined;
-    const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit")!) : undefined;
-    const offset = searchParams.get("offset") ? parseInt(searchParams.get("offset")!) : undefined;
+// Passed through raw: the persistence layer clamps these. Parsing here
+      // could only ever produce NaN, which is exactly the value that used to
+      // dissolve the range bound.
+      const limit = searchParams.get("limit") ?? undefined;
+      const offset = searchParams.get("offset") ?? undefined;
 
     const result = await workflowPersistence.list({
       state: state as ConciergeState | "all",

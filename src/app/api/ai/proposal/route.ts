@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { proposalEngine } from "@/lib/ai/proposal-engine";
 import { romanceEngine } from "@/lib/ai/romance-engine";
 import type { GuestProfile } from "@/lib/ai/types";
+import { clientKey, llmCostLimiter, tooManyRequests } from "@/lib/public-rate-limiter";
 
 /**
  * POST /api/ai/proposal
@@ -10,6 +11,12 @@ import type { GuestProfile } from "@/lib/ai/types";
  */
 export async function POST(request: NextRequest) {
   try {
+      // Each call reaches a paid LLM, so an unbounded endpoint is a billing
+      // denial-of-wallet as much as a security problem.
+      const verdict = llmCostLimiter.take(clientKey(request));
+      if (!verdict.allowed) {
+        return tooManyRequests(verdict.retryAfterSeconds, "Too many requests. Please try again shortly.");
+      }
     const body = await request.json();
     const profile = body.guestProfile as GuestProfile;
     if (!profile?.name || !profile?.email || !profile?.preferences) {

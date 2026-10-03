@@ -83,6 +83,17 @@ export const publicWriteLimiter = createPublicRateLimiter({
 });
 
 /**
+ * Unauthenticated AI endpoints. Each call reaches a paid LLM, so an unbounded
+ * endpoint is a billing denial-of-wallet as much as a security problem. Tighter
+ * than the public write limiter because these are not part of the normal path a
+ * guest walks: the admin panel and the authenticated portal are.
+ */
+export const llmCostLimiter = createPublicRateLimiter({
+  limit: 20,
+  windowMs: 60 * 60 * 1000, // 20 per hour
+});
+
+/**
  * Best-effort client identity. Spoofable by design: `x-forwarded-for` is attacker
  * controlled, so this raises the cost of casual abuse without pretending to be
  * an authentication mechanism.
@@ -96,4 +107,12 @@ export function clientKey(request: {
     if (first) return first;
   }
   return request.headers.get("x-real-ip")?.trim() || "unknown";
+}
+
+/** A 429 for an endpoint whose cost is an LLM call. */
+export function tooManyRequests(retryAfterSeconds: number, message: string) {
+  return Response.json(
+    { error: message },
+    { status: 429, headers: { "Retry-After": String(retryAfterSeconds) } }
+  );
 }

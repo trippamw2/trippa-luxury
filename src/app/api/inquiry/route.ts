@@ -9,7 +9,7 @@ import { sendEmail, newInquiryEmail, inquiryConfirmationEmail } from "@/lib/emai
 import { guestProfiler, persistClientDna, type ProfiledGuest } from "@/lib/ai/guest-profiler";
 import { logInteraction } from "@/lib/ai/customer-intelligence";
 import { workflowPersistence } from "@/lib/workflow-persistence";
-import { clientKey, publicWriteLimiter } from "@/lib/public-rate-limiter";
+import { clientKey, llmCostLimiter, publicWriteLimiter, tooManyRequests } from "@/lib/public-rate-limiter";
 
 export async function POST(request: Request) {
   try {
@@ -17,10 +17,14 @@ export async function POST(request: Request) {
     // flooding and quota burn without a bound.
     const verdict = publicWriteLimiter.take(clientKey(request));
     if (!verdict.allowed) {
-      return NextResponse.json(
-        { error: "Too many enquiries. Please try again shortly." },
-        { status: 429, headers: { "Retry-After": String(verdict.retryAfterSeconds) } }
-      );
+      return tooManyRequests(verdict.retryAfterSeconds, "Too many enquiries. Please try again shortly.");
+    }
+
+    // The pipeline below profiles the guest with a paid LLM, so this endpoint is
+    // publicly billable as well as publicly writable.
+    const llmVerdict = llmCostLimiter.take(clientKey(request));
+    if (!llmVerdict.allowed) {
+      return tooManyRequests(llmVerdict.retryAfterSeconds, "Too many requests. Please try again shortly.");
     }
 
     const body = await request.json();

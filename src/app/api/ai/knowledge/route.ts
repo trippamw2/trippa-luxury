@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getKnowledgeContext, searchProducts } from "@/lib/ai/knowledge";
+import { clientKey, llmCostLimiter, tooManyRequests } from "@/lib/public-rate-limiter";
 
 /**
  * GET /api/ai/knowledge
@@ -19,6 +20,12 @@ import { getKnowledgeContext, searchProducts } from "@/lib/ai/knowledge";
  */
 export async function GET(request: NextRequest) {
   try {
+      // Each call reaches a paid LLM, so an unbounded endpoint is a billing
+      // denial-of-wallet as much as a security problem.
+      const verdict = llmCostLimiter.take(clientKey(request));
+      if (!verdict.allowed) {
+        return tooManyRequests(verdict.retryAfterSeconds, "Too many requests. Please try again shortly.");
+      }
     const params = request.nextUrl.searchParams;
     const destination = params.get("destination") || undefined;
     const mode = params.get("mode");

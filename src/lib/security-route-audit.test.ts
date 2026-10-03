@@ -131,6 +131,29 @@ describe("public API routes are authenticated or justified", () => {
     const stale = Object.keys(JUSTIFIED_EXCEPTIONS).filter((k) => !keys.has(k));
     expect(stale, "remove justifications for deleted routes").toEqual([]);
   });
+
+  /**
+   * An unauthenticated route that reaches a paid LLM is a billing
+   * denial-of-wallet, not just an abuse risk. Seven of these were open.
+   */
+  const llbWithoutLimit: string[] = [];
+  for (const { file, key } of publicRoutes) {
+    const source = readFileSync(file, "utf8");
+    const reachesLlm =
+      /\bcallLlm\b|\bllmProfile\b|\bguestProfiler\b|\bJourneyEngine\b|\brunOrchestrator\b|\bLLM\b/.test(
+        source
+      );
+    if (!reachesLlm) continue;
+    // A route that already authenticates the caller is not publicly billable,
+    // so the public LLM limiter does not apply to it.
+    if (/\brequireAdmin\b|\bCRON_SECRET\b/.test(source)) continue;
+    if (/\bllmCostLimiter\b/.test(source)) continue;
+    llbWithoutLimit.push(`src/app/api/${key}.ts reaches an LLM with no rate limit`);
+  }
+
+  it("rate-limits every public route that reaches a paid LLM", () => {
+    expect(llbWithoutLimit).toEqual([]);
+  });
 });
 
 describe("admin and cron routes keep their guards", () => {

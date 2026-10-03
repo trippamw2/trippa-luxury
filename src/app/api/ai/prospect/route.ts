@@ -4,9 +4,16 @@
 
 import { NextResponse } from "next/server";
 import { guestProfiler, type RawInquiry, type ProfiledGuest } from "@/lib/ai/guest-profiler";
+import { clientKey, llmCostLimiter, tooManyRequests } from "@/lib/public-rate-limiter";
 
 export async function POST(request: Request) {
   try {
+    // Each call reaches a paid LLM, so an unbounded endpoint is a billing
+    // denial-of-wallet as much as a security problem.
+    const verdict = llmCostLimiter.take(clientKey(request));
+    if (!verdict.allowed) {
+      return tooManyRequests(verdict.retryAfterSeconds, "Too many requests. Please try again shortly.");
+    }
     const body = await request.json();
     const { name, email, phone, destination, preferredDates, guests, message } = body;
 

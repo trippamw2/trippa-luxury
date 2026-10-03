@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { romanceEngine, detectOccasion } from "@/lib/ai/romance-engine";
+import { clientKey, llmCostLimiter, tooManyRequests } from "@/lib/public-rate-limiter";
 
 /**
  * POST /api/ai/romance
@@ -8,6 +9,12 @@ import { romanceEngine, detectOccasion } from "@/lib/ai/romance-engine";
  */
 export async function POST(request: NextRequest) {
   try {
+      // Each call reaches a paid LLM, so an unbounded endpoint is a billing
+      // denial-of-wallet as much as a security problem.
+      const verdict = llmCostLimiter.take(clientKey(request));
+      if (!verdict.allowed) {
+        return tooManyRequests(verdict.retryAfterSeconds, "Too many requests. Please try again shortly.");
+      }
     const body = await request.json();
     const text = typeof body?.text === "string" ? body.text : "";
 

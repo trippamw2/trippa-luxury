@@ -14,6 +14,7 @@ import { generateThankYouDocument } from "@/lib/documents/thank-you";
 import { generateReferralDocument } from "@/lib/documents/referral";
 import { generateFeedbackDocument } from "@/lib/documents/feedback";
 import type { CuratedJourney } from "@/lib/ai/types";
+import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 
 const generators: Record<string, (data: Record<string, unknown>) => string> = {
   quote: (d) =>
@@ -38,6 +39,13 @@ const generators: Record<string, (data: Record<string, unknown>) => string> = {
 
 export async function GET(request: NextRequest) {
   try {
+    // These render official Kivara documents — real letterhead, real payment
+    // instructions, real contact details — from values the caller supplies. Left
+    // open, anyone could mint a convincing forged invoice or receipt bearing the
+    // company's name, which is a phishing kit rather than a data leak. The only
+    // caller is the admin bookings page.
+    await requireAdmin({ module: "bookings", minRole: "agent" });
+
     const url = new URL(request.url);
     const type = url.searchParams.get("type");
     const bookingRef = url.searchParams.get("bookingRef") || "document";
@@ -69,17 +77,22 @@ export async function GET(request: NextRequest) {
 
     const filename = `kivara-${type}-${bookingRef.replace(/[^a-zA-Z0-9-_]/g, "")}.html`;
 
-    return new NextResponse(html, {
-      headers: {
-        "Content-Type": "text/html; charset=utf-8",
-        "Content-Disposition": `attachment; filename="${filename}"`,
-      },
-    });
-  } catch (error: unknown) {
-    console.error("Document download error:", error);
-    return NextResponse.json(
-      { error: `Failed to generate document: ${error instanceof Error ? error.message : "Unknown error"}` },
-      { status: 500 }
-    );
-  }
+return new NextResponse(html, {
+        headers: {
+          "Content-Type": "text/html; charset=utf-8",
+          "Content-Disposition": `attachment; filename="${filename}"`,
+          // The body is caller-supplied HTML; make sure nothing treats it as
+          // anything other than a download.
+          "X-Content-Type-Options": "nosniff",
+          "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; img-src data:",
+        },
+      });
+    } catch (error: unknown) {
+      if (error instanceof AdminAuthError) {
+        return NextResponse.json({ error: error.message }, { status: error.status });
+      }
+      console.error("Document download error:", error);
+      // Log the detail, but do not hand an internal message to the caller.
+      return NextResponse.json({ error: "Failed to generate document" }, { status: 500 });
+    }
 }

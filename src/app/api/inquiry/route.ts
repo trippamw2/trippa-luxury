@@ -9,9 +9,20 @@ import { sendEmail, newInquiryEmail, inquiryConfirmationEmail } from "@/lib/emai
 import { guestProfiler, persistClientDna, type ProfiledGuest } from "@/lib/ai/guest-profiler";
 import { logInteraction } from "@/lib/ai/customer-intelligence";
 import { workflowPersistence } from "@/lib/workflow-persistence";
+import { clientKey, publicWriteLimiter } from "@/lib/public-rate-limiter";
 
 export async function POST(request: Request) {
   try {
+    // This writes a row and sends two emails, so it is an open door to inbox
+    // flooding and quota burn without a bound.
+    const verdict = publicWriteLimiter.take(clientKey(request));
+    if (!verdict.allowed) {
+      return NextResponse.json(
+        { error: "Too many enquiries. Please try again shortly." },
+        { status: 429, headers: { "Retry-After": String(verdict.retryAfterSeconds) } }
+      );
+    }
+
     const body = await request.json();
     const { fullName, email, phone, destination, preferredDates, guests, message } = body;
 
@@ -20,6 +31,22 @@ export async function POST(request: Request) {
         { error: "Name, email, and message are required" },
         { status: 400 }
       );
+    }
+
+    if (typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json({ error: "A valid email address is required" }, { status: 400 });
+    }
+
+    // Bound the stored and emailed fields so one request cannot carry a
+    // megabyte of text into the CRM and the concierge's inbox.
+    const MAX_LEN = 2000;
+    for (const [field, value] of Object.entries({ fullName, email, phone, destination, message })) {
+      if (typeof value === "string" && value.length > MAX_LEN) {
+        return NextResponse.json(
+          { error: `${field} must be ${MAX_LEN} characters or fewer` },
+          { status: 400 }
+        );
+      }
     }
 
     // ── 1. Save to Supabase ──

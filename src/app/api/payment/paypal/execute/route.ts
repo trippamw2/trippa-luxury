@@ -88,7 +88,15 @@ export async function GET(request: NextRequest) {
       return cancel("amount_unverifiable");
     }
 
-    if (capture.currency && capture.currency !== payable.currency) {
+    // An absent currency is unknown, not zero, and never a pass. This used to
+    // read `if (capture.currency && ...)`, so an empty string skipped the check
+    // altogether and the booking settled with the currency never verified.
+    if (!capture.currency) {
+      console.error("PayPal capture carried no readable currency", { orderId });
+      return cancel("currency_unverifiable");
+    }
+
+    if (capture.currency !== payable.currency) {
       console.error("PayPal capture currency mismatch", {
         orderId,
         captured: capture.currency,

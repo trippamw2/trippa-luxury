@@ -216,6 +216,21 @@ describe("GET /api/payment/paypal/execute — refusing unearned settlement", () 
     expect(table.updated).toBeNull();
   });
 
+  it("refuses a capture that carries no currency at all", async () => {
+    // An absent currency is unknown, not a pass. The guard used to read
+    // `if (capture.currency && ...)`, so an empty string skipped the check
+    // entirely and the booking settled with the currency never verified.
+    mockExecutePayment.mockResolvedValue(
+      goodCapture({ currency: "", bookingReference: BOOKING_ID })
+    );
+
+    const res = await GET(makeRequest());
+
+    expect(locationOf(res)).toContain("error=currency_unverifiable");
+    const table = mockFrom.mock.results[0].value;
+    expect(table.updated).toBeNull();
+  });
+
   it("refuses a capture that PayPal did not complete", async () => {
     mockExecutePayment.mockResolvedValue(
       goodCapture({ status: "PENDING", bookingReference: BOOKING_ID })

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { handleGetList, handleCreate, mapKeysToCamel } from "@/lib/api-helpers";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
+import { ilikeSubstring } from "@/lib/postgrest-filter";
 
 const TABLE = "saved_journeys";
 
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest) {
       const { data, error } = await supabase
         .from(TABLE)
         .select("*", { count: "exact" })
-        .or(`guest_name.ilike.%${search}%,guest_email.ilike.%${search}%`)
+        .or(`guest_name.ilike.${ilikeSubstring(search)},guest_email.ilike.${ilikeSubstring(search)}`)
         .order("created_at", { ascending: false });
 
       if (error) {

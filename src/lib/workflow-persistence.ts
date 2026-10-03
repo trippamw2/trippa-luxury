@@ -4,6 +4,7 @@
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { clampLimit, clampOffset } from "@/lib/pagination";
+import { ilikeSubstring } from "@/lib/postgrest-filter";
 import type { ClientJourney, ConciergeState } from "@/lib/ai/workflow-engine";
 
 type SupabaseClient = ReturnType<typeof createAdminClient>;
@@ -71,8 +72,10 @@ export class WorkflowPersistence {
     }
 
     if (filters.search) {
-      const q = filters.search;
-      query = query.or(`client_name.ilike.%${q}%,client_email.ilike.%${q}%,destination.ilike.%${q}%`);
+      // Escaped because `.or()` takes a filter grammar string, not a parameter:
+      // an unescaped comma here would append a condition instead of searching.
+      const q = ilikeSubstring(filters.search);
+      query = query.or(`client_name.ilike.${q},client_email.ilike.${q},destination.ilike.${q}`);
     }
 
     if (filters.assignedTo) {

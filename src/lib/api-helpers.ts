@@ -2,9 +2,16 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin, AdminAuthError, type AdminAuthOptions } from "@/lib/admin-auth";
 import { createAuditLog, sanitizeForAudit, getIpFromRequest } from "@/lib/audit";
-import { clampLimit, clampOffset, resolveOrderBy } from "@/lib/pagination";
+import { clampLimit, clampOffset, resolveOrderBy, collectListFilters } from "@/lib/pagination";
 
-export { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, clampLimit, clampOffset, resolveOrderBy } from "@/lib/pagination";
+export {
+  DEFAULT_PAGE_SIZE,
+  MAX_PAGE_SIZE,
+  clampLimit,
+  clampOffset,
+  resolveOrderBy,
+  collectListFilters,
+} from "@/lib/pagination";
 
 /** Convert snake_case string to camelCase */
 export function toCamelCase(str: string): string {
@@ -155,19 +162,20 @@ export async function handleGetList(
     orderBy?: { column: string; direction?: "asc" | "desc" };
     select?: string;
     auth?: AdminAuthOptions;
+    /**
+     * Columns this endpoint allows filtering on via query string.
+     *
+     * Nothing is filtered unless it is listed here. Every route that actually
+     * takes a filter today uses its own handler, so this default costs nothing
+     * and removes a class of 500s.
+     */
+    filterColumns?: readonly string[];
   }
 ) {
   try {
     await requireAdmin(options?.auth ?? inferAuthForTable(table));
     const url = new URL(request.url);
-    const filters: Record<string, unknown> = {};
-    
-    // Extract filter params from URL (e.g. ?status=active&destination=zanzibar)
-    for (const [key, value] of url.searchParams.entries()) {
-      if (key !== "limit" && key !== "offset" && key !== "order_by") {
-        filters[toSnakeCase(key)] = value;
-      }
-    }
+    const filters = collectListFilters(url.searchParams, options?.filterColumns ?? []);
 
     const limit = clampLimit(url.searchParams.get("limit"));
     const offset = clampOffset(url.searchParams.get("offset"));

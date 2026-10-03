@@ -72,3 +72,40 @@ export function resolveOrderBy(raw: string | null | undefined): {
     direction: rawDirection?.trim().toLowerCase() === "asc" ? "asc" : "desc",
   };
 }
+
+/** Query params that steer the list itself rather than filtering the rows. */
+const LIST_RESERVED_PARAMS = new Set(["limit", "offset", "order_by"]);
+
+function toSnakeCase(value: string): string {
+  return value.replace(/([a-z0-9])([A-Z])/g, "$1_$2").toLowerCase();
+}
+
+/**
+ * Build the filter map for a list request, from allowlisted columns only.
+ *
+ * Previously every unrecognised query param became `.eq(key, value)`. That
+ * turned a typo (`?statsu=paid`) or a cache-buster (`?_=1712`) into a request
+ * for a column that does not exist, which fails the whole query with a 500.
+ * An endpoint now opts in to filtering by naming its columns.
+ */
+export function collectListFilters(
+  params: URLSearchParams,
+  allowedColumns: readonly string[],
+): Record<string, string> {
+  const filters: Record<string, string> = {};
+  if (allowedColumns.length === 0) return filters;
+
+  const allowed = new Set(allowedColumns.map(toSnakeCase));
+
+  for (const key of params.keys()) {
+    if (LIST_RESERVED_PARAMS.has(key)) continue;
+    const column = toSnakeCase(key);
+    if (!allowed.has(column)) continue;
+    const value = params.get(key);
+    if (value !== undefined && value !== null && value !== "") {
+      filters[column] = value;
+    }
+  }
+
+  return filters;
+}

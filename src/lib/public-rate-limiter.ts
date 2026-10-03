@@ -14,6 +14,8 @@ export interface PublicRateLimiter {
   /** Consume one unit, returning whether the call is allowed. */
   take(key: string, nowMs?: number): RateVerdict;
   reset(): void;
+  /** Tracked keys. Exposed so the bound can be asserted in tests. */
+  size(): number;
 }
 
 export interface RateVerdict {
@@ -36,11 +38,56 @@ interface Window {
   resetAt: number;
 }
 
+/**
+ * Ceiling on tracked keys.
+ *
+ * `clientKey` is derived from `x-forwarded-for`, which an attacker controls, so
+ * the key space is effectively unbounded: a caller who varies that header on
+ * every request would otherwise add a permanent map entry per request and grow
+ * this process until it dies. Sweeping keeps the cost bounded regardless.
+ */
+const MAX_TRACKED_KEYS = 10_000;
+
 export function createPublicRateLimiter(options: RateLimitOptions): PublicRateLimiter {
   const { limit, windowMs } = options;
   const windows = new Map<string, Window>();
 
+  /**
+   * Keep the tracked key set bounded without making every request pay for it.
+   *
+   * Reclaiming finished windows is an O(n) scan of the map, so it runs at most
+   * once per window. Doing it per call would just trade the memory-growth
+   * problem for a CPU one: an attacker who varies the key on every request would
+   * keep the map at the cap and force a full scan each time.
+   *
+   * Enforcing the hard cap is separate and stays O(1) per evicted key, so the
+   * bound holds within a single window too.
+   */
+  let lastSweepAt = Number.NEGATIVE_INFINITY;
+
+  function sweep(nowMs: number): void {
+    if (windows.size < MAX_TRACKED_KEYS) return;
+
+    if (nowMs - lastSweepAt >= windowMs) {
+      lastSweepAt = nowMs;
+      for (const [key, window] of windows) {
+        if (nowMs >= window.resetAt) windows.delete(key);
+      }
+    }
+
+    // Evict below the cap, not down to it: `take` adds a key straight after this
+    // returns, so leaving the map at exactly MAX_TRACKED_KEYS would let the
+    // next request push it to MAX+1.
+    while (windows.size >= MAX_TRACKED_KEYS) {
+      const oldest = windows.keys().next();
+      if (oldest.done) break;
+      windows.delete(oldest.value);
+    }
+  }
+
   function take(key: string, nowMs = Date.now()): RateVerdict {
+    sweep(nowMs);
+
     const existing = windows.get(key);
 
     if (!existing || nowMs >= existing.resetAt) {
@@ -72,6 +119,9 @@ export function createPublicRateLimiter(options: RateLimitOptions): PublicRateLi
     take,
     reset() {
       windows.clear();
+    },
+    size() {
+      return windows.size;
     },
   };
 }

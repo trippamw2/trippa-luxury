@@ -5,6 +5,7 @@ import {
   clampLimit,
   clampOffset,
   resolveOrderBy,
+  collectListFilters,
 } from "@/lib/api-helpers";
 
 describe("page size", () => {
@@ -96,5 +97,53 @@ describe("sort order", () => {
 
   it("handles a bare column with no direction", () => {
     expect(resolveOrderBy("status")).toEqual({ column: "status", direction: "desc" });
+  });
+});
+
+describe("list filters", () => {
+  const params = (query: string) => new URLSearchParams(query);
+
+  it("filters nothing when the endpoint allows no columns", () => {
+    // The default for every list endpoint. A stray param is ignored instead of
+    // becoming `.eq("stray", ...)`, which fails the whole query with a 500.
+    expect(collectListFilters(params("_=1712&limit=25"), [])).toEqual({});
+  });
+
+  it("ignores a cache-buster rather than querying for that column", () => {
+    expect(collectListFilters(params("_=1712"), ["status"])).toEqual({});
+  });
+
+  it("ignores a mistyped filter instead of failing the request", () => {
+    expect(collectListFilters(params("statsu=paid"), ["status"])).toEqual({});
+  });
+
+  it("accepts an allowlisted column", () => {
+    expect(collectListFilters(params("status=paid"), ["status"])).toEqual({ status: "paid" });
+  });
+
+  it("never treats the list controls as filters", () => {
+    expect(
+      collectListFilters(params("limit=10&offset=20&order_by=name"), ["limit", "offset", "order_by"])
+    ).toEqual({});
+  });
+
+  it("matches an allowlisted column regardless of case style", () => {
+    expect(collectListFilters(params("bookingReference=KVR-1"), ["booking_reference"])).toEqual({
+      booking_reference: "KVR-1",
+    });
+  });
+
+  it("drops empty values so they do not become a filter for ''", () => {
+    expect(collectListFilters(params("status="), ["status"])).toEqual({});
+  });
+
+  it("keeps a falsy-looking but meaningful value", () => {
+    expect(collectListFilters(params("status=0"), ["status"])).toEqual({ status: "0" });
+  });
+
+  it("does not let an allowlisted column smuggle in a second one", () => {
+    expect(collectListFilters(params("status=paid&guest_email=a@b.c"), ["status"])).toEqual({
+      status: "paid",
+    });
   });
 });

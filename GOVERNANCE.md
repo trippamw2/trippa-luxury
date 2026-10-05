@@ -108,6 +108,16 @@ write is attributable. The governance tables currently holding real rows:
 | `supplier_performance` | Supplier appraisals, scored from real supplier records |
 | `system_events` | Coordination events between capabilities |
 | `system_gaps` | Detected capability gaps, with remediation state |
+| `llm_call_usage` | One row per successful model call, written by `callLlm` |
+
+`llm_call_usage` deserves a note, because it is the one ledger here that no agent
+writes. `callLlm` is the same choke point that enforces the kill switch, and
+recording sits there too, so a route cannot spend money without that spend being
+recorded — the code that spends is the code that reports. Spend previously reached
+the database only when a call site chose to post its own token counts, which made
+the total a measure of who remembered to report rather than what was actually
+spent. It measures only: nothing in that table grants or denies authority, and a
+failed write is logged and swallowed rather than propagated into a caller.
 
 These tables are populated by production code paths as those paths run, including quote
 generation and supplier appraisal. They are never back-filled by hand: a governance row that

@@ -6,6 +6,7 @@
 // ─────────────────────────────────────────────────────────────────────────
 
 import { getGovernanceSettings } from "@/lib/ai/governance-settings";
+import { recordLlmUsage } from "@/lib/ai/llm-usage";
 
 const TIMEOUT_MS = 30_000;
 
@@ -363,8 +364,23 @@ export async function callLlm(
   const lastError: Error[] = [];
 
   for (const provider of enabled) {
+    const startedAt = Date.now();
     try {
-      return await callProvider(provider, messages, config);
+      const response = await callProvider(provider, messages, config);
+
+      // Record the call here, at the same choke point that enforces the kill
+      // switch, so recording cannot be bypassed by a route that forgets to. The
+      // answering provider is the one that was billed, not the first one tried.
+      // Deliberately not awaited: a bookkeeping write must not add latency to, or
+      // fail, a call the caller already got a usable answer from.
+      void recordLlmUsage({
+        provider: provider.name,
+        model: response.model,
+        usage: response.usage,
+        latencyMs: Date.now() - startedAt,
+      });
+
+      return response;
     } catch (err) {
       lastError.push(err instanceof Error ? err : new Error(String(err)));
       console.warn(

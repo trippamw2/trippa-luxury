@@ -8,7 +8,7 @@ A full-stack luxury travel platform for a Zambia-based tour company (brand: **Ki
 |---|---|
 | Framework | [Next.js 16](https://nextjs.org) (App Router) + React 19, TypeScript |
 | Styling | Tailwind CSS v4, `tailwind-merge` + `clsx` (`cn`), framer-motion |
-| Database / Auth / Storage | [Supabase](https://supabase.com) (Postgres + RLS, Auth, Storage) — 35 migrations |
+| Database / Auth / Storage | [Supabase](https://supabase.com) (Postgres + RLS, Auth, Storage) — 36 migrations |
 | Admin UI | Tiptap rich text, Recharts dashboards, lucide-react icons |
 | Documents | `@react-pdf/renderer` (quote & invoice PDFs), iCal exports |
 | AI concierge | Google Gemini + Groq + DeepSeek (journey engine, guest profiler, quote engine, sales funnel) |
@@ -103,8 +103,9 @@ src/
 │                           audit, csv, email, workflow-persistence, constants
 ├── components/             layout (Navbar, SiteShell), UI cards, SEO (JSON-LD)
 supabase/
-└── migrations/             001–035: schema, RLS, seed data, AI-native governance, durable rate limiting,
-                            human-reviewed reminder staging, automatic LLM spend accounting
+└── migrations/             001–036: schema, RLS, seed data, AI-native governance, durable rate limiting,
+                            human-reviewed reminder staging, automatic LLM spend accounting,
+                            recorded ratification state
 e2e/                        Playwright specs (admin auth, admin API auth)
 ```
 

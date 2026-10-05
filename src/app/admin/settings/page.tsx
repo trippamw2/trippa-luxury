@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { CheckCircle, AlertCircle, CreditCard, Plane, Mail } from "lucide-react";
+import { useState, useEffect, useId } from "react";
+import { CheckCircle, AlertCircle, CreditCard, Plane, Mail, ShieldAlert, ShieldCheck, Scale } from "lucide-react";
 
 interface BankDetailsData {
   bankName: string;
@@ -23,6 +23,28 @@ interface TransferPricingData {
   exitCharter: string;
   roadTransfer: string;
   parkFeesPerDay: string;
+}
+
+interface GovernanceData {
+  inForce: GovernanceSettingsPayload;
+  stored: GovernanceSettingsPayload;
+  defaults: GovernanceSettingsPayload;
+  docVersion: number;
+  ratificationPhrase: string;
+  stale: boolean;
+}
+
+interface GovernanceSettingsPayload {
+  autonomyLevel: number;
+  llmEnabled: boolean;
+  outboundEnabled: boolean;
+  internalWritesEnabled: boolean;
+  updatedAt: string | null;
+  updatedBy: string | null;
+  ratifiedAt: string | null;
+  ratifiedBy: string | null;
+  ratifiedDocVersion: number | null;
+  envOverride: boolean;
 }
 
 interface SettingsData {
@@ -69,12 +91,176 @@ function loadLocal(): SettingsData {
   return { siteName: "Kivara", whatsapp: "+27871234567", email: "concierge@kivara.africa", currency: "USD", bankDetails: defaultBankDetails, transferPricing: defaultTransferPricing };
 }
 
+/**
+ * Ratification status, plus the one action that changes it.
+ *
+ * Split out so the state machine (unknown / unratified / stale / ratified) reads
+ * as a table rather than as tangled conditionals, and so the panel can be
+ * reasoned about on its own.
+ */
+function RatificationPanel({
+  governance,
+  ack,
+  setAck,
+  ackId,
+  ratifying,
+  onRatify,
+  error,
+  done,
+}: {
+  governance: GovernanceData;
+  ack: string;
+  setAck: (value: string) => void;
+  ackId: string;
+  ratifying: boolean;
+  onRatify: () => void;
+  error: string | null;
+  done: boolean;
+}) {
+  const { inForce, stale, ratificationPhrase, docVersion } = governance;
+
+  // A signature on an older document version is not a signature on this one, so it
+  // must not read as ratified — the same rule `isRatified()` applies server-side.
+  const signedCurrentVersion =
+    inForce.ratifiedAt !== null && inForce.ratifiedDocVersion === docVersion;
+  const state = stale ? "stale" : signedCurrentVersion ? "ratified" : "unratified";
+
+  return (
+    <div
+      className={
+        state === "ratified"
+          ? "p-4 border border-emerald-200 bg-emerald-50/40"
+          : "p-4 border border-amber-200 bg-amber-50/40"
+      }
+    >
+      <p className="flex items-center gap-1.5 text-sm font-medium text-soft-black">
+        {state === "ratified" ? (
+          <><ShieldCheck className="w-4 h-4 text-emerald-600" /> Charter ratified</>
+        ) : (
+          <><ShieldAlert className="w-4 h-4 text-amber-600" />{state === "stale" ? " Ratification is stale" : " Charter unratified"}</>
+        )}
+      </p>
+
+      <dl className="mt-3 grid grid-cols-1 gap-2 text-sm">
+        <div className="flex gap-2">
+          <dt className="w-32 text-earth">Document version</dt>
+          <dd className="text-soft-black">{docVersion}</dd>
+        </div>
+        <div className="flex gap-2">
+          <dt className="w-32 text-earth">Ratified at</dt>
+          <dd className={signedCurrentVersion ? "text-emerald-700" : "text-amber-700"}>
+            {inForce.ratifiedAt
+              ? new Date(inForce.ratifiedAt).toLocaleString()
+              : "never ratified"}
+          </dd>
+        </div>
+        <div className="flex gap-2">
+          <dt className="w-32 text-earth">Ratified by</dt>
+          <dd className="text-soft-black">{inForce.ratifiedBy ?? "\u2014"}</dd>
+        </div>
+      </dl>
+
+      {state === "ratified" && (
+        <p className="text-xs text-earth mt-3">
+          An owner has signed version {docVersion} of <code>GOVERNANCE.md</code>. Every decision in the
+          ledger is now stamped with the charter state it was taken under.
+        </p>
+      )}
+
+      {state === "unratified" && (
+        <div className="mt-3">
+          <p className="text-xs text-earth">
+            No owner has signed this document, so it describes intent rather than adopted policy.
+            This is recorded, not enforced: AI actions still run, every decision row is stamped
+            <code> charter_ratified = false</code>, and nothing is blocked. Refusing to act while
+            unratified would stop quotes, receipts, payment links and reminders, which is an owners&rsquo;
+            decision to make rather than a setting to toggle.
+          </p>
+        </div>
+      )}
+
+      {state === "stale" && (
+        <p className="text-xs text-earth mt-3">
+          <code>GOVERNANCE.md</code> was changed after it was signed, so the earlier signature no
+          longer covers version {docVersion}. Ratifying again adopts the current text.
+        </p>
+      )}
+
+      {state !== "ratified" && (
+        <div className="mt-4 pt-4 border-t border-amber-200/60">
+          <label htmlFor={ackId} className="block text-sm font-medium text-soft-black mb-1">
+            Ratify by typing this phrase
+          </label>
+          <p className="text-xs text-earth mb-2">
+            Deliberately awkward: a signature must cost an intentional act, so it never happens on
+            page load, from a deploy, or because something asked nicely. An agent that could type
+            this would make the signature meaningless.
+          </p>
+          <p className="text-xs text-soft-black bg-white border border-sand-light/50 px-3 py-2 mb-2 font-mono break-words">
+            {ratificationPhrase}
+          </p>
+          <input
+            id={ackId}
+            type="text"
+            value={ack}
+            onChange={(e) => setAck(e.target.value)}
+            placeholder="Type the phrase exactly"
+            autoComplete="off"
+            className="w-full px-3 py-2 border border-sand-light/50 text-sm focus:outline-none focus:border-gold transition-colors"
+          />
+          {ack.length > 0 && ack !== ratificationPhrase && (
+            <p className="text-xs text-amber-700 mt-2 flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" />
+              Does not match yet. The server judges this, not the browser.
+            </p>
+          )}
+          <div className="flex items-center gap-4 mt-3">
+            <button
+              onClick={onRatify}
+              disabled={ratifying || ack.length === 0}
+              className="px-4 py-2 bg-soft-black text-cream text-sm tracking-widest uppercase hover:bg-soft-black-light transition-colors disabled:opacity-40"
+            >
+              {ratifying ? "Ratifying..." : state === "stale" ? "Re-ratify Charter" : "Ratify Charter"}
+            </button>
+            {done && (
+              <span className="inline-flex items-center gap-1.5 text-sm text-emerald-600">
+                <CheckCircle className="w-4 h-4" /> Recorded
+              </span>
+            )}
+          </div>
+          {error && (
+            <p className="text-sm text-red-600 flex items-center gap-1 mt-3">
+              <AlertCircle className="w-4 h-4" />
+              {error}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdminSettings() {
   const [form, setForm] = useState<SettingsData>(loadLocal);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState<string | null>(null);
   const [useApi, setUseApi] = useState(true);
+
+  // ── Governance charter ratification ─────────────────────────────────
+  // Server state, deliberately NOT part of `form` and never written to
+  // localStorage: ratification is a signed act on a document, not a field an
+  // operator edits. It lives in platform_settings and is read back from the API.
+  //
+  // `null` means "we do not know", which is not the same as unratified. When the
+  // settings API is unreachable this page falls back to localStorage, and a
+  // fallback must never be rendered as a verified governance state.
+  const [governance, setGovernance] = useState<GovernanceData | null>(null);
+  const [ack, setAck] = useState("");
+  const [ratifying, setRatifying] = useState(false);
+  const [ratifyError, setRatifyError] = useState<string | null>(null);
+  const [ratifyDone, setRatifyDone] = useState(false);
+  const ackId = useId();
 
   // ── Email pipeline diagnostics ─────────────────────────────────────
   const [emailTesting, setEmailTesting] = useState(false);
@@ -122,15 +308,43 @@ export default function AdminSettings() {
           bankDetails: json.bankDetails || defaultBankDetails,
           transferPricing: json.transferPricing || defaultTransferPricing,
         });
+        setGovernance(json.governance ?? null);
         setUseApi(true);
       })
       .catch(() => {
         // Fallback to localStorage
         setForm(loadLocal());
         setUseApi(false);
+        // Explicitly leave governance null: the API never answered, so the charter
+        // state is unknown rather than unratified.
       })
       .finally(() => setLoading(false));
   }, []);
+
+  async function handleRatify() {
+    setRatifyError(null);
+    setRatifyDone(false);
+    setRatifying(true);
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ratify: true, ratificationAcknowledgement: ack }),
+      });
+      const json = await res.json();
+      if (!res.ok || json.error) throw new Error(json.error || `HTTP ${res.status}`);
+      // Re-read rather than assuming success, so the banner reflects what the
+      // server actually recorded instead of what we hoped it recorded.
+      const refreshed = await fetch("/api/admin/settings").then((r) => r.json());
+      if (refreshed.governance) setGovernance(refreshed.governance);
+      setAck("");
+      setRatifyDone(true);
+    } catch (err: unknown) {
+      setRatifyError(err instanceof Error ? err.message : "Ratification failed");
+    } finally {
+      setRatifying(false);
+    }
+  }
 
   async function handleSave() {
     setApiError(null);
@@ -188,6 +402,40 @@ export default function AdminSettings() {
 
       <div className="bg-white border border-sand-light/50 p-6 max-w-2xl">
         <div className="space-y-6">
+          {/* ─── AI Governance Charter ──────────────────────────────── */}
+          {/* First in the form: the charter's adoption state is the most
+              consequential governance fact on this page. */}
+          <div className="pt-6 border-t border-sand-light/50">
+            <div className="flex items-center gap-2 mb-4">
+              <Scale className="w-4 h-4 text-gold" />
+              <h2 className="text-sm font-semibold text-soft-black uppercase tracking-wider">AI Governance Charter</h2>
+            </div>
+
+            {governance === null ? (
+              <div className="p-4 border border-amber-200 bg-amber-50/40">
+                <p className="flex items-center gap-1.5 text-sm font-medium text-soft-black">
+                  <AlertCircle className="w-4 h-4 text-amber-600" /> Charter state unknown
+                </p>
+                <p className="text-xs text-earth mt-2">
+                  Governance state could not be read, so nothing can be claimed about whether this
+                  charter has been ratified. Connect Supabase and reload to read its real status
+                  rather than assuming one.
+                </p>
+              </div>
+            ) : (
+              <RatificationPanel
+                governance={governance}
+                ack={ack}
+                setAck={setAck}
+                ackId={ackId}
+                ratifying={ratifying}
+                onRatify={handleRatify}
+                error={ratifyError}
+                done={ratifyDone}
+              />
+            )}
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-soft-black mb-1">Site Name</label>
             <input

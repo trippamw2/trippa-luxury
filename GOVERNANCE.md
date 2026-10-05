@@ -138,6 +138,14 @@ Being explicit about the gaps matters more than sounding complete:
   meaningless. Until an owner does it, the STATUS line above stays **UNRATIFIED** and
   `isRatified()` returns false. Ratification is bound to `GOVERNANCE_DOC_VERSION`, so a
   material edit here invalidates an old sign-off instead of inheriting it.
+- **The unratified state is recorded and surfaced, and deliberately does not block.**
+  `isRatified()` used to be computed and stored but read by nothing, so an UNRATIFIED charter
+  gated nothing and the decision trail could not show it. Now every `decisions` row carries
+  `charter_ratified`, and `/admin/settings` shows the state with a path to ratify. We chose to
+  record rather than enforce: a hard gate would stop every quote, receipt, payment link and
+  reminder until an owner signed off, which is a product decision for the owners, not a security
+  fix. The gap is now auditable and visible instead of invisible — `GOVERNANCE.md` and the live
+  ledger agree about what is and is not enforced.
 - **The autonomy dial is now operator-tunable, and the kill switches are real.**
   `governance-settings.ts` persists the dial and the three switches in `platform_settings`,
   read on every consequential AI path, with a 5-second cache that an incident lever bypasses.

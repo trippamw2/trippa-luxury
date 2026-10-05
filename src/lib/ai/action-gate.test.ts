@@ -48,6 +48,7 @@ import {
 } from "@/lib/ai/action-gate";
 import {
   DEFAULT_GOVERNANCE_SETTINGS,
+  GOVERNANCE_DOC_VERSION,
   resetGovernanceCache,
   type GovernanceSettings,
 } from "@/lib/ai/governance-settings";
@@ -454,6 +455,56 @@ describe("recordDecision", () => {
       evidence_count: 6,
       evidence_quality: "supported",
     });
+  });
+
+  it("records the unratified charter without refusing the action", async () => {
+    // The enforcement decision was explicit: an unratified charter records itself
+    // rather than halting production outbound. Both halves matter — the flag has
+    // to be honest about the document's state, and the action still has to go out.
+    h.settingRows = [];
+    resetGovernanceCache();
+    const result = await evaluateAction(AI_ACTION_PROFILES.alternatives, {
+      settings: settings(),
+    });
+
+    await recordDecision(result, AI_ACTION_PROFILES.alternatives);
+
+    expect(h.decisionInserts[0]).toMatchObject({ charter_ratified: false });
+    expect(result.allowed).toBe(true);
+  });
+
+  it("records a ratified charter as ratified", async () => {
+    // Without this the column would look like a permanent `false` and the ledger
+    // would never be able to say the gap was closed.
+    h.settingRows = [
+      { key: "governance.ratified_at", value: "2026-01-01T00:00:00.000Z" },
+      { key: "governance.ratified_doc_version", value: String(GOVERNANCE_DOC_VERSION) },
+    ];
+    resetGovernanceCache();
+    const result = await evaluateAction(AI_ACTION_PROFILES.alternatives, {
+      settings: settings({ autonomyLevel: 2 }),
+    });
+
+    await recordDecision(result, AI_ACTION_PROFILES.alternatives);
+
+    expect(h.decisionInserts[0]).toMatchObject({ charter_ratified: true });
+  });
+
+  it("records a stale ratification as unratified", async () => {
+    // A signature on an older document version is not a signature on this one, so
+    // it must not read as ratified in the ledger.
+    h.settingRows = [
+      { key: "governance.ratified_at", value: "2026-01-01T00:00:00.000Z" },
+      { key: "governance.ratified_doc_version", value: "0.0.0-stale" },
+    ];
+    resetGovernanceCache();
+    const result = await evaluateAction(AI_ACTION_PROFILES.alternatives, {
+      settings: settings({ autonomyLevel: 2 }),
+    });
+
+    await recordDecision(result, AI_ACTION_PROFILES.alternatives);
+
+    expect(h.decisionInserts[0]).toMatchObject({ charter_ratified: false });
   });
 });
 

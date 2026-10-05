@@ -42,7 +42,7 @@ import {
   type Capability,
   type EscalationReason,
 } from "@/lib/ai/autonomy-policy";
-import { getGovernanceSettings, type GovernanceSettings } from "@/lib/ai/governance-settings";
+import { getGovernanceSettings, isRatified, type GovernanceSettings } from "@/lib/ai/governance-settings";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
@@ -418,6 +418,13 @@ export async function recordDecision(
       evidence_quality: evidenceCount > 0 ? "supported" : "unknown",
       risk_level: riskLevel,
       human_review_required: result.decision.requiresHumanReview,
+      // Whether the charter was adopted when this decision was taken. Recorded
+      // rather than enforced: refusing every action while the document is
+      // UNRATIFIED would halt quotes, receipts, payment links and reminders, and
+      // that is the owners' call rather than a security fix. Recording it makes
+      // the unratified period auditable instead of invisible, which is the gap
+      // this column closes.
+      charter_ratified: await isRatified(),
       // A human-authorized action is decided, not merely proposed.
       status: result.allowed ? (result.authorizedBy === "human" ? "approved" : "executed") : "proposed",
       outcome: context?.outcome ?? result.blockedBySwitch,

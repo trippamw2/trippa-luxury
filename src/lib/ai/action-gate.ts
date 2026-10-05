@@ -99,11 +99,10 @@ export interface AiActionProfile {
  *  - Every route that actually dispatches to a guest is `orion`, because the
  *    matrix grants `outbound_message` to `orion` alone. Amara produces prose and
  *    never dispatches; KORA observes and never contacts anyone.
- *  - `trigger-reminders` is unattended and stages nothing, so it is NOT
- *    human-authorized. The constitution treats unstaged outbound as a structural
- *    refusal, which means that route is blocked at every dial rather than below
- *    3. Re-enabling it means staging the messages for review, not turning a
- *    setting up.
+ *  - `trigger-reminders` is unattended, so it never claims human authorization.
+ *    It also no longer sends: it composes into `staged_reminders` as an internal
+ *    write, and the send happens in `dispatch-staged-reminders` behind a human.
+ *    That is what satisfies the staging requirement instead of overriding it.
  */
 export const AI_ACTION_PROFILES: Record<string, AiActionProfile> = {
   alternatives: { capability: "beatrice", actionClass: "recommend", title: "Journey alternatives" },
@@ -170,23 +169,40 @@ export const AI_ACTION_PROFILES: Record<string, AiActionProfile> = {
     staged: true,
   },
 
-  // Unattended. It composes and sends in one step, so it stages nothing, and
-  // `evaluateAutonomy` treats unstaged outbound as a structural refusal rather
-  // than a dial the operator can raise past. This route is therefore blocked at
-  // EVERY autonomy level, not merely below 3.
+  // ── Staging. Unattended, and deliberately not an outbound action ────────
+  // This used to compose AND send in one step, which made it unstaged outbound
+  // from a cron: a structural refusal at every autonomy level, so reminders
+  // could not run at all. Rather than weaken the rule, the flow is split in
+  // two. Composition is now an internal write — it touches only `staged_reminders`
+  // and contacts nobody — so it is reversible and permitted without a human.
   //
-  // That is the constitution working as written: an unattended job must not put
-  // unreviewed prose in front of a guest. Re-enabling reminders is a change to
-  // how they are produced — stage them for review, then dispatch — and not a
-  // setting. Claiming human authorization here would defeat the entire gate, so
-  // `gateAiAction` rejects that assertion outright.
+  // The confidence is 100 because the templates are deterministic: the content
+  // comes from `reminderEngine`, not from a model, so there is no inference to
+  // be uncertain about. That is a claim about THIS code path, and stating it is
+  // what lets the route pass the confidence gate honestly.
   "trigger-reminders": {
     capability: "orion",
-    actionClass: "outbound_message",
-    title: "Automated booking reminders",
+    actionClass: "internal_write",
+    title: "Compose booking reminders for review",
     confidenceScore: 100,
-    humanAuthorized: false,
-    staged: false,
+    // No human touched this dispatch — it is a nightly cron. It therefore does
+    // NOT claim authorization, and it does not need to: staging is reversible
+    // and invisible to the guest.
+  },
+
+  // ── Dispatch. Admin-gated, and the only step that may contact a guest ───
+  // Sends exactly the rows an operator approved, byte for byte. `staged` is
+  // true because the message was composed and read before this call, and
+  // `humanAuthorized` is true because a named admin approved these specific
+  // rows — `dispatch-staged-reminders` is the one place that assertion is
+  // earned rather than asserted.
+  "dispatch-staged-reminders": {
+    capability: "orion",
+    actionClass: "outbound_message",
+    title: "Dispatch reviewed booking reminders",
+    confidenceScore: 100,
+    humanAuthorized: true,
+    staged: true,
   },
 };
 

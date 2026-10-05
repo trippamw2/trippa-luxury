@@ -76,6 +76,8 @@ const NAV_ITEMS = [
   { label: "Guest Profiles", href: "/admin/guest-profiles", module: "guest-profiles" },
   { label: "Tasks", href: "/admin/tasks", module: "tasks" },
   { label: "Concierge", href: "/admin/concierge", module: "concierge" },
+  // Reminders reach guests only after a human approves each rendered message.
+  { label: "Reminder Review", href: "/admin/staged-reminders", module: "staged-reminders" },
   // ── Content Management ──────────────────────────────────────────────
   { label: "Destinations", href: "/admin/destinations", module: "destinations" },
   { label: "Properties", href: "/admin/properties", module: "properties" },

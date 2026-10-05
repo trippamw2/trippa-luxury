@@ -63,7 +63,14 @@ export type CanonicalEventType =
  * than a guest's, and conflating the two would make "what happened to this
  * client" impossible to read.
  */
-export type OperationalEventType = "GAP_DETECTED" | "INSIGHT_RECORDED" | "AUTONOMY_ESCALATED";
+export type OperationalEventType =
+  | "GAP_DETECTED"
+  | "INSIGHT_RECORDED"
+  | "AUTONOMY_ESCALATED"
+  // Staged outbound lifecycle. An approval that emits no event is invisible to
+  // KORA and Mission Control, so the review decision has to be an event too.
+  | "OUTBOUND_STAGED_APPROVED"
+  | "OUTBOUND_STAGED_REJECTED";
 
 export type SystemEventType = CanonicalEventType | OperationalEventType;
 
@@ -89,6 +96,8 @@ export const OPERATIONAL_EVENT_TYPES: readonly OperationalEventType[] = [
   "GAP_DETECTED",
   "INSIGHT_RECORDED",
   "AUTONOMY_ESCALATED",
+  "OUTBOUND_STAGED_APPROVED",
+  "OUTBOUND_STAGED_REJECTED",
 ] as const;
 
 export function isCanonicalEventType(value: unknown): value is CanonicalEventType {

@@ -42,6 +42,10 @@ export const MODULE_MIN_ROLE: Record<string, AdminRole> = {
   users: "admin",
   settings: "admin",
   "audit-log": "admin",
+  // Approving a staged reminder releases a real outbound email to a guest, so
+  // this is the same authority level as Mission Control: admin only, never an
+  // editor, and never a silent fallback (an unlisted module defaults to editor).
+  "staged-reminders": "admin",
   // Mission Control is where level-4 human authorizations are granted:
   // financial commitments, supplier contracts and rejections that block a
   // send. It must be listed explicitly. An unlisted module falls back to

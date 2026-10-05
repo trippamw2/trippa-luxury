@@ -146,15 +146,32 @@ describe("the dial", () => {
     expect((await evaluateAction(proposal, { settings: settings({ autonomyLevel: 2 }) })).allowed).toBe(true);
   });
 
-  it("refuses unattended outbound at every dial, because it stages nothing", async () => {
-    // `outbound_not_staged` is a structural refusal in `evaluateAutonomy`, not a
-    // threshold the dial can clear. An unattended job that composes and sends in
-    // one step therefore cannot be authorized by turning the autonomy level up,
-    // which is the point: re-enabling it requires staging, not a setting.
+  it("lets the staging route compose at the dial, because it contacts nobody", async () => {
+    // Reminders used to compose AND send in one unattended step, which
+    // `outbound_not_staged` refused at every dial. Staging moved the send behind a
+    // human, so what remains here is an internal write: refused at 1, allowed at 2.
     const reminders = AI_ACTION_PROFILES["trigger-reminders"];
+    expect(reminders.actionClass).toBe("internal_write");
 
+    expect((await evaluateAction(reminders, { settings: settings({ autonomyLevel: 1 }) })).allowed).toBe(false);
+    expect((await evaluateAction(reminders, { settings: settings({ autonomyLevel: 2 }) })).allowed).toBe(true);
+  });
+
+  it("still refuses genuinely unstaged unattended outbound at every dial", async () => {
+    // `outbound_not_staged` is a structural refusal in `evaluateAutonomy`, not a
+    // threshold the dial can clear. Staging gave reminders a way around it, so
+    // this pins that the refusal itself survives: reintroducing a compose-and-send
+    // route cannot be authorized by turning the autonomy level up.
     for (const level of [0, 1, 2, 3, 4] as AutonomyLevel[]) {
-      const result = await evaluateAction(reminders, { settings: settings({ autonomyLevel: level }) });
+      const result = await evaluateAction(
+        {
+          capability: "orion",
+          actionClass: "outbound_message",
+          title: "Compose and send in one unattended step",
+          confidenceScore: 100,
+        },
+        { settings: settings({ autonomyLevel: level }) }
+      );
       expect(result.allowed, `dial ${level}`).toBe(false);
       expect(result.decision.escalatedBy).toContain("outbound_not_staged");
     }
@@ -337,13 +354,14 @@ describe("gateAiAction", () => {
     expect(result.allowed).toBe(true);
   });
 
-  it("blocks an unattended dispatch at the starting dial and records the refusal", async () => {
-    storeDial(2);
-    await expect(gateAiAction("trigger-reminders")).rejects.toBeInstanceOf(ActionBlockedError);
-
+  it("blocks staging below the dial and records the refusal", async () => {
+    // Staging is an internal write that needs level 2, so at 1 the gate refuses.
     // A refusal is the event an auditor most needs, so it must reach the ledger
     // even though the route threw. This asserted zero inserts previously, which
     // meant every blocked action left no trace at all.
+    storeDial(1);
+    await expect(gateAiAction("trigger-reminders")).rejects.toBeInstanceOf(ActionBlockedError);
+
     expect(h.decisionInserts).toHaveLength(1);
     expect(h.decisionInserts[0]).toMatchObject({
       decision_type: "blocked",
@@ -486,7 +504,32 @@ describe("declared profiles", () => {
   });
 
   it("marks no unattended route as human-authorized", () => {
-    expect(AI_ACTION_PROFILES["trigger-reminders"].humanAuthorized).toBe(false);
+    // Nothing that runs without a human may claim it: staging deliberately leaves
+    // the field unset so a compose-and-send regression cannot inherit the dispatch
+    // route's authorization.
+    for (const [key, profile] of Object.entries(AI_ACTION_PROFILES)) {
+      if (profile.actionClass === "internal_write") {
+        expect(profile.humanAuthorized, key).toBeFalsy();
+      }
+    }
+    expect(AI_ACTION_PROFILES["trigger-reminders"].humanAuthorized).toBeFalsy();
+  });
+
+  it("requires a human decision before the dispatch route may send", async () => {
+    // The dispatch profile's authorization is a claim about what happened in the
+    // review queue, so it must be refused the moment that claim is absent.
+    const dispatch = AI_ACTION_PROFILES["dispatch-staged-reminders"];
+    expect(dispatch.actionClass).toBe("outbound_message");
+
+    const unauthorized = await evaluateAction(
+      { ...dispatch, humanAuthorized: false },
+      { settings: settings({ autonomyLevel: 2 }) }
+    );
+    expect(unauthorized.allowed).toBe(false);
+
+    const reviewed = await evaluateAction(dispatch, { settings: settings({ autonomyLevel: 2 }) });
+    expect(reviewed.allowed).toBe(true);
+    expect(reviewed.authorizedBy).toBe("human");
   });
 
   it("marks every dispatch route as staged, because a human composed it", () => {

@@ -8,7 +8,7 @@ A full-stack luxury travel platform for a Zambia-based tour company (brand: **Ki
 |---|---|
 | Framework | [Next.js 16](https://nextjs.org) (App Router) + React 19, TypeScript |
 | Styling | Tailwind CSS v4, `tailwind-merge` + `clsx` (`cn`), framer-motion |
-| Database / Auth / Storage | [Supabase](https://supabase.com) (Postgres + RLS, Auth, Storage) — 33 migrations |
+| Database / Auth / Storage | [Supabase](https://supabase.com) (Postgres + RLS, Auth, Storage) — 34 migrations |
 | Admin UI | Tiptap rich text, Recharts dashboards, lucide-react icons |
 | Documents | `@react-pdf/renderer` (quote & invoice PDFs), iCal exports |
 | AI concierge | Google Gemini + Groq + DeepSeek (journey engine, guest profiler, quote engine, sales funnel) |
@@ -103,13 +103,16 @@ src/
 │                           audit, csv, email, workflow-persistence, constants
 ├── components/             layout (Navbar, SiteShell), UI cards, SEO (JSON-LD)
 supabase/
-└── migrations/             001–033: schema, RLS, seed data, AI-native governance, durable rate limiting
+└── migrations/             001–034: schema, RLS, seed data, AI-native governance, durable rate limiting,
+                            human-reviewed reminder staging
 e2e/                        Playwright specs (admin auth, admin API auth)
 ```
 
 ### Admin panel (`/admin`)
 
-Modules: dashboard, bookings (with provisional holds & deposits), properties, packages, tours, experiences, destinations, journeys, guests, inquiries, suppliers, finance (expenses / invoices / transactions), media, blog, AI journeys, users, audit log, settings.
+Modules: dashboard, bookings (with provisional holds & deposits), properties, packages, tours, experiences, destinations, journeys, guests, inquiries, suppliers, finance (expenses / invoices / transactions), media, blog, AI journeys, reminder review, users, audit log, settings.
+
+`/admin/staged-reminders` is the review queue for booking reminders. The nightly cron only *composes* — it writes the exact recipient, subject and HTML a guest would receive into `staged_reminders` and contacts nobody. Nothing is emailed until an operator opens the row, reads the rendered message, and approves it; approval is a separate deliberate act from sending, and dispatch claims each row (`approved → dispatching → dispatched`) before handing it to the provider, so two admins clicking send at once cannot double-send. The table is service-role-only (RLS on, no policies, grants revoked from `anon`/`authenticated`) because it holds guest email addresses and rendered message bodies.
 
 Every admin API route is protected by the `requireAdmin` guard (`src/lib/api-helpers.ts`): it validates the Supabase session, looks up the caller's `admin_profiles` row, and writes an audit-log entry. The admin UI session is managed by `AdminAuthGuard` + `AdminShell`.
 
@@ -125,6 +128,8 @@ Every admin API route is protected by the `requireAdmin` guard (`src/lib/api-hel
 The app deploys as a standard Next.js app (e.g. Vercel). Set all env vars from `.env.example` in the deployment environment, apply migrations to the production Supabase project, and configure the cron endpoints (`/api/cron/release-provisional-holds`, `/api/cron/prune-rate-limits`, `/api/ai/trigger-reminders`) with the `CRON_SECRET` header.
 
 `/api/cron/prune-rate-limits` should run daily. Rate-limit buckets are keyed by `x-forwarded-for`, which the caller controls, so without this sweep every distinct address a caller invents leaves a permanent row (migration `032`).
+
+`/api/ai/trigger-reminders` **stages only** and is safe to run unattended: it composes due reminders into `staged_reminders` and sends nothing. Sending happens solely via `POST /api/admin/staged-reminders/dispatch`, which requires an admin session and only reads rows a human approved. Do not add a cron or unattended caller for the dispatch route — that is exactly the unstaged unattended outbound the AI constitution refuses at every autonomy level. A row left `dispatching` by a crashed process is reclaimed as `failed` (never auto-resent) on a later dispatch, so an operator re-stages and re-approves it.
 
 ## Email pipeline (Brevo) — setup & diagnostics
 

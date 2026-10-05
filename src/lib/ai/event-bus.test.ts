@@ -120,15 +120,17 @@ describe("canonical event vocabulary", () => {
 });
 
 describe("operational event vocabulary", () => {
-  it("contains exactly the three internal types", () => {
-    expect(OPERATIONAL_EVENT_TYPES).toHaveLength(3);
-    expect(new Set(OPERATIONAL_EVENT_TYPES).size).toBe(3);
-    expect([...OPERATIONAL_EVENT_TYPES].sort()).toEqual([
-      "AUTONOMY_ESCALATED",
-      "GAP_DETECTED",
-      "INSIGHT_RECORDED",
-    ]);
-  });
+it("contains exactly the internal types, including the staged-review pair", () => {
+  expect(OPERATIONAL_EVENT_TYPES).toHaveLength(5);
+  expect(new Set(OPERATIONAL_EVENT_TYPES).size).toBe(5);
+  expect([...OPERATIONAL_EVENT_TYPES].sort()).toEqual([
+    "AUTONOMY_ESCALATED",
+    "GAP_DETECTED",
+    "INSIGHT_RECORDED",
+    "OUTBOUND_STAGED_APPROVED",
+    "OUTBOUND_STAGED_REJECTED",
+  ]);
+});
 
   it("recognises every operational type", () => {
     for (const t of OPERATIONAL_EVENT_TYPES) expect(isOperationalEventType(t)).toBe(true);
@@ -155,8 +157,8 @@ describe("isSystemEventType", () => {
     for (const t of [...CANONICAL_EVENT_TYPES, ...OPERATIONAL_EVENT_TYPES]) {
       expect(isSystemEventType(t)).toBe(true);
     }
-    // The exact count guards against a type being added to one list only.
-    expect(CANONICAL_EVENT_TYPES.length + OPERATIONAL_EVENT_TYPES.length).toBe(18);
+// The exact count guards against a type being added to one list only.
+  expect(CANONICAL_EVENT_TYPES.length + OPERATIONAL_EVENT_TYPES.length).toBe(20);
   });
 
   it("rejects anything outside both vocabularies", () => {

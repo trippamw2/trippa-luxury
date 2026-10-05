@@ -136,15 +136,20 @@ Being explicit about the gaps matters more than sounding complete:
   legitimate emergency control. Turning model spend off is enforced at `callLlm`, the single
   choke point every model call passes through. Every change is audited with before/after state.
 - **Enforcement reaches the routes now, and it has teeth.** `action-gate.ts` evaluates
-  `AI_ACTION_PROFILES` at all thirteen AI entry points and writes each verdict to the
+  `AI_ACTION_PROFILES` at all fourteen AI entry points and writes each verdict to the
   `decisions` ledger. Two consequences worth stating plainly rather than discovering in
   production:
   - A capability that may not perform an action is refused **even when a human signed off**.
     Sterling still cannot send, whatever the finance screen says.
-  - `/api/ai/trigger-reminders` is refused at **every** autonomy level, because it composes and
-    sends in one step and the constitution treats unstaged outbound as a structural failure
-    rather than a threshold a dial can clear. Re-enabling it means staging those messages for
-    review before dispatch — a change to how they are produced, not a setting to turn up.
+  - `/api/ai/trigger-reminders` composed and sent in one step, which made it unstaged
+    unattended outbound and therefore a structural refusal at **every** autonomy level. That
+    rule was not weakened: the route was split. Composition is now an `internal_write` that
+    fills `staged_reminders` and contacts nobody, and the send lives in
+    `/api/admin/staged-reminders/dispatch`, which reads only rows a named admin approved.
+    Dispatch is the one profile that claims `humanAuthorized: true`, and it earns it rather
+    than asserting it — `action-gate.test.ts` refuses that same profile the moment the
+    claim is absent. Unstaged unattended outbound is still refused at every dial, which
+    `action-gate.test.ts` pins directly against a compose-and-send profile.
 - **Analytical agents have no persistence.** They produce reports and are discarded. Nothing
   in this charter claims they write history.
 - **The six orchestration labels are not software.** They name accountability, and

@@ -5,7 +5,7 @@
 // through the Quality Gate before release.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { JourneyEngine } from "./journey-engine";
+import { JourneyEngine, warmJourneyInputs } from "./journey-engine";
 import { runQualityGate, type QcVerdict } from "./quality-gate";
 import type { GuestProfile, CuratedJourney } from "./types";
 import type { EmotionalProfile } from "./romance-engine";
@@ -47,6 +47,11 @@ export class ProposalEngine {
    * fallback. Never throws.
    */
   async generateProposal(profile: GuestProfile, emotion: EmotionalProfile): Promise<Proposal> {
+    // Operator-set transfer pricing has to be read before the journey is
+    // priced; `generate()` below is synchronous and reads whatever has been
+    // warmed so far, falling back to the shipped supplier rates if this call
+    // were ever removed.
+    await warmJourneyInputs();
     const journey = engine.generate(profile);
     const total = journey.pricing.total;
     const subtotal = journey.pricing.subtotal;

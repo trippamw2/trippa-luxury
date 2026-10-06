@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { JourneyEngine } from "@/lib/ai/journey-engine";
+import { JourneyEngine, warmJourneyInputs } from "@/lib/ai/journey-engine";
 import type { CuratedJourney } from "@/lib/ai/types";
 import { clientKey, llmCostLimiter, tooManyRequests } from "@/lib/public-rate-limiter";
 import { gateAiAction, ActionBlockedError, actionBlockedResponse } from "@/lib/ai/action-gate";
@@ -30,6 +30,11 @@ export async function POST(request: NextRequest) {
       throw gateError;
     }
 
+    // `generateAlternatives()` is synchronous and reads whatever the module
+    // caches hold — pricing overrides and the sellable catalog. Warm both here
+    // so the swap an operator is offered reflects what they have actually
+    // activated and what they actually charge, not the shipped defaults.
+    await warmJourneyInputs();
     const alternatives = engine.generateAlternatives(body.journey);
 
     return NextResponse.json({ alternatives }, { status: 200 });

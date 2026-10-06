@@ -58,6 +58,8 @@ export interface ProductKnowledge {
   description?: string;
   priceRange?: string;
   rating: number;
+  /** Hero image path for this property, when one is published. */
+  heroImage?: string;
   roomTypes: Array<{ name?: string; from?: string; description?: string }>;
   amenities: string[];
   romanticHighlights: string[];
@@ -164,7 +166,7 @@ async function fetchDestinations(supabase: ReturnType<typeof createAdminClient>)
 async function fetchProducts(supabase: ReturnType<typeof createAdminClient>): Promise<ProductKnowledge[]> {
   const { data, error } = await supabase
     .from("properties")
-    .select("id, slug, name, destination, location, tagline, description, price_range, rating, room_types, amenities, romantic_highlights")
+    .select("id, slug, name, destination, location, tagline, description, price_range, rating, room_types, amenities, romantic_highlights, hero_image")
     .eq("is_active", true)
     .order("name", { ascending: true });
   if (error) {
@@ -181,10 +183,23 @@ async function fetchProducts(supabase: ReturnType<typeof createAdminClient>): Pr
     description: p.description || undefined,
     priceRange: p.price_range || undefined,
     rating: Number(p.rating || 0),
+    heroImage: p.hero_image || undefined,
     roomTypes: (Array.isArray(p.room_types) ? p.room_types : []) as ProductKnowledge["roomTypes"],
     amenities: Array.isArray(p.amenities) ? p.amenities : [],
     romanticHighlights: Array.isArray(p.romantic_highlights) ? p.romantic_highlights : [],
   }));
+}
+
+/**
+ * Active catalog rows only — no brand canon, policy or prompt assembly.
+ *
+ * The journey engine's warm step wants just the sellable properties, and
+ * paying for the full `getKnowledgeContext()` assembly there would be four
+ * queries plus string building per warm for data it discards.
+ */
+export async function getActiveProducts(): Promise<ProductKnowledge[]> {
+  const supabase = createAdminClient();
+  return fetchProducts(supabase);
 }
 
 async function fetchPackages(supabase: ReturnType<typeof createAdminClient>): Promise<PackageKnowledge[]> {

@@ -3,7 +3,7 @@
 // generates day-by-day itineraries, and calculates pricing.
 // All guest-facing prose uses the KIVARA brand vocabulary and tone.
 
-import { PROPERTIES, DESTINATIONS, PACKAGES, EXPERIENCES } from "../constants";
+import { PROPERTIES, DESTINATIONS } from "../constants";
 import type {
   GuestProfile,
   CuratedJourney,
@@ -14,7 +14,106 @@ import type {
   JourneyAlternative,
 } from "./types";
 import { callLlmJson, type LlmMessage } from "./llm";
+import { getKnowledgeContext, getActiveProducts, type ProductKnowledge } from "./knowledge";
 import { wrapDocument, documentHeader, documentBody, documentFooter, refBox, infoGrid, KIVARA_BRAND } from "../documents/template";
+
+// ── Property shape ─────────────────────────────────────────────────────
+/**
+ * The subset of a property this engine actually reads.
+ *
+ * Declared deliberately small rather than as `(typeof PROPERTIES)[number]`,
+ * because the engine now needs to accept properties from two producers that
+ * satisfy different shapes: the live catalog rows (`ProductKnowledge`, uuid ids
+ * and object room entries) and the legacy `constants.ts` array. Both are
+ * assignable to this, so pricing, scoring and transfer logic stay unchanged and
+ * nobody has to cast one into the other's type.
+ */
+export interface JourneyProperty {
+  /** Stable slug, e.g. "kaya-mawa". Drives destination and airport resolution. */
+  id: string;
+  name: string;
+  /** Destination slug: "lake-malawi" | "south-luangwa" | "zanzibar". */
+  destination: string;
+  location: string;
+  tagline: string;
+  description: string;
+  priceRange: string;
+  rating: number;
+  heroImage: string;
+  amenities: string[];
+  roomTypes: string[];
+  romanticHighlights: string[];
+}
+
+function toStringArray(values: unknown[]): string[] {
+  return values.filter((v): v is string => typeof v === "string" && v.length > 0);
+}
+
+/**
+ * Adapt a live catalog row into the engine's property shape.
+ *
+ * The important detail is `id: product.slug`: the DB id is a uuid, but transfer
+ * and park-fee resolution both key off the slug. Using the uuid here would make
+ * every live property fall through `getDestIdForProperty`'s fallback and be
+ * priced as if it were on Lake Malawi.
+ */
+function toJourneyProperty(product: ProductKnowledge): JourneyProperty {
+  return {
+    id: product.slug,
+    name: product.name,
+    destination: product.destination,
+    location: product.location,
+    tagline: product.tagline ?? "",
+    description: product.description ?? "",
+    priceRange: product.priceRange ?? "",
+    rating: product.rating,
+    heroImage: product.heroImage ?? "",
+    amenities: toStringArray(product.amenities),
+    // Live rows carry object room entries (`{ name, sleeps, description }`);
+    // the engine's scoring reads room names as strings.
+    roomTypes: toStringArray(product.roomTypes.map((room) => room?.name)),
+    romanticHighlights: toStringArray(product.romanticHighlights),
+  };
+}
+
+// ── Live catalog cache ────────────────────────────────────────────────
+/**
+ * Sellable properties loaded from the DB, or null until something loads them.
+ *
+ * The rule-based path used to read `constants.ts` directly, which meant an
+ * operator activating or deactivating a row in `/admin/properties` had no
+ * effect on it — the LLM prompt showed the live catalog while pricing and
+ * selection kept using the hardcoded mirror, and the two drifted apart the
+ * first time anyone edited a property.
+ *
+ * Null (not primed) falls back to `PROPERTIES`, so every sync caller keeps
+ * working before a warm happens and tests can exercise either source.
+ */
+let liveCatalog: JourneyProperty[] | null = null;
+
+/**
+ * Point the engine at a set of catalog rows. Empty fetches are ignored: a
+ * failed `properties` read also yields `[]`, and letting that wipe a good
+ * cache would silently resurrect the hardcoded mirror mid-process. A
+ * genuinely empty catalog is caught where it matters — `llmGenerate()` throws
+ * before it builds a prompt with nothing to sell.
+ */
+export function primeLiveCatalog(products: ProductKnowledge[]): void {
+  if (products.length === 0) return;
+  liveCatalog = products.map(toJourneyProperty);
+}
+
+/** Properties the rule-based path may select from. */
+function activeProperties(): JourneyProperty[] {
+  return liveCatalog ?? PROPERTIES;
+}
+
+/** Drop both module caches. Production never calls this; tests need it so
+ * one test's warm cannot leak into the next assertion. */
+export function resetJourneyEngineCaches(): void {
+  liveCatalog = null;
+  transferPricingCache = null;
+}
 
 // ── Helpers ─────────────────────────────────────────────────────────────
 
@@ -67,7 +166,7 @@ const ACTIVITY_SENSORY: Record<string, string> = {
 // ── Matching Logic ──────────────────────────────────────────────────────
 
 function scorePropertyForGuest(
-  property: (typeof PROPERTIES)[number],
+  property: JourneyProperty,
   guest: GuestProfile
 ): number {
   let score = 0;
@@ -121,11 +220,15 @@ function selectProperties(
   guest: GuestProfile,
   destinationId: string,
   count: number = 2
-): (typeof PROPERTIES)[number][] {
+): JourneyProperty[] {
   const dest = DESTINATIONS.find((d) => d.id === destinationId);
   if (!dest) return [];
 
-  const available = PROPERTIES.filter((p) => dest.properties.includes(p.id));
+  // Filtered by the property's own `destination` field rather than
+  // `dest.properties`: that list is a hardcoded snapshot in `constants.ts`, so
+  // a row an operator activates later would never appear in it even when the
+  // DB says it is sellable.
+  const available = activeProperties().filter((p) => p.destination === destinationId);
   const scored = available.map((p) => ({ property: p, score: scorePropertyForGuest(p, guest) }));
   scored.sort((a, b) => b.score - a.score);
   return scored.slice(0, count).map((s) => s.property);
@@ -146,7 +249,7 @@ function recommendNights(destinationId: string, activityLevel: string): number {
 // ── Activity Generation (Brand Voice) ─────────────────────────────────
 
 function generateActivities(
-  property: (typeof PROPERTIES)[number],
+  property: JourneyProperty,
   guest: GuestProfile,
   dayType: "arrival" | "full" | "departure"
 ): Activity[] {
@@ -303,13 +406,19 @@ function getPointOfEntry(destId: string): { name: string; code: string } {
   return destAirports?.pointOfEntry[0] || { name: "International Airport", code: "---" };
 }
 
-function getDestIdForProperty(propertyId: string): string {
-  for (const [destId, data] of Object.entries(AIRPORTS)) {
-    for (const local of data.local) {
-      if (local.propertyIds.includes(propertyId)) return destId;
-    }
-  }
-  return "lake-malawi";
+/**
+ * Which destination a property sits in — drives airport choice, charter cost
+ * and whether South Luangwa park fees apply.
+ *
+ * The property's own `destination` field is authoritative. It is present on
+ * every live row and on every `constants.ts` row, and unlike the old
+ * `AIRPORTS` `propertyIds` scan it does not silently return `lake-malawi` for
+ * any property nobody happened to hardcode — which would have quoted Zanzibar
+ * and Luangwa itineraries with the wrong airport and no park fees. The
+ * "lake-malawi" default now only covers a row that has no destination at all.
+ */
+function getDestIdForProperty(property: JourneyProperty): string {
+  return property.destination || "lake-malawi";
 }
 
 // ── Transfer Generation ────────────────────────────────────────────────
@@ -328,24 +437,63 @@ const EXIT_CHARTER_COST = 750;           // Local airstrip → international hub
 const PARK_FEES_PER_DAY = 120;           // South Luangwa park fees per person per day
 
 /**
- * Load transfer pricing from platform_settings (falls back to hardcoded defaults).
- * Called once per journey generation request for accurate pricing.
+ * Operator-editable transfer pricing.
+ *
+ * Every field here has a matching input on `/admin/settings`. Before this
+ * wiring existed those inputs wrote a `platform_settings` row that nothing
+ * read, and the journey engine always quoted the hardcoded 2025 supplier rates
+ * above — so the admin copy claiming transfer pricing feeds the AI journey
+ * engine was untrue.
  */
-async function _loadTransferPricing(): Promise<{
+export interface TransferPricing {
   charterCosts: Record<string, number>;
   defaultCharterCost: number;
   roadTransferCost: number;
   exitCharterCost: number;
   parkFeesPerDay: number;
-}> {
+}
+
+const DEFAULT_TRANSFER_PRICING: TransferPricing = {
+  charterCosts: { ...CHARTER_COSTS },
+  defaultCharterCost: DEFAULT_CHARTER_COST,
+  roadTransferCost: ROAD_TRANSFER_COST,
+  exitCharterCost: EXIT_CHARTER_COST,
+  parkFeesPerDay: PARK_FEES_PER_DAY,
+};
+
+/**
+ * Last value read from `platform_settings`, or null before any successful read.
+ *
+ * Held in module scope rather than passed as a parameter because pricing is
+ * computed deep inside synchronous helpers (`calculatePricing`,
+ * `generateAirTransfer`, `generateRoadLeg`) that are also reached from the
+ * synchronous rule-based fallback. Threading it through would change
+ * `generate()`'s signature, which `proposal-engine` and `quote-engine` both
+ * call synchronously.
+ *
+ * An unwarmed caller gets `DEFAULT_TRANSFER_PRICING`, which is identical to
+ * what this code shipped with before — so a missed warm degrades to today's
+ * numbers, never to a wrong price.
+ */
+let transferPricingCache: TransferPricing | null = null;
+
+/**
+ * Read transfer pricing from `platform_settings`. Idempotent and never throws.
+ *
+ * On failure the cache is deliberately left null so the next request retries,
+ * rather than pinning the hardcoded defaults for the life of the process.
+ */
+async function warmTransferPricing(): Promise<TransferPricing> {
+  if (transferPricingCache) return transferPricingCache;
   try {
     const { createAdminClient } = await import("@/lib/supabase/admin");
     const supabase = createAdminClient();
-    const { data } = await supabase.from("platform_settings").select("key, value");
+    const { data, error } = await supabase.from("platform_settings").select("key, value");
+    if (error) throw error;
     const map: Record<string, string> = {};
     (data || []).forEach((s: { key: string; value: string }) => { map[s.key] = s.value; });
 
-    return {
+    transferPricingCache = {
       charterCosts: {
         "lake-malawi_south-luangwa": Number(map.charter_lby_mfu) || 1850,
         "south-luangwa_zanzibar": Number(map.charter_mfu_znz) || 1450,
@@ -359,14 +507,49 @@ async function _loadTransferPricing(): Promise<{
       parkFeesPerDay: Number(map.park_fees_per_day) || 120,
     };
   } catch {
-    // Fallback to hardcoded defaults if settings read fails
-    return {
-      charterCosts: { ...CHARTER_COSTS },
-      defaultCharterCost: DEFAULT_CHARTER_COST,
-      roadTransferCost: ROAD_TRANSFER_COST,
-      exitCharterCost: EXIT_CHARTER_COST,
-      parkFeesPerDay: PARK_FEES_PER_DAY,
-    };
+    // Keep the hardcoded supplier rates and let the next request retry.
+  }
+  return transferPricingCache ?? DEFAULT_TRANSFER_PRICING;
+}
+
+/** Pricing to quote with right now: the warmed override, or the defaults. */
+function transferPricing(): TransferPricing {
+  return transferPricingCache ?? DEFAULT_TRANSFER_PRICING;
+}
+
+/**
+ * Load everything the engines need from live business data, then let any
+ * synchronous caller price without waiting on a network.
+ *
+ * Two things are warmed, and both matter for the same reason — the admin
+ * panel presents them as editable, so what an operator types has to be what a
+ * guest is quoted:
+ *
+ * 1. Transfer/charter/park-fee rates from `platform_settings`.
+ * 2. The active property catalog, so the rule-based path (the fallback when
+ *    the LLM is down, and what `quote-engine` calls directly) selects and
+ *    prices the rows an operator has actually published rather than the
+ *    `constants.ts` mirror.
+ *
+ * Idempotent, never throws, and each half degrades to the previously shipped
+ * hardcoded values on failure — a broken database must not break quoting.
+ * `llmGenerate()` re-primes the catalog from the knowledge context it already
+ * fetched, so the LLM path pays for no extra query.
+ */
+export async function warmJourneyInputs(): Promise<void> {
+  await Promise.all([warmTransferPricing(), warmCatalog()]);
+}
+
+/**
+ * Prime the live catalog from the DB. Skipped when something has already
+ * primed it (the knowledge context path, or an earlier warm in this process).
+ */
+async function warmCatalog(): Promise<void> {
+  if (liveCatalog) return;
+  try {
+    primeLiveCatalog(await getActiveProducts());
+  } catch {
+    // Stay on the constants mirror and let the next warm retry.
   }
 }
 
@@ -380,9 +563,10 @@ function generateAirTransfer(
   isEntry: boolean,
   isExit: boolean,
 ): Transfer {
+  const pricing = transferPricing();
   const cost = isExit
-    ? EXIT_CHARTER_COST
-    : CHARTER_COSTS[routeKey] || DEFAULT_CHARTER_COST;
+    ? pricing.exitCharterCost
+    : pricing.charterCosts[routeKey] || pricing.defaultCharterCost;
 
   if (isEntry) {
     return {
@@ -438,7 +622,7 @@ function generateRoadLeg(
       : `${airportName} (${airportCode})`,
     mode: "road",
     duration: "~30 to 45 minutes",
-    cost: ROAD_TRANSFER_COST,
+    cost: transferPricing().roadTransferCost,
     notes: direction === "pickup"
       ? "Private safari vehicle with refreshments. Driver will greet you at arrivals."
       : "Private vehicle transfer to the airstrip for your departure charter.",
@@ -564,13 +748,14 @@ function extractMaxPppn(priceRange: string): number {
 const PPPN_MARKUP = 0.45; // 45% margin added to every property's PPPN
 
 function calculatePricing(
-  propertyAssignments: { property: (typeof PROPERTIES)[number]; nights: number }[],
+  propertyAssignments: { property: JourneyProperty; nights: number }[],
   guest: GuestProfile
 ): JourneyPricing {
   const accommodation: JourneyPricing["accommodation"] = [];
   let subtotal = 0;
 
   const guestCount = guest.isCouple ? 2 : 1;
+  const pricing = transferPricing();
 
   for (const { property, nights } of propertyAssignments) {
     // 1. Extract the maximum seasonal PPPN price
@@ -598,45 +783,45 @@ function calculatePricing(
   let transferTotal = 0;
   for (let i = 0; i < propertyAssignments.length; i++) {
     const { property } = propertyAssignments[i];
-    const curDestId = getDestIdForProperty(property.id);
+    const curDestId = getDestIdForProperty(property);
 
     // Arrival transfers
     const prevProp = i > 0 ? propertyAssignments[i - 1] : null;
-    const prevDestId = prevProp ? getDestIdForProperty(prevProp.property.id) : null;
+    const prevDestId = prevProp ? getDestIdForProperty(prevProp.property) : null;
     const prevPropId = prevProp ? prevProp.property.id : null;
 
     if (i === 0) {
       const poe = getPointOfEntry(curDestId);
       const local = getLocalAirport(property.id, curDestId);
-      if (poe.name !== local.name) transferTotal += DEFAULT_CHARTER_COST;
-      transferTotal += ROAD_TRANSFER_COST;
+      if (poe.name !== local.name) transferTotal += pricing.defaultCharterCost;
+      transferTotal += pricing.roadTransferCost;
     } else if (prevDestId && prevPropId) {
       const prevLocal = getLocalAirport(prevPropId, prevDestId);
       const curLocal = getLocalAirport(property.id, curDestId);
       if (prevDestId !== curDestId || prevLocal.code !== curLocal.code) {
         const routeKey = `${prevDestId}_${curDestId}`;
-        transferTotal += CHARTER_COSTS[routeKey] || DEFAULT_CHARTER_COST;
+        transferTotal += pricing.charterCosts[routeKey] || pricing.defaultCharterCost;
       }
-      transferTotal += ROAD_TRANSFER_COST;
+      transferTotal += pricing.roadTransferCost;
     }
   }
 
   // Last property departure
   if (propertyAssignments.length > 0) {
     const last = propertyAssignments[propertyAssignments.length - 1];
-    const lastDestId = getDestIdForProperty(last.property.id);
+    const lastDestId = getDestIdForProperty(last.property);
     const lastLocal = getLocalAirport(last.property.id, lastDestId);
     const lastPoe = getPointOfEntry(lastDestId);
-    transferTotal += ROAD_TRANSFER_COST; // property → local airport
-    if (lastLocal.name !== lastPoe.name) transferTotal += EXIT_CHARTER_COST; // local → international
+    transferTotal += pricing.roadTransferCost; // property → local airport
+    if (lastLocal.name !== lastPoe.name) transferTotal += pricing.exitCharterCost; // local → international
   }
 
   // Calculate park fees (South Luangwa charges $120pppn)
   let parkFeesTotal = 0;
   for (const { property, nights } of propertyAssignments) {
-    const destId = getDestIdForProperty(property.id);
+    const destId = getDestIdForProperty(property);
     if (destId === "south-luangwa") {
-      parkFeesTotal += PARK_FEES_PER_DAY * nights * guestCount;
+      parkFeesTotal += pricing.parkFeesPerDay * nights * guestCount;
     }
   }
 
@@ -653,7 +838,7 @@ function calculatePricing(
     activities: [],
     transfers: [
       { label: "All private charters & road transfers", cost: transferTotalGuests },
-      ...(parkFeesTotal > 0 ? [{ label: "South Luangwa National Park fees ($120pppn)", cost: parkFeesTotal }] : []),
+      ...(parkFeesTotal > 0 ? [{ label: `South Luangwa National Park fees ($${pricing.parkFeesPerDay}pppn)`, cost: parkFeesTotal }] : []),
     ],
     subtotal,
     taxes,
@@ -685,17 +870,17 @@ export class JourneyEngine {
     const hasExplicit = guest.explicitDestinations && guest.explicitDestinations.length > 0;
 
     let selectedDestinations: string[];
-    let propertyAssignments: { property: (typeof PROPERTIES)[number]; nights: number }[];
+    let propertyAssignments: { property: JourneyProperty; nights: number }[];
 
     if (hasExplicit) {
       // Use explicit destination/property/nights from user
       selectedDestinations = guest.explicitDestinations!.map((d) => d.destinationId);
       propertyAssignments = [];
       for (const assign of guest.explicitDestinations!) {
-        let props: (typeof PROPERTIES)[number][];
+        let props: JourneyProperty[];
         if (assign.propertyId) {
           // Specific property requested
-          const found = PROPERTIES.find((p) => p.id === assign.propertyId);
+          const found = activeProperties().find((p) => p.id === assign.propertyId);
           props = found ? [found] : selectProperties(guest, assign.destinationId, 1);
         } else {
           props = selectProperties(guest, assign.destinationId, 1);
@@ -752,10 +937,10 @@ export class JourneyEngine {
     for (let i = 0; i < propertyAssignments.length; i++) {
       const { property, nights } = propertyAssignments[i];
       const location = property.location || property.destination;
-      const currentDestId = getDestIdForProperty(property.id);
+      const currentDestId = getDestIdForProperty(property);
 
       // Build arrival transfers (charter + road pickup)
-      const prevDestId = i > 0 ? getDestIdForProperty(propertyAssignments[i - 1].property.id) : null;
+      const prevDestId = i > 0 ? getDestIdForProperty(propertyAssignments[i - 1].property) : null;
       const prevPropertyId = i > 0 ? propertyAssignments[i - 1].property.id : null;
       const arrivalTransfers = buildArrivalTransfers(
         i, currentDestId, property.id, property.name,
@@ -798,7 +983,7 @@ export class JourneyEngine {
     // Add departure transfers on the last day (road dropoff + charter to international)
     if (propertyAssignments.length > 0) {
       const lastPA = propertyAssignments[propertyAssignments.length - 1];
-      const lastDestId = getDestIdForProperty(lastPA.property.id);
+      const lastDestId = getDestIdForProperty(lastPA.property);
       const lastDayIdx = itinerary.length - 1;
       const departureTransfers = buildDepartureTransfers(lastDestId, lastPA.property.id, lastPA.property.name);
       itinerary[lastDayIdx].transfers.push(...departureTransfers);
@@ -854,7 +1039,7 @@ export class JourneyEngine {
     const dests = DESTINATIONS.filter((d) => journey.destinations.includes(d.id));
     if (dests.length > 0) {
       const dest = dests[0];
-      const props = PROPERTIES.filter((p) => dest.properties.includes(p.id));
+      const props = activeProperties().filter((p) => p.destination === dest.id);
       const currentProps = journey.itinerary.map((d) => d.accommodation);
       const alternative = props.find((p) => !currentProps.includes(p.name));
       if (alternative) {
@@ -1020,7 +1205,41 @@ export class JourneyEngine {
    */
   async llmGenerate(guest: GuestProfile): Promise<CuratedJourney> {
     try {
+      // Pull operator-set transfer pricing before any pricing is computed, so
+      // the numbers a quote shows are the numbers an admin edited. Never throws
+      // and never blocks generation — a failed read falls back to the shipped
+      // supplier rates.
+      await warmTransferPricing();
+      // The live catalog, loaded before the prompt is built.
+      //
+      // This used to be absent, while the prompt still told the model to "select
+      // the best destinations and properties from the available inventory". The
+      // model had never been shown an inventory, so it invented accommodation
+      // names, the exact-name matcher below found nothing, and the whole AI result
+      // was discarded in favour of the rule-based path. `getKnowledgeContext()`
+      // already loads the active catalog (is_active, so operators control what is
+      // sellable), plus brand canon, commercial policy and the experiences catalog.
+      const knowledge = await getKnowledgeContext();
+      const liveCatalog = knowledge.products;
+      if (liveCatalog.length === 0) {
+        throw new Error("no active properties in the catalog");
+      }
+      // Point the rule-based path at exactly the rows the prompt was built
+      // from: if this LLM call falls back mid-way, selection and pricing must
+      // not resurrect the constants mirror an operator has since edited. This
+      // costs no extra query — it is the fetch we just did.
+      primeLiveCatalog(liveCatalog);
+      // Resolve the model against the real catalog, not a hardcoded mirror of it.
+      const catalogByName = new Map<string, JourneyProperty>(
+        liveCatalog.map((p) => {
+          const property = toJourneyProperty(p);
+          return [property.name.trim().toLowerCase(), property];
+        })
+      );
+
       const systemPrompt = `You are Kivara's lead journey curator — a world-class luxury travel designer with decades of experience crafting bespoke African journeys for ultra-high-net-worth couples. You understand that luxury is not about price — it is about emotional resonance, exclusivity, and the feeling of being truly known.
+
+${knowledge.assembled}
 
 KIVARA BRAND VOICE:
 - Tone: Warm, sophisticated, intimate. Never transactional — always evocative.
@@ -1056,21 +1275,6 @@ ACTIVITY PACING:
 - Afternoon: Rest, reflection, or curated encounter.
 - Evening: Culinary ceremony, stargazing, or intimate conversation.
 - Build in "white space" — time with nothing planned. That is when magic happens.
-
-AVAILABLE INVENTORY:
-
-DESTINATIONS:
-${DESTINATIONS.map(d => {
-  const destProps = d.properties.map(pid => PROPERTIES.find(p => p.id === pid)!).filter(Boolean);
-  return `- ${d.title} (${d.id}): ${d.tagline}
-  Properties: ${destProps.map(p => `${p.name} (${p.priceRange}, ${p.roomTypes?.join(", ")})`).join("; ")}`;
-}).join("\n")}
-
-CURATED PACKAGES (reference these for inspiration, but always customize):
-${PACKAGES.map(p => `- ${p.title} (${p.duration}): ${p.description.slice(0, 150)}...`).join("\n")}
-
-SIGNATURE EXPERIENCES:
-${EXPERIENCES.map(e => `- ${e.title} (${e.category}, ${e.destination}): ${e.description.slice(0, 100)}...`).join("\n")}
 
 Respond in valid JSON only with this exact structure:
 {
@@ -1145,7 +1349,9 @@ PROPERTY SELECTION INTELLIGENCE:
 - Couples on honeymoon → properties with romantic highlights and privacy
 - Ultra-luxury budget → premium villas and suites with butler service
 - Anniversary celebrations → properties with intimate dining and sunset moments
-- Birthday celebrations → properties with unique experiences and surprise potential`;
+- Birthday celebrations → properties with unique experiences and surprise potential
+
+NON-NEGOTIABLE: the "accommodation" field of every day MUST be copied character-for-character from a property name in the PROPERTIES / LODGES section above. Do not invent, shorten, rebrand, pluralise or "improve" a name. Pricing and availability are resolved by exact match against the catalog, so a name that is not in the catalog costs the guest the entire AI-curated itinerary and silently falls back to a generic template. If no property fits, use the closest one that does.`;
 
       const messages: LlmMessage[] = [
         { role: "system", content: systemPrompt },
@@ -1179,7 +1385,7 @@ PROPERTY SELECTION INTELLIGENCE:
       }>(messages, { temperature: 0.7, maxTokens: 4096 });
 
       // Map property names to actual property data for pricing
-      const propertyAssignments: { property: (typeof PROPERTIES)[number]; nights: number }[] = [];
+      const propertyAssignments: { property: JourneyProperty; nights: number }[] = [];
       const dayAccommodations = new Map<string, number>(); // property name → night count
 
       for (const day of data.itinerary) {
@@ -1187,19 +1393,32 @@ PROPERTY SELECTION INTELLIGENCE:
         dayAccommodations.set(propName, (dayAccommodations.get(propName) || 0) + 1);
       }
 
+      // Resolved against the live catalog, not the hardcoded constants mirror, so
+      // an operator activating a property makes it immediately selectable.
+      const unmatchedProperties: string[] = [];
       for (const [propName, nights] of dayAccommodations) {
-        const property = PROPERTIES.find(
-          (p) => p.name.toLowerCase() === propName.toLowerCase()
-        );
+        const property = catalogByName.get(propName.trim().toLowerCase());
         if (property) {
           propertyAssignments.push({ property, nights });
+        } else {
+          unmatchedProperties.push(propName);
         }
       }
 
       // If properties couldn't be matched, fall back to rule-based
       if (propertyAssignments.length === 0) {
-        console.warn("LLM journey: no properties matched, falling back to rule-based");
+        console.warn(
+          "LLM journey: no properties matched, falling back to rule-based",
+          { unmatchedProperties: unmatchedProperties.join(", ") }
+        );
         return this.generate(guest);
+      }
+      if (unmatchedProperties.length > 0) {
+        // Partial matches still produce a journey, but a dropped day would silently
+        // change the itinerary the guest was quoted, so record what was lost.
+        console.warn("LLM journey: unmatched accommodations dropped", {
+          unmatchedProperties: unmatchedProperties.join(", "),
+        });
       }
 
       // Calculate pricing deterministically
@@ -1207,15 +1426,13 @@ PROPERTY SELECTION INTELLIGENCE:
 
       // Build itinerary with proper images and transfer data
       const itinerary: JourneyDay[] = data.itinerary.map((day) => {
-        const property = PROPERTIES.find(
-          (p) => p.name.toLowerCase() === day.accommodation.toLowerCase()
-        );
+        const property = catalogByName.get(day.accommodation.trim().toLowerCase());
 
         return {
           day: day.day,
           title: day.title,
           location: day.location,
-          accommodation: day.accommodation,
+          accommodation: property ? property.name : day.accommodation,
           accommodationImage: property?.heroImage || day.accommodationImage || "",
           meals: day.meals || ["Breakfast", "Dinner"],
           activities: day.activities.map((a) => ({

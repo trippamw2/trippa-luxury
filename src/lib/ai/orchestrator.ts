@@ -3,7 +3,7 @@
 // Handles automatic state transitions and agent handoffs.
 
 import { guestProfiler, type RawInquiry, type ProfiledGuest } from "./guest-profiler";
-import { JourneyEngine } from "./journey-engine";
+import { JourneyEngine, warmJourneyInputs } from "./journey-engine";
 import { QuoteEngine } from "./quote-engine";
 import { PaymentEngine, type PaymentLinkData } from "./payment-engine";
 import { ReminderEngine, generateReminderSchedules, type ReminderContent } from "./reminder-engine";
@@ -134,6 +134,11 @@ export class AIOrchestrator {
     // Step 3: Generate quote (if auto-quote enabled and journey exists)
     if (options?.autoQuote !== false && journey) {
       try {
+        // `generateQuote()` is synchronous and prices with whatever has been
+        // warmed so far. Journey curation above normally warms it, but that step
+        // can be skipped or fail, so warm it here too — this is the last async
+        // point before a price is quoted.
+        await warmJourneyInputs();
         const quote = quoteEngine.generateQuote(profiled);
         completedTasks.push("quote_generation");
         documentsGenerated.push(`quote_${quote.quoteRef}`);

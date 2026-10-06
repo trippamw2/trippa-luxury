@@ -3,6 +3,7 @@
 // All guest-facing prose uses the KIVARA brand voice.
 
 import { JourneyEngine } from "./journey-engine";
+import { getCommercialPolicy } from "./knowledge";
 import type { GuestProfile, CuratedJourney } from "./types";
 import { journeyIntro } from "@/lib/voice";
 
@@ -21,14 +22,20 @@ export class QuoteEngine {
   generateQuote(profile: GuestProfile): QuoteData {
     const journey = engine.generate(profile);
     const total = journey.pricing.total;
-    const depositPercent = 30;
+    // Commercial terms are policy, not engine constants: `knowledge.ts` is the
+    // single source the prompt assembly and the admin panel both read, so the
+    // quote a guest receives can never disagree with what the LLM was told.
+    const policy = getCommercialPolicy();
+    const depositPercent = policy.depositPercent;
     const depositAmount = Math.round(total * (depositPercent / 100));
 
     return {
       journey,
       quoteRef: `Q-${journey.id}`,
-      validUntil: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-      paymentTerms: "A 30% deposit is requested to secure your reservation. The balance will be due 30 days before your departure.",
+      validUntil: new Date(Date.now() + policy.quoteValidityDays * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split("T")[0],
+      paymentTerms: policy.paymentTerms,
       depositRequired: depositAmount,
       depositPercent,
     };

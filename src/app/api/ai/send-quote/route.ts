@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 import { gateAiAction, ActionBlockedError, actionBlockedResponse } from "@/lib/ai/action-gate";
 import { quoteEngine } from "@/lib/ai/quote-engine";
+import { warmJourneyInputs } from "@/lib/ai/journey-engine";
 import { runQualityGate, recordQcDecision } from "@/lib/ai/quality-gate";
 import { sendEmail } from "@/lib/email";
 import { persistQuote } from "@/lib/services/quote-persistence";
@@ -34,7 +35,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 1. Generate the quote (AI-curated journey + pricing)
+    // 1. Generate the quote (AI-curated journey + pricing). Warm the pricing
+    // and catalog caches first so the synchronous generateQuote() prices from
+    // the operator's platform_settings rates and active properties.
+    await warmJourneyInputs();
     const quote = quoteEngine.generateQuote(profile);
 
     // 2. Run the Quality Control gate — never send a broken/incoherent proposal.

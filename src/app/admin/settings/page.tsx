@@ -363,7 +363,8 @@ export default function AdminSettings() {
         const json = await res.json();
         if (!res.ok || json.error) throw new Error(json.error || `HTTP ${res.status}`);
       } catch (err: unknown) {
-        setApiError(err instanceof Error ? err.message : `HTTP error`);
+        console.error("Failed to save settings via API:", err);
+        setApiError(err instanceof Error ? err.message : "Failed to save settings");
         setSaved(false);
         return;
       }

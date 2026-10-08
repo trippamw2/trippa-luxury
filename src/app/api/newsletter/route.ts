@@ -84,3 +84,57 @@ export async function POST(request: Request) {
     );
   }
 }
+
+/**
+ * DELETE /api/newsletter — unsubscribe an address without logging in.
+ *
+ * CAN-SPAM and GDPR both require a web unsubscribe that needs no account, so
+ * this is deliberately unauthenticated (bounded by the shared public-write
+ * limiter, like signup). It always reports success whether or not the address
+ * existed, so the endpoint cannot be used to probe who is on the list.
+ */
+export async function DELETE(request: Request) {
+  try {
+    const verdict = await publicWriteLimiter.take(clientKey(request));
+    if (!verdict.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again shortly." },
+        { status: 429, headers: { "Retry-After": String(verdict.retryAfterSeconds) } }
+      );
+    }
+
+    const { email } = await request.json();
+
+    if (!email || typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json(
+        { error: "Valid email address is required" },
+        { status: 400 }
+      );
+    }
+
+    const supabase = createAdminClient();
+    const { error } = await supabase
+      .from("newsletter_subscribers")
+      .update({ is_active: false, unsubscribed_at: new Date().toISOString() })
+      .eq("email", email);
+
+    if (error) {
+      console.error("Newsletter unsubscribe error:", error);
+      return NextResponse.json(
+        { error: "Failed to unsubscribe. Please try again." },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "You have been unsubscribed. You will not receive further newsletters.",
+    });
+  } catch (error) {
+    console.error("Newsletter unsubscribe error:", error);
+    return NextResponse.json(
+      { error: "Failed to unsubscribe" },
+      { status: 500 }
+    );
+  }
+}

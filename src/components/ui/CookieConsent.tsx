@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { XIcon } from "@/components/ui/icons";
+import { readCookieConsent, writeCookieConsent } from "@/lib/consent";
 
 export function CookieConsent() {
   const [visible, setVisible] = useState(false);
@@ -20,7 +21,7 @@ export function CookieConsent() {
 
   useEffect(() => {
     if (isAdmin) return;
-    const consent = localStorage.getItem("kivara-cookie-consent");
+    const consent = readCookieConsent();
     if (!consent) {
       // Delay appearance so it doesn't show immediately on page load
       const timer = setTimeout(() => setVisible(true), 1500);
@@ -29,13 +30,13 @@ export function CookieConsent() {
   }, [isAdmin]);
 
   function acceptAll() {
-    localStorage.setItem("kivara-cookie-consent", "all");
+    writeCookieConsent("all");
     setVisible(false);
     setDismissed(true);
   }
 
   function acceptEssential() {
-    localStorage.setItem("kivara-cookie-consent", "essential");
+    writeCookieConsent("essential");
     setVisible(false);
     setDismissed(true);
   }
@@ -58,8 +59,8 @@ export function CookieConsent() {
                 <p className="text-sm text-cream/80 leading-relaxed">
                   We use cookies to enhance your browsing experience, analyze site traffic, and personalize your journey.
                   By clicking &ldquo;Accept All,&rdquo; you consent to our use of cookies. Read our{" "}
-                  <Link href="/privacy" className="text-gold-light underline hover:text-gold transition-colors">
-                    Privacy Policy
+                  <Link href="/cookie" className="text-gold-light underline hover:text-gold transition-colors">
+                    Cookie Policy
                   </Link>{" "}
                   for more information.
                 </p>

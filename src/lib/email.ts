@@ -240,13 +240,17 @@ export function newBookingNotification(data: {
 }
 
 export function newsletterWelcomeEmail() {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
   return {
     subject: "Welcome to Kivara : Africa's Finest Curated Journeys",
     htmlContent: emailShell("Welcome to the Journey", `
       <h2 style="font-family: 'Times New Roman', serif; font-size: 20px; color: #1A1A1A; margin: 0 0 16px;">Welcome to Kivara</h2>
       <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 16px;">Thank you for subscribing. You are now part of an intimate community of travelers who seek the remarkable : those who understand that the finest journeys are felt, not merely seen.</p>
       <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 16px;">Expect curated stories, behind-the-scenes insights, and a glimpse into Africa's most soul-stirring escapes delivered to your inbox.</p>
-      <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0;">With warmest regards,<br><strong style="color: #C9A96E;">The Kivara Team</strong></p>
+      <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 16px;">With warmest regards,<br><strong style="color: #C9A96E;">The Kivara Team</strong></p>
+      <p style="font-size: 12px; color: #8B7D6B; line-height: 1.6; margin: 0;">
+        Prefer not to hear from us? <a href="${siteUrl}/unsubscribe" style="color: #C9A96E; text-decoration: underline;">Unsubscribe</a> at any time.
+      </p>
     `),
   };
 }
@@ -256,6 +260,7 @@ export function newsletterWelcomeEmail() {
  * (paragraph-safe), rendered inside the Kivara shell.
  */
 export function newsletterCampaignEmail(data: { subject: string; bodyHtml: string }) {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
   return {
     subject: data.subject,
     htmlContent: emailShell("The Kivara Edit", `
@@ -264,7 +269,7 @@ export function newsletterCampaignEmail(data: { subject: string; bodyHtml: strin
       </div>
       <div style="margin-top: 32px; padding: 16px; background: #F5F0EB; border-left: 3px solid #C9A96E;">
         <p style="font-size: 12px; color: #8B7D6B; margin: 0;">
-          Prefer not to hear from us? Reply with "unsubscribe" and we will remove you from the list.
+          Prefer not to hear from us? <a href="${siteUrl}/unsubscribe" style="color: #C9A96E; text-decoration: underline;">Unsubscribe</a> in one click, or reply with "unsubscribe" and we will remove you from the list.
         </p>
       </div>
     `),

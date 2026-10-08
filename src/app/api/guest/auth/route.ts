@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { clientKey, guestOtpLimiter } from "@/lib/public-rate-limiter";
 
 /**
  * POST /api/guest/auth
@@ -13,6 +14,16 @@ import { createClient } from "@/lib/supabase/server";
  */
 export async function POST(request: NextRequest) {
   try {
+    // Covers both send and verify: sends deliver email to caller-chosen
+    // addresses (bombing risk), verifies are code guesses (brute-force risk).
+    const verdict = await guestOtpLimiter.take(clientKey(request));
+    if (!verdict.allowed) {
+      return NextResponse.json(
+        { error: "Too many attempts. Please try again shortly." },
+        { status: 429, headers: { "Retry-After": String(verdict.retryAfterSeconds) } }
+      );
+    }
+
     const body = await request.json();
     const { email, token } = body;
 

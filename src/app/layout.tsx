@@ -6,6 +6,7 @@ import Script from "next/script";
 import { SiteShell } from "@/components/layout/SiteShell";
 import { WhatsAppWidget } from "@/components/ui/whatsapp-widget";
 import { CookieConsent } from "@/components/ui/CookieConsent";
+import { ConsentAnalytics } from "@/components/ui/ConsentAnalytics";
 import { SITE_URL } from "@/lib/constants";
 
 const cormorant = Cormorant_Garamond({
@@ -68,8 +69,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const gaId = process.env.NEXT_PUBLIC_GA_ID;
-
   return (
     <html lang="en" className={`${cormorant.variable} ${geist.variable}`}>
       <head>
@@ -92,23 +91,11 @@ export default function RootLayout({
             ],
           })}
         </Script>
-        {gaId && (
-          <>
-            <Script src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} strategy="afterInteractive" />
-            <Script id="google-analytics" strategy="afterInteractive">
-              {`
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
-                gtag('js', new Date());
-                gtag('config', '${gaId}');
-              `}
-            </Script>
-          </>
-        )}
       </head>
       <body className="min-h-screen flex flex-col bg-cream text-soft-black font-body antialiased">
         <SiteShell>{children}</SiteShell>
         <WhatsAppWidget />
+        <ConsentAnalytics />
         <CookieConsent />
       </body>
     </html>

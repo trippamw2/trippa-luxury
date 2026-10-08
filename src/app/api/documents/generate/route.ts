@@ -3,6 +3,7 @@
 // POST  /api/documents/generate  : Generate a document by type and data
 
 import { NextResponse } from "next/server";
+import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 import { generateQuoteDocument } from "@/lib/documents/quote";
 import { generateInvoiceDocument, type InvoiceData } from "@/lib/documents/invoice";
 import { generateReceiptDocument, type ReceiptDocumentData } from "@/lib/documents/receipt";
@@ -38,6 +39,12 @@ const generators: Record<string, (data: Record<string, unknown>) => string> = {
 
 export async function POST(request: Request) {
   try {
+    // Same trust boundary as /api/documents/download: the caller supplies the
+    // entire document payload, so an unauthenticated endpoint would mint branded
+    // quotes and invoices from attacker-supplied content — a phishing kit rather
+    // than a data leak. The only caller is the admin AI journeys page.
+    await requireAdmin({ module: "bookings", minRole: "agent" });
+
     const body = await request.json();
     const { type, data } = body;
 
@@ -72,6 +79,9 @@ export async function POST(request: Request) {
       },
     });
   } catch (error: unknown) {
+    if (error instanceof AdminAuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("Document generation error:", error);
     return NextResponse.json(
       { error: `Failed to generate document: ${error instanceof Error ? error.message : "Unknown error"}` },

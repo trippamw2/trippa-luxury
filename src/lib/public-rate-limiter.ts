@@ -159,6 +159,20 @@ export const llmCostLimiter = createPublicRateLimiter({
 });
 
 /**
+ * Guest portal OTP: every send delivers an email to an address the caller
+ * chose, and every verify is a guess at a one-time code, so both legs of
+ * POST /api/guest/auth count against one bucket. 8 per 15 minutes per IP is
+ * several normal login attempts while capping how hard a single address can
+ * hammer our email sender or spray codes.
+ */
+export const guestOtpLimiter = createPublicRateLimiter({
+  limit: 8,
+  windowMs: 15 * 60 * 1000, // 8 per 15 minutes
+  name: "guest-otp",
+  durable: true,
+});
+
+/**
  * Best-effort client identity. Spoofable by design: `x-forwarded-for` is attacker
  * controlled, so this raises the cost of casual abuse without pretending to be
  * an authentication mechanism.

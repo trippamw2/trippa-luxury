@@ -8,12 +8,14 @@ import { NextRequest } from "next/server";
  * (select().eq().single()) from the write chain (update().eq()), because the
  * route depends on the write's error to decide whether to report success.
  */
-function bookingsTable(row: unknown, opts: { updateError?: unknown } = {}) {
-  const state: { mode: "select" | "update"; updateError: unknown } = {
+function bookingsTable(row: unknown, opts: { updateError?: unknown; insertError?: unknown } = {}) {
+  const state: { mode: "select" | "update" | "insert"; updateError: unknown; insertError: unknown } = {
     mode: "select",
     updateError: opts.updateError ?? null,
+    insertError: opts.insertError ?? null,
   };
   let updated: Record<string, unknown> | null = null;
+  let inserted: Record<string, unknown> | null = null;
 
   const api = {
     select() {
@@ -24,6 +26,11 @@ function bookingsTable(row: unknown, opts: { updateError?: unknown } = {}) {
       state.mode = "update";
       updated = values;
       return api;
+    },
+    insert(values: Record<string, unknown>) {
+      state.mode = "insert";
+      inserted = values;
+      return Promise.resolve({ data: null, error: state.insertError });
     },
     eq() {
       return api;
@@ -40,6 +47,9 @@ function bookingsTable(row: unknown, opts: { updateError?: unknown } = {}) {
     },
     get updated() {
       return updated;
+    },
+    get inserted() {
+      return inserted;
     },
   };
   return api;

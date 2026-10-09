@@ -143,7 +143,11 @@ export class PayPalClient {
     const raw = capture?.amount?.value ?? unit?.amount?.value;
 
     return {
-      id: data.id,
+      // The capture id, not the order id: the webhook's
+      // PAYMENT.CAPTURE.COMPLETED resource carries the capture id as
+      // `resource.id`, so keying the payments ledger on the capture id keeps
+      // execute and webhook writes to the same transaction idempotent.
+      id: capture?.id ?? data.id,
       status: data.status || "COMPLETED",
       currency: capture?.amount?.currency_code ?? unit?.amount?.currency_code ?? "",
       amount: typeof raw === "string" || typeof raw === "number" ? Number(raw) : Number.NaN,

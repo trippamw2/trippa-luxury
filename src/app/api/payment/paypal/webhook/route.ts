@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail, paymentReceiptEmail } from "@/lib/email";
 import { readPayPalHeaders, verifyPayPalSignature } from "@/lib/payments/paypal-signature";
+import { amountsEqual, derivePayableAmount } from "@/lib/payments/amounts";
 
 /**
  * POST /api/payment/paypal/webhook
@@ -9,6 +10,13 @@ import { readPayPalHeaders, verifyPayPalSignature } from "@/lib/payments/paypal-
  * Verifies the webhook cryptographically against PayPal's certificate.
  *
  * Handles: PAYMENT.CAPTURE.COMPLETED
+ *
+ * The webhook is a settlement *fallback*: PayPal fires it when a capture
+ * completes, and the guest may or may not reach the execute redirect. Both
+ * paths settle the booking, so both must agree on the amount a capture settles
+ * and write the payments ledger under the same capture id. The unique partial
+ * index on payments.paypal_transaction_id (migration 037) makes the second
+ * writer a no-op instead of a duplicate row.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -46,50 +54,134 @@ export async function POST(request: NextRequest) {
     if (event.event_type === "PAYMENT.CAPTURE.COMPLETED") {
       const resource = event.resource as Record<string, unknown> | undefined;
       const bookingId = resource?.custom_id as string | undefined;
+      const captureId = resource?.id as string | undefined;
 
       if (!bookingId) {
         return NextResponse.json({ received: true, message: "No booking ID in event" });
       }
 
+      // The captured amount is the only thing that identifies which payment
+      // this capture settles. It must match what the booking owes for exactly
+      // one payment type; a capture that matches nothing must not clobber the
+      // booking's state. A missing unreadable amount is unknown, not a pass.
+      const rawAmount = (resource?.amount as { value?: unknown } | undefined)?.value;
+      const rawCurrency = (resource?.amount as { currency_code?: unknown } | undefined)?.currency_code;
+      const capturedAmount = typeof rawAmount === "number" ? rawAmount : Number(rawAmount);
+      const capturedCurrency = typeof rawCurrency === "string" ? rawCurrency : "";
+
       const supabase = createAdminClient();
       const { data: booking } = await supabase
         .from("bookings")
-        .select("id, client_name, client_email, booking_reference, total_amount, balance_amount, currency")
+        .select("id, client_name, client_email, booking_reference, total_amount, deposit_amount, balance_amount, currency, status, swift_confirmation_code")
         .eq("id", bookingId)
         .single();
 
-      if (booking) {
-        const totalAmount = booking.total_amount || 0;
-        const currency = booking.currency || "USD";
+      if (!booking) {
+        return NextResponse.json({ received: true, message: "Booking not found" });
+      }
 
-        // Update booking to paid
+      // Match the capture to a payment type on the same arithmetic the create
+      // and execute routes use, so the three paths cannot disagree about what
+      // a given amount means. When the amounts are ambiguous (e.g. deposit and
+      // balance are equal) the booking's current state breaks the tie: a
+      // deposit_paid booking receiving another equal capture is a balance or
+      // full payment, never a second deposit.
+      const paymentTypes: Array<
+        { type: "deposit" | "balance" | "full"; payable: ReturnType<typeof derivePayableAmount> }
+      > = ["deposit", "balance", "full"].map((type) => ({
+        type: type as "deposit" | "balance" | "full",
+        payable: derivePayableAmount(booking, type as "deposit" | "balance" | "full"),
+      }));
+
+      const ordered =
+        booking.status === "deposit_paid" || booking.status === "paid"
+          ? [...paymentTypes.filter((p) => p.type !== "deposit"), ...paymentTypes.filter((p) => p.type === "deposit")]
+          : paymentTypes;
+
+      const matched = ordered.find(
+        ({ payable }) =>
+          payable !== null &&
+          amountsEqual(payable.amount, capturedAmount) &&
+          payable.currency === capturedCurrency
+      );
+
+      if (!matched?.payable) {
+        console.error("Webhook: capture amount matches no payable amount for booking", {
+          bookingId,
+          captureId,
+          capturedAmount,
+          capturedCurrency,
+        });
+        return NextResponse.json({ received: true, message: "Capture matches no payable amount" });
+      }
+
+      const { type, payable } = matched;
+
+      // Settle only when the booking has not already passed this state. The
+      // execute redirect may have settled it first; a capture for a deposit on
+      // a booking already past deposit_paid must never regress it.
+      const settledStatuses: Record<string, string> = {
+        deposit: "deposit_paid",
+        balance: "paid",
+        full: "paid",
+      };
+      const nextStatus = settledStatuses[type];
+      const alreadyAtOrPast =
+        booking.status === nextStatus ||
+        (type === "balance" && booking.status === "paid") ||
+        (type === "full" && booking.status === "paid") ||
+        (type === "deposit" && (booking.status === "deposit_paid" || booking.status === "paid"));
+
+      if (!alreadyAtOrPast) {
         await supabase
           .from("bookings")
           .update({
-            status: "paid",
+            status: type === "deposit" ? "deposit_paid" : "paid",
             payment_method: "paypal",
-            balance_amount: 0,
+            balance_amount: payable.remainingBalance,
           })
           .eq("id", bookingId);
+      }
 
-        // Send receipt
-        if (booking.client_email) {
-          try {
-            const receipt = paymentReceiptEmail({
-              clientName: booking.client_name || "Valued Guest",
-              amount: `${currency} ${totalAmount.toLocaleString()}`,
-              bookingRef: booking.booking_reference || bookingId.slice(0, 8).toUpperCase(),
-              paymentMethod: "PayPal",
-            });
+      // Write the payments ledger. The execute route may have written this
+      // capture already; 23505 (unique_violation) is that expected race, so
+      // only unexpected failures are worth logging.
+      const { error: paymentError } = await supabase.from("payments").insert({
+        booking_id: bookingId,
+        amount: payable.amount,
+        currency: payable.currency,
+        payment_method: "paypal",
+        payment_type: type,
+        reference: booking.swift_confirmation_code
+          ? String(booking.swift_confirmation_code)
+          : captureId ?? "",
+        paypal_transaction_id: captureId ?? null,
+        status: "completed",
+        paid_at: new Date().toISOString(),
+      });
+      if (paymentError && paymentError.code !== "23505") {
+        console.error("Webhook: failed to write payments ledger row:", paymentError.message);
+      }
 
-            await sendEmail({
-              to: [{ email: booking.client_email, name: booking.client_name || "Valued Guest" }],
-              subject: receipt.subject,
-              htmlContent: receipt.htmlContent,
-            });
-          } catch (emailErr) {
-            console.error("Webhook: failed to send receipt:", emailErr);
-          }
+      // Send the receipt only when this webhook actually settled the booking.
+      // If the execute redirect already settled it (and sent its own receipt),
+      // a second email here would be noise.
+      if (!alreadyAtOrPast && booking.client_email) {
+        try {
+          const receipt = paymentReceiptEmail({
+            clientName: booking.client_name || "Valued Guest",
+            amount: `${payable.currency} ${payable.amount.toLocaleString()}`,
+            bookingRef: booking.booking_reference || bookingId.slice(0, 8).toUpperCase(),
+            paymentMethod: "PayPal",
+          });
+
+          await sendEmail({
+            to: [{ email: booking.client_email, name: booking.client_name || "Valued Guest" }],
+            subject: receipt.subject,
+            htmlContent: receipt.htmlContent,
+          });
+        } catch (emailErr) {
+          console.error("Webhook: failed to send receipt:", emailErr);
         }
       }
     }

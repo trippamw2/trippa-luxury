@@ -87,16 +87,6 @@ export async function POST(
       })
       .eq("id", bookingId);
 
-    // Log a transaction
-    await supabase.from("transactions").insert({
-      booking_id: bookingId,
-      type: "income",
-      amount: amount,
-      currency: bookingCurrency,
-      description: `Wire transfer received — ${paymentReference}`,
-      payment_method: "wire_transfer",
-    });
-
     // Send receipt email
     let receiptEmailStatus: "sent" | "failed" | "skipped" = "skipped";
     if (booking.client_email) {
@@ -118,6 +108,48 @@ export async function POST(
         console.error("Failed to send receipt email:", emailErr);
         receiptEmailStatus = "failed";
       }
+    }
+
+    // ── Ledger writes ──────────────────────────────────────────────────────
+    // FIX: the previous insert here used `type`/`description` columns that the
+    // transactions table does not have, and an unchecked `payment_method`
+    // value that the payment_methods FK rejected until migration 037 added the
+    // `wire_transfer` slug. It silently failed, so no wire confirmation ever
+    // reached the finance ledger. Write the real schema columns now and check
+    // the result, and also write the granular `payments` row (migration 018)
+    // that previously had no writer at all.
+    const { error: transactionError } = await supabase.from("transactions").insert({
+      booking_id: bookingId,
+      transaction_type: isDeposit ? "deposit" : isFull ? "full_payment" : "balance",
+      // The ledger records what actually arrived: the declared `amount`. The
+      // audit entry below preserves the derived `paidAmount` alongside it so
+      // the two can be reconciled if they ever disagree.
+      amount: amount,
+      currency: bookingCurrency,
+      payment_method: "wire_transfer",
+      payment_reference: paymentReference,
+      notes: `Wire transfer received — ${paymentReference}`,
+      receipt_sent: receiptEmailStatus === "sent",
+    });
+    if (transactionError) {
+      console.error("Failed to write transactions ledger row:", transactionError.message);
+    }
+
+    const { error: paymentError } = await supabase.from("payments").insert({
+      booking_id: bookingId,
+      amount: amount,
+      currency: bookingCurrency,
+      payment_method: "wire_transfer",
+      payment_type: isDeposit ? "deposit" : isFull ? "full" : "balance",
+      reference: paymentReference,
+      swift_confirmation_code: paymentReference,
+      notes: notes || null,
+      status: "completed",
+      paid_at: new Date().toISOString(),
+      created_by: profile.id,
+    });
+    if (paymentError) {
+      console.error("Failed to write payments ledger row:", paymentError.message);
     }
 
     // ── Audit trail ────────────────────────────────────────────────────────
@@ -157,12 +189,15 @@ export async function POST(
       action: "CREATE",
       newData: sanitizeForAudit({
         booking_id: bookingId,
-        type: "income",
-        amount,
-        expected_paid_amount: paidAmount,
-        currency: bookingCurrency,
-        description: `Wire transfer received — ${paymentReference}`,
+        transaction_type: isDeposit ? "deposit" : isFull ? "full_payment" : "balance",
         payment_method: "wire_transfer",
+        payment_reference: paymentReference,
+        amount: paidAmount,
+        expected_paid_amount: paidAmount,
+        declared_amount: amount,
+        currency: bookingCurrency,
+        notes: `Wire transfer received — ${paymentReference}`,
+        receipt_sent: receiptEmailStatus === "sent",
       }),
       performedBy: profile.id,
       ipAddress: getIpFromRequest(request),

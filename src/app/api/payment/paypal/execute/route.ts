@@ -136,6 +136,33 @@ export async function GET(request: NextRequest) {
       return cancel("booking_update_failed");
     }
 
+    // Record the payment in the granular payments ledger (migration 018),
+    // which no route previously wrote to. Keyed on the PayPal capture id via
+    // the unique partial index from migration 037, so the webhook's matching
+    // insert for the same capture is a no-op instead of a duplicate row.
+    const { error: paymentError } = await supabase.from("payments").insert({
+      booking_id: bookingId,
+      amount: payable.amount,
+      currency: payable.currency,
+      payment_method: "paypal",
+      payment_type: requestedType,
+      reference: paymentId,
+      paypal_transaction_id: capture.id,
+      status: "completed",
+      paid_at: new Date().toISOString(),
+    });
+    if (paymentError) {
+      // A unique-violation on paypal_transaction_id just means the webhook
+      // recorded this capture first — expected, not an error.
+      if (paymentError.code !== "23505") {
+        console.error("Failed to write payments ledger row", {
+          orderId,
+          bookingId,
+          detail: paymentError.message,
+        });
+      }
+    }
+
     if (booking.client_email) {
       try {
         const receipt = paymentReceiptEmail({

@@ -46,10 +46,14 @@ export async function POST(
     const balanceAmount = Number(booking.balance_amount) || (totalAmount - depositAmount);
     const bookingCurrency = booking.currency || currency;
 
-    // Determine payment type from the reference suffix
+    // Determine payment type from the reference suffix. `generatePaymentReference`
+    // emits -DEPOSIT / -BALANCE / -FULL (uppercased type), and declined older
+    // references may carry the short -DEP form. Both must map to the same branch:
+    // treating a deposit reference as a balance payment would mark the booking
+    // paid and write `transaction_type: "balance"` for what was actually a deposit.
     const refParts = paymentReference.split("-");
     const typeSuffix = refParts[refParts.length - 1];
-    const isDeposit = typeSuffix === "DEP";
+    const isDeposit = typeSuffix === "DEP" || typeSuffix === "DEPOSIT";
     const isFull = typeSuffix === "FULL";
 
     let newStatus: string;

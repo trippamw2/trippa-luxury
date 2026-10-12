@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail, newsletterWelcomeEmail } from "@/lib/email";
 import { clientKey, publicWriteLimiter } from "@/lib/public-rate-limiter";
+import {
+  ensureMarketingSuppression,
+  liftMarketingSuppression,
+} from "@/lib/email-consent";
 
 export async function POST(request: Request) {
   try {
@@ -39,6 +43,9 @@ export async function POST(request: Request) {
           .update({ is_active: true, unsubscribed_at: null })
           .eq("email", email);
       }
+      // Re-subscribing lifts a prior marketing suppression (but never a hard
+      // stop), so opting back in actually restores mail.
+      await liftMarketingSuppression(email);
       return NextResponse.json({
         success: true,
         message: "You are already subscribed to our newsletter.",
@@ -56,6 +63,8 @@ export async function POST(request: Request) {
         { status: 500 }
       );
     }
+
+    await liftMarketingSuppression(email);
 
     // Send welcome email via Brevo
     let emailStatus: "sent" | "failed" = "failed";
@@ -125,6 +134,10 @@ export async function DELETE(request: Request) {
         { status: 500 }
       );
     }
+
+    // Record a global marketing suppression, not only a flag on the newsletter
+    // row: the guest must stay opted out even from another list or export.
+    await ensureMarketingSuppression({ email, source: "public_unsubscribe" });
 
     return NextResponse.json({
       success: true,

@@ -27,6 +27,10 @@ export default function PortalBookingDetailPage() {
   const [booking, setBooking] = useState<BookingDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [feedbackState, setFeedbackState] = useState<"idle" | "submitting" | "submitted" | "error">("idle");
+  const [feedbackError, setFeedbackError] = useState("");
 
   useEffect(() => {
     fetch(`/api/guest/bookings/${bookingId}`)
@@ -68,6 +72,31 @@ export default function PortalBookingDetailPage() {
   const formatDate = (d: string) => {
     if (!d) return "TBD";
     return new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  };
+
+  const submitFeedback = async () => {
+    if (rating < 1) return;
+    setFeedbackState("submitting");
+    setFeedbackError("");
+    try {
+      const res = await fetch(`/api/guest/bookings/${bookingId}/feedback`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rating, comment: comment.trim() || null }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        if (res.status === 401) {
+          router.push("/portal/login");
+          return;
+        }
+        throw new Error(json.error || "Failed to submit feedback");
+      }
+      setFeedbackState("submitted");
+    } catch (err) {
+      setFeedbackState("error");
+      setFeedbackError(err instanceof Error ? err.message : "Failed to submit feedback");
+    }
   };
 
   return (
@@ -173,6 +202,60 @@ export default function PortalBookingDetailPage() {
             Special Requests
           </h2>
           <p className="text-sm text-[#4A4A4A] leading-relaxed">{booking.specialRequests}</p>
+        </div>
+      )}
+
+      {/* Guest Feedback — only for completed trips */}
+      {booking.status === "completed" && (
+        <div className="bg-white border border-[#EDE5DA] p-6 mt-6">
+          <h2 className="font-heading text-lg text-[#1A1A1A] mb-1">
+            How was your journey?
+          </h2>
+          <p className="text-xs text-[#8B7D6B] mb-4">
+            Your feedback helps us refine future experiences for you and other guests.
+          </p>
+          {feedbackState === "submitted" ? (
+            <div className="p-4 bg-emerald-50 text-emerald-700 text-sm">
+              Thank you! Your feedback has been recorded.
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center gap-2 mb-4">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setRating(n)}
+                    aria-label={`Rate ${n} out of 5`}
+                    className={`w-10 h-10 text-lg rounded transition-colors ${
+                      n <= rating ? "bg-[#C9A96E] text-white" : "bg-[#F5F0EB] text-[#8B7D6B] hover:bg-[#EDE5DA]"
+                    }`}
+                  >
+                    ★
+                  </button>
+                ))}
+              </div>
+              <textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                rows={4}
+                maxLength={2000}
+                placeholder="Share any highlights, suggestions, or notes about your trip..."
+                className="w-full border border-[#EDE5DA] p-3 text-sm text-[#1A1A1A] focus:outline-none focus:border-[#C9A96E] resize-none mb-4"
+              />
+              {feedbackState === "error" && (
+                <p className="text-xs text-red-600 mb-3">{feedbackError}</p>
+              )}
+              <button
+                type="button"
+                onClick={submitFeedback}
+                disabled={rating < 1 || feedbackState === "submitting"}
+                className="inline-flex px-6 py-3 bg-[#1A1A1A] text-[#FAF7F2] text-[11px] uppercase tracking-[2px] hover:bg-[#2A2A2A] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {feedbackState === "submitting" ? "Submitting..." : "Submit Feedback"}
+              </button>
+            </>
+          )}
         </div>
       )}
     </div>

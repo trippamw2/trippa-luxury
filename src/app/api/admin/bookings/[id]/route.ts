@@ -12,6 +12,10 @@ import {
   supplierPaymentReceived,
 } from "@/lib/supplier-email";
 import { mapKeysToCamel } from "@/lib/api-helpers";
+import {
+  registerSupplierReservationsForBooking,
+  registerTripDelivery,
+} from "@/lib/pipeline/register";
 
 const TABLE = "bookings";
 
@@ -288,6 +292,29 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   if (result.status === 200 && body.status && oldStatus && oldStatus !== body.status) {
     sendStatusEmail(id, body.status, oldStatus);
     sendSupplierEmails(id, body.status, oldStatus);
+
+    // Automated pipeline: operations & trip delivery. Derives supplier
+    // reservations on confirmation, marks them confirmed as operations runs,
+    // and advances the operational journey (in_operation / completed + the
+    // learning event). Idempotent and non-fatal: the register functions
+    // swallow their own errors and return them for logging, so a pipeline
+    // hiccup can never fail a booking status update.
+    try {
+      const supplierRes = await registerSupplierReservationsForBooking(id, body.status);
+      if (supplierRes.error) {
+        console.error("Supplier reservation registration issue:", supplierRes.error);
+      }
+    } catch (pipelineError) {
+      console.error("Supplier reservation pipeline error:", pipelineError);
+    }
+    try {
+      const delivery = await registerTripDelivery(id, body.status);
+      if (delivery.error) {
+        console.error("Trip delivery registration issue:", delivery.error);
+      }
+    } catch (pipelineError) {
+      console.error("Trip delivery pipeline error:", pipelineError);
+    }
   }
 
   return result;

@@ -3,7 +3,11 @@ import { handleGetList, handleCreate, mapKeysToCamel } from "@/lib/api-helpers";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 import { ilikeSubstring } from "@/lib/postgrest-filter";
-import { registerJourneyFromSavedJourney } from "@/lib/pipeline/register";
+import {
+  registerJourneyFromSavedJourney,
+  registerSupplierMatchesForJourney,
+  registerJourneyPricing,
+} from "@/lib/pipeline/register";
 
 const TABLE = "saved_journeys";
 
@@ -56,19 +60,54 @@ export async function POST(request: NextRequest) {
 
   if (created?.id) {
     // Automated pipeline: saved journey -> operational journey + itinerary +
-    // proposal draft. Never fails the save; errors are logged and surfaced.
+    // proposal draft -> supplier match + margin pricing. Never fails the
+    // save; each step is best-effort and returns its own errors for logging.
+    const pipelineErrors: string[] = [];
     const result = await registerJourneyFromSavedJourney(created.id, { inquiryId });
     if (result.error) {
+      pipelineErrors.push(`journey: ${result.error}`);
       console.error("Journey registration issue:", result.error);
     }
+
+    let proposalId: string | null = result.proposalId;
+    let supplierMatchCount = 0;
+    let totalSupplierCost = 0;
+    let grossProfit = 0;
+    let grossMargin = 0;
+
+    if (result.journeyId) {
+      const supplierMatch = await registerSupplierMatchesForJourney(result.journeyId, {
+        correlationId: inquiryId,
+      });
+      supplierMatchCount = supplierMatch.matchedCount;
+      if (supplierMatch.error) {
+        pipelineErrors.push(`suppliers: ${supplierMatch.error}`);
+        console.error("Supplier match issue:", supplierMatch.error);
+      }
+
+      const pricing = await registerJourneyPricing(result.journeyId, { correlationId: inquiryId });
+      proposalId = pricing.proposalId ?? proposalId;
+      totalSupplierCost = pricing.totalSupplierCost;
+      grossProfit = pricing.grossProfit;
+      grossMargin = pricing.grossMargin;
+      if (pricing.error) {
+        pipelineErrors.push(`pricing: ${pricing.error}`);
+        console.error("Journey pricing issue:", pricing.error);
+      }
+    }
+
     return NextResponse.json(
       {
         ...created,
         journeyId: result.journeyId,
-        proposalId: result.proposalId,
+        proposalId,
         itineraryItemCount: result.itineraryItemCount,
+        supplierMatchCount,
+        totalSupplierCost,
+        grossProfit,
+        grossMargin,
         pipelineRegistered: result.registered,
-        pipelineError: result.error,
+        pipelineError: pipelineErrors.length > 0 ? pipelineErrors.join("; ") : null,
       },
       { status: 201 }
     );

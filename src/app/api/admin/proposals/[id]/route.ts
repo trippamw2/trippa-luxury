@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { handleGetOne, handleUpdate, handleDelete } from "@/lib/api-helpers";
-import { registerBookingFromProposal } from "@/lib/pipeline/register";
+import { requireAdmin } from "@/lib/admin-auth";
+import {
+  registerBookingFromProposal,
+  registerProposalReviewStage,
+} from "@/lib/pipeline/register";
 
 const TABLE = "proposals";
 
@@ -21,7 +25,40 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
   const response = await handleUpdate(TABLE, id, updates);
   if (response.status !== 200) return response;
-  if (body.status !== "sent") return response;
+
+  // Automated pipeline: proposal draft -> human review (ready) -> approval
+  // (sent) -> provisional booking. Never fails the status transition; each
+  // step is best-effort and returns its own errors for logging.
+  let actorId: string | null = null;
+  try {
+    const auth = await requireAdmin({ module: "proposals", minRole: "agent" });
+    actorId = auth.profile.id;
+  } catch {
+    // handleUpdate above already enforced auth; an unknown actor degrades
+    // the ADMIN_APPROVED event to anonymous rather than failing the update.
+  }
+
+  const review =
+    body.status === "ready" || body.status === "sent"
+      ? await registerProposalReviewStage(id, body.status, { actorId })
+      : null;
+  if (review?.error) {
+    console.error("Review stage registration issue:", review.error);
+  }
+
+  if (body.status !== "sent") {
+    if (review) {
+      const updated = await response.clone().json();
+      return NextResponse.json({
+        ...updated,
+        reviewRequested: review.reviewRequested,
+        adminApproved: review.adminApproved,
+        pipelineRegistered: review.registered,
+        pipelineError: review.error,
+      });
+    }
+    return response;
+  }
 
   // Automated pipeline: proposal sent -> provisional booking (via journey and
   // lead). Never fails the status transition; errors are logged and surfaced.

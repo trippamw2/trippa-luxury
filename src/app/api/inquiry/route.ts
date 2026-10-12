@@ -10,6 +10,7 @@ import { guestProfiler, persistClientDna, type ProfiledGuest } from "@/lib/ai/gu
 import { logInteraction } from "@/lib/ai/customer-intelligence";
 import { workflowPersistence } from "@/lib/workflow-persistence";
 import { registerLeadFromInquiry } from "@/lib/pipeline/register";
+import { recordEvent } from "@/lib/ai/event-bus";
 import { clientKey, llmCostLimiter, publicWriteLimiter, tooManyRequests } from "@/lib/public-rate-limiter";
 import { gateAiAction, ActionBlockedError, actionBlockedResponse } from "@/lib/ai/action-gate";
 import { createNotification } from "@/lib/notifications";
@@ -89,6 +90,23 @@ export async function POST(request: Request) {
     if (dbError) {
       console.error("Supabase insert error:", dbError);
     } else if (inquiry?.id) {
+      // Stage 0 on the event bus: the raw inquiry is the seed of every
+      // downstream correlation (lead -> journey -> proposal -> booking).
+      // Never throws, so a failed event write cannot fail the inquiry.
+      await recordEvent({
+        eventType: "ENQUIRY_CREATED",
+        entityType: "inquiry",
+        entityId: inquiry.id,
+        actorType: "system",
+        correlationId: inquiry.id,
+        payload: {
+          source: "website",
+          destination: destination || null,
+          guests: guests || 2,
+        },
+        autonomyLevel: 0,
+      });
+
       // Surface the inbound lead in the admin bell. Never throws, so a failed
       // notification cannot fail the inquiry; awaited so it is not cut off by a
       // serverless response being returned first.

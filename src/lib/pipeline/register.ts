@@ -3,11 +3,17 @@
 // IDEMPOTENT: registering the same enquiry / journey / proposal twice never
 // produces a duplicate lead, journey, proposal, booking or invoice.
 //
-//   enquiries → leads            registerLeadFromInquiry
-//   journeys → proposals         registerJourneyFromSavedJourney
-//   journeys → itinerary_items   registerJourneyFromSavedJourney
-//   proposals → bookings         registerBookingFromProposal
-//   bookings  → finance          registerFinanceFromBooking
+//   enquiries → leads             registerLeadFromInquiry
+//   journeys → proposals          registerJourneyFromSavedJourney
+//   journeys → itinerary_items    registerJourneyFromSavedJourney
+//   itinerary → suppliers         registerSupplierMatchesForJourney
+//   itinerary → pricing           registerJourneyPricing
+//   proposals → human review      registerProposalReviewStage
+//   proposals → bookings          registerBookingFromProposal
+//   bookings  → supplier confirm  registerSupplierReservationsForBooking
+//   bookings  → trip delivery     registerTripDelivery
+//   bookings  → finance           registerFinanceFromBooking
+//   bookings  → feedback          registerGuestFeedback
 //
 // Every function is non-fatal on its own failure (the operation that
 // triggered it — saving an enquiry, marking a proposal sent, confirming a
@@ -592,5 +598,550 @@ export async function registerFinanceFromBooking(
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     return { invoiceId: null, invoiceNumber: null, registered: false, error: message };
+  }
+}
+
+export interface RegisterSupplierMatchResult {
+  journeyId: string | null;
+  matchedCount: number;
+  registered: boolean;
+  error: string | null;
+}
+
+/**
+ * Step 2b — ITINERARY → SUPPLIERS (SUPPLIERS_MATCHED).
+ * Backfills `supplier_id` / `service_id` / `cost` on itinerary items that do
+ * not yet have a supplier, matching each item's destination/location against
+ * the active supplier_services catalog (idempotent: already-linked items are
+ * left untouched). Best-effort — zero matches (no catalog entry for a
+ * destination) is a valid outcome, not an error. Never throws.
+ */
+export async function registerSupplierMatchesForJourney(
+  journeyId: string,
+  options?: { correlationId?: string | null }
+): Promise<RegisterSupplierMatchResult> {
+  const db = createAdminClient();
+  try {
+    const { data: items, error: itemsError } = await db
+      .from("itinerary_items")
+      .select("id, destination, location, cost, supplier_id, service_id")
+      .eq("journey_id", journeyId);
+
+    if (itemsError || !items) {
+      return { journeyId, matchedCount: 0, registered: false, error: itemsError?.message || "Itinerary items not found" };
+    }
+
+    const unmatched = (items as Record<string, unknown>[]).filter(
+      (item) => !item.supplier_id && !item.service_id
+    );
+    if (unmatched.length === 0) {
+      return { journeyId, matchedCount: 0, registered: true, error: null };
+    }
+
+    const { data: services, error: servicesError } = await db
+      .from("supplier_services")
+      .select("id, supplier_id, name, price, destination")
+      .eq("is_active", true);
+
+    if (servicesError || !services) {
+      return { journeyId, matchedCount: 0, registered: true, error: null };
+    }
+
+    const byDestination = new Map<string, Record<string, unknown>[]>();
+    for (const service of services as Record<string, unknown>[]) {
+      const dest = String(service.destination || "").trim().toLowerCase();
+      if (!dest) continue;
+      const bucket = byDestination.get(dest) ?? [];
+      bucket.push(service);
+      byDestination.set(dest, bucket);
+    }
+    if (byDestination.size === 0) {
+      return { journeyId, matchedCount: 0, registered: true, error: null };
+    }
+
+    let matchedCount = 0;
+    for (const item of unmatched) {
+      const key = String(item.destination || item.location || "").trim().toLowerCase();
+      if (!key) continue;
+      const candidates = byDestination.get(key);
+      if (!candidates || candidates.length === 0) continue;
+      const service = candidates[0];
+      const { error: updateError } = await db
+        .from("itinerary_items")
+        .update({
+          supplier_id: service.supplier_id as string,
+          service_id: service.id as string,
+          cost: Number(item.cost) || Number(service.price) || 0,
+        })
+        .eq("id", item.id as string);
+      if (!updateError) matchedCount += 1;
+    }
+
+    await recordEvent({
+      eventType: "SUPPLIERS_MATCHED",
+      entityType: "journey",
+      entityId: journeyId,
+      actorType: "system",
+      correlationId: options?.correlationId || null,
+      payload: { journeyId, matchedCount },
+      autonomyLevel: 1,
+    });
+
+    return { journeyId, matchedCount, registered: true, error: null };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return { journeyId, matchedCount: 0, registered: false, error: message };
+  }
+}
+
+export interface RegisterPricingResult {
+  journeyId: string | null;
+  proposalId: string | null;
+  totalSupplierCost: number;
+  grossProfit: number;
+  grossMargin: number;
+  registered: boolean;
+  error: string | null;
+}
+
+/**
+ * Step 2c — QUOTATION & MARGIN CHECKS (PRICE_CALCULATED).
+ * Recomputes the operational journey's supplier cost, gross profit and gross
+ * margin from its itinerary items (supplier cost sum vs the total selling
+ * price) and mirrors the internal financials onto the linked proposal. Runs on
+ * the same journey registration call that backfills suppliers, so the margin
+ * reflects the matched supplier costs. Never throws.
+ */
+export async function registerJourneyPricing(
+  journeyId: string,
+  options?: { correlationId?: string | null }
+): Promise<RegisterPricingResult> {
+  const db = createAdminClient();
+  try {
+    const { data: journey, error: journeyError } = await db
+      .from("journeys")
+      .select("total_selling_price")
+      .eq("id", journeyId)
+      .single();
+    if (journeyError || !journey) {
+      return {
+        journeyId,
+        proposalId: null,
+        totalSupplierCost: 0,
+        grossProfit: 0,
+        grossMargin: 0,
+        registered: false,
+        error: journeyError?.message || "Journey not found",
+      };
+    }
+
+    const { data: items, error: itemsError } = await db
+      .from("itinerary_items")
+      .select("cost")
+      .eq("journey_id", journeyId);
+    if (itemsError) {
+      return {
+        journeyId,
+        proposalId: null,
+        totalSupplierCost: 0,
+        grossProfit: 0,
+        grossMargin: 0,
+        registered: false,
+        error: itemsError.message,
+      };
+    }
+
+    const totalSupplierCost = (items as Record<string, unknown>[]).reduce(
+      (sum, item) => sum + (Number(item.cost) || 0),
+      0
+    );
+    const totalSellingPrice = Number(journey.total_selling_price) || 0;
+    const grossProfit = Math.round((totalSellingPrice - totalSupplierCost) * 100) / 100;
+    const grossMargin =
+      totalSellingPrice > 0 ? Math.round((grossProfit / totalSellingPrice) * 10000) / 100 : 0;
+
+    // Idempotent: recomputation overwrites the same numbers.
+    await db
+      .from("journeys")
+      .update({
+        total_supplier_cost: totalSupplierCost,
+        gross_profit: grossProfit,
+        gross_margin: grossMargin,
+      })
+      .eq("id", journeyId);
+
+    const { data: proposal } = await db
+      .from("proposals")
+      .select("id")
+      .eq("journey_id", journeyId)
+      .maybeSingle();
+    let proposalId: string | null = null;
+    if (proposal) {
+      proposalId = proposal.id as string;
+      await db
+        .from("proposals")
+        .update({
+          supplier_cost: totalSupplierCost,
+          gross_profit: grossProfit,
+          gross_margin: grossMargin,
+        })
+        .eq("id", proposal.id);
+    }
+
+    await recordEvent({
+      eventType: "PRICE_CALCULATED",
+      entityType: "journey",
+      entityId: journeyId,
+      actorType: "system",
+      correlationId: options?.correlationId || null,
+      payload: { journeyId, totalSupplierCost, totalSellingPrice, grossProfit, grossMargin },
+      autonomyLevel: 1,
+    });
+
+    return {
+      journeyId,
+      proposalId,
+      totalSupplierCost,
+      grossProfit,
+      grossMargin,
+      registered: true,
+      error: null,
+    };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return {
+      journeyId,
+      proposalId: null,
+      totalSupplierCost: 0,
+      grossProfit: 0,
+      grossMargin: 0,
+      registered: false,
+      error: message,
+    };
+  }
+}
+
+export interface RegisterReviewResult {
+  proposalId: string | null;
+  reviewRequested: boolean;
+  adminApproved: boolean;
+  registered: boolean;
+  error: string | null;
+}
+
+/**
+ * Step 3.5 — HUMAN APPROVAL (HUMAN_REVIEW_REQUESTED / ADMIN_APPROVED).
+ * Emitted from proposal status transitions: `ready` asks a human to review the
+ * drafted offer (recommendation, autonomy 1), `sent` records that a human
+ * cleared the offer and it was dispatched (human authorization, autonomy 4).
+ * The correlation chain is threaded back through proposal → journey → lead →
+ * inquiry so the approval lands on the same flow as the finished offer.
+ * Never throws.
+ */
+export async function registerProposalReviewStage(
+  proposalId: string,
+  status: "ready" | "sent",
+  options?: { actorId?: string | null }
+): Promise<RegisterReviewResult> {
+  const db = createAdminClient();
+  try {
+    let correlationId: string | null = null;
+    const { data: proposal } = await db
+      .from("proposals")
+      .select("journey_id")
+      .eq("id", proposalId)
+      .maybeSingle();
+    if (proposal?.journey_id) {
+      const { data: journey } = await db
+        .from("journeys")
+        .select("lead_id")
+        .eq("id", proposal.journey_id as string)
+        .maybeSingle();
+      if (journey?.lead_id) {
+        const { data: lead } = await db
+          .from("leads")
+          .select("inquiry_id")
+          .eq("id", journey.lead_id as string)
+          .maybeSingle();
+        correlationId = (lead?.inquiry_id as string | null) ?? null;
+      }
+    }
+
+    if (status === "ready") {
+      await recordEvent({
+        eventType: "HUMAN_REVIEW_REQUESTED",
+        entityType: "proposal",
+        entityId: proposalId,
+        actorType: "system",
+        correlationId,
+        payload: { proposalId, status: "ready" },
+        autonomyLevel: 1,
+      });
+      return { proposalId, reviewRequested: true, adminApproved: false, registered: true, error: null };
+    }
+
+    await recordEvent({
+      eventType: "ADMIN_APPROVED",
+      entityType: "proposal",
+      entityId: proposalId,
+      actorType: "human",
+      actorId: options?.actorId ?? null,
+      correlationId,
+      payload: { proposalId, status: "sent" },
+      autonomyLevel: 4,
+      humanReviewed: true,
+    });
+    return { proposalId, reviewRequested: false, adminApproved: true, registered: true, error: null };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return { proposalId, reviewRequested: false, adminApproved: false, registered: false, error: message };
+  }
+}
+
+export interface RegisterSupplierReservationResult {
+  bookingId: string | null;
+  requestedCount: number;
+  confirmedCount: number;
+  registered: boolean;
+  error: string | null;
+}
+
+/**
+ * Steps 4.5+5.5 — OPERATIONS & SUPPLIER CONFIRMATIONS
+ * (SUPPLIER_REQUESTED / SUPPLIER_CONFIRMED).
+ * On a booking transition to `confirmed`, derives booking_suppliers rows from
+ * the journey's supplier-linked itinerary items (idempotent by booking +
+ * supplier + service). On `in_progress` / `completed`, marks those rows
+ * `confirmed` so operations sees which suppliers are locked in. The two
+ * events are emitted from the same hook as the status change so the audit
+ * trail shows the operations stage advancing. Never throws.
+ */
+export async function registerSupplierReservationsForBooking(
+  bookingId: string,
+  status: string
+): Promise<RegisterSupplierReservationResult> {
+  const db = createAdminClient();
+  try {
+    const { data: booking } = await db
+      .from("bookings")
+      .select("journey_id, inquiry_id")
+      .eq("id", bookingId)
+      .maybeSingle();
+    const journeyId = (booking?.journey_id as string | null) ?? null;
+    if (!journeyId) {
+      return { bookingId, requestedCount: 0, confirmedCount: 0, registered: true, error: null };
+    }
+    const correlationId = (booking?.inquiry_id as string | null) ?? null;
+
+    if (status === "confirmed") {
+      const { data: items, error: itemsError } = await db
+        .from("itinerary_items")
+        .select("id, supplier_id, service_id, title, cost, currency, date")
+        .eq("journey_id", journeyId)
+        .not("supplier_id", "is", null);
+
+      if (itemsError) {
+        return { bookingId, requestedCount: 0, confirmedCount: 0, registered: false, error: itemsError.message };
+      }
+
+      const linked: Record<string, unknown>[] = (items as Record<string, unknown>[])
+        .filter((item) => item.supplier_id)
+        .map((item) => ({
+          booking_id: bookingId,
+          supplier_id: item.supplier_id as string,
+          service_id: (item.service_id as string | null) ?? null,
+          service_name: String(item.title || "") || null,
+          cost: Number(item.cost) || 0,
+          currency: String(item.currency || "USD"),
+          start_date: item.date ? String(item.date) : null,
+          supplier_status: "pending",
+        }));
+
+      // Idempotent: skip booking-supplier pairs this booking already carries.
+      const { data: existing } = await db
+        .from("booking_suppliers")
+        .select("supplier_id, service_id")
+        .eq("booking_id", bookingId);
+      const existingPairs =
+        (existing as Record<string, unknown>[] | null)?.map((row) => ({
+          supplier: row.supplier_id as string,
+          service: (row.service_id as string | null) ?? null,
+        })) ?? [];
+
+      const fresh = linked.filter(
+        (row) =>
+          !existingPairs.some(
+            (pair) => pair.supplier === row.supplier_id && pair.service === (row.service_id ?? null)
+          )
+      );
+
+      if (fresh.length > 0) {
+        const { error: insertError } = await db.from("booking_suppliers").insert(fresh);
+        if (insertError) {
+          return { bookingId, requestedCount: 0, confirmedCount: 0, registered: false, error: insertError.message };
+        }
+      }
+
+      await recordEvent({
+        eventType: "SUPPLIER_REQUESTED",
+        entityType: "booking",
+        entityId: bookingId,
+        actorType: "system",
+        correlationId,
+        payload: { bookingId, requestedCount: fresh.length },
+        autonomyLevel: 2,
+      });
+
+      return { bookingId, requestedCount: fresh.length, confirmedCount: 0, registered: true, error: null };
+    }
+
+    if (status === "in_progress" || status === "completed") {
+      const { data: suppliers, error: suppliersError } = await db
+        .from("booking_suppliers")
+        .select("id")
+        .eq("booking_id", bookingId);
+      if (suppliersError) {
+        return { bookingId, requestedCount: 0, confirmedCount: 0, registered: false, error: suppliersError.message };
+      }
+      const supplierIds = (suppliers as Record<string, unknown>[] | null) ?? [];
+      if (supplierIds.length > 0) {
+        await db
+          .from("booking_suppliers")
+          .update({ supplier_status: "confirmed" })
+          .eq("booking_id", bookingId);
+      }
+
+      await recordEvent({
+        eventType: "SUPPLIER_CONFIRMED",
+        entityType: "booking",
+        entityId: bookingId,
+        actorType: "system",
+        correlationId,
+        payload: { bookingId, confirmedCount: supplierIds.length },
+        autonomyLevel: 2,
+      });
+
+      return { bookingId, requestedCount: 0, confirmedCount: supplierIds.length, registered: true, error: null };
+    }
+
+    return { bookingId, requestedCount: 0, confirmedCount: 0, registered: true, error: null };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return { bookingId, requestedCount: 0, confirmedCount: 0, registered: false, error: message };
+  }
+}
+
+export interface RegisterTripDeliveryResult {
+  journeyId: string | null;
+  registered: boolean;
+  error: string | null;
+}
+
+/**
+ * Steps 5.6+6 — TRIP DELIVERY & LEARNING (JOURNEY_COMPLETED / JOURNEY_LEARNED).
+ * Advances the operational journey alongside the booking: `in_progress` puts
+ * the journey in_operation, `completed` marks it completed and emits both the
+ * completion event and the learning event that feeds the flywheel. Idempotent
+ * by design (journey status update is a repeated write of the same value).
+ * Never throws.
+ */
+export async function registerTripDelivery(
+  bookingId: string,
+  status: string
+): Promise<RegisterTripDeliveryResult> {
+  const db = createAdminClient();
+  try {
+    const { data: booking } = await db
+      .from("bookings")
+      .select("journey_id, inquiry_id")
+      .eq("id", bookingId)
+      .maybeSingle();
+    const journeyId = (booking?.journey_id as string | null) ?? null;
+    if (!journeyId) {
+      return { journeyId: null, registered: true, error: null };
+    }
+    const correlationId = (booking?.inquiry_id as string | null) ?? null;
+
+    if (status === "in_progress") {
+      await db.from("journeys").update({ status: "in_operation" }).eq("id", journeyId);
+      return { journeyId, registered: true, error: null };
+    }
+
+    if (status === "completed") {
+      await db.from("journeys").update({ status: "completed" }).eq("id", journeyId);
+      await recordEvent({
+        eventType: "JOURNEY_COMPLETED",
+        entityType: "journey",
+        entityId: journeyId,
+        actorType: "system",
+        correlationId,
+        payload: { bookingId },
+        autonomyLevel: 2,
+      });
+      await recordEvent({
+        eventType: "JOURNEY_LEARNED",
+        entityType: "journey",
+        entityId: journeyId,
+        actorType: "system",
+        correlationId,
+        payload: { bookingId, source: "trip-completion" },
+        autonomyLevel: 3,
+      });
+      return { journeyId, registered: true, error: null };
+    }
+
+    return { journeyId, registered: true, error: null };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return { journeyId: null, registered: false, error: message };
+  }
+}
+
+export interface RegisterFeedbackResult {
+  bookingId: string | null;
+  registered: boolean;
+  error: string | null;
+}
+
+/**
+ * Step 6.5 — TRIP DELIVERY & FOLLOW-UP (CLIENT_FEEDBACK_RECEIVED).
+ * Records a completed trip's feedback on the event bus (the append-only stream
+ * is the institutional memory; the rating and comment live in the payload so
+ * the flow stays reconstructionable without a separate feedback table). Always
+ * non-fatal — a lost feedback write must not fail the guest's submission.
+ */
+export async function registerGuestFeedback(
+  bookingId: string,
+  input: { rating: number; comment?: string | null }
+): Promise<RegisterFeedbackResult> {
+  const db = createAdminClient();
+  try {
+    const { data: booking } = await db
+      .from("bookings")
+      .select("journey_id, inquiry_id")
+      .eq("id", bookingId)
+      .maybeSingle();
+
+    const correlationId = (booking?.inquiry_id as string | null) ?? null;
+
+    await recordEvent({
+      eventType: "CLIENT_FEEDBACK_RECEIVED",
+      entityType: "booking",
+      entityId: bookingId,
+      actorType: "system",
+      correlationId,
+      payload: {
+        bookingId,
+        journeyId: (booking?.journey_id as string | null) ?? null,
+        rating: input.rating,
+        comment: input.comment || null,
+      },
+      autonomyLevel: 0,
+    });
+
+    return { bookingId, registered: true, error: null };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return { bookingId, registered: false, error: message };
   }
 }

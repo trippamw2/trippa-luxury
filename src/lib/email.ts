@@ -37,32 +37,51 @@ function getClient(): BrevoClient {
   return client;
 }
 
-/**
- * Best-effort persistence of every send attempt to the email_log table so
- * failures are observable in the admin panel. Never throws — a logging
- * failure must not take down the send path itself.
- */
-async function logEmailDelivery(params: {
+export interface EmailLogEntry {
   status: "sent" | "failed";
   toEmail: string;
   toName?: string;
   subject: string;
   messageId?: string;
   error?: string;
-}) {
+  meta?: Record<string, unknown>;
+}
+
+/**
+ * Best-effort persistence of send attempts to the email_log table so failures
+ * (and, for campaigns, per-recipient delivery) are observable in the admin
+ * panel. Never throws — a logging failure must not take down the send path
+ * itself.
+ *
+ * Batched because a campaign send is one Brevo call for hundreds of recipients:
+ * logging only `to[0]` would leave a 2,000-person campaign represented by two
+ * or three rows and hide any per-recipient truth. Callers pass one entry per
+ * recipient.
+ */
+export async function recordEmailDeliveries(entries: EmailLogEntry[]): Promise<void> {
+  if (entries.length === 0) return;
   try {
     const supabase = createAdminClient();
-    await supabase.from("email_log").insert({
-      status: params.status,
-      to_email: params.toEmail,
-      to_name: params.toName || null,
-      subject: params.subject,
-      message_id: params.messageId || null,
-      error: params.error || null,
-    });
+    const { error } = await supabase.from("email_log").insert(
+      entries.map((e) => ({
+        status: e.status,
+        to_email: e.toEmail,
+        to_name: e.toName || null,
+        subject: e.subject,
+        message_id: e.messageId || null,
+        error: e.error || null,
+        meta: e.meta || {},
+      }))
+    );
+    if (error) console.error("Failed to write email_log entries:", error);
   } catch (logError) {
-    console.error("Failed to write email_log entry:", logError);
+    console.error("Failed to write email_log entries:", logError);
   }
+}
+
+/** Single-entry convenience over {@link recordEmailDeliveries}. */
+async function logEmailDelivery(params: EmailLogEntry) {
+  await recordEmailDeliveries([params]);
 }
 
 interface EmailAddress {
@@ -83,6 +102,15 @@ interface EmailParams {
   bcc?: EmailAddress[];
   replyTo?: EmailAddress;
   attachment?: EmailAttachment[];
+  /** Extra SMTP headers (e.g. `List-Unsubscribe` on marketing mail). */
+  headers?: Record<string, string>;
+  /**
+   * When false, this send is not written to `email_log` by `sendEmail` — the
+   * caller records delivery itself (one row per recipient). Default true.
+   */
+  log?: boolean;
+  /** Free-form metadata attached to the `email_log` row (e.g. campaign id). */
+  meta?: Record<string, unknown>;
 }
 
 const FROM_EMAIL = process.env.KIVARA_EMAIL_FROM || "concierge@kivara.africa";
@@ -100,6 +128,7 @@ export async function sendEmail(params: EmailParams) {
       htmlContent: params.htmlContent,
       ...(params.cc?.length ? { cc: params.cc } : {}),
       ...(params.bcc?.length ? { bcc: params.bcc } : {}),
+      ...(params.headers ? { headers: params.headers } : {}),
     };
 
     if (params.attachment?.length) {
@@ -114,26 +143,30 @@ export async function sendEmail(params: EmailParams) {
     const response = await instance.transactionalEmails.sendTransacEmail(payload);
     const messageId =
       response.messageId || (Array.isArray(response.messageIds) ? response.messageIds[0] : undefined);
-    await logEmailDelivery({
-      status: "sent",
-      toEmail,
-      toName: params.to[0]?.name,
-      subject: params.subject,
-      messageId,
-    });
+    if (params.log !== false) {
+      await logEmailDelivery({
+        status: "sent",
+        toEmail,
+        toName: params.to[0]?.name,
+        subject: params.subject,
+        messageId,
+        meta: params.meta,
+      });
+    }
     return { success: true, messageId };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error("Brevo email error:", error);
     // Persist the failure even when the BREVO key is misconfigured, so the
     // admin panel shows what happened instead of a silent void.
-    if (toEmail || params.to[0]?.email) {
+    if (params.log !== false && (toEmail || params.to[0]?.email)) {
       await logEmailDelivery({
         status: "failed",
         toEmail: toEmail || params.to[0]?.email || "",
         toName: params.to[0]?.name,
         subject: params.subject,
         error: message,
+        meta: params.meta,
       });
     }
     throw error;

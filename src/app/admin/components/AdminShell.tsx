@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { LogOut, User, ChevronDown, LayoutDashboard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebar, HamburgerButton } from "./SidebarProvider";
+import { NotificationBell } from "./NotificationBell";
 import { useAdminProfile } from "@/app/admin/AdminAuthGuard";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
@@ -97,8 +98,10 @@ export function AdminShell({ children }: AdminShellProps) {
           <span className="text-soft-black font-medium">{currentTitle}</span>
         </div>
 
-        {/* User menu */}
-        <div className="relative" ref={menuRef}>
+        {/* Notifications + user menu */}
+        <div className="flex items-center gap-2">
+          <NotificationBell />
+          <div className="relative" ref={menuRef}>
           <button
             onClick={() => setMenuOpen(!menuOpen)}
             className="flex items-center gap-2 px-3 py-1.5 text-sm text-earth hover:text-soft-black hover:bg-warm-white rounded transition-colors"
@@ -130,6 +133,7 @@ export function AdminShell({ children }: AdminShellProps) {
               </button>
             </div>
           )}
+          </div>
         </div>
       </header>
 

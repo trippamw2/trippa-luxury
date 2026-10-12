@@ -466,8 +466,11 @@ export default function AdminBookings() {
   const DOCUMENT_TYPES = ["invoice", "receipt", "itinerary", "welcome", "travel-brief", "payment-reminder", "thank-you"];
 
   const getDocUrl = (booking: Booking, docType: string) => {
+    // The server resolves the full document from the booking row itself — the
+    // flat scalars are kept only so pre-existing deep links keep working.
     const params = new URLSearchParams({
       type: docType,
+      bookingId: booking.id,
       bookingRef: booking.ref,
       clientName: booking.clientName,
       destination: booking.destination,
@@ -484,8 +487,28 @@ export default function AdminBookings() {
     setGeneratingDoc(docType);
     setDocMenu(null);
     try {
-      // Open download in new tab (triggers browser download)
-      window.open(getDocUrl(booking, docType), "_blank");
+      // Fetch first so a failed generation surfaces here instead of silently
+      // opening a new tab that shows an error page the operator never sees.
+      const res = await fetch(getDocUrl(booking, docType));
+      if (!res.ok) {
+        let message = `Failed to generate ${docType}`;
+        try {
+          const body = (await res.json()) as { error?: string };
+          if (body?.error) message = body.error;
+        } catch {
+          // Non-JSON error body — keep the generic message.
+        }
+        throw new Error(message);
+      }
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = `kivara-${docType}-${booking.ref}.html`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(objectUrl);
       toast(`${docType.charAt(0).toUpperCase() + docType.slice(1)} downloaded`, "success");
     } catch (err: unknown) {
       toast(`Failed to generate ${docType}: ${err instanceof Error ? err.message : "unknown error"}`, "error");

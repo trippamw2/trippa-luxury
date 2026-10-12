@@ -18,6 +18,19 @@ vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => ({ from: mockFrom }),
 }));
 
+// Suppression is mocked so these tests stay about staging. The real
+// `loadSuppressions` hits the DB; here it reads a controllable map. Default is
+// empty (nobody suppressed) so existing cases are unaffected.
+const suppressionState = vi.hoisted(() => ({ map: new Map<string, string>() }));
+vi.mock("@/lib/email-consent", () => ({
+  loadSuppressions: async () => suppressionState.map,
+  suppressionBlocks: (scope: string | undefined, purpose: string) => {
+    if (!scope) return false;
+    return purpose === "marketing" ? true : scope === "all";
+  },
+  normalizeEmail: (e: string | null | undefined) => (e ?? "").trim().toLowerCase(),
+}));
+
 // The gate is mocked so this file keeps covering staging behaviour rather than
 // the constitution. The refusal path is asserted at the bottom with
 // `gateState.blocked` flipped on.
@@ -114,6 +127,10 @@ interface BookingQuery {
 let bookingQueries: BookingQuery[];
 /** Every `bookings` row payload the route tried to write. Must stay empty. */
 let bookingWrites: unknown[];
+/** Rows returned to the `leads` scan (nurture candidates). */
+let leadRows: unknown[];
+/** Rows returned to the "existing nurture" read on `staged_reminders`. */
+let existingNurtureRows: unknown[];
 
 function makeRequest(token: string | null): NextRequest {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
@@ -132,10 +149,13 @@ function insertedRows(): Record<string, unknown>[] {
 beforeEach(() => {
   vi.clearAllMocks();
   gateState.blocked = false;
+  suppressionState.map = new Map();
   process.env.CRON_SECRET = "test-secret";
   mockInsert.mockResolvedValue({ data: null, error: null });
   bookingQueries = [{ rows: [] }, { rows: [] }];
   bookingWrites = [];
+  leadRows = [];
+  existingNurtureRows = [];
 
   // Dispatch on table name rather than call order: the route reads `bookings`
   // twice and then writes `staged_reminders` once per message, so a call-order
@@ -143,13 +163,35 @@ beforeEach(() => {
   let bookingQueryIndex = 0;
   mockFrom.mockImplementation((table: string) => {
     if (table === "staged_reminders") {
-      // The route calls `.insert()` straight off the table client, so the mock
-      // has to expose it there as well as after `.select()`.
-      const tableClient = {
-        select: () => tableClient,
+      // The route both inserts (staging) and reads (which leads already have a
+      // nurture row). The read is a filter chain that resolves to the rows above;
+      // every filter method returns the chain and awaiting it settles.
+      const readChain = (): object => {
+        const settle: Settle = { data: existingNurtureRows, error: null };
+        const chain = (): object =>
+          new Proxy({} as object, {
+            get(_target, prop) {
+              if (prop === "then") return (resolve: (v: unknown) => void) => resolve(settle);
+              return () => chain();
+            },
+          });
+        return chain();
+      };
+      return {
+        select: () => readChain(),
         insert: (row: unknown) => mockInsert(row),
       };
-      return tableClient;
+    }
+    if (table === "leads") {
+      const settle: Settle = { data: leadRows, error: null };
+      const chain = (): object =>
+        new Proxy({} as object, {
+          get(_target, prop) {
+            if (prop === "then") return (resolve: (v: unknown) => void) => resolve(settle);
+            return () => chain();
+          },
+        });
+      return chain();
     }
     if (table === "bookings") {
       const query = bookingQueries[bookingQueryIndex] ?? { rows: [] };
@@ -159,7 +201,7 @@ beforeEach(() => {
         new Proxy({} as object, {
           get(_target, prop) {
             if (prop === "then") return (resolve: (v: unknown) => void) => resolve(settle);
-            if (prop === "select" || prop === "in" || prop === "not" || prop === "eq") {
+            if (prop === "select" || prop === "in" || prop === "not" || prop === "eq" || prop === "lte" || prop === "gt") {
               return () => chainable();
             }
             if (prop === "update") {
@@ -359,6 +401,170 @@ describe("POST /api/ai/trigger-reminders (stages, never sends)", () => {
     const res = await POST(makeRequest("test-secret"));
     expect(res.status).toBe(500);
     expect(mockSendEmail).not.toHaveBeenCalled();
+  });
+
+  // ── Balance reminders (folded in from the retired direct-send cron) ──────
+  // Departing within the window while still owing a balance.
+  const balanceBooking = {
+    id: "33333333-3333-4333-8333-333333333333",
+    booking_reference: "TRP-0103",
+    client_name: "Chanda Mulenga",
+    client_email: "owing@example.com",
+    destination: "Lower Zambezi",
+    start_date: (() => {
+      const d = new Date();
+      d.setDate(d.getDate() + 10);
+      return d.toISOString().slice(0, 10);
+    })(),
+    balance_amount: 4200,
+    currency: "USD",
+    reminders_sent: null,
+  };
+
+  // The third `bookings` read is the balance scan; `bookingQueries` slots are
+  // pre-trip, post-trip, balance in that order.
+  it("stages a balance reminder for a booking that still owes money", async () => {
+    bookingQueries = [{ rows: [] }, { rows: [] }, { rows: [balanceBooking] }];
+
+    const res = await POST(makeRequest("test-secret"));
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.staged).toBe(1);
+    const row = insertedRows()[0];
+    expect(row.message_type).toBe("balance");
+    expect(row.kind).toBe("reminder");
+    expect(row.recipient_email).toBe(balanceBooking.client_email);
+    expect(String(row.subject).length).toBeGreaterThan(0);
+    expect(String(row.body_html).length).toBeGreaterThan(0);
+    expect(mockSendEmail).not.toHaveBeenCalled();
+  });
+
+  it("does not stage a balance reminder the guest already received", async () => {
+    bookingQueries = [
+      { rows: [] },
+      { rows: [] },
+      {
+        rows: [
+          {
+            ...balanceBooking,
+            reminders_sent: [{ type: "balance", sentAt: "2026-09-01T00:00:00Z" }],
+          },
+        ],
+      },
+    ];
+
+    const res = await POST(makeRequest("test-secret"));
+    const body = await res.json();
+
+    expect(body.staged).toBe(0);
+    expect(body.skipped).toBe(1);
+    expect(body.details.skipped[0].reason).toBe("already sent");
+    expect(mockInsert).not.toHaveBeenCalled();
+  });
+
+  // A hard stop (complaint/bounce/operator block) withholds service mail too.
+  it("skips every reminder for a hard-suppressed (scope all) guest", async () => {
+    suppressionState.map = new Map([["guest@example.com", "all"]]);
+    bookingQueries = [{ rows: [dueSoonBooking] }, { rows: [] }];
+
+    const res = await POST(makeRequest("test-secret"));
+    const body = await res.json();
+
+    expect(body.staged).toBe(0);
+    expect(mockInsert).not.toHaveBeenCalled();
+    expect(
+      body.details.skipped.every((s: { reason: string }) => s.reason === "suppressed")
+    ).toBe(true);
+  });
+
+  // A plain unsubscribe is marketing-scope only: it must never withhold a
+  // reminder for a trip the guest actually booked.
+  it("still stages a service reminder for a marketing-only unsubscribe", async () => {
+    suppressionState.map = new Map([["guest@example.com", "marketing"]]);
+    bookingQueries = [{ rows: [dueSoonBooking] }, { rows: [] }];
+
+    const res = await POST(makeRequest("test-secret"));
+    const body = await res.json();
+
+    expect(body.staged).toBe(DUE_SOON_COUNT);
+  });
+
+  // ── Lead nurture (the funnel arm that was missing) ──────────────────────
+  // A lead who asked about a journey and then went quiet for >7 days.
+  const quietLead = {
+    id: "44444444-4444-4444-8444-444444444444",
+    full_name: "Naledi Okafor",
+    email: "lead@example.com",
+    preferred_destinations: ["Victoria Falls"],
+    preferred_start_date: null,
+    occasion: "honeymoon",
+    lead_status: "proposal_sent",
+    last_contacted_at: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
+    created_at: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString(),
+  };
+
+  it("stages a nurture email for a quiet lead instead of contacting them", async () => {
+    leadRows = [quietLead];
+
+    const res = await POST(makeRequest("test-secret"));
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.staged).toBe(1);
+    const row = insertedRows()[0];
+    expect(row.kind).toBe("nurture");
+    expect(row.message_type).toBe("nurture");
+    expect(row.booking_id).toBeNull();
+    expect(row.lead_id).toBe(quietLead.id);
+    expect(row.recipient_email).toBe(quietLead.email);
+    expect(String(row.body_html)).toContain("Victoria Falls");
+    expect(mockSendEmail).not.toHaveBeenCalled();
+  });
+
+  it("does not stage nurture for a lead touched recently", async () => {
+    leadRows = [
+      {
+        ...quietLead,
+        last_contacted_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+    ];
+
+    const res = await POST(makeRequest("test-secret"));
+    const body = await res.json();
+
+    expect(body.staged).toBe(0);
+    expect(mockInsert).not.toHaveBeenCalled();
+  });
+
+  it("skips a lead that already has a non-failed nurture row", async () => {
+    leadRows = [quietLead];
+    existingNurtureRows = [{ lead_id: quietLead.id }];
+
+    const res = await POST(makeRequest("test-secret"));
+    const body = await res.json();
+
+    expect(body.staged).toBe(0);
+    expect(
+      body.details.skipped.some((s: { reason: string }) => s.reason === "already staged")
+    ).toBe(true);
+    expect(mockInsert).not.toHaveBeenCalled();
+  });
+
+  it("withholds nurture from a marketing-scope unsubscribe", async () => {
+    suppressionState.map = new Map([["lead@example.com", "marketing"]]);
+    leadRows = [quietLead];
+
+    const res = await POST(makeRequest("test-secret"));
+    const body = await res.json();
+
+    expect(body.staged).toBe(0);
+    expect(
+      body.details.skipped.some((s: { reason: string }) => s.reason === "suppressed")
+    ).toBe(true);
+    expect(mockInsert).not.toHaveBeenCalled();
   });
 
   // ── Governance ──────────────────────────────────────────────────────────

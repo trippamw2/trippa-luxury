@@ -23,6 +23,13 @@ export interface ReminderContent {
   html: string;
 }
 
+/**
+ * Message type recorded for a balance-payment reminder in `reminders_sent` and
+ * `staged_reminders.message_type`. Kept next to the pre-trip types so the
+ * idempotency set and the renderer agree on the name.
+ */
+export const BALANCE_REMINDER_TYPE = "balance";
+
 type ExtendedReminderSchedule = ReminderSchedule & { dueDate: string; isDue: boolean };
 
 export function generateReminderSchedules(travelStart: string): ExtendedReminderSchedule[] {
@@ -135,6 +142,45 @@ export class ReminderEngine {
     return {
       subject: tpl.subject,
       html: emailHtml(tpl.body),
+    };
+  }
+
+  /**
+   * Balance-payment reminder for a booking whose departure is near and whose
+   * balance is still owed. Previously sent directly and unattended by a cron;
+   * it now flows through the same stage-and-review pipeline as every other
+   * reminder, so a human reads it before a guest does.
+   */
+  generateBalanceReminder(params: {
+    clientName: string;
+    destination: string;
+    travelStart: string;
+    bookingRef: string;
+    balanceAmount: number;
+    currency: string;
+  }): ReminderContent {
+    const destination = params.destination || "your destination";
+    const travelDate = params.travelStart
+      ? new Date(params.travelStart).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })
+      : "your upcoming journey";
+    const amount = `${params.currency} ${params.balanceAmount.toLocaleString()}`;
+
+    return {
+      subject: `Balance Payment Reminder : ${params.bookingRef} : kivara.africa`,
+      html: emailHtml(`
+        <h2 style="font-family: 'Times New Roman', serif; font-size: 20px; color: #1A1A1A; margin: 0 0 16px;">${params.clientName},</h2>
+        <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 16px;">As your journey to <strong>${destination}</strong> on <strong>${travelDate}</strong> approaches, we kindly remind you that the remaining balance for booking <strong>${params.bookingRef}</strong> is due within 30 days of your departure.</p>
+        <div style="background: #F5F0EB; padding: 20px; margin-bottom: 24px; border-left: 3px solid #C9A96E;">
+          <p style="font-size: 11px; color: #8B7D6B; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 8px;">Amount Due</p>
+          <p style="font-size: 24px; color: #C9A96E; font-weight: 700; margin: 0;">${amount}</p>
+        </div>
+        <p style="font-size: 13px; color: #8B7D6B; line-height: 1.6; margin: 0;">Should you have any questions or require assistance with your payment, your concierge is here to help : simply reply to this email.</p>
+        <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 16px 0 0;">With warmest regards,<br><strong style="color: #C9A96E;">Your Kivara Concierge</strong></p>
+      `),
     };
   }
 

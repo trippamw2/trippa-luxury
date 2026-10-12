@@ -19,6 +19,23 @@ vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => ({ from: mockFrom }),
 }));
 
+// The real `loadSuppressions` would query `email_suppressions`; here it reads a
+// controllable map. Empty by default (nobody suppressed), so the rest of this
+// file is unaffected. Flipping the map on is how the final consent guard is
+// exercised.
+const suppressionState = vi.hoisted(() => ({ map: new Map<string, string>(), fail: false }));
+vi.mock("@/lib/email-consent", () => ({
+  loadSuppressions: async () => {
+    if (suppressionState.fail) throw new Error("suppression db down");
+    return suppressionState.map;
+  },
+  suppressionBlocks: (scope: string | undefined, purpose: string) => {
+    if (!scope) return false;
+    return purpose === "marketing" ? true : scope === "all";
+  },
+  normalizeEmail: (e: string | null | undefined) => (e ?? "").trim().toLowerCase(),
+}));
+
 // The REAL AdminAuthError class is preserved so `instanceof` narrowing works.
 const mockRequireAdmin = vi.fn();
 vi.mock("@/lib/admin-auth", async (importOriginal) => {
@@ -91,13 +108,16 @@ interface RowOptions {
   reviewed_by?: string | null;
   kind?: string;
   message_type?: string;
+  booking_id?: string | null;
+  lead_id?: string | null;
 }
 
 /** An approved row, i.e. one a named human already signed off. */
 function approvedRow(options: RowOptions = {}): Record<string, unknown> {
   return {
     id: options.id ?? ROW_ID,
-    booking_id: BOOKING_ID,
+    booking_id: options.booking_id === undefined ? BOOKING_ID : options.booking_id,
+    lead_id: options.lead_id ?? null,
     booking_reference: "TRP-0101",
     kind: options.kind ?? "reminder",
     message_type: options.message_type ?? "n7",
@@ -236,6 +256,8 @@ beforeEach(() => {
   callLog.length = 0;
   stagedWrites = [];
   statusFilters = [];
+  suppressionState.map = new Map();
+  suppressionState.fail = false;
   gateState.blocked = false;
   mockRequireAdmin.mockResolvedValue({ profile: { id: ADMIN_ID } });
   mockAuditLog.mockResolvedValue(undefined);
@@ -349,6 +371,34 @@ describe("POST /api/admin/staged-reminders/dispatch", () => {
     expect(body.failed).toBe(1);
     expect(mockSendEmail).not.toHaveBeenCalled();
     expect(stagedWrites.some((w) => w.status === "failed")).toBe(true);
+  });
+
+  // Even an approved row must not reach a recipient on the do-not-contact list:
+  // approval is a decision about the message, not about overruling the
+  // recipient's own block.
+  it("does not send to a hard-suppressed recipient", async () => {
+    suppressionState.map = new Map([["guest@example.com", "all"]]);
+
+    const res = await POST(makeRequest());
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.dispatched).toBe(0);
+    expect(body.failed).toBe(1);
+    expect(mockSendEmail).not.toHaveBeenCalled();
+    const blocked = stagedWrites.find((w) => String(w.dispatch_error).includes("suppressed"));
+    expect(blocked?.status).toBe("failed");
+  });
+
+  // If the do-not-contact list cannot be read, sending could reach someone who
+  // asked not to be contacted. Abort instead of guessing.
+  it("sends nothing when suppression cannot be verified", async () => {
+    suppressionState.fail = true;
+
+    const res = await POST(makeRequest());
+
+    expect(res.status).toBe(503);
+    expect(mockSendEmail).not.toHaveBeenCalled();
   });
 
   it("skips a row it lost the claim on instead of double-sending", async () => {
@@ -512,6 +562,69 @@ describe("POST /api/admin/staged-reminders/dispatch", () => {
     const res = await POST(request);
 
     expect(res.status).toBe(200);
+    expect(mockSendEmail).toHaveBeenCalledTimes(1);
+  });
+
+  // ── Nurture rows (lead-targeted, no booking) ────────────────────────────
+  const LEAD_ID = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
+
+  // A nurture row carries no booking_id, so it has no booking sent-ledger to
+  // append to and no guest-journey event to emit — its staged row is its record.
+  it("sends a nurture row without touching a booking ledger or the event stream", async () => {
+    listResult = {
+      data: [
+        approvedRow({
+          kind: "nurture",
+          message_type: "nurture",
+          booking_id: null,
+          lead_id: LEAD_ID,
+        }),
+      ],
+      error: null,
+    };
+
+    const res = await POST(makeRequest());
+    const body = await res.json();
+
+    expect(body.dispatched).toBe(1);
+    expect(bookingLedger.reminders_sent).toEqual([]);
+    expect(bookingLedger.followups_sent).toEqual([]);
+    expect(mockRecordEvent).not.toHaveBeenCalled();
+  });
+
+  // Nurture is marketing mail, so a plain unsubscribe withholds it — unlike a
+  // booking reminder, which is service mail.
+  it("withholds a nurture row from a marketing-scope unsubscribe", async () => {
+    suppressionState.map = new Map([["guest@example.com", "marketing"]]);
+    listResult = {
+      data: [
+        approvedRow({
+          kind: "nurture",
+          message_type: "nurture",
+          booking_id: null,
+          lead_id: LEAD_ID,
+        }),
+      ],
+      error: null,
+    };
+
+    const res = await POST(makeRequest());
+    const body = await res.json();
+
+    expect(body.dispatched).toBe(0);
+    expect(body.failed).toBe(1);
+    expect(mockSendEmail).not.toHaveBeenCalled();
+  });
+
+  // The same marketing-only unsubscribe must NOT withhold a booked-guest
+  // reminder: that would silently drop a message the guest is owed.
+  it("still sends a service reminder to a marketing-only unsubscribe", async () => {
+    suppressionState.map = new Map([["guest@example.com", "marketing"]]);
+
+    const res = await POST(makeRequest());
+    const body = await res.json();
+
+    expect(body.dispatched).toBe(1);
     expect(mockSendEmail).toHaveBeenCalledTimes(1);
   });
 });

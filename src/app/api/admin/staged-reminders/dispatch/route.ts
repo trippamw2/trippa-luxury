@@ -37,6 +37,14 @@ import { createAuditLog, getIpFromRequest, sanitizeForAudit } from "@/lib/audit"
 import { gateAiAction, ActionBlockedError, actionBlockedResponse } from "@/lib/ai/action-gate";
 import { recordEvent } from "@/lib/ai/event-bus";
 import { sendEmail } from "@/lib/email";
+import {
+  loadSuppressions,
+  suppressionBlocks,
+  normalizeEmail,
+  type SuppressionScope,
+  type EmailPurpose,
+} from "@/lib/email-consent";
+import { NURTURE_KIND } from "@/lib/ai/nurture-engine";
 
 /** The only status eligible to enter a send. */
 const APPROVED = "approved";
@@ -49,7 +57,8 @@ const BATCH_LIMIT = 500;
 
 interface DispatchableRow {
   id: string;
-  booking_id: string;
+  booking_id: string | null;
+  lead_id: string | null;
   booking_reference: string | null;
   kind: string;
   message_type: string;
@@ -145,7 +154,7 @@ export async function POST(request: NextRequest) {
     let query = supabase
       .from("staged_reminders")
       .select(
-        "id, booking_id, booking_reference, kind, message_type, recipient_email, " +
+        "id, booking_id, lead_id, booking_reference, kind, message_type, recipient_email, " +
           "recipient_name, subject, body_html, reviewed_by, reviewed_at"
       )
       .eq("status", APPROVED)
@@ -178,6 +187,23 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // ── Final consent guard ─────────────────────────────────────────────
+    // A hard stop (scope "all": complaint, bounce, operator block) withholds the
+    // message even though a human approved it — approval cannot override the
+    // recipient's own do-not-contact. Loaded once for the whole batch. A lookup
+    // failure aborts the dispatch entirely rather than guessing, because sending
+    // to a known do-not-contact is the one outcome this must never produce.
+    let suppression: Map<string, SuppressionScope>;
+    try {
+      suppression = await loadSuppressions(rows.map((r) => r.recipient_email));
+    } catch (err) {
+      console.error("Staged reminder dispatch: suppression lookup failed:", err);
+      return NextResponse.json(
+        { error: "Could not verify recipient suppression; nothing was sent." },
+        { status: 503 }
+      );
+    }
+
     const dispatched: { id: string; to: string; subject: string }[] = [];
     const failures: { id: string; error: string }[] = [];
 
@@ -189,6 +215,28 @@ export async function POST(request: NextRequest) {
         await supabase
           .from("staged_reminders")
           .update({ status: "failed", dispatch_error: "No reviewer recorded" })
+          .eq("id", row.id)
+          .eq("status", APPROVED);
+        continue;
+      }
+
+      // Recipient is on the do-not-contact list. `failed` (not `rejected`) so it
+      // is visibly blocked rather than reading as a human decline; the stager
+      // will not re-queue it because it is suppressed.
+      //
+      // Nurture is marketing mail (a plain unsubscribe withholds it); every other
+      // kind is service mail (only a hard stop withholds it). The scope is read
+      // off the row so a suppression added after staging is still honoured here.
+      const suppressionScope: EmailPurpose =
+        row.kind === NURTURE_KIND ? "marketing" : "service";
+      if (suppressionBlocks(suppression.get(normalizeEmail(row.recipient_email)), suppressionScope)) {
+        failures.push({ id: row.id, error: "Recipient is suppressed" });
+        await supabase
+          .from("staged_reminders")
+          .update({
+            status: "failed",
+            dispatch_error: "Recipient suppressed (do-not-contact)",
+          })
           .eq("id", row.id)
           .eq("status", APPROVED);
         continue;
@@ -259,28 +307,36 @@ export async function POST(request: NextRequest) {
 
         // Only now is the guest actually contacted, so only now is the booking's
         // sent ledger updated. Recording delivery earlier would permanently
-        // suppress a message that never arrived.
-        await appendSentRecord(supabase, row.booking_id, row.kind, {
-          type: row.message_type,
-          sentAt: now,
-        });
+        // suppress a message that never arrived. A nurture lead has no booking
+        // and therefore no sent ledger — its staged row IS its record.
+        if (row.booking_id) {
+          await appendSentRecord(supabase, row.booking_id, row.kind, {
+            type: row.message_type,
+            sentAt: now,
+          });
+        }
 
         dispatched.push({ id: row.id, to: row.recipient_email, subject: row.subject });
 
-        await recordEvent({
-          eventType: "CLIENT_ACCEPTED",
-          entityType: "booking",
-          entityId: row.booking_id,
-          actorType: "system",
-          payload: {
-            externalId: row.booking_reference,
-            staged_reminder_id: row.id,
-            kind: row.kind,
-            message_type: row.message_type,
-            recipient_email: row.recipient_email,
-            approved_by: row.reviewed_by,
-          },
-        });
+        // The canonical event vocabulary describes a guest's journey; a nurture
+        // send has no booking to attach to, so it is recorded by its staged row
+        // and the dispatch audit log rather than forced into that stream.
+        if (row.booking_id) {
+          await recordEvent({
+            eventType: "CLIENT_ACCEPTED",
+            entityType: "booking",
+            entityId: row.booking_id,
+            actorType: "system",
+            payload: {
+              externalId: row.booking_reference,
+              staged_reminder_id: row.id,
+              kind: row.kind,
+              message_type: row.message_type,
+              recipient_email: row.recipient_email,
+              approved_by: row.reviewed_by,
+            },
+          });
+        }
       } catch (err: unknown) {
         // ── 4. Fail, never re-arm ─────────────────────────────────────────
         const message = err instanceof Error ? err.message : "Unknown error";

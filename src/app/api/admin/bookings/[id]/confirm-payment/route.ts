@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 import { createAuditLog, getIpFromRequest, sanitizeForAudit } from "@/lib/audit";
 import { sendEmail, paymentReceiptEmail } from "@/lib/email";
+import { createNotification } from "@/lib/notifications";
 
 /**
  * POST /api/admin/bookings/[id]/confirm-payment
@@ -205,6 +206,18 @@ export async function POST(
       }),
       performedBy: profile.id,
       ipAddress: getIpFromRequest(request),
+    });
+
+    // Surface the money movement in the admin bell.
+    await createNotification({
+      type: "payment_received",
+      title: `Payment received for ${booking.booking_reference || bookingId.slice(0, 8).toUpperCase()}`,
+      body: `${bookingCurrency} ${Number(amount).toLocaleString()} — ${
+        isDeposit ? "deposit" : isFull ? "full payment" : "balance"
+      }`,
+      link: "/admin/finance",
+      entityType: "booking",
+      entityId: bookingId,
     });
 
     return NextResponse.json({

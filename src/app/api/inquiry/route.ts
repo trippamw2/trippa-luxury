@@ -11,6 +11,7 @@ import { logInteraction } from "@/lib/ai/customer-intelligence";
 import { workflowPersistence } from "@/lib/workflow-persistence";
 import { clientKey, llmCostLimiter, publicWriteLimiter, tooManyRequests } from "@/lib/public-rate-limiter";
 import { gateAiAction, ActionBlockedError, actionBlockedResponse } from "@/lib/ai/action-gate";
+import { createNotification } from "@/lib/notifications";
 
 export async function POST(request: Request) {
   try {
@@ -86,6 +87,20 @@ export async function POST(request: Request) {
 
     if (dbError) {
       console.error("Supabase insert error:", dbError);
+    } else if (inquiry?.id) {
+      // Surface the inbound lead in the admin bell. Never throws, so a failed
+      // notification cannot fail the inquiry; awaited so it is not cut off by a
+      // serverless response being returned first.
+      await createNotification({
+        type: "inquiry_created",
+        title: `New inquiry from ${fullName}`,
+        body: destination
+          ? `${destination}${guests ? ` \u00b7 ${guests} guest(s)` : ""}`
+          : (typeof message === "string" ? message.slice(0, 140) : null),
+        link: "/admin/inquiries",
+        entityType: "inquiry",
+        entityId: inquiry.id,
+      });
     }
 
     // â”€â”€ 2. AI: Profile the guest (LLM-powered) â”€â”€

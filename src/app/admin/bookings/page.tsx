@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, X, FileText, Mail, Send, Printer, Loader2, Edit2, Trash2, Calendar, CalendarDays, AlertTriangle, RefreshCw, Download, History, UserRound } from "lucide-react";
+import { Plus, X, FileText, Mail, Send, Printer, Loader2, Edit2, Trash2, Calendar, CalendarDays, AlertTriangle, RefreshCw, Download, History, UserRound, BadgeCheck, Wallet } from "lucide-react";
 import { useApiData } from "@/lib/use-api-data";
 import { useToast } from "@/app/admin/components/Toast";
 import { DataTable, type Column } from "@/app/admin/components/DataTable";
@@ -135,6 +135,13 @@ function formatAmount(amount: number | undefined | null, currency: string | unde
   return `${code} ${Number(amount).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
 }
 
+/** Parse an amount back from a `formatAmount` string (e.g. "USD 4,500" → 4500). */
+function parseAmount(amount: string | undefined): number {
+  if (!amount) return 0;
+  const n = Number(amount.replace(/[^\d.]/g, ""));
+  return Number.isFinite(n) ? n : 0;
+}
+
 function mapBooking(item: ApiBooking): Booking {
   return {
     id: item.id,
@@ -195,7 +202,7 @@ const STATUS_STYLES: Record<string, { label: string; color: string; bg: string }
 const STATUS_OPTIONS = Object.entries(STATUS_STYLES).map(([value, s]) => ({ value, label: s.label }));
 
 export default function AdminBookings() {
-  const { data: bookings, loading, create, update, remove } = useApiData("bookings", {
+  const { data: bookings, loading, create, update, remove, refresh } = useApiData("bookings", {
     mapFromApi: mapBooking,
     mapToApi: mapBookingToApi,
   });
@@ -209,6 +216,81 @@ export default function AdminBookings() {
   const [emailMenu, setEmailMenu] = useState<string | null>(null);
   const [sendingEmail, setSendingEmail] = useState<string | null>(null);
   const [generatingDoc, setGeneratingDoc] = useState<string | null>(null);
+
+  // ─── Payment confirmation (wire transfers) ────────
+  const [paymentBooking, setPaymentBooking] = useState<Booking | null>(null);
+  const [paymentForm, setPaymentForm] = useState({
+    paymentReference: "",
+    amount: "",
+    currency: "USD",
+    notes: "",
+  });
+  const [confirmingPayment, setConfirmingPayment] = useState(false);
+
+  /**
+   * Expected amount for the booking based on its current status. Wire deposits
+   * are confirmed first (provisional → deposit_paid) and the balance later
+   * (deposit_paid/confirmed → paid). Pre-fills the modal so the operator only
+   * has to verify, not derive, the amount.
+   */
+  const expectedPaymentAmount = (booking: Booking): number => {
+    const total = parseAmount(booking.totalPrice);
+    const deposit = parseAmount(booking.depositPaid);
+    const balance = total - deposit;
+    if (booking.status === "provisional") return deposit || Math.round(total * 0.3);
+    if (booking.status === "deposit_paid" || booking.status === "confirmed" || booking.status === "balance_due") {
+      return balance > 0 ? balance : total;
+    }
+    return total;
+  };
+
+  const openPaymentModal = (booking: Booking) => {
+    setPaymentBooking(booking);
+    setPaymentForm({
+      // Prefer the generated wire reference the guest was asked to use.
+      paymentReference: booking.swiftCode || "",
+      amount: String(expectedPaymentAmount(booking) || ""),
+      currency: booking.currency || "USD",
+      notes: "",
+    });
+  };
+
+  const handleConfirmPayment = async () => {
+    if (!paymentBooking || confirmingPayment) return;
+    const amount = Number(paymentForm.amount);
+    if (!paymentForm.paymentReference.trim() || !Number.isFinite(amount) || amount <= 0) {
+      toast("Payment reference and a valid amount are required", "error");
+      return;
+    }
+    setConfirmingPayment(true);
+    try {
+      const res = await fetch(`/api/admin/bookings/${paymentBooking.id}/confirm-payment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          paymentReference: paymentForm.paymentReference.trim(),
+          amount,
+          currency: paymentForm.currency || "USD",
+          notes: paymentForm.notes.trim() || undefined,
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(json.error || `HTTP ${res.status}`);
+      }
+      setPaymentBooking(null);
+      toast(
+        json.status === "deposit_paid"
+          ? `Deposit confirmed for ${paymentBooking.clientName} — booking marked Deposit Paid`
+          : `Payment confirmed for ${paymentBooking.clientName} — booking marked ${json.status === "paid" ? "Paid in Full" : "paid"}`,
+        "success"
+      );
+      await refresh();
+    } catch (err: unknown) {
+      toast(`Failed to confirm payment: ${err instanceof Error ? err.message : "unknown error"}`, "error");
+    }
+    setConfirmingPayment(false);
+  };
 
   // ─── Amendment history ─────────────────────────────
   interface Amendment {
@@ -554,6 +636,17 @@ export default function AdminBookings() {
             )}
           </div>
 
+          {/* Confirm payment received (wire transfers) */}
+          {!["paid", "completed", "cancelled", "refunded"].includes(b.status) && (
+            <button
+              onClick={() => openPaymentModal(b)}
+              className="p-1.5 text-xs text-emerald-600 hover:bg-sand-light hover:text-emerald-700 rounded"
+              title="Confirm payment received"
+            >
+              <BadgeCheck className="w-3.5 h-3.5" />
+            </button>
+          )}
+
           <button onClick={() => openEditModal(b)} className="p-1.5 text-xs text-gold hover:bg-sand-light rounded">
             <Edit2 className="w-3.5 h-3.5" />
           </button>
@@ -860,6 +953,98 @@ export default function AdminBookings() {
                 <button onClick={() => setDeleteConfirm(null)} className="flex-1 px-4 py-2.5 border border-sand-light text-earth text-sm transition-colors hover:bg-warm-white">Cancel</button>
                 <button onClick={() => handleDelete(deleteConfirm)} className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition-colors">Delete</button>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    {/* ─── Confirm Payment Received Modal ─────────── */}
+      <AnimatePresence>
+        {paymentBooking && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setPaymentBooking(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95 }}
+              className="bg-cream border border-sand-light p-6 w-full max-w-md"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-2">
+                  <Wallet className="w-5 h-5 text-emerald-600" />
+                  <h3 className="text-lg font-bold text-soft-black">Confirm Payment Received</h3>
+                </div>
+                <button onClick={() => setPaymentBooking(null)}><X className="w-5 h-5 text-earth" /></button>
+              </div>
+
+              <p className="text-sm text-earth mb-5">
+                {paymentBooking.ref} • {paymentBooking.clientName}
+                {paymentBooking.swiftCode ? (
+                  <> • Reference: <span className="font-mono text-xs text-soft-black">{paymentBooking.swiftCode}</span></>
+                ) : null}
+              </p>
+
+              <div className="space-y-4">
+                <FormInput
+                  label="Payment Reference"
+                  name="paymentReference"
+                  value={paymentForm.paymentReference}
+                  onChange={e => setPaymentForm({ ...paymentForm, paymentReference: e.target.value })}
+                  placeholder="e.g. KVR-20260910-A1B2C3D4-DEPOSIT"
+                />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormInput
+                    label="Amount"
+                    name="amount"
+                    type="number"
+                    value={paymentForm.amount}
+                    onChange={e => setPaymentForm({ ...paymentForm, amount: e.target.value })}
+                    placeholder="0"
+                  />
+                  <FormSelect
+                    label="Currency"
+                    name="currency"
+                    value={paymentForm.currency}
+                    onChange={e => setPaymentForm({ ...paymentForm, currency: e.target.value })}
+                    options={[
+                      { value: "USD", label: "USD — US Dollar" },
+                      { value: "EUR", label: "EUR — Euro" },
+                      { value: "GBP", label: "GBP — British Pound" },
+                      { value: "ZMW", label: "ZMW — Zambian Kwacha" },
+                      { value: "ZAR", label: "ZAR — South African Rand" },
+                    ]}
+                  />
+                </div>
+
+                <FormTextarea
+                  label="Notes (optional)"
+                  name="notes"
+                  value={paymentForm.notes}
+                  onChange={e => setPaymentForm({ ...paymentForm, notes: e.target.value })}
+                  rows={2}
+                  placeholder="SWIFT confirmation ID, bank statement, operator notes..."
+                />
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button onClick={() => setPaymentBooking(null)} className="flex-1 px-4 py-2.5 border border-sand-light text-earth text-sm transition-colors hover:bg-warm-white">Cancel</button>
+                <button
+                  onClick={handleConfirmPayment}
+                  disabled={confirmingPayment || !paymentForm.paymentReference.trim() || !(Number(paymentForm.amount) > 0)}
+                  className="flex-1 px-4 py-2.5 bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {confirmingPayment ? <Loader2 className="w-4 h-4 animate-spin" /> : <BadgeCheck className="w-4 h-4" />}
+                  Confirm Payment
+                </button>
+              </div>
+
+              <p className="text-[11px] text-earth mt-4">
+                Confirming writes the payment to the finance ledger and updates the booking status. The reference suffix (
+                <span className="font-mono">-DEPOSIT</span> / <span className="font-mono">-BALANCE</span> / <span className="font-mono">-FULL</span>) determines
+                what the booking is marked as.
+              </p>
             </motion.div>
           </motion.div>
         )}

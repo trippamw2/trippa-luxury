@@ -424,6 +424,24 @@ export default function AdminBookings() {
 
   const handleEdit = async () => {
     if (!editBooking) return;
+
+    // Wire-transfer bookings reach money statuses only through the Confirm
+    // Payment Received action (writes the finance ledger). Stop the operator
+    // here instead of letting the API reject the edit with a vague failure.
+    const moneyStatus = formData.status === "deposit_paid" || formData.status === "paid";
+    const wireEvidence =
+      formData.depositMethod === "swift" ||
+      formData.depositMethod === "bank_transfer" ||
+      formData.swiftCode.trim() !== "" ||
+      (editBooking.swiftCode || "").trim() !== "";
+    if (moneyStatus && wireEvidence) {
+      toast(
+        "Wire-transfer payments must be confirmed with the 'Confirm Payment Received' action so the finance ledger is written. Edit the booking without changing its payment status, then use that action.",
+        "error"
+      );
+      return;
+    }
+
     const result = await update(editBooking.id, formData);
     if (result) {
       setEditBooking(null);

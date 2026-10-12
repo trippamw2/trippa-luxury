@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Send, Eye, ArrowRight, Loader2, AlertCircle, Check, RefreshCw, X, Moon, Save, Database, MapPin } from "lucide-react";
+import { Sparkles, Send, Eye, ArrowRight, Loader2, AlertCircle, Check, RefreshCw, X, Moon, Save, Database, MapPin, Users } from "lucide-react";
 import type { CuratedJourney, GuestProfile, JourneyDay, DestinationAssignment } from "@/lib/ai/types";
 
 // Available destinations with their properties
@@ -54,6 +54,40 @@ const BUDGET_OPTIONS = [
   { value: "ultra-luxury", label: "Ultra Luxury ($1,200+/night)" },
 ];
 
+/** Enquiry row shape returned by GET /api/admin/inquiries (camelCased). */
+interface ApiInquiry {
+  id: string;
+  fullName?: string;
+  email?: string;
+  destination?: string | null;
+  guests?: number | null;
+  preferredDates?: string | null;
+  status?: string;
+}
+
+interface InquirySummary {
+  id: string;
+  fullName: string;
+  email: string;
+  destination: string | null;
+  guests: number | null;
+  preferredDates: string | null;
+  status: string;
+}
+
+/** Pure mapper for the enquiry picker dropdown. */
+function mapInquiry(item: ApiInquiry): InquirySummary {
+  return {
+    id: item.id,
+    fullName: item.fullName || "Unnamed enquiry",
+    email: item.email || "",
+    destination: item.destination || null,
+    guests: item.guests ?? null,
+    preferredDates: item.preferredDates || null,
+    status: item.status || "new",
+  };
+}
+
 export default function AIJourneysPage() {
   const [form, setForm] = useState({
     name: "",
@@ -77,11 +111,58 @@ export default function AIJourneysPage() {
   const [pdfContent, setPdfContent] = useState("");
   const [saving, setSaving] = useState(false);
   const [savedJourneyId, setSavedJourneyId] = useState<string | null>(null);
+  const [inquiries, setInquiries] = useState<InquirySummary[]>([]);
+  const [selectedInquiryId, setSelectedInquiryId] = useState<string>("");
+  const [pipelineRefs, setPipelineRefs] = useState<{ journeyId: string | null; proposalId: string | null; error: string | null } | null>(null);
+
+  // Load enquiries once so the agent can pre-fill a guest from an existing
+  // enquiry and link the saved journey back to it. Awaited before setState so
+  // nothing is set synchronously inside the effect body.
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const r = await fetch("/api/admin/inquiries?limit=50");
+        const json = await r.json();
+        if (json.error) throw new Error(json.error);
+        if (active) setInquiries((json.data || []).map((item: ApiInquiry) => mapInquiry(item)));
+      } catch (err) {
+        console.error("Enquiry fetch error:", err);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Pre-fill the guest profile from an existing enquiry and remember its id
+  // so the saved journey links back to the CRM chain for this guest.
+  const applyInquiry = (inquiryId: string) => {
+    setSelectedInquiryId(inquiryId);
+    const found = inquiries.find((i) => i.id === inquiryId);
+    if (!found) return;
+    setForm((prev) => ({
+      ...prev,
+      name: found.fullName,
+      email: found.email,
+      desiredNights: prev.desiredNights || "10",
+    }));
+    setSelectedDests((prev) => {
+      const dest = found.destination;
+      if (!dest || prev.includes(dest)) return prev;
+      const known = DESTINATIONS_META.some((d) => d.id === dest);
+      return known ? [...prev, dest] : prev;
+    });
+    if (found.guests) {
+      setForm((prev) => ({ ...prev, isCouple: found.guests && found.guests >= 2 ? true : prev.isCouple }));
+    }
+  };
 
   const handleGenerate = async () => {
     setLoading(true);
     setError("");
     setSavedJourneyId(null);
+    setPipelineRefs(null);
 
     // Build explicit destinations if any are selected
     const explicitDestinations: DestinationAssignment[] = selectedDests.map((destId) => ({
@@ -206,6 +287,7 @@ export default function AIJourneysPage() {
   const handleSaveJourney = async () => {
     if (!journey) return;
     setSaving(true);
+    setPipelineRefs(null);
     try {
       const payload = {
         title: journey.title,
@@ -222,6 +304,7 @@ export default function AIJourneysPage() {
         included_extras: journey.includedExtras,
         preferences: journey.guestProfile.preferences,
         status: "draft",
+        inquiry_id: selectedInquiryId || undefined,
       };
       const res = await fetch("/api/admin/journeys", {
         method: "POST",
@@ -234,6 +317,15 @@ export default function AIJourneysPage() {
       }
       const data = await res.json();
       setSavedJourneyId(data.id);
+      // The pipeline hook (saved journey -> operational journey -> itinerary
+      // -> proposal draft) reports its results on the save response.
+      if (data.journeyId || data.pipelineError) {
+        setPipelineRefs({
+          journeyId: data.journeyId || null,
+          proposalId: data.proposalId || null,
+          error: data.pipelineError || null,
+        });
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to save journey");
     } finally {
@@ -290,6 +382,28 @@ export default function AIJourneysPage() {
               Guest Profile
             </h2>
             <div className="space-y-4">
+              {inquiries.length > 0 && (
+                <div>
+                  <label className="block text-xs font-medium text-earth mb-1">Link from Enquiry</label>
+                  <select
+                    value={selectedInquiryId}
+                    onChange={(e) => applyInquiry(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-200 text-sm focus:outline-none focus:border-soft-black"
+                  >
+                    <option value="">— Start fresh —</option>
+                    {inquiries.map((inq) => (
+                      <option key={inq.id} value={inq.id}>
+                        {inq.fullName}{inq.destination ? ` · ${inq.destination}` : ""}{inq.status ? ` (${inq.status})` : ""}
+                      </option>
+                    ))}
+                  </select>
+                  {selectedInquiryId && (
+                    <p className="text-[10px] text-earth mt-1 flex items-center gap-1">
+                      <Users className="w-3 h-3" /> Journey will be linked to this enquiry&apos;s lead.
+                    </p>
+                  )}
+                </div>
+              )}
               <div>
                 <label className="block text-xs font-medium text-earth mb-1">Guest Name</label>
                 <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -557,6 +671,33 @@ export default function AIJourneysPage() {
                   <RefreshCw className="w-4 h-4" /> Regenerate
                 </button>
               </div>
+
+              {/* Pipeline registration status (surfaced after save) */}
+              {pipelineRefs && (
+                <div className={`border p-4 ${pipelineRefs.error ? "bg-amber-50 border-amber-200" : "bg-green-50 border-green-200"}`}>
+                  <p className="text-xs font-semibold text-soft-black mb-1 flex items-center gap-1.5">
+                    <Database className="w-3.5 h-3.5" /> Automation Pipeline
+                  </p>
+                  {pipelineRefs.error ? (
+                    <p className="text-xs text-amber-800">
+                      Journey saved, but registration reported an issue: {pipelineRefs.error}
+                    </p>
+                  ) : (
+                    <ul className="text-xs text-green-800 space-y-0.5">
+                      {pipelineRefs.journeyId && (
+                        <li className="flex items-center gap-1.5">
+                          <Check className="w-3 h-3 shrink-0" /> Operational journey registered
+                        </li>
+                      )}
+                      {pipelineRefs.proposalId && (
+                        <li className="flex items-center gap-1.5">
+                          <Check className="w-3 h-3 shrink-0" /> Proposal draft linked to journey
+                        </li>
+                      )}
+                    </ul>
+                  )}
+                </div>
+              )}
             </div>
           ) : null}
         </div>

@@ -32,6 +32,7 @@ interface Booking {
   swiftCode?: string;
   depositNotes?: string;
   guestProfileId?: string | null;
+  paymentMethod?: string;
 }
 
 /** Raw row shape returned by the bookings admin API (DB column names). */
@@ -56,6 +57,7 @@ interface ApiBooking {
   swiftConfirmationCode?: string | null;
   depositNotes?: string | null;
   guestProfileId?: string | null;
+  paymentMethod?: string | null;
 }
 
 interface BookingFormData {
@@ -115,8 +117,8 @@ interface BookingApiPayload {
   client_email?: string;
   client_phone?: string;
   destination?: string;
-  start_date?: string;
-  end_date?: string;
+  start_date?: string | null;
+  end_date?: string | null;
   guests_count?: number;
   total_amount?: number;
   deposit_amount?: number;
@@ -164,6 +166,7 @@ function mapBooking(item: ApiBooking): Booking {
     swiftCode: item.swiftConfirmationCode || "",
     depositNotes: item.depositNotes || "",
     guestProfileId: item.guestProfileId || null,
+    paymentMethod: item.paymentMethod || "wire_transfer",
   };
 }
 
@@ -173,8 +176,11 @@ function mapBookingToApi(item: Partial<Booking>): BookingApiPayload {
     client_email: item.clientEmail,
     client_phone: item.clientPhone,
     destination: item.destination,
-    start_date: item.checkIn,
-    end_date: item.checkOut,
+    // A booking with no dates must send NULL, never "" — Postgres rejects an
+    // empty string for a DATE column (22007), which made every edit of a
+    // dateless booking fail with an opaque 400.
+    start_date: item.checkIn || null,
+    end_date: item.checkOut || null,
     guests_count: item.guests,
     total_amount: item.totalPrice ? parseFloat(item.totalPrice.replace(/[^\d.]/g, "")) : 0,
     deposit_amount: item.depositPaid ? parseFloat(item.depositPaid.replace(/[^\d.]/g, "")) : 0,
@@ -279,10 +285,18 @@ export default function AdminBookings() {
         throw new Error(json.error || `HTTP ${res.status}`);
       }
       setPaymentBooking(null);
+      const statusLabel =
+        json.status === "deposit_paid"
+          ? "Deposit Paid"
+          : json.status === "paid"
+            ? "Paid in Full"
+            : json.status === "balance_due"
+              ? "Balance Due"
+              : json.status;
       toast(
         json.status === "deposit_paid"
-          ? `Deposit confirmed for ${paymentBooking.clientName} — booking marked Deposit Paid`
-          : `Payment confirmed for ${paymentBooking.clientName} — booking marked ${json.status === "paid" ? "Paid in Full" : "paid"}`,
+          ? `Deposit confirmed for ${paymentBooking.clientName} — booking marked ${statusLabel}`
+          : `Payment confirmed for ${paymentBooking.clientName} — booking marked ${statusLabel}`,
         "success"
       );
       await refresh();
@@ -428,13 +442,17 @@ export default function AdminBookings() {
     // Wire-transfer bookings reach money statuses only through the Confirm
     // Payment Received action (writes the finance ledger). Stop the operator
     // here instead of letting the API reject the edit with a vague failure.
+    // Only an actual status CHANGE is blocked — otherwise editing any other
+    // field of a booking that is already paid/deposit-paid (and carries wire
+    // evidence) would be rejected for no reason. Mirrors the server guard.
+    const statusChanged = formData.status !== editBooking.status;
     const moneyStatus = formData.status === "deposit_paid" || formData.status === "paid";
     const wireEvidence =
       formData.depositMethod === "swift" ||
       formData.depositMethod === "bank_transfer" ||
       formData.swiftCode.trim() !== "" ||
       (editBooking.swiftCode || "").trim() !== "";
-    if (moneyStatus && wireEvidence) {
+    if (moneyStatus && statusChanged && wireEvidence) {
       toast(
         "Wire-transfer payments must be confirmed with the 'Confirm Payment Received' action so the finance ledger is written. Edit the booking without changing its payment status, then use that action.",
         "error"
@@ -1083,8 +1101,9 @@ export default function AdminBookings() {
 
               <p className="text-[11px] text-earth mt-4">
                 Confirming writes the payment to the finance ledger and updates the booking status. The reference suffix (
-                <span className="font-mono">-DEPOSIT</span> / <span className="font-mono">-BALANCE</span> / <span className="font-mono">-FULL</span>) determines
-                what the booking is marked as.
+                <span className="font-mono">-DEPOSIT</span> / <span className="font-mono">-BALANCE</span> / <span className="font-mono">-FULL</span>) records
+                what the payment is; the <span className="font-medium">amount</span> decides the status — a payment that covers the outstanding balance
+                marks it Paid in Full, a smaller one leaves it Balance Due.
               </p>
             </motion.div>
           </motion.div>

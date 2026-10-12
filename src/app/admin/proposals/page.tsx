@@ -85,6 +85,8 @@ export default function AdminProposals() {
     total_investment: "",
     currency: "USD",
   });
+  const [sendingId, setSendingId] = useState<string | null>(null);
+  const [sendResult, setSendResult] = useState<{ id: string; bookingReference: string | null; error: string | null } | null>(null);
 
   const fetchProposals = () => {
     setLoading(true);
@@ -146,6 +148,30 @@ export default function AdminProposals() {
       alert(err instanceof Error ? err.message : "Failed to create proposal");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleSend = async (proposal: Proposal) => {
+    setSendingId(proposal.id);
+    setSendResult(null);
+    try {
+      const res = await fetch(`/api/admin/proposals/${proposal.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "sent" }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to send proposal");
+      setSendResult({
+        id: proposal.id,
+        bookingReference: json.bookingReference || null,
+        error: json.pipelineError || null,
+      });
+      fetchProposals();
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Failed to send proposal");
+    } finally {
+      setSendingId(null);
     }
   };
 
@@ -234,8 +260,12 @@ export default function AdminProposals() {
                         View
                       </button>
                       {p.status === "ready" && (
-                        <button className="text-xs text-blue-600 hover:text-blue-800 font-medium cursor-pointer">
-                          Send
+                        <button
+                          onClick={() => handleSend(p)}
+                          disabled={sendingId === p.id}
+                          className="text-xs text-blue-600 hover:text-blue-800 font-medium cursor-pointer disabled:opacity-50"
+                        >
+                          {sendingId === p.id ? "Sending..." : "Send"}
                         </button>
                       )}
                     </td>
@@ -246,6 +276,16 @@ export default function AdminProposals() {
           </div>
         )}
       </div>
+
+      {sendResult && (
+        <div className={`mt-4 p-4 rounded-lg text-sm border ${sendResult.error ? "bg-amber-50 border-amber-200 text-amber-800" : "bg-green-50 border-green-200 text-green-800"}`}>
+          {sendResult.error
+            ? `Proposal sent but the booking registration reported an issue: ${sendResult.error}`
+            : sendResult.bookingReference
+              ? `Proposal sent. Provisional booking ${sendResult.bookingReference} has been registered.`
+              : "Proposal sent."}
+        </div>
+      )}
 
       {/* Create Modal */}
       {isModalOpen && (

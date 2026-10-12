@@ -202,6 +202,44 @@ describe("POST /api/admin/bookings/[id]/confirm-payment — booking state", () =
     const tx = inserts.find((i) => i.table === "transactions");
     expect(tx?.values).toMatchObject({ transaction_type: "balance", amount: 4500 });
   });
+
+  it("keeps a short balance payment as Balance Due — never Paid in Full", async () => {
+    const res = await POST(
+      makeRequest({ paymentReference: "KVR-20260910-A1B2C3D4-BALANCE", amount: 2000 }),
+      params()
+    );
+
+    const json = await res.json();
+    expect(json).toMatchObject({ status: "balance_due", paidAmount: 2000, balanceRemaining: 2500 });
+
+    const bookingUpdate = updates.find((u) => u.table === "bookings");
+    expect(bookingUpdate?.values).toMatchObject({
+      status: "balance_due",
+      payment_method: "wire_transfer",
+      swift_confirmation_code: "KVR-20260910-A1B2C3D4-BALANCE",
+      balance_amount: 2500,
+    });
+
+    // The ledger records the amount that actually arrived, typed as balance.
+    const tx = inserts.find((i) => i.table === "transactions");
+    expect(tx?.values).toMatchObject({ transaction_type: "balance", amount: 2000 });
+    const payment = inserts.find((i) => i.table === "payments");
+    expect(payment?.values).toMatchObject({ payment_type: "balance", amount: 2000 });
+  });
+
+  it("checks an unsuffixed reference against the outstanding balance too", async () => {
+    const res = await POST(
+      makeRequest({ paymentReference: "KVR-20260910-XYZ123", amount: 4500 }),
+      params()
+    );
+    expect((await res.json()).status).toBe("paid");
+
+    const partial = await POST(
+      makeRequest({ paymentReference: "KVR-20260910-XYZ456", amount: 1500 }),
+      params()
+    );
+    expect((await partial.json()).status).toBe("balance_due");
+  });
 });
 
 describe("POST /api/admin/bookings/[id]/confirm-payment — ledger and receipt", () => {

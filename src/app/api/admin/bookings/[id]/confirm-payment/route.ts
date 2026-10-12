@@ -4,12 +4,15 @@ import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 import { createAuditLog, getIpFromRequest, sanitizeForAudit } from "@/lib/audit";
 import { sendEmail, paymentReceiptEmail } from "@/lib/email";
 import { createNotification } from "@/lib/notifications";
+import { registerFinanceFromBooking } from "@/lib/pipeline/register";
 
 /**
  * POST /api/admin/bookings/[id]/confirm-payment
- * Admin confirms a wire transfer payment has been received.
+ * Admin confirms a payment has been received — wire transfer or PayPal.
  *
- * Body: { paymentReference: string, amount: number, currency: string, notes?: string }
+ * Body: { paymentReference, amount, currency, paymentMethod?, notes? }
+ * paymentMethod defaults to "wire_transfer"; "paypal" reconciles a PayPal
+ * payment whose capture did not settle the booking automatically.
  * Updates booking status and sends receipt email.
  */
 export async function POST(
@@ -20,7 +23,14 @@ export async function POST(
     const { profile } = await requireAdmin({ module: "finance", minRole: "editor" });
     const { id: bookingId } = await params;
     const body = await request.json();
-    const { paymentReference, amount, currency = "USD", notes } = body;
+    const { paymentReference, amount, currency = "USD", notes, paymentMethod = "wire_transfer" } = body;
+
+    if (paymentMethod !== "wire_transfer" && paymentMethod !== "paypal") {
+      return NextResponse.json(
+        { error: "paymentMethod must be 'wire_transfer' or 'paypal'" },
+        { status: 400 }
+      );
+    }
 
     if (!paymentReference || !amount) {
       return NextResponse.json(
@@ -46,6 +56,8 @@ export async function POST(
     const depositAmount = Number(booking.deposit_amount) || 0;
     const balanceAmount = Number(booking.balance_amount) || (totalAmount - depositAmount);
     const bookingCurrency = booking.currency || currency;
+    const isWire = paymentMethod === "wire_transfer";
+    const methodLabel = isWire ? "Wire Transfer" : "PayPal";
 
     // Determine payment type from the reference suffix. `generatePaymentReference`
     // emits -DEPOSIT / -BALANCE / -FULL (uppercased type), and declined older
@@ -57,40 +69,53 @@ export async function POST(
     const isDeposit = typeSuffix === "DEP" || typeSuffix === "DEPOSIT";
     const isFull = typeSuffix === "FULL";
 
+    const declaredAmount = Number(amount) || 0;
+
     let newStatus: string;
     let paidAmount: number;
     let newBalance: number;
 
     if (isDeposit) {
+      // A deposit reference confirms the deposit stage whether or not the wire
+      // clears the full deposit in a single transfer.
       newStatus = "deposit_paid";
-      paidAmount = depositAmount || Math.round(totalAmount * 0.3);
-      newBalance = totalAmount - paidAmount;
+      paidAmount = declaredAmount || depositAmount || Math.round(totalAmount * 0.3);
+      newBalance = Math.max(totalAmount - paidAmount, 0);
     } else if (isFull) {
+      // A -FULL reference means the guest settled the whole amount.
       newStatus = "paid";
       paidAmount = totalAmount;
       newBalance = 0;
     } else {
-      // Balance payment
-      newStatus = "paid";
-      paidAmount = balanceAmount;
-      newBalance = 0;
+      // Balance/partial payment: the reference suffix alone cannot decide the
+      // status. What matters is whether the declared amount clears the
+      // outstanding balance — a short payment must leave the booking Balance
+      // Due with the remaining balance, never silently "Paid in Full".
+      paidAmount = declaredAmount;
+      const outstanding = balanceAmount > 0 ? balanceAmount : Math.max(totalAmount - depositAmount, 0);
+      newBalance = Math.max(outstanding - paidAmount, 0);
+      newStatus = newBalance <= 0 ? "paid" : "balance_due";
     }
 
     // Update the booking
-    await supabase
-      .from("bookings")
-      .update({
-        status: newStatus,
-        payment_method: "wire_transfer",
-        swift_confirmation_code: paymentReference,
-        swift_confirmed_at: new Date().toISOString(),
-        balance_amount: newBalance,
-        deposit_confirmed_at: isDeposit ? new Date().toISOString() : booking.deposit_confirmed_at,
-        internal_notes: notes
-          ? `${booking.internal_notes ? booking.internal_notes + "\n\n" : ""}[Wire Transfer Confirmed] ${paymentReference}: ${currency} ${amount.toLocaleString()}. ${notes}`
-          : booking.internal_notes,
-      })
-      .eq("id", bookingId);
+    const updatePayload: Record<string, unknown> = {
+      status: newStatus,
+      payment_method: paymentMethod,
+      balance_amount: newBalance,
+      deposit_confirmed_at: isDeposit ? new Date().toISOString() : booking.deposit_confirmed_at,
+      internal_notes: notes
+        ? `${booking.internal_notes ? booking.internal_notes + "\n\n" : ""}[${methodLabel} Confirmed] ${paymentReference}: ${currency} ${Number(amount).toLocaleString()}. ${notes}`
+        : booking.internal_notes,
+    };
+    // Wire transfers are reconciled by the operator against the SWIFT code that
+    // belongs on the booking; PayPal settlements are keyed to the capture id in
+    // the payments ledger instead, so its booking row carries no swift fields.
+    if (isWire) {
+      updatePayload.swift_confirmation_code = paymentReference;
+      updatePayload.swift_confirmed_at = new Date().toISOString();
+    }
+
+    await supabase.from("bookings").update(updatePayload).eq("id", bookingId);
 
     // Send receipt email
     let receiptEmailStatus: "sent" | "failed" | "skipped" = "skipped";
@@ -100,7 +125,7 @@ export async function POST(
           clientName: booking.client_name || "Valued Guest",
           amount: `${bookingCurrency} ${amount.toLocaleString()}`,
           bookingRef: booking.booking_reference || bookingId.slice(0, 8).toUpperCase(),
-          paymentMethod: "Wire Transfer",
+          paymentMethod: methodLabel,
         });
 
         await sendEmail({
@@ -131,9 +156,9 @@ export async function POST(
       // the two can be reconciled if they ever disagree.
       amount: amount,
       currency: bookingCurrency,
-      payment_method: "wire_transfer",
+      payment_method: paymentMethod,
       payment_reference: paymentReference,
-      notes: `Wire transfer received — ${paymentReference}`,
+      notes: `${methodLabel} received — ${paymentReference}`,
       receipt_sent: receiptEmailStatus === "sent",
     });
     if (transactionError) {
@@ -144,17 +169,25 @@ export async function POST(
       booking_id: bookingId,
       amount: amount,
       currency: bookingCurrency,
-      payment_method: "wire_transfer",
+      payment_method: paymentMethod,
       payment_type: isDeposit ? "deposit" : isFull ? "full" : "balance",
       reference: paymentReference,
-      swift_confirmation_code: paymentReference,
+      // Wire carries the SWIFT code on the row; PayPal the capture id, which the
+      // unique partial index (migration 037) makes idempotent against capture.
+      ...(isWire
+        ? { swift_confirmation_code: paymentReference }
+        : { paypal_transaction_id: paymentReference }),
       notes: notes || null,
       status: "completed",
       paid_at: new Date().toISOString(),
       created_by: profile.id,
     });
     if (paymentError) {
-      console.error("Failed to write payments ledger row:", paymentError.message);
+      // For PayPal, a unique violation on paypal_transaction_id just means the
+      // execute/webhook path recorded this capture first — expected, not an error.
+      if (!(paymentMethod === "paypal" && paymentError.code === "23505")) {
+        console.error("Failed to write payments ledger row:", paymentError.message);
+      }
     }
 
     // ── Audit trail ────────────────────────────────────────────────────────
@@ -177,8 +210,8 @@ export async function POST(
       newData: sanitizeForAudit({
         status: newStatus,
         balance_amount: newBalance,
-        payment_method: "wire_transfer",
-        swift_confirmation_code: paymentReference,
+        payment_method: paymentMethod,
+        ...(isWire ? { swift_confirmation_code: paymentReference } : {}),
         declared_amount: amount,
         expected_paid_amount: paidAmount,
         currency: bookingCurrency,
@@ -195,13 +228,13 @@ export async function POST(
       newData: sanitizeForAudit({
         booking_id: bookingId,
         transaction_type: isDeposit ? "deposit" : isFull ? "full_payment" : "balance",
-        payment_method: "wire_transfer",
+        payment_method: paymentMethod,
         payment_reference: paymentReference,
         amount: paidAmount,
         expected_paid_amount: paidAmount,
         declared_amount: amount,
         currency: bookingCurrency,
-        notes: `Wire transfer received — ${paymentReference}`,
+        notes: `${methodLabel} received — ${paymentReference}`,
         receipt_sent: receiptEmailStatus === "sent",
       }),
       performedBy: profile.id,
@@ -220,6 +253,21 @@ export async function POST(
       entityId: bookingId,
     });
 
+    // ── Automated pipeline: paid booking -> invoice + journey progress ─────
+    // Non-fatal: confirming a payment must never fail because the invoice
+    // registration reported an issue. Errors are logged and surfaced.
+    const financeResult = await registerFinanceFromBooking(bookingId, {
+      paymentType: isDeposit ? "deposit" : isFull ? "full" : "balance",
+      amount: declaredAmount,
+      currency: bookingCurrency,
+      paymentReference,
+      paymentMethod,
+      notes: notes || null,
+    });
+    if (financeResult.error) {
+      console.error("Finance registration issue:", financeResult.error);
+    }
+
     return NextResponse.json({
       success: true,
       bookingId,
@@ -227,6 +275,12 @@ export async function POST(
       paidAmount,
       balanceRemaining: newBalance,
       email: { receipt: receiptEmailStatus },
+      finance: {
+        invoiceId: financeResult.invoiceId,
+        invoiceNumber: financeResult.invoiceNumber,
+        invoiceRegistered: financeResult.registered,
+        invoiceError: financeResult.error,
+      },
     });
   } catch (err: unknown) {
     if (err instanceof AdminAuthError) {

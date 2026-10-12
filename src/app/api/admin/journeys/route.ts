@@ -3,6 +3,7 @@ import { handleGetList, handleCreate, mapKeysToCamel } from "@/lib/api-helpers";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 import { ilikeSubstring } from "@/lib/postgrest-filter";
+import { registerJourneyFromSavedJourney } from "@/lib/pipeline/register";
 
 const TABLE = "saved_journeys";
 
@@ -45,5 +46,33 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  return handleCreate(TABLE, body);
+  const inquiryId =
+    typeof body.inquiryId === "string" && body.inquiryId ? body.inquiryId : null;
+
+  const response = await handleCreate(TABLE, body);
+  if (response.status !== 201) return response;
+
+  const created = await response.clone().json();
+
+  if (created?.id) {
+    // Automated pipeline: saved journey -> operational journey + itinerary +
+    // proposal draft. Never fails the save; errors are logged and surfaced.
+    const result = await registerJourneyFromSavedJourney(created.id, { inquiryId });
+    if (result.error) {
+      console.error("Journey registration issue:", result.error);
+    }
+    return NextResponse.json(
+      {
+        ...created,
+        journeyId: result.journeyId,
+        proposalId: result.proposalId,
+        itineraryItemCount: result.itineraryItemCount,
+        pipelineRegistered: result.registered,
+        pipelineError: result.error,
+      },
+      { status: 201 }
+    );
+  }
+
+  return response;
 }

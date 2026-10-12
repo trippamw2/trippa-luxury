@@ -9,6 +9,7 @@ import { sendEmail, newInquiryEmail, inquiryConfirmationEmail } from "@/lib/emai
 import { guestProfiler, persistClientDna, type ProfiledGuest } from "@/lib/ai/guest-profiler";
 import { logInteraction } from "@/lib/ai/customer-intelligence";
 import { workflowPersistence } from "@/lib/workflow-persistence";
+import { registerLeadFromInquiry } from "@/lib/pipeline/register";
 import { clientKey, llmCostLimiter, publicWriteLimiter, tooManyRequests } from "@/lib/public-rate-limiter";
 import { gateAiAction, ActionBlockedError, actionBlockedResponse } from "@/lib/ai/action-gate";
 import { createNotification } from "@/lib/notifications";
@@ -262,6 +263,16 @@ export async function POST(request: Request) {
           });
           if (!dna.ok) {
             console.error("Client DNA not persisted:", dna.error);
+          }
+        }
+
+        // Register the CRM lead for this enquiry - the first step of the
+        // automated pipeline (enquiry → lead → journey → proposal). Never
+        // throws, so a failed lead cannot fail the inquiry that produced it.
+        if (inquiry?.id) {
+          const lead = await registerLeadFromInquiry(inquiry.id, { guestProfileId });
+          if (lead.error) {
+            console.error("Lead registration skipped:", lead.error);
           }
         }
       }

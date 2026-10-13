@@ -198,9 +198,12 @@ export function newInquiryEmail(data: {
   fullName: string;
   email: string;
   phone?: string;
+  country?: string;
   destination?: string;
   preferredDates?: string;
   guests?: number;
+  referralSource?: string;
+  emailOptIn?: boolean;
   message: string;
 }) {
   return {
@@ -211,9 +214,12 @@ export function newInquiryEmail(data: {
         <tr><td style="padding: 10px 0; color: #8B7D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; width: 120px;">Name</td><td style="padding: 10px 0; font-size: 14px;">${data.fullName}</td></tr>
         <tr><td style="padding: 10px 0; color: #8B7D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Email</td><td style="padding: 10px 0; font-size: 14px;"><a href="mailto:${data.email}" style="color: #C9A96E;">${data.email}</a></td></tr>
         ${data.phone ? `<tr><td style="padding: 10px 0; color: #8B7D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Phone</td><td style="padding: 10px 0; font-size: 14px;">${data.phone}</td></tr>` : ""}
+        ${data.country ? `<tr><td style="padding: 10px 0; color: #8B7D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Country</td><td style="padding: 10px 0; font-size: 14px;">${data.country}</td></tr>` : ""}
         ${data.destination ? `<tr><td style="padding: 10px 0; color: #8B7D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Destination</td><td style="padding: 10px 0; font-size: 14px; text-transform: capitalize;">${formatDestination(data.destination)}</td></tr>` : ""}
         ${data.preferredDates ? `<tr><td style="padding: 10px 0; color: #8B7D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Preferred Dates</td><td style="padding: 10px 0; font-size: 14px;">${data.preferredDates}</td></tr>` : ""}
         ${data.guests ? `<tr><td style="padding: 10px 0; color: #8B7D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Guests</td><td style="padding: 10px 0; font-size: 14px;">${data.guests}</td></tr>` : ""}
+        ${data.referralSource ? `<tr><td style="padding: 10px 0; color: #8B7D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Referral</td><td style="padding: 10px 0; font-size: 14px;">${data.referralSource}</td></tr>` : ""}
+        ${typeof data.emailOptIn === "boolean" ? `<tr><td style="padding: 10px 0; color: #8B7D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Email Opt-in</td><td style="padding: 10px 0; font-size: 14px;">${data.emailOptIn ? "Yes" : "No"}</td></tr>` : ""}
       </table>
       <div style="margin-top: 24px; padding: 20px; background: #F5F0EB; border-left: 3px solid #C9A96E;">
         <p style="font-size: 12px; color: #8B7D6B; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 8px;">Message</p>

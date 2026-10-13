@@ -7,6 +7,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail, newInquiryEmail, inquiryConfirmationEmail } from "@/lib/email";
 import { guestProfiler, persistClientDna, type ProfiledGuest } from "@/lib/ai/guest-profiler";
+import { normalizeUuid } from "@/lib/ai/uuid";
 import { logInteraction } from "@/lib/ai/customer-intelligence";
 import { workflowPersistence } from "@/lib/workflow-persistence";
 import { registerLeadFromInquiry } from "@/lib/pipeline/register";
@@ -32,7 +33,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { fullName, email, phone, destination, preferredDates, guests, message } = body;
+    const { fullName, email, phone, country, destination, preferredDates, guests, message, referralSource, emailOptIn, propertyId } = body;
 
     if (!fullName || !email || !message) {
       return NextResponse.json(
@@ -48,7 +49,7 @@ export async function POST(request: Request) {
     // Bound the stored and emailed fields so one request cannot carry a
     // megabyte of text into the CRM and the concierge's inbox.
     const MAX_LEN = 2000;
-    for (const [field, value] of Object.entries({ fullName, email, phone, destination, message })) {
+    for (const [field, value] of Object.entries({ fullName, email, phone, country, destination, referralSource, message })) {
       if (typeof value === "string" && value.length > MAX_LEN) {
         return NextResponse.json(
           { error: `${field} must be ${MAX_LEN} characters or fewer` },
@@ -71,18 +72,26 @@ export async function POST(request: Request) {
     }
 
     const supabase = createAdminClient();
+    // The property page pins an inquiry to the property it was made from; the
+    // FK is real, so only a genuine UUID may enter the column. Everything else
+    // (and no property page) stays null rather than failing the whole insert.
+    const normalizedPropertyId = normalizeUuid(propertyId);
     const { data: inquiry, error: dbError } = await supabase
       .from("inquiries")
       .insert({
         full_name: fullName,
         email,
         phone: phone || null,
+        country: country || null,
         destination: destination || null,
         preferred_dates: preferredDates || null,
         guests: guests || 2,
         message,
         status: "new",
         source: "website",
+        referral_source: referralSource || null,
+        email_opt_in: typeof emailOptIn === "boolean" ? emailOptIn : true,
+        property_id: normalizedPropertyId,
       })
       .select()
       .single();
@@ -103,6 +112,9 @@ export async function POST(request: Request) {
           source: "website",
           destination: destination || null,
           guests: guests || 2,
+          country: country || null,
+          referralSource: referralSource || null,
+          propertyId: normalizedPropertyId,
         },
         autonomyLevel: 0,
       });
@@ -127,6 +139,7 @@ export async function POST(request: Request) {
       id: string;
       isCouple: boolean;
       specialOccasion?: string;
+      specialOccasionDate?: string;
       preferences: Record<string, unknown>;
       destinations?: string[];
     } | null = null;
@@ -140,10 +153,12 @@ export async function POST(request: Request) {
         fullName,
         email,
         phone: phone || undefined,
+        country: country || undefined,
         message: message || "",
         destination: destination || undefined,
         preferredDates: preferredDates || undefined,
         guests: guests || 2,
+        referralSource: referralSource || undefined,
       });
 
       profiledGuest = profile;
@@ -151,6 +166,7 @@ export async function POST(request: Request) {
         id: profile.id,
         isCouple: profile.isCouple,
         specialOccasion: profile.specialOccasion,
+        specialOccasionDate: profile.extractedOccasionDate,
         preferences: profile.preferences,
         destinations: profile.extractedDestinations,
       };
@@ -196,6 +212,8 @@ export async function POST(request: Request) {
           accommodationStyle?: string;
           activityLevel?: string;
           budgetRange?: string;
+          dietaryRestrictions?: string[];
+          interests?: string[];
         };
 
         if (existingGuest) {
@@ -205,15 +223,27 @@ export async function POST(request: Request) {
             .update({
               full_name: fullName,
               phone: phone || undefined,
+              country: country || undefined,
               is_couple: aiProfile?.isCouple ?? true,
               special_occasion: occasion || undefined,
+              special_occasion_date: aiProfile?.specialOccasionDate
+                ? new Date(aiProfile.specialOccasionDate).toISOString()
+                : undefined,
               travel_style: prefs.travelStyle,
               accommodation_style: prefs.accommodationStyle,
               activity_level: prefs.activityLevel,
               budget_range: prefs.budgetRange,
+              dietary_restrictions: prefs.dietaryRestrictions?.length
+                ? JSON.parse(JSON.stringify(prefs.dietaryRestrictions))
+                : undefined,
+              interests: prefs.interests?.length
+                ? JSON.parse(JSON.stringify(prefs.interests))
+                : undefined,
               past_destinations: aiProfile?.destinations
                 ? JSON.parse(JSON.stringify(aiProfile.destinations))
                 : undefined,
+              referral_source: referralSource || undefined,
+              email_opt_in: typeof emailOptIn === "boolean" ? emailOptIn : true,
               last_contacted_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
             })
@@ -225,20 +255,29 @@ export async function POST(request: Request) {
               full_name: fullName,
               email,
               phone: phone || null,
+              country: country || null,
               is_couple: aiProfile?.isCouple ?? true,
               travel_style: prefs.travelStyle || "mixed",
               accommodation_style: prefs.accommodationStyle || "luxury-resort",
               activity_level: prefs.activityLevel || "moderate",
               budget_range: prefs.budgetRange || "premium",
-              dietary_restrictions: [],
-              interests: [],
+              dietary_restrictions: prefs.dietaryRestrictions?.length
+                ? JSON.parse(JSON.stringify(prefs.dietaryRestrictions))
+                : [],
+              interests: prefs.interests?.length
+                ? JSON.parse(JSON.stringify(prefs.interests))
+                : [],
               special_occasion: occasion || null,
+              special_occasion_date: aiProfile?.specialOccasionDate
+                ? new Date(aiProfile.specialOccasionDate).toISOString()
+                : null,
               past_destinations: aiProfile?.destinations
                 ? JSON.parse(JSON.stringify(aiProfile.destinations))
                 : [],
               wishlist: [],
               source: "website",
-              email_opt_in: true,
+              referral_source: referralSource || null,
+              email_opt_in: typeof emailOptIn === "boolean" ? emailOptIn : true,
             })
             .select("id")
             .single();
@@ -309,9 +348,12 @@ export async function POST(request: Request) {
         fullName,
         email,
         phone,
+        country: country || undefined,
         destination,
         preferredDates,
         guests,
+        referralSource: referralSource || undefined,
+        emailOptIn: typeof emailOptIn === "boolean" ? emailOptIn : undefined,
         message,
       });
 

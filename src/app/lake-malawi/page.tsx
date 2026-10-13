@@ -68,9 +68,12 @@ export default function LakeMalawiPage() {
           fullName: form.get("name") as string,
           email: form.get("email") as string,
           phone: form.get("phone") as string || null,
+          country: form.get("country") as string || null,
           destination: "lake-malawi",
           preferredDates: form.get("dates") as string || null,
-          guests: 2,
+          guests: parseInt(form.get("guests") as string) || 2,
+          referralSource: form.get("referral") as string || null,
+          emailOptIn: form.get("optIn") === "on",
           message: form.get("message") as string,
         }),
       });
@@ -672,12 +675,35 @@ export default function LakeMalawiPage() {
                 className="w-full px-5 py-3.5 bg-warm-white border border-sand-light/50 text-soft-black text-sm placeholder:text-earth/50 focus:outline-none focus:border-gold transition-colors" />
               <input type="tel" name="phone" placeholder="Phone Number"
                 className="w-full px-5 py-3.5 bg-warm-white border border-sand-light/50 text-soft-black text-sm placeholder:text-earth/50 focus:outline-none focus:border-gold transition-colors" />
+              <input type="text" name="country" placeholder="Country"
+                className="w-full px-5 py-3.5 bg-warm-white border border-sand-light/50 text-soft-black text-sm placeholder:text-earth/50 focus:outline-none focus:border-gold transition-colors" />
               <input type="text" name="dates" placeholder="Preferred Dates"
                 className="w-full px-5 py-3.5 bg-warm-white border border-sand-light/50 text-soft-black text-sm placeholder:text-earth/50 focus:outline-none focus:border-gold transition-colors" />
+              <select name="guests"
+                className="w-full px-5 py-3.5 bg-warm-white border border-sand-light/50 text-soft-black text-sm focus:outline-none focus:border-gold transition-colors">
+                <option value="2">2 Guests (Couple)</option>
+                <option value="3">3 Guests</option>
+                <option value="4">4 Guests</option>
+                <option value="5">5+ Guests</option>
+              </select>
+              <select name="referral"
+                className="w-full px-5 py-3.5 bg-warm-white border border-sand-light/50 text-soft-black text-sm focus:outline-none focus:border-gold transition-colors">
+                <option value="">How did you hear about us?</option>
+                <option value="google">Google Search</option>
+                <option value="instagram">Instagram</option>
+                <option value="facebook">Facebook</option>
+                <option value="referral">Friend / Family</option>
+                <option value="travel-advisor">Travel Advisor</option>
+                <option value="other">Other</option>
+              </select>
               <div className="md:col-span-2">
                 <textarea name="message" rows={4} placeholder="Tell us about your dream escape..."
                   className="w-full px-5 py-3.5 bg-warm-white border border-sand-light/50 text-soft-black text-sm placeholder:text-earth/50 focus:outline-none focus:border-gold transition-colors resize-none" />
               </div>
+              <label className="md:col-span-2 flex items-start gap-3 cursor-pointer text-xs text-earth">
+                <input type="checkbox" name="optIn" defaultChecked className="mt-0.5 w-4 h-4 accent-gold" />
+                <span>Yes, I&apos;d like to receive curated journey ideas and offers from Kivara by email. You can unsubscribe at any time.</span>
+              </label>
               {error && <p className="md:col-span-2 text-sm text-red-500 text-center">{error}</p>}
               <div className="md:col-span-2">
                 <button type="submit" disabled={submitting}

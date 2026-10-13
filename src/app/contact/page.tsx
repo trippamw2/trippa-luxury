@@ -23,9 +23,12 @@ export default function ContactPage() {
         fullName: formData.get("name") as string,
         email: formData.get("email") as string,
         phone: formData.get("phone") as string || null,
+        country: formData.get("country") as string || null,
         destination: formData.get("destination") as string || null,
         preferredDates: formData.get("dates") as string || null,
         guests: parseInt(formData.get("guests") as string) || 2,
+        referralSource: formData.get("referral") as string || null,
+        emailOptIn: formData.get("optIn") === "on",
         message: formData.get("message") as string,
       };
 
@@ -213,6 +216,10 @@ export default function ContactPage() {
                         <input type="tel" name="phone" className="w-full px-4 py-3 bg-cream border border-sand-light/50 text-soft-black text-sm focus:outline-none focus:border-gold transition-colors" placeholder="+1 234 567 890" />
                       </div>
                       <div>
+                        <label className="block text-xs font-medium tracking-widest uppercase text-earth mb-1.5">Country</label>
+                        <input type="text" name="country" className="w-full px-4 py-3 bg-cream border border-sand-light/50 text-soft-black text-sm focus:outline-none focus:border-gold transition-colors" placeholder="e.g. United Kingdom" />
+                      </div>
+                      <div>
                         <label className="block text-xs font-medium tracking-widest uppercase text-earth mb-1.5">Preferred Destination</label>
                         <select name="destination" className="w-full px-4 py-3 bg-cream border border-sand-light/50 text-soft-black text-sm focus:outline-none focus:border-gold transition-colors">
                           <option value="">Select destination</option>
@@ -235,12 +242,32 @@ export default function ContactPage() {
                           <option value="5">5+</option>
                         </select>
                       </div>
+                      <div>
+                        <label className="block text-xs font-medium tracking-widest uppercase text-earth mb-1.5">How did you hear about us?</label>
+                        <select name="referral" className="w-full px-4 py-3 bg-cream border border-sand-light/50 text-soft-black text-sm focus:outline-none focus:border-gold transition-colors">
+                          <option value="">Select (optional)</option>
+                          <option value="google">Google Search</option>
+                          <option value="instagram">Instagram</option>
+                          <option value="facebook">Facebook</option>
+                          <option value="referral">Friend / Family</option>
+                          <option value="travel-advisor">Travel Advisor</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
                     </div>
 
                     <div>
                       <label className="block text-xs font-medium tracking-widest uppercase text-earth mb-1.5">Your Message *</label>
                       <textarea name="message" rows={5} required className="w-full px-4 py-3 bg-cream border border-sand-light/50 text-soft-black text-sm focus:outline-none focus:border-gold transition-colors resize-none" placeholder="Tell us about your dream escape: what experiences, properties, and style of travel appeal to you..." />
                     </div>
+
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input type="checkbox" name="optIn" defaultChecked className="mt-1 w-4 h-4 accent-gold" />
+                      <span className="text-xs text-earth leading-relaxed">
+                        Yes, I&apos;d like to receive curated journey ideas and offers from Kivara by email.
+                        You can unsubscribe at any time.
+                      </span>
+                    </label>
 
                     <button
                       type="submit"

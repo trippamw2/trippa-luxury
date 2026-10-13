@@ -32,6 +32,22 @@ function honeymoonInquiry(): RawInquiry {
   };
 }
 
+/** A vegetarian honeymoon that pins the occasion to a month, plus a referral. */
+function dietaryReferralInquiry(): RawInquiry {
+  return {
+    fullName: "Sam & Alex",
+    email: "sam@example.com",
+    country: "United Kingdom",
+    destination: "Zanzibar",
+    preferredDates: "October 2026",
+    guests: 2,
+    referralSource: "Instagram",
+    message:
+      "Our 10th anniversary in September 2026 - we'd love a beach escape. We are both vegetarian " +
+      "and Alex has a gluten intolerance, so please plan gluten-free dining.",
+  };
+}
+
 /** A profile with every extracted signal stripped, so evidence is genuinely zero. */
 function bareProfile(): ProfiledGuest {
   const guest = guestProfiler.profile(honeymoonInquiry());
@@ -58,12 +74,14 @@ describe("profiling provenance", () => {
       data: {
         isCouple: true,
         specialOccasion: "anniversary",
+        specialOccasionDate: "September 2026",
         travelStyle: "romantic",
         accommodationStyle: "private-villa",
         activityLevel: "low",
         budgetRange: "ultra-luxury",
         destinations: ["zanzibar"],
         interests: ["romantic-moments"],
+        dietaryRestrictions: ["vegetarian", "gluten-free"],
         leadScore: 71,
         leadTier: "hot",
         extractedPreferences: ["private guide"],
@@ -77,6 +95,9 @@ describe("profiling provenance", () => {
     expect(guest.profilingMethod).toBe("llm");
     // Previously the model was asked for this and the answer was thrown away.
     expect(guest.reasoning).toBe("Explicitly described a 25th anniversary.");
+    // The enrichment fields must survive the LLM round-trip.
+    expect(guest.extractedOccasionDate).toBe("September 2026");
+    expect(guest.preferences.dietaryRestrictions).toEqual(["vegetarian", "gluten-free"]);
   });
 
   it("falls back to the rules path when the LLM fails", async () => {
@@ -85,6 +106,40 @@ describe("profiling provenance", () => {
     // The method must reflect how the profile was ACTUALLY produced, not the
     // path that was attempted — otherwise confidence is attributed wrongly.
     expect(guest.profilingMethod).toBe("rules");
+  });
+});
+
+// ── Inquiry enrichment fields ───────────────────────────────────────────────
+
+describe("inquiry enrichment extraction", () => {
+  it("flags a referral source as a referral rather than a website lead", () => {
+    const guest = guestProfiler.profile(dietaryReferralInquiry());
+    expect(guest.source).toBe("referral");
+  });
+
+  it("extracts dietary restrictions verbatim from the message", () => {
+    const guest = guestProfiler.profile(dietaryReferralInquiry());
+    expect(guest.preferences.dietaryRestrictions).toEqual(expect.arrayContaining(["vegetarian", "gluten-free"]));
+    // The plain honeymoon inquiry mentions none, so it must not invent any.
+    expect(guestProfiler.profile(honeymoonInquiry()).preferences.dietaryRestrictions).toEqual([]);
+  });
+
+  it("pins the occasion date from the message, falling back to travel dates", () => {
+    const guest = guestProfiler.profile(dietaryReferralInquiry());
+    expect(guest.extractedOccasionDate).toBe("September 2026");
+
+    const fallback = guestProfiler.profile({
+      ...honeymoonInquiry(),
+      message: "We are honeymooning and want a romantic private safari.",
+    });
+    expect(guest.specialOccasion).toBe("anniversary");
+    expect(fallback.extractedOccasionDate).toBe("2026-09-01");
+  });
+
+  it("threads dietary restrictions into the client DNA personalization signals", () => {
+    const guest = guestProfiler.profile(dietaryReferralInquiry());
+    const row = buildClientDnaRow(guest, { leadId: VALID_UUID });
+    expect(row?.personalization_signals).toEqual(expect.arrayContaining(["vegetarian", "gluten-free"]));
   });
 });
 

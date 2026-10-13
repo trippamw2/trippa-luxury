@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Mail, Phone, MapPin, Calendar, Send, CheckCircle, X, AlertCircle, Trash2, UserPlus, Timer, MessageSquare, ArrowRight } from "lucide-react";
+import { Search, Mail, Phone, MapPin, Calendar, Send, CheckCircle, X, AlertCircle, Trash2, UserPlus, Timer, MessageSquare, ArrowRight, Globe, Building2 } from "lucide-react";
 import { useApiData } from "@/lib/use-api-data";
 
 interface Inquiry {
@@ -10,6 +10,7 @@ interface Inquiry {
   name: string;
   email: string;
   phone: string;
+  country: string;
   destination: string;
   date: string;
   status: "new" | "read" | "contacted" | "qualified" | "booked" | "closed";
@@ -23,6 +24,9 @@ interface Inquiry {
   responseCount?: number;
   guestProfileId?: string | null;
   convertedToBookingId?: string | null;
+  propertyId?: string | null;
+  referralSource?: string | null;
+  emailOptIn?: boolean;
 }
 
 interface ApiInquiry {
@@ -30,6 +34,7 @@ interface ApiInquiry {
   fullName?: string;
   email?: string;
   phone?: string;
+  country?: string;
   destination?: string;
   createdAt?: string;
   status?: string;
@@ -42,6 +47,9 @@ interface ApiInquiry {
   responseCount?: number;
   guestProfileId?: string | null;
   convertedToBookingId?: string | null;
+  propertyId?: string | null;
+  referralSource?: string | null;
+  emailOptIn?: boolean;
 }
 
 interface StaffMember {
@@ -56,6 +64,7 @@ function mapInquiry(item: ApiInquiry): Inquiry {
     name: item.fullName || "",
     email: item.email || "",
     phone: item.phone || "",
+    country: item.country || "",
     destination: item.destination || "",
     date: item.createdAt ? item.createdAt.split("T")[0] : "",
     status: (item.status || "new") as Inquiry["status"],
@@ -68,6 +77,9 @@ function mapInquiry(item: ApiInquiry): Inquiry {
     responseCount: item.responseCount ?? 0,
     guestProfileId: item.guestProfileId || null,
     convertedToBookingId: item.convertedToBookingId || null,
+    propertyId: item.propertyId || null,
+    referralSource: item.referralSource || null,
+    emailOptIn: item.emailOptIn,
   };
 }
 
@@ -281,6 +293,7 @@ export default function AdminInquiries() {
                   <div>
                     <p className="font-medium text-soft-black">{inquiry.name}</p>
                     <p className="text-xs text-earth">{inquiry.destination} • {inquiry.date}</p>
+                    {inquiry.country && <p className="text-[11px] text-earth mt-0.5">{inquiry.country}</p>}
                     {staffName(inquiry.assignedTo) && <p className="text-[11px] text-gold mt-0.5">Assigned: {staffName(inquiry.assignedTo)}</p>}
                   </div>
                   <div className="flex flex-col items-end gap-1">
@@ -301,8 +314,14 @@ export default function AdminInquiries() {
             <div className="space-y-4">
               <div className="flex items-center gap-2"><Mail className="w-4 h-4 text-earth" /><span className="text-sm text-soft-black">{selected.email}</span></div>
               <div className="flex items-center gap-2"><Phone className="w-4 h-4 text-earth" /><span className="text-sm text-soft-black">{selected.phone}</span></div>
+              {selected.country && <div className="flex items-center gap-2"><Globe className="w-4 h-4 text-earth" /><span className="text-sm text-soft-black">{selected.country}</span></div>}
               <div className="flex items-center gap-2"><MapPin className="w-4 h-4 text-earth" /><span className="text-sm text-soft-black capitalize">{selected.destination}</span></div>
+              {selected.propertyId && <div className="flex items-center gap-2"><Building2 className="w-4 h-4 text-earth" /><a href="/admin/properties" className="text-sm text-gold hover:underline">Property enquiry</a></div>}
               <div className="flex items-center gap-2"><Calendar className="w-4 h-4 text-earth" /><span className="text-sm text-soft-black">{selected.date}</span></div>
+              {selected.referralSource && <div className="flex items-center gap-2"><UserPlus className="w-4 h-4 text-earth" /><span className="text-sm text-soft-black capitalize">Referred via {selected.referralSource.replace("-", " ")}</span></div>}
+              {typeof selected.emailOptIn === "boolean" && (
+                <div className="flex items-center gap-2"><Mail className="w-4 h-4 text-earth" /><span className={`text-sm ${selected.emailOptIn ? "text-emerald-700" : "text-earth"}`}>{selected.emailOptIn ? "Email opt-in" : "No email opt-in"}</span></div>
+              )}
             </div>
 
             <div className="mt-4 pt-4 border-t border-sand-light">

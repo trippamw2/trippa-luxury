@@ -11,9 +11,11 @@ export interface RawInquiry {
   fullName: string;
   email: string;
   phone?: string;
+  country?: string;
   destination?: string;
   preferredDates?: string;
   guests?: number;
+  referralSource?: string;
   message: string;
 }
 
@@ -29,6 +31,11 @@ export interface ProfiledGuest extends GuestProfile {
   extractedBudget?: string;
   extractedOccasion?: string;
   extractedDestinations: string[];
+  /**
+   * The occasion's date when the inquiry pins it down (e.g. "September 2026"),
+   * so anniversary/honeymoon follow-up can be scheduled instead of guessed.
+   */
+  extractedOccasionDate?: string;
   /**
    * Recorded because the confidence attached to a psychographic
    * classification depends entirely on which path produced it. A label whose
@@ -125,6 +132,8 @@ export class GuestProfiler {
     const budgetRange = this.classifyBudget(text);
 
     const isCouple = this.isLikelyCouple(raw, text, occasion);
+    const dietaryRestrictions = this.extractDietaryRestrictions(text);
+    const occasionDate = this.extractOccasionDate(text, raw.preferredDates);
 
     const guest: ProfiledGuest = {
       id: `guest-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
@@ -138,14 +147,18 @@ export class GuestProfiler {
         activityLevel,
         budgetRange,
         interests: this.extractInterests(text),
+        dietaryRestrictions,
       },
-      source: "website",
+      // An explicit "how did you hear about us" answer means this guest truly
+      // arrived by referral, which is scored as such rather than defaulted.
+      source: raw.referralSource ? "referral" : "website",
       inquiryId: undefined,
       leadScore: 0,
       leadTier: "cold",
       extractedPreferences: [],
       extractedDestinations: destinationList,
       extractedOccasion: occasion,
+      extractedOccasionDate: occasionDate,
       extractedBudget: budgetRange,
       profilingMethod: "rules",
     };
@@ -271,6 +284,58 @@ export class GuestProfiler {
     return interests;
   }
 
+  /**
+   * Free-text dietary needs written into the inquiry. Captured verbatim as
+   * structured strings so the chef/operator can act on them without re-reading
+   * the message: the guest said it, we record it — no normalization that could
+   * corrupt an allergy into a preference.
+   */
+  private extractDietaryRestrictions(text: string): string[] {
+    const patterns: { keyword: string; label: string }[] = [
+      { keyword: "vegetarian", label: "vegetarian" },
+      { keyword: "vegan", label: "vegan" },
+      { keyword: "gluten", label: "gluten-free" },
+      { keyword: "celiac", label: "gluten-free" },
+      { keyword: "coeliac", label: "gluten-free" },
+      { keyword: "dairy", label: "dairy-free" },
+      { keyword: "lactose", label: "dairy-free" },
+      { keyword: "nut allerg", label: "nut allergy" },
+      { keyword: "peanut", label: "nut allergy" },
+      { keyword: "shellfish", label: "shellfish allergy" },
+      { keyword: "halal", label: "halal" },
+      { keyword: "kosher", label: "kosher" },
+      { keyword: "pescatarian", label: "pescatarian" },
+      { keyword: "no red meat", label: "no red meat" },
+      { keyword: "pork", label: "no pork" },
+    ];
+    const found: string[] = [];
+    for (const pattern of patterns) {
+      if (text.includes(pattern.keyword) && !found.includes(pattern.label)) found.push(pattern.label);
+    }
+    return found;
+  }
+
+  /**
+   * The occasion's date, when the guest pins one down ("for our 10th
+   * anniversary in September 2026"). Falls back to the stated travel window
+   * only when an occasion exists and no explicit occasion date is visible,
+   * because a honeymoon's date is the trip date in most cases.
+   */
+  private extractOccasionDate(text: string, preferredDates?: string): string | undefined {
+    if (!this.extractOccasion(text)) return undefined;
+    const datePattern =
+      /\b(?:january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)\s+\d{4}\b/i;
+    const match = text.match(datePattern);
+    if (match) {
+      // The rules path scans lowercased text; restore normal casing so the
+      // value reads like a date a human wrote ("September 2026", not a match).
+      const [month, year] = match[0].split(" ");
+      return `${month.charAt(0).toUpperCase()}${month.slice(1)} ${year}`;
+    }
+    if (preferredDates) return preferredDates;
+    return undefined;
+  }
+
   private calculateLeadScore(raw: RawInquiry, guest: ProfiledGuest): number {
     let score = 0;
 
@@ -328,12 +393,14 @@ Respond in valid JSON only with this exact structure:
 {
   "isCouple": boolean,
   "specialOccasion": string | null,
+  "specialOccasionDate": string | null,
   "travelStyle": "romantic" | "adventure" | "relaxation" | "cultural" | "mixed",
   "accommodationStyle": "intimate-boutique" | "luxury-resort" | "eco-camp" | "private-villa",
   "activityLevel": "low" | "moderate" | "high",
   "budgetRange": "premium" | "ultra-luxury",
   "destinations": string[],
   "interests": string[],
+  "dietaryRestrictions": string[],
   "leadScore": number (0-100),
   "leadTier": "hot" | "warm" | "cold",
   "extractedPreferences": string[],
@@ -347,23 +414,26 @@ Respond in valid JSON only with this exact structure:
 Name: ${raw.fullName}
 Email: ${raw.email}
 ${raw.phone ? `Phone: ${raw.phone}` : ""}
+${raw.country ? `Country: ${raw.country}` : ""}
 ${raw.destination ? `Destination Mentioned: ${raw.destination}` : ""}
 ${raw.preferredDates ? `Preferred Dates: ${raw.preferredDates}` : ""}
 Guests: ${raw.guests || "not specified"}
+${raw.referralSource ? `Referral Source: ${raw.referralSource}` : ""}
 
 Message:
 ${raw.message}
 
 Extract the guest's profile. Consider:
 1. Are they a couple? (look for "we", "us", "our", "honeymoon", "anniversary", "fiancé", etc.)
-2. What special occasion drives this trip?
+2. What special occasion drives this trip? Include its date if mentioned.
 3. What travel style do they prefer?
 4. What accommodation style suits them?
 5. What activity level?
 6. What budget range do they imply?
 7. Which destinations are they interested in?
 8. What specific interests do they mention?
-9. Score the lead (0-100) based on: detail level, clear occasion, destination knowledge, urgency`;
+9. Any dietary restrictions or allergies mentioned?
+10. Score the lead (0-100) based on: detail level, clear occasion, destination knowledge, urgency`;
 
       const messages: LlmMessage[] = [
         { role: "system", content: systemPrompt },
@@ -373,12 +443,14 @@ Extract the guest's profile. Consider:
       const { data } = await callLlmJson<{
         isCouple: boolean;
         specialOccasion: string | null;
+        specialOccasionDate: string | null;
         travelStyle: string;
         accommodationStyle: string;
         activityLevel: string;
         budgetRange: string;
         destinations: string[];
         interests: string[];
+        dietaryRestrictions: string[];
         leadScore: number;
         leadTier: string;
         extractedPreferences: string[];
@@ -414,8 +486,9 @@ Extract the guest's profile. Consider:
             ? data.budgetRange
             : "premium",
           interests: Array.isArray(data.interests) ? data.interests : [],
+          dietaryRestrictions: Array.isArray(data.dietaryRestrictions) ? data.dietaryRestrictions : [],
         },
-        source: "website",
+        source: raw.referralSource ? "referral" : "website",
         inquiryId: undefined,
         leadScore: Math.min(100, Math.max(0, typeof data.leadScore === "number" ? data.leadScore : 0)),
         leadTier: isOneOf(data.leadTier, validTiers)
@@ -424,6 +497,7 @@ Extract the guest's profile. Consider:
         extractedPreferences: Array.isArray(data.extractedPreferences) ? data.extractedPreferences : [],
         extractedBudget: typeof data.extractedBudget === "string" ? data.extractedBudget : undefined,
         extractedOccasion: typeof data.extractedOccasion === "string" ? data.extractedOccasion : data.specialOccasion || undefined,
+        extractedOccasionDate: typeof data.specialOccasionDate === "string" ? data.specialOccasionDate : undefined,
         extractedDestinations: Array.isArray(data.destinations) && data.destinations.length > 0
           ? data.destinations
           : [raw.destination || "lake-malawi"],
@@ -589,6 +663,7 @@ export function buildClientDnaRow(
     purchase_intent_score: clampScore(guest.leadScore, 0),
     personalization_signals: dedupe([
       ...(guest.preferences.interests ?? []),
+      ...(guest.preferences.dietaryRestrictions ?? []),
       ...guest.extractedPreferences,
     ]),
     confidence_score: clampScore(

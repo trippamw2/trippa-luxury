@@ -34,7 +34,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 export { normalizeUuid };
 
 /**
- * The canonical event vocabulary (migration 028, §1): the fifteen events that
+ * The canonical event vocabulary (migration 028, §1): the sixteen events that
  * describe a guest journey. Deliberately enforced here in TypeScript and NOT by
  * a SQL CHECK constraint — an append-only log that rejects a new event type is a
  * log that will be worked around, and the whole point of the stream is to
@@ -55,11 +55,12 @@ export type CanonicalEventType =
   | "PAYMENT_RECEIVED"
   | "JOURNEY_COMPLETED"
   | "CLIENT_FEEDBACK_RECEIVED"
-  | "JOURNEY_LEARNED";
+  | "JOURNEY_LEARNED"
+  | "CONCIERGE_REQUESTED";
 
 /**
  * Operational events: the company auditing and governing itself. Separate from
- * the canonical fifteen because these describe KIVARA's internal life rather
+ * the canonical sixteen because these describe KIVARA's internal life rather
  * than a guest's, and conflating the two would make "what happened to this
  * client" impossible to read.
  */
@@ -70,7 +71,11 @@ export type OperationalEventType =
   // Staged outbound lifecycle. An approval that emits no event is invisible to
   // KORA and Mission Control, so the review decision has to be an event too.
   | "OUTBOUND_STAGED_APPROVED"
-  | "OUTBOUND_STAGED_REJECTED";
+  | "OUTBOUND_STAGED_REJECTED"
+  // Team task lifecycle. Tasks are how the ops team executes KORA's follow-ups,
+  // so the stream must be able to show when a task was opened and closed.
+  | "TASK_CREATED"
+  | "TASK_COMPLETED";
 
 export type SystemEventType = CanonicalEventType | OperationalEventType;
 
@@ -90,6 +95,7 @@ export const CANONICAL_EVENT_TYPES: readonly CanonicalEventType[] = [
   "JOURNEY_COMPLETED",
   "CLIENT_FEEDBACK_RECEIVED",
   "JOURNEY_LEARNED",
+  "CONCIERGE_REQUESTED",
 ] as const;
 
 export const OPERATIONAL_EVENT_TYPES: readonly OperationalEventType[] = [
@@ -98,6 +104,8 @@ export const OPERATIONAL_EVENT_TYPES: readonly OperationalEventType[] = [
   "AUTONOMY_ESCALATED",
   "OUTBOUND_STAGED_APPROVED",
   "OUTBOUND_STAGED_REJECTED",
+  "TASK_CREATED",
+  "TASK_COMPLETED",
 ] as const;
 
 export function isCanonicalEventType(value: unknown): value is CanonicalEventType {
@@ -214,7 +222,7 @@ export function parseEventRow(raw: unknown): SystemEventRow | null {
   if (typeof raw !== "object" || raw === null) return null;
   const r = raw as Record<string, unknown>;
 
-  // Accepts the full vocabulary, not just the canonical fifteen: an event the
+  // Accepts the whole vocabulary, not just the canonical sixteen: an event the
   // company wrote about itself must survive the round trip just as a guest
   // journey event does.
   if (!isSystemEventType(r.event_type)) return null;

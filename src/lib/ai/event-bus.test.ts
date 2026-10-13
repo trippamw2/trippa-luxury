@@ -101,9 +101,9 @@ function row(overrides: Partial<SystemEventRow> = {}): SystemEventRow {
 }
 
 describe("canonical event vocabulary", () => {
-  it("contains exactly the fifteen constitutional types", () => {
-    expect(CANONICAL_EVENT_TYPES).toHaveLength(15);
-    expect(new Set(CANONICAL_EVENT_TYPES).size).toBe(15);
+  it("contains exactly the sixteen constitutional types", () => {
+    expect(CANONICAL_EVENT_TYPES).toHaveLength(16);
+    expect(new Set(CANONICAL_EVENT_TYPES).size).toBe(16);
   });
 
   it("recognises every canonical type", () => {
@@ -121,14 +121,16 @@ describe("canonical event vocabulary", () => {
 
 describe("operational event vocabulary", () => {
 it("contains exactly the internal types, including the staged-review pair", () => {
-  expect(OPERATIONAL_EVENT_TYPES).toHaveLength(5);
-  expect(new Set(OPERATIONAL_EVENT_TYPES).size).toBe(5);
+  expect(OPERATIONAL_EVENT_TYPES).toHaveLength(7);
+  expect(new Set(OPERATIONAL_EVENT_TYPES).size).toBe(7);
   expect([...OPERATIONAL_EVENT_TYPES].sort()).toEqual([
     "AUTONOMY_ESCALATED",
     "GAP_DETECTED",
     "INSIGHT_RECORDED",
     "OUTBOUND_STAGED_APPROVED",
     "OUTBOUND_STAGED_REJECTED",
+    "TASK_COMPLETED",
+    "TASK_CREATED",
   ]);
 });
 
@@ -158,7 +160,7 @@ describe("isSystemEventType", () => {
       expect(isSystemEventType(t)).toBe(true);
     }
 // The exact count guards against a type being added to one list only.
-  expect(CANONICAL_EVENT_TYPES.length + OPERATIONAL_EVENT_TYPES.length).toBe(20);
+  expect(CANONICAL_EVENT_TYPES.length + OPERATIONAL_EVENT_TYPES.length).toBe(23);
   });
 
   it("rejects anything outside both vocabularies", () => {

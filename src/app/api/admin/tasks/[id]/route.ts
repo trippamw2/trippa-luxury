@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createAuditLog, sanitizeForAudit, getIpFromRequest } from "@/lib/audit";
+import { registerTaskStage } from "@/lib/pipeline/register";
 
 const TABLE = "tasks";
 
@@ -28,7 +29,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     const { data: existing, error: fetchError } = await supabase
       .from(TABLE)
-      .select("id")
+      .select("id, status")
       .eq("id", id)
       .maybeSingle();
 
@@ -88,6 +89,17 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       performedBy: auth.profile.id,
       ipAddress: getIpFromRequest(request),
     });
+
+    // Closing a follow-up is an operational event: emit exactly once per real
+    // transition (re-PUTs of an already-done task are silent). Never fatal.
+    const transitionedToDone =
+      patch.status === "done" && (existing as { status?: string | null }).status !== "done";
+    if (transitionedToDone) {
+      const completed = await registerTaskStage(id, "completed", { actorId: auth.profile.id });
+      if (!completed.registered && completed.error) {
+        console.warn("registerTaskStage (completed):", completed.error);
+      }
+    }
 
     return NextResponse.json({
       data: {

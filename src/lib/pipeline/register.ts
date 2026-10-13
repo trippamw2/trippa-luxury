@@ -14,6 +14,8 @@
 //   bookings  → trip delivery     registerTripDelivery
 //   bookings  → finance           registerFinanceFromBooking
 //   bookings  → feedback          registerGuestFeedback
+//   bookings  → concierge need    registerConciergeRequest
+//   ops       → team task         registerTaskStage (created / completed)
 //
 // Every function is non-fatal on its own failure (the operation that
 // triggered it — saving an enquiry, marking a proposal sent, confirming a
@@ -1143,5 +1145,266 @@ export async function registerGuestFeedback(
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     return { bookingId, registered: false, error: message };
+  }
+}
+
+/**
+ * Resolve the originating inquiry for an operational journey, following the
+ * chain journey → lead → inquiry that the pipeline establishes on creation.
+ * Used by every later step (concierge requests, task follow-ups) so their
+ * events land on the same correlation thread as the guest journey. Null means
+ * the journey is not yet linked into the chain (still a valid outcome — the
+ * event is recorded, it just starts its own flow). Never throws.
+ */
+async function resolveCorrelationFromJourney(journeyId: string): Promise<string | null> {
+  const db = createAdminClient();
+  try {
+    const { data: journey } = await db
+      .from("journeys")
+      .select("lead_id")
+      .eq("id", journeyId)
+      .maybeSingle();
+    if (!journey || typeof journey !== "object") return null;
+    const leadId = (journey as Record<string, unknown>).lead_id;
+    if (typeof leadId !== "string") return null;
+
+    const { data: lead } = await db
+      .from("leads")
+      .select("inquiry_id")
+      .eq("id", leadId)
+      .maybeSingle();
+    if (!lead || typeof lead !== "object") return null;
+    const inquiryId = (lead as Record<string, unknown>).inquiry_id;
+    return typeof inquiryId === "string" ? inquiryId : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Resolve the originating inquiry from a task's polymorphic
+ * related_type/related_id pair (the "this task belongs to a booking / journey
+ * / lead / proposal / guest" link), so follow-up events land on the same flow
+ * as the work they track. Null is a valid outcome (task linked to nothing, or
+ * a link not yet in the chain) — the event is still recorded. Never throws.
+ */
+async function resolveCorrelationFromRelated(
+  relatedType: string | null,
+  relatedId: string | null
+): Promise<string | null> {
+  if (!relatedType || !relatedId) return null;
+  const db = createAdminClient();
+  const type = relatedType.trim().toLowerCase().replace(/s$/, "");
+  try {
+    if (type === "inquiry") return relatedId;
+
+    if (type === "booking") {
+      const { data: booking } = await db
+        .from("bookings")
+        .select("inquiry_id")
+        .eq("id", relatedId)
+        .maybeSingle();
+      if (!booking || typeof booking !== "object") return null;
+      const inquiryId = (booking as Record<string, unknown>).inquiry_id;
+      return typeof inquiryId === "string" ? inquiryId : null;
+    }
+
+    if (type === "journey") return resolveCorrelationFromJourney(relatedId);
+
+    if (type === "lead") {
+      const { data: lead } = await db
+        .from("leads")
+        .select("inquiry_id")
+        .eq("id", relatedId)
+        .maybeSingle();
+      if (!lead || typeof lead !== "object") return null;
+      const inquiryId = (lead as Record<string, unknown>).inquiry_id;
+      return typeof inquiryId === "string" ? inquiryId : null;
+    }
+
+    if (type === "proposal") {
+      const { data: proposal } = await db
+        .from("proposals")
+        .select("journey_id")
+        .eq("id", relatedId)
+        .maybeSingle();
+      if (!proposal || typeof proposal !== "object") return null;
+      const journeyId = (proposal as Record<string, unknown>).journey_id;
+      return typeof journeyId === "string" ? resolveCorrelationFromJourney(journeyId) : null;
+    }
+
+    if (type === "guest_profile" || type === "guest") {
+      const { data: lead } = await db
+        .from("leads")
+        .select("inquiry_id")
+        .eq("guest_profile_id", relatedId)
+        .maybeSingle();
+      if (!lead || typeof lead !== "object") return null;
+      const inquiryId = (lead as Record<string, unknown>).inquiry_id;
+      return typeof inquiryId === "string" ? inquiryId : null;
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export interface RegisterConciergeResult {
+  conciergeRequestId: string | null;
+  registered: boolean;
+  error: string | null;
+}
+
+/**
+ * Step 7 — GUEST SERVICE (CONCIERGE_REQUESTED).
+ * Emitted when a concierge request is raised for a guest (airport VIP,
+ * flowers, a private dinner…). A guest-facing need is part of the journey
+ * flow, so the event threads back to the originating inquiry through the
+ * request's booking / journey / lead / customer links. Idempotent by design
+ * (the request id is the entity id, so re-runs of the same id produce the
+ * same event shape). Never throws.
+ */
+export async function registerConciergeRequest(
+  conciergeRequestId: string,
+  options?: { actorId?: string | null }
+): Promise<RegisterConciergeResult> {
+  const db = createAdminClient();
+  try {
+    const { data: request, error: requestError } = await db
+      .from("concierge_requests")
+      .select("id, customer_id, journey_id, booking_id, lead_id, category, priority, request, created_by")
+      .eq("id", conciergeRequestId)
+      .single();
+
+    if (requestError || !request || typeof request !== "object") {
+      return {
+        conciergeRequestId: null,
+        registered: false,
+        error: requestError?.message || "Concierge request not found",
+      };
+    }
+    const row = request as Record<string, unknown>;
+
+    let correlationId: string | null = null;
+    if (typeof row.booking_id === "string") {
+      const { data: booking } = await db
+        .from("bookings")
+        .select("inquiry_id")
+        .eq("id", row.booking_id as string)
+        .maybeSingle();
+      if (booking && typeof booking === "object") {
+        const inquiryId = (booking as Record<string, unknown>).inquiry_id;
+        correlationId = typeof inquiryId === "string" ? inquiryId : null;
+      }
+    }
+    if (!correlationId && typeof row.journey_id === "string") {
+      correlationId = await resolveCorrelationFromJourney(row.journey_id as string);
+    }
+    if (!correlationId && typeof row.lead_id === "string") {
+      const { data: lead } = await db
+        .from("leads")
+        .select("inquiry_id")
+        .eq("id", row.lead_id as string)
+        .maybeSingle();
+      if (lead && typeof lead === "object") {
+        const inquiryId = (lead as Record<string, unknown>).inquiry_id;
+        correlationId = typeof inquiryId === "string" ? inquiryId : null;
+      }
+    }
+    if (!correlationId && typeof row.customer_id === "string") {
+      const { data: lead } = await db
+        .from("leads")
+        .select("inquiry_id")
+        .eq("guest_profile_id", row.customer_id as string)
+        .maybeSingle();
+      if (lead && typeof lead === "object") {
+        const inquiryId = (lead as Record<string, unknown>).inquiry_id;
+        correlationId = typeof inquiryId === "string" ? inquiryId : null;
+      }
+    }
+
+    await recordEvent({
+      eventType: "CONCIERGE_REQUESTED",
+      entityType: "concierge_request",
+      entityId: conciergeRequestId,
+      actorType: "human",
+      actorId: options?.actorId ?? (typeof row.created_by === "string" ? (row.created_by as string) : null),
+      correlationId,
+      payload: {
+        conciergeRequestId,
+        category: row.category ?? null,
+        priority: row.priority ?? "medium",
+      },
+      autonomyLevel: 0,
+      humanReviewed: true,
+    });
+
+    return { conciergeRequestId, registered: true, error: null };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return { conciergeRequestId: null, registered: false, error: message };
+  }
+}
+
+export interface RegisterTaskResult {
+  taskId: string | null;
+  registered: boolean;
+  error: string | null;
+}
+
+/**
+ * TASK LIFECYCLE (TASK_CREATED / TASK_COMPLETED).
+ * Operational events for the ops team's task list: creation (a follow-up was
+ * opened) and completion (a follow-up was closed). Threads back to the flow
+ * the task tracks through its related_type/related_id link so Mission Control
+ * sees the task on the same correlation as the guest journey it belongs to.
+ * Never throws.
+ */
+export async function registerTaskStage(
+  taskId: string,
+  stage: "created" | "completed",
+  options?: { actorId?: string | null }
+): Promise<RegisterTaskResult> {
+  const db = createAdminClient();
+  try {
+    const { data: task, error: taskError } = await db
+      .from("tasks")
+      .select("id, title, related_type, related_id, status, created_by")
+      .eq("id", taskId)
+      .single();
+
+    if (taskError || !task || typeof task !== "object") {
+      return { taskId: null, registered: false, error: taskError?.message || "Task not found" };
+    }
+    const row = task as Record<string, unknown>;
+
+    const correlationId = await resolveCorrelationFromRelated(
+      typeof row.related_type === "string" ? (row.related_type as string) : null,
+      typeof row.related_id === "string" ? (row.related_id as string) : null
+    );
+
+    await recordEvent({
+      eventType: stage === "created" ? "TASK_CREATED" : "TASK_COMPLETED",
+      entityType: "task",
+      entityId: taskId,
+      actorType: "human",
+      actorId: options?.actorId ?? (typeof row.created_by === "string" ? (row.created_by as string) : null),
+      correlationId,
+      payload: {
+        taskId,
+        title: typeof row.title === "string" ? row.title.slice(0, 200) : null,
+        relatedType: row.related_type ?? null,
+        relatedId: row.related_id ?? null,
+        status: row.status ?? null,
+      },
+      autonomyLevel: 0,
+      humanReviewed: stage === "completed",
+    });
+
+    return { taskId, registered: true, error: null };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return { taskId: null, registered: false, error: message };
   }
 }

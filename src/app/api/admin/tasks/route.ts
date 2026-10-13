@@ -3,6 +3,7 @@ import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createAuditLog, sanitizeForAudit, getIpFromRequest } from "@/lib/audit";
 import { joinSingle } from "@/lib/api-helpers";
+import { registerTaskStage } from "@/lib/pipeline/register";
 
 const TABLE = "tasks";
 
@@ -120,6 +121,20 @@ export async function POST(request: NextRequest) {
       performedBy: auth.profile.id,
       ipAddress: getIpFromRequest(request),
     });
+
+    // A task is the ops team's follow-up lifecycle: it closes the loop on a
+    // gap KORA found, so it belongs on the event bus. Never fatal — the 201
+    // stands even if the event write fails.
+    const taskCreated = await registerTaskStage(task.id, "created", { actorId: auth.profile.id });
+    if (!taskCreated.registered && taskCreated.error) {
+      console.warn("registerTaskStage (created):", taskCreated.error);
+    }
+    if (task.status === "done") {
+      const taskCompleted = await registerTaskStage(task.id, "completed", { actorId: auth.profile.id });
+      if (!taskCompleted.registered && taskCompleted.error) {
+        console.warn("registerTaskStage (completed):", taskCompleted.error);
+      }
+    }
 
     return NextResponse.json({
       data: {

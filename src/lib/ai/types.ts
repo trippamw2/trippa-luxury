@@ -39,6 +39,8 @@ export interface JourneyDay {
   location: string;
   accommodation: string;
   accommodationImage?: string;
+  /** ISO calendar date (YYYY-MM-DD) for this day, when travel dates are known. */
+  date?: string;
   meals: string[];
   activities: Activity[];
   transfers: Transfer[];
@@ -114,6 +116,8 @@ export interface CuratedJourney {
   itinerary: JourneyDay[];
   highlights: string[];
   includedExtras: string[];
+  /** Items explicitly NOT included in the journey (flights, visas, insurance…). */
+  exclusions?: string[];
   createdAt: string;
   status: "draft" | "sent" | "confirmed" | "modified";
 }

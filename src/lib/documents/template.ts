@@ -59,12 +59,30 @@ export function wrapDocument(html: string, meta?: { title?: string }): string {
       background: #F4F0E8;
       color: #1C1A17;
       -webkit-font-smoothing: antialiased;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
     
     @media print {
-      body { background: white; }
+      body {
+        background: white;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
       .no-print { display: none !important; }
       .document { box-shadow: none; }
+      /* Browsers drop element backgrounds when printing unless explicitly told
+         to keep them; without this the brand's dark header prints as white. */
+      .document-header {
+        background: #1C1A17 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .document-header::before,
+      .document-header::after {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
     }
     
     /* ── Document Container ─────────────────────────── */

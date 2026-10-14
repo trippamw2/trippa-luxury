@@ -168,6 +168,18 @@ export const AI_ACTION_PROFILES: Record<string, AiActionProfile> = {
     humanAuthorized: true,
     staged: true,
   },
+  // The AI Journey Studio lets an operator compose a proposal, review the
+  // rendered document, and dispatch it. Same shape as the other dispatch
+  // routes: only `orion` may contact a guest, a named operator authorized this
+  // specific send, and the document was composed and read before dispatch.
+  "send-journey": {
+    capability: "orion",
+    actionClass: "outbound_message",
+    title: "Journey proposal dispatch to guest",
+    confidenceScore: 100,
+    humanAuthorized: true,
+    staged: true,
+  },
 
   // ── Staging. Unattended, and deliberately not an outbound action ────────
   // This used to compose AND send in one step, which made it unstaged outbound

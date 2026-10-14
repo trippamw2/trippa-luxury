@@ -356,8 +356,22 @@ const QuotePDF: React.FC<QuotePDFProps> = ({
             </View>
             <View style={styles.infoItem}>
               <Text style={styles.infoLabel}>Duration</Text>
-              <Text style={styles.infoValue}>{journey.duration} Nights</Text>
+              <Text style={styles.infoValue}>
+                {journey.duration} Nights &middot; {journey.itinerary?.length ?? journey.duration + 1} Days
+              </Text>
             </View>
+            {journey.guestProfile.travelDates?.start && (
+              <View style={styles.infoItem}>
+                <Text style={styles.infoLabel}>Travel Dates</Text>
+                <Text style={styles.infoValue}>
+                  {journey.guestProfile.travelDates.start}
+                  {journey.guestProfile.travelDates.end
+                    ? ` \u2013 ${journey.guestProfile.travelDates.end}`
+                    : ""}
+                  {journey.guestProfile.travelDates.flexible ? " (flexible)" : ""}
+                </Text>
+              </View>
+            )}
             <View style={styles.infoItem}>
               <Text style={styles.infoLabel}>Valid Until</Text>
               <Text style={styles.infoValue}>{validUntil}</Text>
@@ -379,7 +393,7 @@ const QuotePDF: React.FC<QuotePDFProps> = ({
 
           {/* Itinerary Summary */}
           <Text style={styles.sectionTitle}>Itinerary Summary</Text>
-          {journey.itinerary.slice(0, 5).map((day) => (
+          {journey.itinerary.map((day) => (
             <View style={styles.itineraryRow} key={day.day}>
               <Text style={styles.dayCol}>Day {day.day}</Text>
               <View style={styles.detailCol}>
@@ -395,11 +409,6 @@ const QuotePDF: React.FC<QuotePDFProps> = ({
               </View>
             </View>
           ))}
-          {journey.itinerary.length > 5 && (
-            <Text style={{ fontSize: 8, color: TEXT_MUTED, marginBottom: 10 }}>
-              Full {journey.itinerary.length}-day itinerary available upon request.
-            </Text>
-          )}
 
           {/* Pricing */}
           <Text style={styles.sectionTitle}>Investment</Text>
@@ -493,6 +502,18 @@ const QuotePDF: React.FC<QuotePDFProps> = ({
             <>
               <Text style={styles.sectionTitle}>What{"'"}s Included</Text>
               {journey.includedExtras.map((e, i) => (
+                <Text key={i} style={styles.includedItem}>
+                  &bull; {e}
+                </Text>
+              ))}
+            </>
+          )}
+
+          {/* Not Included */}
+          {journey.exclusions && journey.exclusions.length > 0 && (
+            <>
+              <Text style={styles.sectionTitle}>Not Included</Text>
+              {journey.exclusions.map((e, i) => (
                 <Text key={i} style={styles.includedItem}>
                   &bull; {e}
                 </Text>

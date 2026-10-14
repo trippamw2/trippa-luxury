@@ -206,3 +206,49 @@ describe("live catalog selection", () => {
     expect(["Xanadu Luxury Villas & Retreat", "Baraza Resort & Spa"]).toContain(names[0]);
   });
 });
+
+describe("travel dates, duration and exclusions", () => {
+  it("reports duration as nights and renders exactly nights + 1 days", () => {
+    const journey = engine.generate(guest({
+      explicitDestinations: [
+        { destinationId: "zanzibar", nights: 3 },
+        { destinationId: "lake-malawi", nights: 2 },
+      ],
+    }));
+
+    // The two properties' departure/arrival days are merged into one, so the
+    // itinerary is nights + 1 days rather than one day too many per property.
+    expect(journey.itinerary).toHaveLength(6);
+    expect(journey.duration).toBe(journey.itinerary.length - 1);
+    expect(journey.duration).toBe(5);
+    expect(journey.itinerary.map((d) => d.day)).toEqual([1, 2, 3, 4, 5, 6]);
+  });
+
+  it("derives trip length from the arrival to departure span, overriding requested nights", () => {
+    const journey = engine.generate(guest({
+      explicitDestinations: [{ destinationId: "zanzibar", nights: 4 }],
+      travelDates: { start: "2026-01-01", end: "2026-01-08", flexible: false },
+    }));
+
+    expect(journey.duration).toBe(7);
+    expect(journey.itinerary).toHaveLength(8);
+    expect(journey.itinerary[0].date).toBe("2026-01-01");
+    expect(journey.itinerary[7].date).toBe("2026-01-08");
+  });
+
+  it("always returns a non-empty exclusions list", () => {
+    const journey = engine.generate(guest({
+      explicitDestinations: [{ destinationId: "zanzibar", nights: 3 }],
+    }));
+
+    expect(journey.exclusions?.length ?? 0).toBeGreaterThan(0);
+  });
+
+  it("leaves dates unstamped when no travel dates are supplied", () => {
+    const journey = engine.generate(guest({
+      explicitDestinations: [{ destinationId: "zanzibar", nights: 3 }],
+    }));
+
+    expect(journey.itinerary.every((d) => d.date === undefined)).toBe(true);
+  });
+});

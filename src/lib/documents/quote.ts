@@ -32,7 +32,7 @@ export function generateQuoteDocument(journey: CuratedJourney, meta: {
     </tr>`;
   }).join("");
 
-  const itineraryPreview = journey.itinerary.slice(0, 5).map(d => {
+  const itineraryRows = journey.itinerary.map(d => {
     const transferNotes = d.transfers.map(t =>
       `<div style="font-size: 10px; color: #8B7D6B; line-height: 1.5;">
         <span style="color: #C9A96E;">${t.mode === "flight" ? "✈" : "🚙"}</span>
@@ -53,6 +53,7 @@ export function generateQuoteDocument(journey: CuratedJourney, meta: {
   }).join("");
 
   const highlightsList = journey.highlights.map(h => `<li style="margin-bottom: 6px;">${h}</li>`).join("");
+  const excludedItems = journey.exclusions ?? [];
 
   const html = `
     ${documentHeader({ title: "Journey Proposal", reference: meta.reference, clientName: journey.guestProfile.name })}
@@ -73,8 +74,13 @@ export function generateQuoteDocument(journey: CuratedJourney, meta: {
         </div>
         <div class="info-item">
           <label>Duration</label>
-          <span>${journey.duration} Nights</span>
+          <span>${journey.duration} Nights &middot; ${journey.itinerary?.length ?? journey.duration + 1} Days</span>
         </div>
+        ${journey.guestProfile.travelDates?.start ? `
+        <div class="info-item">
+          <label>Travel Dates</label>
+          <span>${journey.guestProfile.travelDates.start}${journey.guestProfile.travelDates.end ? ` &ndash; ${journey.guestProfile.travelDates.end}` : ""}${journey.guestProfile.travelDates.flexible ? " (flexible)" : ""}</span>
+        </div>` : ""}
         <div class="info-item">
           <label>Valid Until</label>
           <span>${meta.validUntil}</span>
@@ -94,9 +100,8 @@ export function generateQuoteDocument(journey: CuratedJourney, meta: {
         <thead>
           <tr><th>Day</th><th>Activity</th><th>Accommodation</th><th>Location</th></tr>
         </thead>
-        <tbody>${itineraryPreview}</tbody>
+        <tbody>${itineraryRows}</tbody>
       </table>
-      ${journey.itinerary.length > 5 ? `<p style="font-size: 11px; color: #8B7D6B;">Full ${journey.itinerary.length}-day itinerary available in attached document.</p>` : ""}
 
       <h3>Investment</h3>
       <table>
@@ -120,6 +125,12 @@ export function generateQuoteDocument(journey: CuratedJourney, meta: {
       <ul style="padding-left: 20px; font-size: 13px; color: #4A4A4A; line-height: 1.7;">
         ${journey.includedExtras.map(extra => `<li>${extra}</li>`).join("")}
       </ul>
+
+      ${excludedItems.length > 0 ? `
+      <h3>Not Included</h3>
+      <ul style="padding-left: 20px; font-size: 13px; color: #4A4A4A; line-height: 1.7;">
+        ${excludedItems.map(item => `<li>${item}</li>`).join("")}
+      </ul>` : ""}
 
       <hr class="divider" />
 

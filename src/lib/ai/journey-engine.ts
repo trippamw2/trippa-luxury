@@ -849,6 +849,133 @@ function calculatePricing(
 
 // ── Journey Builder ─────────────────────────────────────────────────────
 
+/**
+ * Items explicitly NOT included in a journey. Used when neither the rule engine
+ * nor the LLM supplies an exclusions list, so every proposal document always
+ * renders an honest "Not Included" section.
+ */
+const DEFAULT_EXCLUSIONS: string[] = [
+  "International and domestic flights (unless specified)",
+  "Travel insurance (required for all guests)",
+  "Visa and entry fees",
+  "Personal expenses, laundry and gratuities",
+  "Optional activities not listed in the itinerary",
+  "Premium wines, spirits and champagne",
+  "Spa and wellness treatments",
+];
+
+function defaultExclusions(): string[] {
+  return [...DEFAULT_EXCLUSIONS];
+}
+
+/**
+ * Nights implied by an arrival→departure date range (departure − arrival).
+ * Returns null when the range is missing, unparseable or non-positive, so the
+ * caller falls back to the operator's explicit night count.
+ */
+function nightsFromTravelDates(
+  travelDates?: { start: string; end: string }
+): number | null {
+  if (!travelDates?.start || !travelDates?.end) return null;
+  const start = new Date(travelDates.start);
+  const end = new Date(travelDates.end);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return null;
+  const nights = Math.round((end.getTime() - start.getTime()) / 86400000);
+  return nights > 0 ? nights : null;
+}
+
+/** ISO `YYYY-MM-DD` for `start` advanced by `days` whole days (UTC). */
+function isoDatePlusDays(start: string, days: number): string | undefined {
+  const d = new Date(start);
+  if (Number.isNaN(d.getTime())) return undefined;
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+/**
+ * Rescale per-property night counts so they sum to `total`, keeping their
+ * relative shape and never dropping a property below one night. Used when the
+ * guest's travel dates dictate the true trip length.
+ */
+function scaleNights(nights: number[], total: number): number[] {
+  const count = nights.length;
+  if (count === 0) return nights;
+  if (total <= count) return nights.map(() => 1);
+  const sum = nights.reduce((s, n) => s + n, 0) || count;
+  const scaled = nights.map((n) => Math.max(1, Math.round((n / sum) * total)));
+  let diff = total - scaled.reduce((s, n) => s + n, 0);
+  let guard = 0;
+  while (diff !== 0 && guard < 1000) {
+    if (diff > 0) {
+      const idx = scaled.indexOf(Math.min(...scaled));
+      scaled[idx]++;
+      diff--;
+    } else {
+      const idx = scaled.indexOf(Math.max(...scaled));
+      if (scaled[idx] > 1) {
+        scaled[idx]--;
+        diff++;
+      } else {
+        break;
+      }
+    }
+    guard++;
+  }
+  return scaled;
+}
+
+/**
+ * Collapse an itinerary down to `targetDays` days by merging each extra
+ * "departure/arrival" boundary day into the day before it. The rule engine
+ * already produces a minimal, correctly-merged itinerary (so this is a no-op
+ * there); the LLM path can otherwise append one extra day per property, which
+ * is exactly the "number of days of stay" defect this normalises away. Days are
+ * always renumbered sequentially from 1.
+ */
+function normalizeItineraryLength(
+  itinerary: JourneyDay[],
+  targetDays: number
+): JourneyDay[] {
+  const result = itinerary.map((d) => ({ ...d }));
+  let guard = 0;
+  while (result.length > targetDays && result.length > 1 && guard < 100) {
+    let boundary = -1;
+    for (let i = 1; i < result.length; i++) {
+      if (result[i].accommodation !== result[i - 1].accommodation) {
+        boundary = i;
+        break;
+      }
+    }
+    if (boundary === -1) {
+      // A single uninterrupted property with too many days: drop the last.
+      result.pop();
+    } else {
+      const prev = result[boundary - 1];
+      const next = result[boundary];
+      prev.title = `${prev.title} · ${next.title}`;
+      prev.activities = [...prev.activities, ...next.activities];
+      prev.transfers = [...prev.transfers, ...next.transfers];
+      prev.highlights = [...prev.highlights, ...next.highlights];
+      prev.accommodation = next.accommodation;
+      prev.accommodationImage = next.accommodationImage ?? prev.accommodationImage;
+      prev.location = next.location;
+      prev.date = prev.date ?? next.date;
+      result.splice(boundary, 1);
+    }
+    guard++;
+  }
+  return result.map((d, i) => ({ ...d, day: i + 1 }));
+}
+
+/** Stamp each day with its calendar date, starting from the arrival date. */
+function assignItineraryDates(itinerary: JourneyDay[], start?: string): void {
+  if (!start) return;
+  itinerary.forEach((day, idx) => {
+    const iso = isoDatePlusDays(start, idx);
+    if (iso) day.date = iso;
+  });
+}
+
 export class JourneyEngine {
   generate(guest: GuestProfile): CuratedJourney {
     // Normalize the profile so callers may pass a partial object (e.g. an
@@ -931,8 +1058,41 @@ export class JourneyEngine {
       }
     }
 
+    // When the guest supplied travel dates, the departure − arrival span is the
+    // true trip length: rescale the per-destination nights to match so the
+    // document can never report a different stay than the dates imply.
+    const dateNights = nightsFromTravelDates(guest.travelDates);
+    if (dateNights !== null && propertyAssignments.length > 0) {
+      const scaled = scaleNights(propertyAssignments.map((p) => p.nights), dateNights);
+      propertyAssignments = propertyAssignments.map((p, i) => ({ ...p, nights: scaled[i] }));
+      guest = { ...guest, desiredNights: dateNights };
+    }
+
     const itinerary: JourneyDay[] = [];
     let dayCounter = 1;
+
+    // Emit a property's full days: `nights - 1` exploring days plus a final
+    // "Farewell" day that serves as its departure day (no overnight).
+    const pushFullDays = (property: JourneyProperty, nights: number) => {
+      const location = property.location || property.destination;
+      for (let n = 1; n <= nights; n++) {
+        const isLastNight = n === nights;
+        itinerary.push({
+          day: dayCounter,
+          title: isLastNight ? `Farewell to ${property.name}` : `Explore ${location}`,
+          location,
+          accommodation: property.name,
+          accommodationImage: property.heroImage,
+          meals: ["Breakfast", "Lunch", "Dinner"],
+          activities: generateActivities(property, guest, isLastNight ? "departure" : "full"),
+          transfers: [],
+          highlights: isLastNight
+            ? ["A final evening to savour", "Last chance to absorb the atmosphere"]
+            : (property.romanticHighlights ? pick(property.romanticHighlights, 2) : ["A day of curated experiences"]),
+        });
+        dayCounter++;
+      }
+    };
 
     for (let i = 0; i < propertyAssignments.length; i++) {
       const { property, nights } = propertyAssignments[i];
@@ -947,37 +1107,40 @@ export class JourneyEngine {
         prevDestId, prevPropertyId,
       );
 
-      itinerary.push({
-        day: dayCounter,
-        title: `Arrive at ${property.name}`,
-        location,
-        accommodation: property.name,
-        accommodationImage: property.heroImage,
-        meals: ["Dinner"],
-        activities: generateActivities(property, guest, "arrival"),
-        transfers: arrivalTransfers,
-        highlights: [`Welcome to ${property.name}`, property.tagline].filter(Boolean) as string[],
-      });
-      dayCounter++;
-
-      // Full days
-      for (let n = 1; n <= nights; n++) {
-        const isLastNight = n === nights;
+      if (i === 0) {
         itinerary.push({
           day: dayCounter,
-          title: isLastNight ? `Farewell to ${property.name}` : `Explore ${location}`,
+          title: `Arrive at ${property.name}`,
           location,
           accommodation: property.name,
           accommodationImage: property.heroImage,
-          meals: isLastNight ? ["Breakfast", "Lunch", "Dinner"] : ["Breakfast", "Lunch", "Dinner"],
-          activities: generateActivities(property, guest, isLastNight ? "departure" : "full"),
-          transfers: [],
-          highlights: isLastNight
-            ? ["A final evening to savour", "Last chance to absorb the atmosphere"]
-            : (property.romanticHighlights ? pick(property.romanticHighlights, 2) : ["A day of curated experiences"]),
+          meals: ["Dinner"],
+          activities: generateActivities(property, guest, "arrival"),
+          transfers: arrivalTransfers,
+          highlights: [`Welcome to ${property.name}`, property.tagline].filter(Boolean) as string[],
         });
         dayCounter++;
+      } else {
+        // The previous property's final day is its departure day and the next
+        // property is reached the same calendar day, so merge the arrival into
+        // that day rather than appending a new one. This keeps the itinerary at
+        // nights + 1 days instead of over-counting one day per property, which
+        // is what made the document's day count disagree with the travel dates.
+        const prevProperty = propertyAssignments[i - 1].property;
+        const transitionDay = itinerary[itinerary.length - 1];
+        if (transitionDay) {
+          transitionDay.title = `Depart ${prevProperty.name} · Arrive at ${property.name}`;
+          transitionDay.location = `${prevProperty.location || prevProperty.destination} → ${location}`;
+          transitionDay.accommodation = property.name;
+          transitionDay.accommodationImage = property.heroImage;
+          transitionDay.meals = ["Breakfast", "Dinner"];
+          transitionDay.activities = generateActivities(property, guest, "arrival");
+          transitionDay.transfers.push(...arrivalTransfers);
+          transitionDay.highlights = [`Farewell to ${prevProperty.name}`, `Welcome to ${property.name}`];
+        }
       }
+
+      pushFullDays(property, nights);
     }
 
     // Add departure transfers on the last day (road dropoff + charter to international)
@@ -988,6 +1151,9 @@ export class JourneyEngine {
       const departureTransfers = buildDepartureTransfers(lastDestId, lastPA.property.id, lastPA.property.name);
       itinerary[lastDayIdx].transfers.push(...departureTransfers);
     }
+
+    // Stamp each day with its real calendar date when the range is known.
+    assignItineraryDates(itinerary, guest.travelDates?.start);
 
     const pricing = calculatePricing(propertyAssignments, guest);
 
@@ -1012,10 +1178,10 @@ export class JourneyEngine {
     return {
       id: generateId(),
       title,
-      subtitle: `${selectedDestinations.length} destinations · ${propertyAssignments.reduce((s, p) => s + p.nights, 0)} nights · ${destNames}`,
+      subtitle: `${selectedDestinations.length} destinations · ${Math.max(0, itinerary.length - 1)} nights · ${destNames}`,
       guestProfile: guest,
       destinations: selectedDestinations,
-      duration: propertyAssignments.reduce((s, p) => s + p.nights, 0),
+      duration: Math.max(0, itinerary.length - 1),
       pricing,
       itinerary,
       highlights,
@@ -1026,6 +1192,7 @@ export class JourneyEngine {
         "Personal concierge from inquiry to farewell",
         guest.isCouple ? "Thoughtful romance amenity on arrival" : "Thoughtful welcome amenity on arrival",
       ],
+      exclusions: defaultExclusions(),
       createdAt: new Date().toISOString(),
       status: "draft",
     };
@@ -1118,6 +1285,9 @@ export class JourneyEngine {
 
     const highlightsList = journey.highlights.map(h => `<li style="margin-bottom: 6px;">${h}</li>`).join("");
     const includedList = journey.includedExtras.map(e => `<li style="margin-bottom: 6px;">${e}</li>`).join("");
+    const excludedItems = journey.exclusions && journey.exclusions.length > 0 ? journey.exclusions : defaultExclusions();
+    const excludedList = excludedItems.map(e => `<li style="margin-bottom: 6px;">${e}</li>`).join("");
+    const travelDates = journey.guestProfile.travelDates;
 
     // Occasion-specific greeting
     let occasionNote = "";
@@ -1141,7 +1311,8 @@ export class JourneyEngine {
         ${infoGrid([
           { label: "Guest", value: journey.guestProfile.name },
           { label: "Party", value: `${guestLabel} · ${isCouple ? "2 Guests" : "1 Guest"}` },
-          { label: "Duration", value: `${journey.duration} Nights` },
+          { label: "Duration", value: `${journey.duration} Nights · ${journey.itinerary.length} Days` },
+          ...(travelDates?.start ? [{ label: "Travel Dates", value: travelDates.end ? `${travelDates.start} – ${travelDates.end}` : travelDates.start }] : []),
           { label: "Destinations", value: journey.destinations.map(d => d.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())).join(", ") },
         ])}
 
@@ -1177,6 +1348,9 @@ export class JourneyEngine {
 
         <h3>What's Included</h3>
         <ul style="padding-left: 20px; font-size: 13px; color: ${KIVARA_BRAND.colors.textSecondary}; line-height: 1.8;">${includedList}</ul>
+
+        <h3>Not Included</h3>
+        <ul style="padding-left: 20px; font-size: 13px; color: ${KIVARA_BRAND.colors.textSecondary}; line-height: 1.8;">${excludedList}</ul>
 
         <hr class="divider" />
 
@@ -1304,6 +1478,7 @@ Respond in valid JSON only with this exact structure:
   ],
   "highlights": string[] (3-5 journey-level highlights that capture the emotional arc),
   "includedExtras": string[] (4-6 included services that feel exclusive),
+  "exclusions": string[] (4-7 items explicitly NOT included — e.g. international flights, visas, travel insurance, gratuities, premium drinks, spa treatments, optional activities),
   "planningNotes": string (1-2 sentences of personalized advice that shows deep understanding of this guest)
 }`;
 
@@ -1320,6 +1495,7 @@ ${JSON.stringify(
     pastDestinations: guest.pastDestinations,
     wishlist: guest.wishlist,
     explicitDestinations: guest.explicitDestinations,
+    travelDates: guest.travelDates,
   },
   null,
   2
@@ -1381,22 +1557,31 @@ NON-NEGOTIABLE: the "accommodation" field of every day MUST be copied character-
         }>;
         highlights: string[];
         includedExtras: string[];
+        exclusions: string[];
         planningNotes: string;
       }>(messages, { temperature: 0.7, maxTokens: 4096 });
 
-      // Map property names to actual property data for pricing
+      // Map property names to actual property data for pricing.
+      //
+      // The LLM emits a day entry for every calendar day, including each
+      // property's departure/farewell day, so the number of DAYS a property
+      // appears is one more than the NIGHTS actually stayed. Counting days as
+      // nights over-charged one night per property and inflated the reported
+      // duration — the very defect this normalises away.
       const propertyAssignments: { property: JourneyProperty; nights: number }[] = [];
-      const dayAccommodations = new Map<string, number>(); // property name → night count
+      const dayCounts = new Map<string, number>(); // property name → day entries
 
       for (const day of data.itinerary) {
         const propName = day.accommodation;
-        dayAccommodations.set(propName, (dayAccommodations.get(propName) || 0) + 1);
+        dayCounts.set(propName, (dayCounts.get(propName) || 0) + 1);
       }
 
       // Resolved against the live catalog, not the hardcoded constants mirror, so
       // an operator activating a property makes it immediately selectable.
       const unmatchedProperties: string[] = [];
-      for (const [propName, nights] of dayAccommodations) {
+      for (const [propName, dayCount] of dayCounts) {
+        const nights = dayCount - 1;
+        if (nights <= 0) continue; // a single day is a transfer, not a stay
         const property = catalogByName.get(propName.trim().toLowerCase());
         if (property) {
           propertyAssignments.push({ property, nights });
@@ -1421,11 +1606,22 @@ NON-NEGOTIABLE: the "accommodation" field of every day MUST be copied character-
         });
       }
 
+      // Travel dates are authoritative for trip length: rescale the properties'
+      // nights to the arrival→departure span so pricing, duration and the day
+      // list all agree with the dates.
+      const dateNights = nightsFromTravelDates(guest.travelDates);
+      if (dateNights !== null && propertyAssignments.length > 0) {
+        const scaled = scaleNights(propertyAssignments.map((p) => p.nights), dateNights);
+        propertyAssignments.forEach((p, i) => {
+          p.nights = scaled[i];
+        });
+      }
+
       // Calculate pricing deterministically
       const pricing = calculatePricing(propertyAssignments, guest);
 
       // Build itinerary with proper images and transfer data
-      const itinerary: JourneyDay[] = data.itinerary.map((day) => {
+      const mappedItinerary: JourneyDay[] = data.itinerary.map((day) => {
         const property = catalogByName.get(day.accommodation.trim().toLowerCase());
 
         return {
@@ -1448,15 +1644,21 @@ NON-NEGOTIABLE: the "accommodation" field of every day MUST be copied character-
         };
       });
 
+      // Collapse any per-property departure/arrival boundary days and renumber
+      // sequentially so the itinerary length equals nights + 1.
+      const totalNights = propertyAssignments.reduce((s, p) => s + p.nights, 0);
+      const itinerary = normalizeItineraryLength(mappedItinerary, totalNights + 1);
+      assignItineraryDates(itinerary, guest.travelDates?.start);
+
       return {
         id: generateId(),
         title: data.title || "A Curated African Journey",
         subtitle:
           data.subtitle ||
-          `${data.destinations?.length || 1} destinations · ${propertyAssignments.reduce((s, p) => s + p.nights, 0)} nights`,
+          `${data.destinations?.length || 1} destinations · ${Math.max(0, itinerary.length - 1)} nights`,
         guestProfile: guest,
         destinations: data.destinations || [],
-        duration: propertyAssignments.reduce((s, p) => s + p.nights, 0),
+        duration: Math.max(0, itinerary.length - 1),
         pricing,
         itinerary,
         highlights: data.highlights || [],
@@ -1466,6 +1668,10 @@ NON-NEGOTIABLE: the "accommodation" field of every day MUST be copied character-
           "Personal concierge from inquiry to farewell",
           guest.isCouple ? "Thoughtful romance amenity on arrival" : "Thoughtful welcome amenity on arrival",
         ],
+        exclusions:
+          data.exclusions && data.exclusions.length > 0
+            ? data.exclusions
+            : defaultExclusions(),
         createdAt: new Date().toISOString(),
         status: "draft",
       };

@@ -99,6 +99,9 @@ export default function AIJourneysPage() {
     budgetRange: "premium",
     specialOccasion: "",
     desiredNights: "10",
+    travelStart: "",
+    travelEnd: "",
+    travelFlexible: false,
   });
   const [selectedDests, setSelectedDests] = useState<string[]>([]);
   const [destProperties, setDestProperties] = useState<Record<string, string>>({});
@@ -110,6 +113,8 @@ export default function AIJourneysPage() {
   const [showPdf, setShowPdf] = useState(false);
   const [pdfContent, setPdfContent] = useState("");
   const [saving, setSaving] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sendNotice, setSendNotice] = useState<{ ok: boolean; message: string } | null>(null);
   const [savedJourneyId, setSavedJourneyId] = useState<string | null>(null);
   const [inquiries, setInquiries] = useState<InquirySummary[]>([]);
   const [selectedInquiryId, setSelectedInquiryId] = useState<string>("");
@@ -184,6 +189,15 @@ export default function AIJourneysPage() {
         activityLevel: form.activityLevel as GuestProfile["preferences"]["activityLevel"],
         budgetRange: form.budgetRange as GuestProfile["preferences"]["budgetRange"],
       },
+      ...(form.travelStart
+        ? {
+            travelDates: {
+              start: form.travelStart,
+              end: form.travelEnd,
+              flexible: form.travelFlexible,
+            },
+          }
+        : {}),
       ...(explicitDestinations.length > 0 ? { explicitDestinations } : {}),
     };
 
@@ -302,6 +316,8 @@ export default function AIJourneysPage() {
         pricing: journey.pricing,
         highlights: journey.highlights,
         included_extras: journey.includedExtras,
+        exclusions: journey.exclusions ?? [],
+        travel_dates: journey.guestProfile.travelDates ?? null,
         preferences: journey.guestProfile.preferences,
         status: "draft",
         inquiry_id: selectedInquiryId || undefined,
@@ -333,28 +349,36 @@ export default function AIJourneysPage() {
     }
   };
 
-  const handleSendToClient = () => {
+  const handleSendToClient = async () => {
     if (!journey) return;
-    const subject = encodeURIComponent(`Your Kivara Journey Proposal : ${journey.title}`);
-    const body = encodeURIComponent(
-      `Dear ${journey.guestProfile.name},\n\n` +
-      `Thank you for allowing Kivara to curate your African journey.\n\n` +
-      `We are delighted to present your personalised proposal:\n\n` +
-      `${journey.title}\n` +
-      `${journey.subtitle}\n\n` +
-      `Duration: ${journey.duration} nights\n` +
-      `Total Investment: $${journey.pricing.total.toLocaleString()} ${journey.pricing.currency}\n\n` +
-      `Please find the full itinerary attached below.\n\n` +
-      `We look forward to bringing this journey to life.\n\n` +
-      `Warmly,\nKivara Concierge\nconcierge@kivara.africa\n\n` +
-      `---\n${journey.title}\n${journey.subtitle}\n` +
-      `${journey.duration} nights | $${journey.pricing.total.toLocaleString()}\n\n` +
-      `Highlights:\n` +
-      journey.highlights.map(h => `- ${h}`).join("\n") +
-      `\n\nItinerary:\n` +
-      journey.itinerary.map(d => `Day ${d.day}: ${d.title} @ ${d.accommodation}`).join("\n")
-    );
-    window.open(`mailto:${journey.guestProfile.email}?subject=${subject}&body=${body}`, "_blank");
+    setSending(true);
+    setSendNotice(null);
+    try {
+      const res = await fetch("/api/ai/send-journey", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          journey,
+          to: journey.guestProfile.email,
+          name: journey.guestProfile.name,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to send proposal");
+      }
+      setSendNotice({
+        ok: true,
+        message: `Proposal sent to ${journey.guestProfile.email}${data.pdfAttached ? " with the PDF attached" : ""}.`,
+      });
+    } catch (err: unknown) {
+      setSendNotice({
+        ok: false,
+        message: err instanceof Error ? err.message : "Failed to send proposal",
+      });
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -438,6 +462,31 @@ export default function AIJourneysPage() {
                   placeholder="e.g. 7" />
                 <p className="text-[10px] text-earth mt-1">Total nights across all destinations (min 3)</p>
               </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-earth mb-1">Arrival Date</label>
+                  <input type="date" value={form.travelStart}
+                    onChange={(e) => setForm({ ...form, travelStart: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 text-sm focus:outline-none focus:border-soft-black" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-earth mb-1">Departure Date</label>
+                  <input type="date" value={form.travelEnd} min={form.travelStart || undefined}
+                    onChange={(e) => setForm({ ...form, travelEnd: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 text-sm focus:outline-none focus:border-soft-black" />
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <input type="checkbox" id="travelFlexible" checked={form.travelFlexible}
+                  onChange={(e) => setForm({ ...form, travelFlexible: e.target.checked })}
+                  className="w-4 h-4 border-gray-300" />
+                <label htmlFor="travelFlexible" className="text-xs text-earth">Dates are flexible</label>
+              </div>
+              {form.travelStart && (
+                <p className="text-[10px] text-earth -mt-1">
+                  Arrival &rarr; departure sets the true trip length and overrides the nights field above.
+                </p>
+              )}
               <div>
                 <label className="block text-xs font-medium text-earth mb-1">Activity Level</label>
                 <div className="flex gap-2">
@@ -658,9 +707,9 @@ export default function AIJourneysPage() {
                     <Save className="w-4 h-4" /> Open in Editor
                   </a>
                 )}
-                <button onClick={handleSendToClient} disabled={!journey.guestProfile.email}
+                <button onClick={handleSendToClient} disabled={!journey.guestProfile.email || sending}
                   className="flex items-center gap-2 px-5 py-3 bg-soft-black text-cream text-sm font-medium hover:bg-soft-black-light transition-colors disabled:opacity-50">
-                  <Send className="w-4 h-4" /> Send to Client
+                  {sending ? <><Loader2 className="w-4 h-4 animate-spin" /> Sending...</> : <><Send className="w-4 h-4" /> Send to Client</>}
                 </button>
                 <button onClick={handlePreviewPdf}
                   className="flex items-center gap-2 px-5 py-3 border border-gray-200 text-sm font-medium text-soft-black hover:border-soft-black transition-colors">
@@ -671,6 +720,18 @@ export default function AIJourneysPage() {
                   <RefreshCw className="w-4 h-4" /> Regenerate
                 </button>
               </div>
+
+              {/* Send feedback */}
+              {sendNotice && (
+                <div className={`border p-4 flex items-start gap-2 ${sendNotice.ok ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"}`}>
+                  {sendNotice.ok
+                    ? <Check className="w-4 h-4 text-green-700 shrink-0 mt-0.5" />
+                    : <AlertCircle className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />}
+                  <p className={`text-xs ${sendNotice.ok ? "text-green-800" : "text-red-800"}`}>
+                    {sendNotice.message}
+                  </p>
+                </div>
+              )}
 
               {/* Pipeline registration status (surfaced after save) */}
               {pipelineRefs && (

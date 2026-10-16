@@ -112,7 +112,9 @@ export function computeSupplierScore(row: Record<string, unknown>): SupplierScor
       10
   );
 
-  const tier: SupplierScore["tier"] =
+  const compliant = bool(row.contract_on_file) && bool(row.insurance_on_file);
+
+  const rawTier: SupplierScore["tier"] =
     status === "blacklisted"
       ? "do-not-use"
       : overall >= 75
@@ -123,6 +125,14 @@ export function computeSupplierScore(row: Record<string, unknown>): SupplierScor
             ? "watch"
             : "do-not-use";
 
+  // Compliance suppression (KORA: "suppliers used without complete compliance
+  // files"). A supplier missing a contract or insurance must not be promoted to
+  // a recommended tier — matching must not steer work to an operator whose
+  // paper trail is incomplete. Held at "watch" rather than "do-not-use": the
+  // gap is missing paperwork, not proven poor performance.
+  const tier: SupplierScore["tier"] =
+    !compliant && (rawTier === "preferred" || rawTier === "approved") ? "watch" : rawTier;
+
   const strengths: string[] = [];
   const concerns: string[] = [];
   if (dimensions.luxury >= 7) strengths.push("High luxury standard");
@@ -130,6 +140,7 @@ export function computeSupplierScore(row: Record<string, unknown>): SupplierScor
   if (dimensions.reliability >= 7) strengths.push("Reliable and documented");
   if (dimensions.brandAlignment >= 7) strengths.push("Strong brand alignment");
   if (status === "blacklisted") concerns.push("Blacklisted — do not use");
+  if (!compliant) concerns.push("Compliance file incomplete (contract/insurance)");
   if (dimensions.reliability < 5) concerns.push("Reliability concerns");
   if (dimensions.value < 4) concerns.push("Poor documented value");
 

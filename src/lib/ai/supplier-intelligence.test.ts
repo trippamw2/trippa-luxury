@@ -46,6 +46,33 @@ describe("supplier-intelligence pure", () => {
   });
 });
 
+describe("compliance suppression", () => {
+  const ROW = { name: "Romance Villa Zanzibar", status: "active", rating: 9, commission_rate: 8 };
+
+  it("never promotes a supplier with an incomplete compliance file, however strong it scores", () => {
+    const compliant = computeSupplierScore({ ...ROW, contract_on_file: true, insurance_on_file: true });
+    const incomplete = computeSupplierScore({ ...ROW, contract_on_file: true, insurance_on_file: false });
+
+    // On merit alone the supplier clears the bar for a recommended tier...
+    expect(["preferred", "approved"]).toContain(compliant.tier);
+    // ...but a gap in the paperwork must not let matching steer work to it.
+    expect(incomplete.tier).toBe("watch");
+    // Isolates the CAP from the score threshold: the row still scores in
+    // recommended territory, so only the cap can be holding it at watch.
+    expect(incomplete.overall).toBeGreaterThanOrEqual(55);
+    expect(incomplete.concerns).toContain("Compliance file incomplete (contract/insurance)");
+    expect(compliant.concerns).not.toContain("Compliance file incomplete (contract/insurance)");
+  });
+
+  it("holds an incomplete supplier at watch rather than downgrading it to do-not-use", () => {
+    // The gap is missing paperwork, not proven poor performance, so it must
+    // neither promote the supplier nor blacklist it.
+    const s = computeSupplierScore({ ...ROW, contract_on_file: false, insurance_on_file: false });
+    expect(s.tier).toBe("watch");
+    expect(s.concerns).toContain("Compliance file incomplete (contract/insurance)");
+  });
+});
+
 describe("buildSupplierPerformanceRow", () => {
   it("scales the 0-10 dimensions onto the 0-100 ledger columns", () => {
     const supplier = scoredSupplier();

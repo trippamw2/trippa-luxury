@@ -15,6 +15,7 @@ interface Inquiry {
   date: string;
   status: "new" | "read" | "contacted" | "qualified" | "booked" | "closed";
   message: string;
+  lostReason?: string;
   notes?: string;
   repliedAt?: string;
   assignedTo?: string | null;
@@ -39,6 +40,7 @@ interface ApiInquiry {
   createdAt?: string;
   status?: string;
   message?: string;
+  lostReason?: string;
   adminNotes?: string;
   lastContactedAt?: string;
   assignedTo?: string | null;
@@ -69,6 +71,7 @@ function mapInquiry(item: ApiInquiry): Inquiry {
     date: item.createdAt ? item.createdAt.split("T")[0] : "",
     status: (item.status || "new") as Inquiry["status"],
     message: item.message || "",
+    lostReason: item.lostReason || undefined,
     notes: item.adminNotes || "",
     repliedAt: item.lastContactedAt || undefined,
     assignedTo: item.assignedTo || null,
@@ -91,6 +94,7 @@ function mapInquiryToApi(item: Partial<Inquiry>): Record<string, unknown> {
     destination: item.destination,
     message: item.message,
     status: item.status,
+    lost_reason: item.lostReason,
     admin_notes: item.notes,
     assigned_to: item.assignedTo ?? null,
   };
@@ -118,6 +122,8 @@ export default function AdminInquiries() {
   const [sending, setSending] = useState(false);
   const [converting, setConverting] = useState(false);
   const [staff, setStaff] = useState<StaffMember[]>([]);
+  const [closeModal, setCloseModal] = useState<{ id: string; name: string } | null>(null);
+  const [closeReason, setCloseReason] = useState("");
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
   const showToast = (message: string, type: "success" | "error") => {
@@ -168,14 +174,35 @@ export default function AdminInquiries() {
     }
   };
 
-  const handleStatusChange = async (id: string, newStatus: string) => {
-    const result = await update(id, { status: newStatus });
+  const applyStatusChange = async (id: string, payload: { status: string; lostReason?: string }) => {
+    const current = inquiries.find(i => i.id === id);
+    const result = await update(id, { ...payload, assignedTo: current?.assignedTo ?? null });
     if (result) {
       if (selected?.id === id) setSelected(result);
-      showToast("Status updated to " + STATUS_STYLES[newStatus as keyof typeof STATUS_STYLES].label, "success");
+      showToast("Status updated to " + STATUS_STYLES[payload.status as keyof typeof STATUS_STYLES].label, "success");
     } else {
       showToast("Failed to update status", "error");
     }
+  };
+
+  const handleStatusChange = (id: string, newStatus: string) => {
+    // Closing is a disposition, not a limbo. Capture why before recording it,
+    // so a closed-lost enquiry is never left inexplicable to the next reader.
+    if (newStatus === "closed") {
+      const target = inquiries.find(i => i.id === id);
+      setCloseReason("");
+      setCloseModal({ id, name: target?.name || "this enquiry" });
+      return;
+    }
+    void applyStatusChange(id, { status: newStatus });
+  };
+
+  const submitClose = async () => {
+    if (!closeModal) return;
+    const reason = closeReason.trim();
+    if (!reason) return;
+    await applyStatusChange(closeModal.id, { status: "closed", lostReason: reason });
+    setCloseModal(null);
   };
 
   const handleAssign = async (id: string, assigneeId: string | null) => {
@@ -351,6 +378,7 @@ export default function AdminInquiries() {
 
             <div className="mt-4 pt-4 border-t border-sand-light"><p className="text-xs text-earth uppercase mb-2">Message</p><p className="text-sm text-soft-black whitespace-pre-wrap">{selected.message}</p></div>
             {selected.repliedAt && (<div className="mt-4 p-3 bg-emerald-50 rounded"><p className="text-xs text-emerald-700">Last reply on {new Date(selected.repliedAt).toLocaleDateString()}</p></div>)}
+            {selected.status === "closed" && selected.lostReason && (<div className="mt-4 p-3 bg-gray-100 rounded"><p className="text-xs text-gray-600 uppercase mb-1">Closed — reason</p><p className="text-sm text-soft-black whitespace-pre-wrap">{selected.lostReason}</p></div>)}
             <div className="mt-4"><p className="text-xs text-earth uppercase mb-2">Status</p><select value={selected.status} onChange={(e) => handleStatusChange(selected.id, e.target.value)} className="w-full px-3 py-2 border border-sand-light text-sm">{Object.entries(STATUS_STYLES).map(([key, val]) => (<option key={key} value={key}>{val.label}</option>))}</select></div>
 
             <div className="mt-4 space-y-2">
@@ -399,6 +427,29 @@ export default function AdminInquiries() {
                 <p className="text-[11px] text-earth">Sending marks the inquiry as contacted, records first-response time, and logs the exchange on the guest&apos;s communication timeline.</p>
               </div>
               <div className="flex gap-3 px-6 py-4 border-t border-sand-light flex-shrink-0"><button onClick={() => setShowReplyModal(false)} className="flex-1 px-4 py-2 border border-sand-light text-earth text-sm">Cancel</button><button onClick={handleSendReply} disabled={!replyText.trim() || sending} className="flex-1 px-4 py-2 bg-gold text-soft-black text-sm font-medium rounded hover:bg-gold/90 disabled:opacity-50">{sending ? "Sending..." : "Send Reply"}</button></div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {closeModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-40 p-4" onClick={() => setCloseModal(null)}>
+            <motion.div initial={{ scale: 0.95 }} className="bg-cream border border-sand-light w-full max-w-md" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between px-6 py-4 border-b border-sand-light"><h2 className="text-lg font-bold text-soft-black">Close enquiry as lost</h2><button onClick={() => setCloseModal(null)}><X className="w-5 h-5 text-earth" /></button></div>
+              <div className="p-6 space-y-3">
+                <p className="text-sm text-earth">Why is {closeModal.name}&apos;s enquiry being closed without a booking? The reason is recorded on the enquiry.</p>
+                <textarea
+                  value={closeReason}
+                  onChange={(e) => setCloseReason(e.target.value)}
+                  placeholder="e.g. Chose a competitor, budget too high, dates unavailable…"
+                  className="w-full px-4 py-3 border border-sand-light text-sm h-28 focus:outline-none focus:border-gold"
+                />
+              </div>
+              <div className="flex gap-3 px-6 py-4 border-t border-sand-light">
+                <button onClick={() => setCloseModal(null)} className="flex-1 px-4 py-2 border border-sand-light text-earth text-sm">Cancel</button>
+                <button onClick={submitClose} disabled={!closeReason.trim()} className="flex-1 px-4 py-2 bg-soft-black text-white text-sm font-medium rounded hover:bg-soft-black/90 disabled:opacity-50">Close enquiry</button>
+              </div>
             </motion.div>
           </motion.div>
         )}

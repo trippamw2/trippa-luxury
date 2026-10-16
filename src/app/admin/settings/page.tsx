@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useId } from "react";
-import { CheckCircle, AlertCircle, CreditCard, Plane, Mail, ShieldAlert, ShieldCheck, Scale } from "lucide-react";
+import { CheckCircle, AlertCircle, CreditCard, Plane, Mail, ShieldAlert, ShieldCheck, Scale, Gauge } from "lucide-react";
+import { AUTONOMY_LEVEL_LABELS, type AutonomyLevel } from "@/lib/ai/autonomy-policy";
 
 interface BankDetailsData {
   bankName: string;
@@ -240,6 +241,187 @@ function RatificationPanel({
   );
 }
 
+/**
+ * Operating-dial controls: the mutable half of the AI constitution.
+ *
+ * Deliberately separate from the ratification panel below. Moving the dial is an
+ * operating decision an operator may take any day; ratifying the document is a
+ * one-time sign-off. Folding them together would let "turn autonomy down for the
+ * weekend" read as "amend the constitution".
+ */
+function GovernanceControlsPanel({
+  inForce,
+  onSave,
+}: {
+  inForce: GovernanceSettingsPayload;
+  onSave: (update: {
+    autonomyLevel: number;
+    llmEnabled: boolean;
+    outboundEnabled: boolean;
+    internalWritesEnabled: boolean;
+  }) => Promise<void>;
+}) {
+  const [level, setLevel] = useState(inForce.autonomyLevel);
+  const [llm, setLlm] = useState(inForce.llmEnabled);
+  const [outbound, setOutbound] = useState(inForce.outboundEnabled);
+  const [internalWrites, setInternalWrites] = useState(inForce.internalWritesEnabled);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState(false);
+
+  // Resync the draft from the server snapshot when it changes (after a save or a
+  // re-read). Render-phase derived state: no effect, and it never clobbers an
+  // edit mid-flight because the snapshot only moves when the server answered.
+  const [synced, setSynced] = useState(inForce);
+  if (synced !== inForce) {
+    setSynced(inForce);
+    setLevel(inForce.autonomyLevel);
+    setLlm(inForce.llmEnabled);
+    setOutbound(inForce.outboundEnabled);
+    setInternalWrites(inForce.internalWritesEnabled);
+    setDone(false);
+  }
+
+  const dirty =
+    level !== inForce.autonomyLevel ||
+    llm !== inForce.llmEnabled ||
+    outbound !== inForce.outboundEnabled ||
+    internalWrites !== inForce.internalWritesEnabled;
+
+  const flags: {
+    key: "llmEnabled" | "outboundEnabled" | "internalWritesEnabled";
+    label: string;
+    help: string;
+    value: boolean;
+    set: (value: boolean) => void;
+  }[] = [
+    {
+      key: "llmEnabled",
+      label: "Model calls (LLM)",
+      help: "Master switch for every outbound model request. Off freezes all AI spend.",
+      value: llm,
+      set: setLlm,
+    },
+    {
+      key: "outboundEnabled",
+      label: "AI outbound communication",
+      help: "AI-initiated messages to clients and guests. Off freezes all outbound, including human-approved sends.",
+      value: outbound,
+      set: setOutbound,
+    },
+    {
+      key: "internalWritesEnabled",
+      label: "AI internal writes",
+      help: "AI-initiated reversible internal state changes.",
+      value: internalWrites,
+      set: setInternalWrites,
+    },
+  ];
+
+  async function submit() {
+    setError(null);
+    setDone(false);
+    setSaving(true);
+    try {
+      await onSave({
+        autonomyLevel: level,
+        llmEnabled: llm,
+        outboundEnabled: outbound,
+        internalWritesEnabled: internalWrites,
+      });
+      setDone(true);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to save governance controls");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="mt-4">
+      {inForce.envOverride && (
+        <div className="mb-4 p-3 border border-amber-200 bg-amber-50/40 flex items-start gap-2">
+          <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+          <p className="text-xs text-amber-800">
+            An environment variable is overriding these values. The controls below show what is
+            actually in force, but a save writes to the database and will not win over the deploy
+            until the override is removed.
+          </p>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between mb-2">
+        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-earth uppercase tracking-wider">
+          <Gauge className="w-3.5 h-3.5" aria-hidden /> Operating autonomy level
+        </span>
+        <span className="text-xs font-semibold text-soft-black">
+          {level} &middot; {AUTONOMY_LEVEL_LABELS[level as AutonomyLevel] ?? "Unknown"}
+        </span>
+      </div>
+      <input
+        type="range"
+        min={0}
+        max={4}
+        step={1}
+        value={level}
+        onChange={(e) => setLevel(Number(e.target.value))}
+        className="w-full accent-gold"
+        aria-label="Operating autonomy level"
+      />
+      <div className="flex justify-between text-[10px] text-earth mt-1">
+        {[0, 1, 2, 3, 4].map((n) => (
+          <span key={n} className={n === level ? "text-soft-black font-medium" : ""}>
+            {n}
+          </span>
+        ))}
+      </div>
+      <p className="text-xs text-earth mt-2">
+        {level >= 4
+          ? "Level 4: consequential actions (supplier, financial, contractual) still require explicit human authorization."
+          : `Actions above level ${level} escalate to a human.`}
+      </p>
+
+      <div className="mt-5 space-y-3">
+        {flags.map((f) => (
+          <label key={f.key} className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={f.value}
+              onChange={(e) => f.set(e.target.checked)}
+              className="w-4 h-4 mt-0.5 accent-gold"
+            />
+            <span>
+              <span className="block text-sm text-soft-black">{f.label}</span>
+              <span className="block text-xs text-earth">{f.help}</span>
+            </span>
+          </label>
+        ))}
+      </div>
+
+      <div className="flex items-center gap-4 mt-5">
+        <button
+          onClick={submit}
+          disabled={saving || !dirty}
+          className="px-4 py-2 bg-soft-black text-cream text-sm tracking-widest uppercase hover:bg-soft-black-light transition-colors disabled:opacity-40"
+        >
+          {saving ? "Saving..." : "Save Controls"}
+        </button>
+        {done && (
+          <span className="inline-flex items-center gap-1.5 text-sm text-emerald-600">
+            <CheckCircle className="w-4 h-4" /> Applied
+          </span>
+        )}
+      </div>
+      {error && (
+        <p className="text-sm text-red-600 flex items-center gap-1 mt-3">
+          <AlertCircle className="w-4 h-4" />
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export default function AdminSettings() {
   const [form, setForm] = useState<SettingsData>(loadLocal);
   const [saved, setSaved] = useState(false);
@@ -346,6 +528,26 @@ export default function AdminSettings() {
     }
   }
 
+  async function handleSaveGovernance(update: {
+    autonomyLevel: number;
+    llmEnabled: boolean;
+    outboundEnabled: boolean;
+    internalWritesEnabled: boolean;
+  }) {
+    const res = await fetch("/api/admin/settings", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ governance: update }),
+    });
+    const json = await res.json();
+    if (!res.ok || json.error) throw new Error(json.error || `HTTP ${res.status}`);
+    // Re-read so the panel shows what the server recorded, not the draft. The
+    // dial is a kill switch — reporting a change the runtime did not accept is
+    // worse than reporting nothing at all.
+    const refreshed = await fetch("/api/admin/settings").then((r) => r.json());
+    if (refreshed.governance) setGovernance(refreshed.governance);
+  }
+
   async function handleSave() {
     setApiError(null);
     setSaved(false);
@@ -424,16 +626,19 @@ export default function AdminSettings() {
                 </p>
               </div>
             ) : (
-              <RatificationPanel
-                governance={governance}
-                ack={ack}
-                setAck={setAck}
-                ackId={ackId}
-                ratifying={ratifying}
-                onRatify={handleRatify}
-                error={ratifyError}
-                done={ratifyDone}
-              />
+              <div>
+                <GovernanceControlsPanel inForce={governance.inForce} onSave={handleSaveGovernance} />
+                <RatificationPanel
+                  governance={governance}
+                  ack={ack}
+                  setAck={setAck}
+                  ackId={ackId}
+                  ratifying={ratifying}
+                  onRatify={handleRatify}
+                  error={ratifyError}
+                  done={ratifyDone}
+                />
+              </div>
             )}
           </div>
 

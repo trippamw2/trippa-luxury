@@ -49,6 +49,8 @@ vi.mock("@/lib/api-helpers", () => ({
  * the post-update email lookups both work.
  */
 let currentBooking: Record<string, unknown> | null = null;
+let mockItineraryItems: Record<string, unknown>[] = [];
+let mockSuppliers: Record<string, unknown>[] = [];
 
 const mockFrom = vi.fn();
 vi.mock("@/lib/supabase/admin", () => ({
@@ -80,6 +82,8 @@ beforeEach(() => {
     swift_confirmation_code: null,
     deposit_method: null,
   };
+  mockItineraryItems = [];
+  mockSuppliers = [];
   mockRequireAdmin.mockResolvedValue({ profile: { id: "admin-1" } });
   mockSendEmail.mockResolvedValue(undefined);
   mockHandleUpdate.mockResolvedValue(
@@ -103,6 +107,12 @@ beforeEach(() => {
       eq() {
         return this;
       },
+      not() {
+        return this;
+      },
+      in() {
+        return this;
+      },
       single() {
         return Promise.resolve({
           data: currentBooking,
@@ -110,7 +120,15 @@ beforeEach(() => {
         });
       },
       then(resolve: (v: unknown) => void) {
-        // Non-single awaited reads (booking_suppliers lookup) resolve empty
+        // Awaited, non-single reads resolve per table: the journey's supplier
+        // items feed the compliance gate, the suppliers read feeds its verdict,
+        // and everything else (booking_suppliers lookup) resolves empty.
+        if (table === "itinerary_items") {
+          return Promise.resolve({ data: mockItineraryItems, error: null }).then(resolve);
+        }
+        if (table === "suppliers") {
+          return Promise.resolve({ data: mockSuppliers, error: null }).then(resolve);
+        }
         return Promise.resolve({ data: [], error: null }).then(resolve);
       },
     };
@@ -217,6 +235,71 @@ describe("PUT /api/admin/bookings/[id] — wire-transfer ledger guard", () => {
       swift_confirmation_code: null,
       deposit_method: null,
     };
+
+    const res = await PUT(makeRequest({ status: "confirmed" }), params());
+
+    expect(res.status).toBe(200);
+    expect(mockHandleUpdate).toHaveBeenCalled();
+  });
+});
+
+describe("PUT /api/admin/bookings/[id] — supplier compliance gate", () => {
+  const JOURNEY_ID = "11111111-1111-1111-1111-111111111111";
+
+  function bookingOnJourney(status: string): Record<string, unknown> {
+    return {
+      id: BOOKING_ID,
+      status,
+      payment_method: "paypal",
+      swift_confirmation_code: null,
+      deposit_method: null,
+      journey_id: JOURNEY_ID,
+    };
+  }
+
+  it("refuses to confirm a booking whose supplier lacks compliance files", async () => {
+    currentBooking = bookingOnJourney("provisional");
+    mockItineraryItems = [{ supplier_id: "sup-1" }];
+    mockSuppliers = [
+      {
+        id: "sup-1",
+        name: "Rift Valley Safaris",
+        contract_on_file: false,
+        insurance_on_file: true,
+      },
+    ];
+
+    const res = await PUT(makeRequest({ status: "confirmed" }), params());
+
+    expect(res.status).toBe(409);
+    const json = await res.json();
+    expect(json.error).toMatch(/Rift Valley Safaris/);
+    expect(json.error).toMatch(/contract and\/or insurance/);
+    expect(mockHandleUpdate).not.toHaveBeenCalled();
+  });
+
+  it("confirms when every journey supplier is compliant", async () => {
+    currentBooking = bookingOnJourney("provisional");
+    mockItineraryItems = [{ supplier_id: "sup-1" }];
+    mockSuppliers = [
+      {
+        id: "sup-1",
+        name: "Rift Valley Safaris",
+        contract_on_file: true,
+        insurance_on_file: true,
+      },
+    ];
+
+    const res = await PUT(makeRequest({ status: "confirmed" }), params());
+
+    expect(res.status).toBe(200);
+    expect(mockHandleUpdate).toHaveBeenCalled();
+  });
+
+  it("does not gate a journey with no linked suppliers", async () => {
+    currentBooking = bookingOnJourney("provisional");
+    mockItineraryItems = [];
+    mockSuppliers = [];
 
     const res = await PUT(makeRequest({ status: "confirmed" }), params());
 

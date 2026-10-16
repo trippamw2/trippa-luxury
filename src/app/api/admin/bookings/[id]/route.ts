@@ -243,6 +243,49 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   return handleGetOne(TABLE, id);
 }
 
+/**
+ * Suppliers on a journey that are missing a contract and/or insurance on file.
+ * Empty when the journey has no linked suppliers, or all are compliant — the
+ * only thing this returns is a set that should obstruct a confirmation.
+ */
+async function findNonCompliantSuppliers(
+  journeyId: string | null
+): Promise<{ id: string; name: string }[]> {
+  if (!journeyId) return [];
+  const supabase = createAdminClient();
+
+  const { data: items } = await supabase
+    .from("itinerary_items")
+    .select("supplier_id")
+    .eq("journey_id", journeyId)
+    .not("supplier_id", "is", null);
+
+  const ids = Array.from(
+    new Set(
+      ((items ?? []) as { supplier_id: string | null }[])
+        .map((item) => item.supplier_id)
+        .filter((value): value is string => typeof value === "string" && value !== "")
+    )
+  );
+  if (ids.length === 0) return [];
+
+  const { data: suppliers } = await supabase
+    .from("suppliers")
+    .select("id, name, contract_on_file, insurance_on_file")
+    .in("id", ids);
+
+  return (
+    (suppliers ?? []) as {
+      id: string;
+      name: string | null;
+      contract_on_file: boolean | null;
+      insurance_on_file: boolean | null;
+    }[]
+  )
+    .filter((s) => s.contract_on_file !== true || s.insurance_on_file !== true)
+    .map((s) => ({ id: s.id, name: s.name || "Unnamed supplier" }));
+}
+
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const body = await request.json();
@@ -259,14 +302,16 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   // Fetch current booking to detect status changes + wire-transfer evidence
   let oldStatus: string | null = null;
   let wireBooking = false;
+  let journeyId: string | null = null;
   if (body.status) {
     const supabase = createAdminClient();
     const { data: current } = await supabase
       .from("bookings")
-      .select("status, payment_method, swift_confirmation_code, deposit_method")
+      .select("status, payment_method, swift_confirmation_code, deposit_method, journey_id")
       .eq("id", id)
       .single();
     oldStatus = current?.status || null;
+    journeyId = (current?.journey_id as string | null) ?? null;
     wireBooking =
       current?.payment_method === "wire_transfer" ||
       Boolean(current?.swift_confirmation_code) ||
@@ -284,6 +329,25 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       },
       { status: 409 }
     );
+  }
+
+  // Supplier compliance gate (KORA: "suppliers used without complete
+  // compliance files"). A booking cannot be confirmed while any supplier on its
+  // journey lacks a contract and/or insurance on file. The journey's suppliers
+  // are the source of truth here, because booking_suppliers rows are only
+  // derived *on* confirmation — checking those would let the first confirm pass
+  // and block nothing. Mirrors the wire-transfer 409 guard above.
+  if (body.status === "confirmed" && oldStatus !== "confirmed") {
+    const nonCompliant = await findNonCompliantSuppliers(journeyId);
+    if (nonCompliant.length > 0) {
+      const names = nonCompliant.map((s) => s.name).join(", ");
+      return NextResponse.json(
+        {
+          error: `Cannot confirm: ${names} ${nonCompliant.length === 1 ? "is" : "are"} missing a contract and/or insurance on file. Complete the supplier compliance file (or remove the supplier from the journey) before confirming.`,
+        },
+        { status: 409 }
+      );
+    }
   }
 
   const result = await handleUpdate(TABLE, id, body, request);

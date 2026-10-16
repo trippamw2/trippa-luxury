@@ -37,7 +37,11 @@ export async function GET() {
 
     const { data: allBookings } = await supabase
       .from("bookings")
-      .select("status, total_amount, start_date, end_date");
+      // created_at is read by the monthly trend logic below (`created_at ??
+      // start_date`). It was missing from this select, so that fallback was the
+      // only path ever taken and revenue was bucketed by trip start month rather
+      // than when the booking was recorded.
+      .select("status, total_amount, start_date, end_date, created_at");
 
     const activeStatuses = ["provisional", "deposit_paid", "confirmed", "balance_due", "paid", "in_progress"];
     const activeBookings = (allBookings || []).filter(

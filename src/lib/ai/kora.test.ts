@@ -6,9 +6,11 @@ import {
   createKoraStore,
   evaluateKoraWrite,
   fingerprintFor,
+  isOpenInquiryRow,
   priorityScoreFor,
   runDetectors,
   runKoraAudit,
+  TERMINAL_INQUIRY_STATUSES,
   toGapRow,
   toInsightHypotheses,
   toInsightRow,
@@ -661,3 +663,46 @@ describe("runKoraAudit", () => {
     }
   });
 });
+
+describe("isOpenInquiryRow — an enquiry leaves the audit only once dispositioned", () => {
+  it("counts an un-dispositioned enquiry as open", () => {
+    expect(
+      isOpenInquiryRow({ status: "new", converted_to_booking_id: null })
+    ).toBe(true);
+    expect(
+      isOpenInquiryRow({ status: "contacted", converted_to_booking_id: null })
+    ).toBe(true);
+    expect(
+      isOpenInquiryRow({ status: "qualified", converted_to_booking_id: undefined })
+    ).toBe(true);
+  });
+
+  it("treats a closed-lost enquiry as no longer open", () => {
+    // The regression this guards: before migration 016 was reflected in the
+    // reader, a properly-closed enquiry aged into 'never converted' forever and
+    // the audit could never be satisfied.
+    expect(
+      isOpenInquiryRow({ status: "closed", converted_to_booking_id: null })
+    ).toBe(false);
+  });
+
+  it("treats a booked enquiry as no longer open", () => {
+    expect(
+      isOpenInquiryRow({ status: "booked", converted_to_booking_id: null })
+    ).toBe(false);
+  });
+
+  it("treats an enquiry linked to a booking as converted even without the status", () => {
+    expect(
+      isOpenInquiryRow({
+        status: "contacted",
+        converted_to_booking_id: "b1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      })
+    ).toBe(false);
+  });
+
+  it("pins the terminal vocabulary to the migration 016 statuses", () => {
+    expect([...TERMINAL_INQUIRY_STATUSES].sort()).toEqual(["booked", "closed"]);
+  });
+});
+

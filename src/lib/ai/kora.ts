@@ -705,6 +705,28 @@ export interface KoraRunReport {
 }
 
 /**
+ * Enquiry statuses that mean the enquiry has left the open pipeline.
+ *
+ * Mirrors the live `inquiries_status_check` vocabulary (migration 016:
+ * new | read | contacted | qualified | booked | closed). `closed` is a
+ * closed-lost outcome carrying a required reason, so — like `booked` — it must
+ * not keep ageing into the audit once dispositioned.
+ */
+export const TERMINAL_INQUIRY_STATUSES: ReadonlySet<string> = new Set(["booked", "closed"]);
+
+/**
+ * True when an inquiry row is still open pipeline: neither in a terminal status
+ * nor already linked to a booking. Pure, so the rule "an enquiry leaves the
+ * audit once it is genuinely dispositioned" is unit-testable without a database.
+ */
+export function isOpenInquiryRow(raw: Record<string, unknown>): boolean {
+  const status = typeof raw.status === "string" ? raw.status : "";
+  if (TERMINAL_INQUIRY_STATUSES.has(status)) return false;
+  const converted = raw.converted_to_booking_id;
+  return converted === null || converted === undefined;
+}
+
+/**
  * Collect a metrics snapshot from the live database.
  *
  * All four reads are issued in parallel and any failure fails the snapshot
@@ -753,12 +775,13 @@ export async function collectMetrics(now: string): Promise<KoraMetrics> {
   return {
     now,
     openInquiries: ((inquiries.data ?? []) as Record<string, unknown>[])
-      // `booked` is the only terminal status this table has — verified against
-      // the live vocabulary (new | read | contacted | qualified | booked). There
-      // is no closed-lost state, so a converted enquiry is filtered on its
-      // booking link rather than trusted to a status string.
-      .filter((raw) => asString(rowValue(raw, "status")) !== "booked")
-      .filter((raw) => isUnset(rowValue(raw, "converted_to_booking_id")))
+      // Terminal statuses leave the open set: `booked` (converted) and `closed`
+      // (closed-lost, with a required reason). The old reader treated only
+      // `booked` as terminal, so a properly-dispositioned enquiry still aged
+      // into the "never converted" audit forever — the finding could never be
+      // satisfied. A converted enquiry is additionally filtered on its booking
+      // link, so a booking created without flipping the status still counts.
+      .filter(isOpenInquiryRow)
       .map((raw) => ({
         id: String(rowValue(raw, "id")),
         createdAt: asString(rowValue(raw, "created_at")) ?? now,

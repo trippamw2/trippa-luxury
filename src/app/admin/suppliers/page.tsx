@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Building2, Plane, Car, Ship, MapPin, Phone, Mail, Star, Shield, Hotel, Users, Edit2, X } from "lucide-react";
 import Image from "next/image";
@@ -25,6 +25,9 @@ interface Supplier {
   rating: number;
   status: "active" | "inactive" | "blacklisted";
   contractOnFile: boolean;
+  insuranceOnFile: boolean;
+  complianceOwnerId?: string | null;
+  complianceReviewedAt?: string | null;
   bookingsCount: number;
   totalRevenue: number;
   image?: string;
@@ -48,6 +51,9 @@ interface ApiSupplier {
   rating?: number;
   status?: string;
   contractOnFile?: boolean;
+  insuranceOnFile?: boolean;
+  complianceOwnerId?: string | null;
+  complianceReviewedAt?: string | null;
   bookingsCount?: number;
   totalRevenue?: number;
   logo?: string;
@@ -71,6 +77,9 @@ function mapSupplier(item: ApiSupplier): Supplier {
     rating: item.rating ?? 0,
     status: (item.status || "active") as Supplier["status"],
     contractOnFile: item.contractOnFile ?? false,
+    insuranceOnFile: item.insuranceOnFile ?? false,
+    complianceOwnerId: item.complianceOwnerId || null,
+    complianceReviewedAt: item.complianceReviewedAt || null,
     bookingsCount: item.bookingsCount ?? 0,
     totalRevenue: item.totalRevenue ?? 0,
     image: item.logo || "",
@@ -93,6 +102,9 @@ function mapSupplierToApi(item: Partial<Supplier>): Record<string, unknown> {
     city: item.location,
     commission_rate: item.commissionRate,
     contract_on_file: item.contractOnFile,
+    insurance_on_file: item.insuranceOnFile,
+    compliance_owner_id: item.complianceOwnerId || null,
+    compliance_reviewed_at: item.complianceReviewedAt || null,
     notes: item.notes,
     status: item.status,
     rating: item.rating,
@@ -130,6 +142,7 @@ export default function AdminSuppliers() {
     name: "", category: "lodge" as SupplierCategory, location: "", country: "",
     contactPerson: "", email: "", phone: "", commissionRate: "", rating: "",
     status: "active" as "active" | "inactive" | "blacklisted", contractOnFile: false,
+    insuranceOnFile: false, complianceOwnerId: "", complianceReviewedAt: "",
     image: "", website: "", notes: "", bankDetails: "", paymentTerms: ""
   });
 
@@ -139,7 +152,25 @@ export default function AdminSuppliers() {
     return matchesSearch && matchesCategory;
   });
 
-  const resetForm = () => setFormData({ name: "", category: "lodge", location: "", country: "", contactPerson: "", email: "", phone: "", commissionRate: "", rating: "", status: "active", contractOnFile: false, image: "", website: "", notes: "", bankDetails: "", paymentTerms: "" });
+  const resetForm = () => setFormData({ name: "", category: "lodge", location: "", country: "", contactPerson: "", email: "", phone: "", commissionRate: "", rating: "", status: "active", contractOnFile: false, insuranceOnFile: false, complianceOwnerId: "", complianceReviewedAt: "", image: "", website: "", notes: "", bankDetails: "", paymentTerms: "" });
+
+  const [staff, setStaff] = useState<{ id: string; name: string }[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/admin/staff");
+        if (res.ok) {
+          const body = (await res.json()) as { data: { id: string; name: string; role: string }[] };
+          if (!cancelled) setStaff((body.data || []).map(m => ({ id: m.id, name: m.name })));
+        }
+      } catch {
+        /* staff list is non-critical to supplier management */
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   const handleAdd = async () => {
     const result = await create({
@@ -147,7 +178,10 @@ export default function AdminSuppliers() {
       country: formData.country, contactPerson: formData.contactPerson, email: formData.email,
       phone: formData.phone, commissionRate: parseFloat(formData.commissionRate) || 10,
       rating: parseFloat(formData.rating) || 4.0, status: formData.status,
-      contractOnFile: formData.contractOnFile, image: formData.image || undefined,
+      contractOnFile: formData.contractOnFile, insuranceOnFile: formData.insuranceOnFile,
+      complianceOwnerId: formData.complianceOwnerId || undefined,
+      complianceReviewedAt: formData.complianceReviewedAt || undefined,
+      image: formData.image || undefined,
       website: formData.website || undefined, notes: formData.notes || undefined,
       bankDetails: formData.bankDetails || undefined, paymentTerms: formData.paymentTerms || undefined,
     });
@@ -186,7 +220,7 @@ export default function AdminSuppliers() {
   };
 
   const openAddModal = () => { setEditingSupplier(null); resetForm(); setShowModal(true); };
-  const openEditModal = (supplier: Supplier) => { setEditingSupplier(supplier); setFormData({ name: supplier.name, category: supplier.category, location: supplier.location, country: supplier.country, contactPerson: supplier.contactPerson, email: supplier.email, phone: supplier.phone, commissionRate: supplier.commissionRate.toString(), rating: supplier.rating.toString(), status: supplier.status, contractOnFile: supplier.contractOnFile, image: supplier.image || "", website: supplier.website || "", notes: supplier.notes || "", bankDetails: supplier.bankDetails || "", paymentTerms: supplier.paymentTerms || "" }); setShowModal(true); };
+  const openEditModal = (supplier: Supplier) => { setEditingSupplier(supplier); setFormData({ name: supplier.name, category: supplier.category, location: supplier.location, country: supplier.country, contactPerson: supplier.contactPerson, email: supplier.email, phone: supplier.phone, commissionRate: supplier.commissionRate.toString(), rating: supplier.rating.toString(), status: supplier.status, contractOnFile: supplier.contractOnFile, insuranceOnFile: supplier.insuranceOnFile, complianceOwnerId: supplier.complianceOwnerId || "", complianceReviewedAt: supplier.complianceReviewedAt || "", image: supplier.image || "", website: supplier.website || "", notes: supplier.notes || "", bankDetails: supplier.bankDetails || "", paymentTerms: supplier.paymentTerms || "" }); setShowModal(true); };
 
   const stats = { total: suppliers.length, active: suppliers.filter(s => s.status === "active").length, lodges: suppliers.filter(s => s.category === "lodge").length, revenue: `$${(suppliers.reduce((a, s) => a + (s.totalRevenue || 0), 0) / 1000).toFixed(0)}k` };
 
@@ -248,6 +282,13 @@ export default function AdminSuppliers() {
                   <span className={`px-2 py-0.5 text-xs rounded ${categoryConfig[supplier.category]?.bg || "bg-gray-50"} ${categoryConfig[supplier.category]?.color || "text-gray-600"}`}>{categoryConfig[supplier.category]?.label || supplier.category}</span>
                   <span className="text-xs text-gold flex items-center gap-1"><Star className="w-3 h-3 fill-gold text-gold" />{supplier.rating}</span>
                 </div>
+                <div className="mb-3">
+                  {supplier.contractOnFile && supplier.insuranceOnFile ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] rounded bg-emerald-50 text-emerald-700"><Shield className="w-3 h-3" />Compliance complete</span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] rounded bg-amber-50 text-amber-700"><Shield className="w-3 h-3" />Compliance incomplete</span>
+                  )}
+                </div>
                 <div className="text-xs text-earth space-y-1 mb-4">
                   <p className="flex items-center gap-1"><Mail className="w-3 h-3" />{supplier.email}</p>
                   <p className="flex items-center gap-1"><Phone className="w-3 h-3" />{supplier.phone}</p>
@@ -300,15 +341,26 @@ export default function AdminSuppliers() {
                   <FormInput label="Payment Terms" name="paymentTerms" value={formData.paymentTerms} onChange={(e) => setFormData(p => ({ ...p, paymentTerms: e.target.value }))} placeholder="Net 30" />
                 </FormGroup>
                 <FormTextarea label="Bank Details" name="bankDetails" value={formData.bankDetails} onChange={(e) => setFormData(p => ({ ...p, bankDetails: e.target.value }))} rows={2} placeholder="Bank name, account number, SWIFT/BIC, currency…" />
-                <FormGroup>
-                  <FormInput label="Image URL" name="image" type="url" value={formData.image} onChange={(e) => setFormData(p => ({ ...p, image: e.target.value }))} placeholder="/images/makokola-retreat.jpg" />
-                  <div className="flex items-end pb-2">
+                <FormInput label="Image URL" name="image" type="url" value={formData.image} onChange={(e) => setFormData(p => ({ ...p, image: e.target.value }))} placeholder="/images/makokola-retreat.jpg" />
+                <div className="border border-sand-light rounded p-4 space-y-3">
+                  <p className="text-xs text-earth uppercase">Compliance file</p>
+                  <div className="flex flex-wrap gap-4">
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input type="checkbox" checked={formData.contractOnFile} onChange={(e) => setFormData(p => ({ ...p, contractOnFile: e.target.checked }))} className="w-4 h-4 accent-gold" />
                       <span className="text-sm text-earth">Contract on file</span>
                     </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked={formData.insuranceOnFile} onChange={(e) => setFormData(p => ({ ...p, insuranceOnFile: e.target.checked }))} className="w-4 h-4 accent-gold" />
+                      <span className="text-sm text-earth">Insurance on file</span>
+                    </label>
                   </div>
-                </FormGroup>
+                  <FormSelect label="Compliance owner" name="complianceOwnerId" value={formData.complianceOwnerId} onChange={(e) => setFormData(p => ({ ...p, complianceOwnerId: e.target.value }))} options={[{ value: "", label: "Unassigned" }, ...staff.map(m => ({ value: m.id, label: m.name }))]} />
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-xs text-earth">{formData.complianceReviewedAt ? `Last reviewed ${new Date(formData.complianceReviewedAt).toLocaleString()}` : "Not yet reviewed"}</p>
+                    <button type="button" onClick={() => setFormData(p => ({ ...p, complianceReviewedAt: new Date().toISOString() }))} className="text-xs text-gold hover:underline">Mark reviewed now</button>
+                  </div>
+                  <p className="text-[11px] text-earth">A supplier missing either file blocks confirmation of any booking whose journey uses them.</p>
+                </div>
                 <FormTextarea label="Notes" name="notes" value={formData.notes} onChange={(e) => setFormData(p => ({ ...p, notes: e.target.value }))} rows={2} placeholder="Additional notes..." />
               </div>
               <div className="flex gap-3 px-6 py-4 border-t border-sand-light flex-shrink-0">

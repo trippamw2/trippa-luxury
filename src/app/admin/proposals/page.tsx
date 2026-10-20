@@ -80,11 +80,15 @@ export default function AdminProposals() {
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
-    customer_name: "",
-    journey_name: "",
+    journey_id: "",
+    lead_id: "",
     total_investment: "",
     currency: "USD",
   });
+  const [journeyOptions, setJourneyOptions] = useState<{ id: string; name: string }[]>([]);
+  const [leadOptions, setLeadOptions] = useState<{ id: string; name: string }[]>([]);
+  const [optionsLoading, setOptionsLoading] = useState(false);
+  const [optionsError, setOptionsError] = useState<string | null>(null);
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [sendResult, setSendResult] = useState<{ id: string; bookingReference: string | null; error: string | null } | null>(null);
 
@@ -122,8 +126,54 @@ export default function AdminProposals() {
     };
   }, []);
 
+  /**
+   * Journey and customer are foreign keys on `proposals`, not free text, so the
+   * options are loaded when the modal opens. A failure is surfaced rather than
+   * left as two empty selects, because submitting without ids is what used to
+   * break the create.
+   */
+  const openModal = async () => {
+    setIsModalOpen(true);
+    setOptionsError(null);
+    setFormData({ title: "", journey_id: "", lead_id: "", total_investment: "", currency: "USD" });
+    setOptionsLoading(true);
+    try {
+      const [journeysRes, leadsRes] = await Promise.all([
+        fetch("/api/admin/journeys").then((r) => r.json()),
+        fetch("/api/admin/leads").then((r) => r.json()),
+      ]);
+      if (journeysRes.error) throw new Error(journeysRes.error);
+      if (leadsRes.error) throw new Error(leadsRes.error);
+
+      setJourneyOptions(
+        (journeysRes.data || []).map((j: { id: string; journeyName?: string }) => ({
+          id: j.id,
+          name: j.journeyName?.trim() || "Untitled journey",
+        }))
+      );
+      setLeadOptions(
+        (leadsRes.data || []).map((l: { id: string; fullName?: string; email?: string }) => {
+          const name = l.fullName?.trim();
+          const email = l.email?.trim();
+          if (name && email) return { id: l.id, name: `${name} (${email})` };
+          return { id: l.id, name: name || email || "Unnamed lead" };
+        })
+      );
+    } catch (err: unknown) {
+      setOptionsError(err instanceof Error ? err.message : "Failed to load journeys and leads");
+      setJourneyOptions([]);
+      setLeadOptions([]);
+    } finally {
+      setOptionsLoading(false);
+    }
+  };
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.journey_id || !formData.lead_id) {
+      setOptionsError("Select a journey and a customer before saving.");
+      return;
+    }
     setSubmitting(true);
     try {
       const res = await fetch("/api/admin/proposals", {
@@ -131,18 +181,17 @@ export default function AdminProposals() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: formData.title,
-          customer_name: formData.customer_name,
-          journey_name: formData.journey_name,
+          journey_id: formData.journey_id,
+          lead_id: formData.lead_id,
           total_investment: formData.total_investment ? parseFloat(formData.total_investment) : null,
           currency: formData.currency,
           status: "draft",
-          proposal_reference: `KIV-${Math.floor(100000 + Math.random() * 900000)}`,
         }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Failed to create proposal");
       setIsModalOpen(false);
-      setFormData({ title: "", customer_name: "", journey_name: "", total_investment: "", currency: "USD" });
+      setFormData({ title: "", journey_id: "", lead_id: "", total_investment: "", currency: "USD" });
       fetchProposals();
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : "Failed to create proposal");
@@ -183,7 +232,7 @@ export default function AdminProposals() {
           <p className="text-sm text-gray-500 mt-1">Curated journey proposals sent to customers.</p>
         </div>
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={openModal}
           className="flex items-center gap-2 px-4 py-2 bg-soft-black text-cream text-sm font-medium rounded-lg hover:bg-soft-black/90 transition-colors cursor-pointer"
         >
           <Plus className="w-4 h-4" />
@@ -300,6 +349,9 @@ export default function AdminProposals() {
                 <X className="w-5 h-5" />
               </button>
             </div>
+            <p className="text-xs text-gray-500 mb-4">
+              Link this proposal to a journey and a customer. The reference is generated automatically.
+            </p>
             <form onSubmit={handleCreate} className="space-y-4">
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">Proposal Title</label>
@@ -313,27 +365,48 @@ export default function AdminProposals() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Customer Name</label>
-                <input
-                  type="text"
+                <label className="block text-xs font-medium text-gray-700 mb-1">Journey</label>
+                <select
                   required
-                  placeholder="e.g. Eleanor & Harrison Vance"
-                  value={formData.customer_name}
-                  onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
-                />
+                  disabled={optionsLoading}
+                  value={formData.journey_id}
+                  onChange={(e) => setFormData({ ...formData, journey_id: e.target.value })}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  <option value="">
+                    {optionsLoading ? "Loading journeys..." : "Select a journey"}
+                  </option>
+                  {journeyOptions.map((j) => (
+                    <option key={j.id} value={j.id}>
+                      {j.name}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Journey Name / Theme</label>
-                <input
-                  type="text"
+                <label className="block text-xs font-medium text-gray-700 mb-1">Customer</label>
+                <select
                   required
-                  placeholder="e.g. South Luangwa & Mnemba Island"
-                  value={formData.journey_name}
-                  onChange={(e) => setFormData({ ...formData, journey_name: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
-                />
+                  disabled={optionsLoading}
+                  value={formData.lead_id}
+                  onChange={(e) => setFormData({ ...formData, lead_id: e.target.value })}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  <option value="">
+                    {optionsLoading ? "Loading customers..." : "Select a customer"}
+                  </option>
+                  {leadOptions.map((l) => (
+                    <option key={l.id} value={l.id}>
+                      {l.name}
+                    </option>
+                  ))}
+                </select>
               </div>
+              {optionsError && (
+                <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+                  {optionsError}
+                </p>
+              )}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">Total Investment</label>

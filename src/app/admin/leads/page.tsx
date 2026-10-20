@@ -76,6 +76,21 @@ const PRIORITY_COLORS: Record<string, string> = {
   urgent: "bg-red-50 text-red-700",
 };
 
+/**
+ * Mirror of `leads_source_check` in migration 025. The column is a closed set,
+ * so this is a select rather than free text: typing an unlisted value (the old
+ * default was "direct") made every insert fail the CHECK constraint.
+ */
+const LEAD_SOURCES: { value: string; label: string }[] = [
+  { value: "website", label: "Website" },
+  { value: "whatsapp", label: "WhatsApp" },
+  { value: "email", label: "Email" },
+  { value: "referral", label: "Referral" },
+  { value: "social", label: "Social Media" },
+  { value: "advertising", label: "Advertising" },
+  { value: "other", label: "Other" },
+];
+
 /** Pure API -> view-model mapper. Module scope keeps its identity stable across renders. */
 function mapApiLead(item: ApiLead): Lead {
   return {
@@ -93,7 +108,7 @@ function mapApiLead(item: ApiLead): Lead {
     assigned_name: item.assignedName || null,
     last_contacted_at: item.lastContactedAt || null,
     next_follow_up: item.nextFollowUp || null,
-    source: item.source || "direct",
+    source: item.source || "website",
     created_at: item.createdAt || "",
     guest_profile_id: item.guestProfileId || null,
     inquiry_id: item.inquiryId || null,
@@ -115,7 +130,7 @@ export default function AdminLeads() {
     traveller_type: "couple",
     priority: "medium",
     estimated_budget: "",
-    source: "direct",
+    source: "website",
   });
 
   const fetchLeads = () => {
@@ -182,7 +197,7 @@ export default function AdminLeads() {
         traveller_type: "couple",
         priority: "medium",
         estimated_budget: "",
-        source: "direct",
+        source: "website",
       });
       fetchLeads();
     } catch (err: unknown) {
@@ -420,13 +435,17 @@ export default function AdminLeads() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">Source</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. website, referral"
+                  <select
                     value={formData.source}
                     onChange={(e) => setFormData({ ...formData, source: e.target.value })}
                     className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
-                  />
+                  >
+                    {LEAD_SOURCES.map((s) => (
+                      <option key={s.value} value={s.value}>
+                        {s.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">

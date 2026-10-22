@@ -1,3 +1,4 @@
+import { withSentryConfig } from "@sentry/nextjs/config";
 import type { NextConfig } from "next";
 
 const securityHeaders = [
@@ -56,4 +57,13 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  // A build must never phone home: build-time telemetry stays off.
+  telemetry: false,
+  sourcemaps: {
+    // Source maps are only uploaded when an auth token is configured for the
+    // release pipeline. Without one the build stays offline and only stamps
+    // debug ids into the artifacts.
+    disable: process.env.SENTRY_AUTH_TOKEN ? false : "disable-upload",
+  },
+});

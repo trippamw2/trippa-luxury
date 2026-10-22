@@ -8,7 +8,12 @@
  *   - MAX_ATTEMPTS consecutive failures within WINDOW_MS => account/IP lockout
  *   - A lockout blocks the IP for LOCKOUT_MS
  *   - A successful login clears the failure count
+ *
+ * The key is the platform-verified client address (`loginAttemptKey`), not a
+ * header the caller wrote.
  */
+import { resolveClientIp, type HeaderReader } from "@/lib/rate-limit-store";
+
 export interface LoginAttemptState {
   failures: number;
   /** epoch ms of the first failure in the current rolling window */
@@ -26,6 +31,18 @@ export interface LoginRateLimiter {
 export const MAX_ATTEMPTS = 5;
 export const WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 export const LOCKOUT_MS = 15 * 60 * 1000; // 15 minutes
+
+/**
+ * The identity a login attempt is counted against.
+ *
+ * The lockout has to follow the address the platform observed: keyed on a
+ * caller-written header, a brute-force run would earn a fresh allowance on
+ * every attempt by inventing a new value. `resolveClientIp` is the single place
+ * that decides which header is trusted.
+ */
+export function loginAttemptKey(request: HeaderReader): string {
+  return resolveClientIp(request);
+}
 
 /** Pure window bookkeeping, isolated for unit testing. */
 export function isWithinWindow(state: LoginAttemptState, nowMs: number): boolean {

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { loginRateLimiter } from "@/lib/login-rate-limiter";
-import { createAuditLog, getIpFromRequest } from "@/lib/audit";
+import { loginAttemptKey, loginRateLimiter } from "@/lib/login-rate-limiter";
+import { createAuditLog } from "@/lib/audit";
 import { resolveEffectiveRole } from "@/lib/admin-permissions";
 
 /**
@@ -18,7 +18,9 @@ import { resolveEffectiveRole } from "@/lib/admin-permissions";
  * whether the email exists or the password is wrong, to avoid user enumeration.
  */
 export async function POST(request: NextRequest) {
-  const ip = getIpFromRequest(request);
+  // The lockout follows the platform-verified client address, so a caller
+  // cannot earn a fresh allowance by inventing an `x-forwarded-for` value.
+  const ip = loginAttemptKey(request);
   const client = createClient();
 
   try {

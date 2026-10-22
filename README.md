@@ -128,7 +128,7 @@ Every admin API route is protected by the `requireAdmin` guard (`src/lib/api-hel
 
 The app deploys as a standard Next.js app (e.g. Vercel). Set all env vars from `.env.example` in the deployment environment, apply migrations to the production Supabase project, and configure the cron endpoints (`/api/cron/release-provisional-holds`, `/api/cron/prune-rate-limits`, `/api/ai/trigger-reminders`) with the `CRON_SECRET` header.
 
-`/api/cron/prune-rate-limits` should run daily. Rate-limit buckets are keyed by `x-forwarded-for`, which the caller controls, so without this sweep every distinct address a caller invents leaves a permanent row (migration `032`).
+`/api/cron/prune-rate-limits` should run daily. Rate-limit buckets are keyed on the client address the platform proxy observed (`x-real-ip`, which Vercel overwrites), falling back to the leftmost `x-forwarded-for` entry only when that header is absent — so a caller cannot mint a fresh bucket by inventing a header value. The sweep is still worth running: outside that proxy the fallback is caller-influenced, and every distinct address a caller reaches us with leaves a permanent row (migration `032`).
 
 `/api/ai/trigger-reminders` **stages only** and is safe to run unattended: it composes due reminders into `staged_reminders` and sends nothing. Sending happens solely via `POST /api/admin/staged-reminders/dispatch`, which requires an admin session and only reads rows a human approved. Do not add a cron or unattended caller for the dispatch route — that is exactly the unstaged unattended outbound the AI constitution refuses at every autonomy level. A row left `dispatching` by a crashed process is reclaimed as `failed` (never auto-resent) on a later dispatch, so an operator re-stages and re-approves it.
 

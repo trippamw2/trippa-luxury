@@ -12,7 +12,7 @@ import { logInteraction } from "@/lib/ai/customer-intelligence";
 import { workflowPersistence } from "@/lib/workflow-persistence";
 import { registerLeadFromInquiry } from "@/lib/pipeline/register";
 import { recordEvent } from "@/lib/ai/event-bus";
-import { clientKey, llmCostLimiter, publicWriteLimiter, tooManyRequests } from "@/lib/public-rate-limiter";
+import { llmCostLimiter, publicWriteLimiter, resolveClientIp, tooManyRequests } from "@/lib/public-rate-limiter";
 import { gateAiAction, ActionBlockedError, actionBlockedResponse } from "@/lib/ai/action-gate";
 import { createNotification } from "@/lib/notifications";
 
@@ -20,14 +20,14 @@ export async function POST(request: Request) {
   try {
     // This writes a row and sends two emails, so it is an open door to inbox
     // flooding and quota burn without a bound.
-    const verdict = await publicWriteLimiter.take(clientKey(request));
+    const verdict = await publicWriteLimiter.take(resolveClientIp(request));
     if (!verdict.allowed) {
       return tooManyRequests(verdict.retryAfterSeconds, "Too many enquiries. Please try again shortly.");
     }
 
     // The pipeline below profiles the guest with a paid LLM, so this endpoint is
     // publicly billable as well as publicly writable.
-    const llmVerdict = await llmCostLimiter.take(clientKey(request));
+    const llmVerdict = await llmCostLimiter.take(resolveClientIp(request));
     if (!llmVerdict.allowed) {
       return tooManyRequests(llmVerdict.retryAfterSeconds, "Too many requests. Please try again shortly.");
     }

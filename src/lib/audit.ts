@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { resolveClientIp } from "@/lib/rate-limit-store";
 
 type AuditAction = "CREATE" | "UPDATE" | "DELETE" | "CAMPAIGN_SEND" | "LOGIN_SUCCESS" | "LOGIN_FAILED";
 
@@ -73,11 +74,11 @@ export function sanitizeForAudit<T extends object>(
 
 /**
  * Extract client IP from a Request object.
+ *
+ * Delegates to the shared resolver so an audit row and a rate-limit bucket
+ * always name the same caller: the platform proxy's `x-real-ip` where it is
+ * set, otherwise the leftmost `x-forwarded-for` entry.
  */
 export function getIpFromRequest(request: Request): string {
-  return (
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    request.headers.get("x-real-ip") ||
-    "unknown"
-  );
+  return resolveClientIp(request);
 }

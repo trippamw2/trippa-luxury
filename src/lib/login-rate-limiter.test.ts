@@ -6,6 +6,7 @@ import {
   withWindowStart,
   applyFailure,
   createRateLimiter,
+  loginAttemptKey,
   type LoginAttemptState,
 } from "@/lib/login-rate-limiter";
 
@@ -141,6 +142,24 @@ describe("login rate limiter", () => {
       // First IP is locked, second is fine.
       expect(limiter.check("1.1.1.1", now + MAX_ATTEMPTS).allowed).toBe(false);
       expect(limiter.check("2.2.2.2", now + MAX_ATTEMPTS).allowed).toBe(true);
+    });
+  });
+
+  describe("loginAttemptKey", () => {
+    const req = (headers: Record<string, string>) => ({
+      headers: { get: (name: string): string | null => headers[name.toLowerCase()] ?? null },
+    });
+
+    it("locks out on the platform address, not the caller's header", () => {
+      // A forged x-forwarded-for must not move the lockout off the address
+      // the platform observed.
+      expect(
+        loginAttemptKey(req({ "x-real-ip": "198.51.100.7", "x-forwarded-for": "9.9.9.9" }))
+      ).toBe("198.51.100.7");
+    });
+
+    it("falls back to the leftmost forwarded hop", () => {
+      expect(loginAttemptKey(req({ "x-forwarded-for": "1.2.3.4, 5.6.7.8" }))).toBe("1.2.3.4");
     });
   });
 });

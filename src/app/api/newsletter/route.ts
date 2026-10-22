@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail, newsletterWelcomeEmail } from "@/lib/email";
-import { clientKey, publicWriteLimiter } from "@/lib/public-rate-limiter";
+import { publicWriteLimiter, resolveClientIp } from "@/lib/public-rate-limiter";
 import {
   ensureMarketingSuppression,
   liftMarketingSuppression,
@@ -10,7 +10,7 @@ import {
 export async function POST(request: Request) {
   try {
     // Each accepted signup sends a welcome email, so this needs a bound too.
-    const verdict = await publicWriteLimiter.take(clientKey(request));
+    const verdict = await publicWriteLimiter.take(resolveClientIp(request));
     if (!verdict.allowed) {
       return NextResponse.json(
         { error: "Too many requests. Please try again shortly." },
@@ -104,7 +104,7 @@ export async function POST(request: Request) {
  */
 export async function DELETE(request: Request) {
   try {
-    const verdict = await publicWriteLimiter.take(clientKey(request));
+    const verdict = await publicWriteLimiter.take(resolveClientIp(request));
     if (!verdict.allowed) {
       return NextResponse.json(
         { error: "Too many requests. Please try again shortly." },

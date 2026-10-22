@@ -1,6 +1,7 @@
 /**
  * Rate limit storage: a shared Postgres fixed window, with an in-process
- * fallback.
+ * fallback. Also the one place that decides which client address a bucket is
+ * keyed on (`resolveClientIp`).
  *
  * ── Why a durable store ────────────────────────────────────────────────────
  * A counter held in a `Map` is only real for one process. On a serverless or
@@ -19,14 +20,74 @@
  * boundary.
  *
  * ── Residual weakness, stated plainly ──────────────────────────────────────
- * Neither store fixes the identity problem. `clientKey` derives from
- * `x-forwarded-for`, which the caller controls, so an attacker who varies that
- * header gets a fresh bucket per request no matter where the counter lives.
- * Durable counting makes the limit *honest* about what it can enforce; it does
- * not make it an authentication mechanism.
+ * Neither store decides *who* the caller is; `resolveClientIp` does, and it
+ * trusts the platform proxy's `x-real-ip` over the caller-writable
+ * `x-forwarded-for`. Where that platform header is absent — a direct call, or
+ * a deployment behind a proxy that does not set it — the fallback is still
+ * caller-influenced, so the limiter stays defence in depth rather than an
+ * authentication mechanism. Durable counting makes the limit *honest* about
+ * what it can enforce; it does not make it an authentication mechanism.
  */
 
 import { createAdminClient } from "@/lib/supabase/admin";
+
+/**
+ * A request whose headers can be read.
+ *
+ * `Request` (and Next's `NextRequest`) satisfy this, and so does the minimal
+ * shape a test needs.
+ */
+export interface HeaderReader {
+  headers: { get(name: string): string | readonly string[] | null };
+}
+
+/**
+ * Bucket key used when no client address could be established.
+ *
+ * A constant on purpose: callers that arrive with no address at all share one
+ * bucket instead of each being handed a fresh allowance.
+ */
+export const UNKNOWN_CLIENT_KEY = "unknown";
+
+/**
+ * Resolve the client address that rate-limit buckets are keyed on.
+ *
+ * Trust model: the app runs behind a platform proxy (Vercel) that overwrites
+ * `x-real-ip` with the address it observed, so that header is the one signal a
+ * caller cannot forge. `x-forwarded-for` is appended to by every hop in the
+ * chain and is therefore caller-influenced, so it is consulted only when the
+ * platform header is absent, and only its leftmost entry — the address closest
+ * to the client — is used. A forged `x-forwarded-for` therefore can never
+ * override a present `x-real-ip`, and a raw multi-value chain is never used as
+ * a key.
+ */
+export function resolveClientIp(request: HeaderReader): string {
+  const realIp = firstAddress(request.headers.get("x-real-ip"));
+  if (realIp) return realIp;
+
+  const forwarded = firstAddress(request.headers.get("x-forwarded-for"));
+  if (forwarded) return forwarded;
+
+  return UNKNOWN_CLIENT_KEY;
+}
+
+/**
+ * Leftmost address carried by a header value.
+ *
+ * A repeated header arrives as an array; joining it reproduces the comma
+ * separated chain a single header would carry. Empty entries are skipped, and a
+ * value carrying no address at all yields an empty string so the caller can
+ * fall back.
+ */
+function firstAddress(value: string | readonly string[] | null): string {
+  if (value === null) return "";
+  const chain = typeof value === "string" ? value : value.join(",");
+  for (const entry of chain.split(",")) {
+    const address = entry.trim();
+    if (address) return address;
+  }
+  return "";
+}
 
 export interface RateVerdict {
   allowed: boolean;
@@ -56,10 +117,11 @@ export interface RateLimitStore {
 /**
  * Ceiling on tracked keys in the memory store.
  *
- * `clientKey` is derived from `x-forwarded-for`, which an attacker controls, so
- * the key space is effectively unbounded: a caller who varies that header on
- * every request would otherwise add a permanent map entry per request and grow
- * the process until it dies. Sweeping keeps the cost bounded regardless.
+ * The key space is effectively unbounded: the resolved address is the platform
+ * one where the proxy sets it, but the `x-forwarded-for` fallback is not, so a
+ * caller who varies it on every request would otherwise add a permanent map
+ * entry per request and grow the process until it dies. Sweeping keeps the
+ * cost bounded regardless.
  */
 export const MAX_TRACKED_KEYS = 10_000;
 

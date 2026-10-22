@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  clientKey,
+  resolveClientIp,
   createPublicRateLimiter,
   type PublicRateLimiter,
 } from "@/lib/public-rate-limiter";
@@ -80,23 +80,23 @@ describe("client identity", () => {
   });
 
   it("uses the first forwarded address, not the whole chain", () => {
-    expect(clientKey(req({ "x-forwarded-for": "203.0.113.5, 10.0.0.1" }))).toBe("203.0.113.5");
+    expect(resolveClientIp(req({ "x-forwarded-for": "203.0.113.5, 10.0.0.1" }))).toBe("203.0.113.5");
   });
 
   it("falls back to x-real-ip", () => {
-    expect(clientKey(req({ "x-real-ip": "198.51.100.7" }))).toBe("198.51.100.7");
+    expect(resolveClientIp(req({ "x-real-ip": "198.51.100.7" }))).toBe("198.51.100.7");
   });
 
   it("groups unidentified callers together rather than failing open per request", () => {
     // Spoofable, and deliberately so: an attacker without a forwarding header
     // shares one bucket rather than getting a fresh unlimited allowance.
-    expect(clientKey(req({}))).toBe("unknown");
+    expect(resolveClientIp(req({}))).toBe("unknown");
   });
 });
 
 describe("bounded memory", () => {
   it("does not grow without limit when the key is attacker-controlled", async () => {
-    // `clientKey` reads x-forwarded-for, so varying it per request is trivial.
+    // `resolveClientIp` reads x-forwarded-for, so varying it per request is trivial.
     // Before the sweep existed, each variation left a permanent map entry and
     // the process grew until it died.
     const rl = createPublicRateLimiter({ limit: 3, windowMs: 60_000 });

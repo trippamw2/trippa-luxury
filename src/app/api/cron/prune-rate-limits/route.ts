@@ -6,8 +6,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
  *
  * Deletes expired rows from `rate_limit_buckets` (migration 032).
  *
- * Why this job has to exist: the bucket key is derived from `x-forwarded-for`,
- * which the caller controls, so every distinct value a caller invents leaves a
+ * Why this job has to exist: the bucket key is the resolved client address, and
+ * where the platform proxy does not set it the fallback is still a value the
+ * caller controls, so every distinct address a caller reaches us with leaves a
  * row behind. The in-process limiter sweeps its own map; this table has no
  * equivalent, so without a sweep it grows until the database is the bottleneck —
  * which would aim a denial of service at the limiter instead of past it.

@@ -14,7 +14,7 @@ vi.mock("@/lib/email", () => ({
 
 const mockTake = vi.fn();
 vi.mock("@/lib/public-rate-limiter", () => ({
-  clientKey: () => "test-key",
+  resolveClientIp: () => "test-key",
   publicWriteLimiter: { take: (...args: unknown[]) => mockTake(...args) },
 }));
 

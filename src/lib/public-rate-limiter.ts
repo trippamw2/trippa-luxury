@@ -9,13 +9,16 @@
  *
  * Two things this still is not:
  *
- *  1. **Not a hard boundary.** `clientKey` derives from `x-forwarded-for`, which
- *     the caller controls, so an attacker who varies that header gets a fresh
- *     bucket per request regardless of where the counter lives. Durable counting
- *     makes the limit honest about what it can enforce; it does not make it an
- *     authentication mechanism. The hard boundary belongs at the edge (WAF, a
- *     CAPTCHA, provider-level quotas). This exists so a missing edge rule is not
- *     an open door.
+ *  1. **Not a hard boundary.** The bucket key is the client address resolved
+ *     by `resolveClientIp`: the platform proxy's `x-real-ip` where it is set,
+ *     otherwise the leftmost `x-forwarded-for` entry, which the caller can
+ *     still write. So an attacker who reaches the app without that platform
+ *     header and varies `x-forwarded-for` gets a fresh bucket per request
+ *     regardless of where the counter lives. Durable counting makes the limit
+ *     honest about what it can enforce; it does not make it an authentication
+ *     mechanism. The hard boundary belongs at the edge (WAF, a CAPTCHA,
+ *     provider-level quotas). This exists so a missing edge rule is not an
+ *     open door.
  *  2. **Not available offline.** If the database is unreachable the limiter
  *     degrades to in-process counting rather than failing every request. See
  *     `@/lib/rate-limit-store` for why that trade is deliberate.
@@ -23,12 +26,21 @@
 
 import {
   createMemoryRateLimitStore,
+  resolveClientIp,
   takeRateLimit,
   type RateLimitStore,
   type RateVerdict,
 } from "@/lib/rate-limit-store";
 
 export type { RateVerdict };
+
+/**
+ * The client identity every consumer of this limiter should key on.
+ *
+ * Re-exported so the limiter and the routes that call it read the address from
+ * one decision point instead of each parsing headers of their own.
+ */
+export { resolveClientIp };
 
 export interface PublicRateLimiter {
   /**
@@ -81,12 +93,14 @@ export interface RateLimitOptions {
 /**
  * Ceiling on the durable bucket key, leaving room for the name prefix.
  *
- * `x-forwarded-for` is attacker-controlled, so without a clamp a large header
- * would produce a key past the column's length check, the insert would fail, and
- * every such request would quietly fall back to in-process counting — an easy way
- * to opt out of the shared limit. Truncating collides distinct callers into one
- * bucket, which makes the limit stricter for them; that is the safe direction for
- * a failure, and a legitimate forwarded address is far shorter than this.
+ * The resolved address is the platform one where the proxy sets it, but the
+ * `x-forwarded-for` fallback is not, so without a clamp a large header would
+ * produce a key past the column's length check, the insert would fail, and
+ * every such request would quietly fall back to in-process counting — an easy
+ * way to opt out of the shared limit. Truncating collides distinct callers into
+ * one bucket, which makes the limit stricter for them; that is the safe
+ * direction for a failure, and a legitimate forwarded address is far shorter
+ * than this.
  */
 const MAX_BUCKET_KEY = 200;
 
@@ -171,22 +185,6 @@ export const guestOtpLimiter = createPublicRateLimiter({
   name: "guest-otp",
   durable: true,
 });
-
-/**
- * Best-effort client identity. Spoofable by design: `x-forwarded-for` is attacker
- * controlled, so this raises the cost of casual abuse without pretending to be
- * an authentication mechanism.
- */
-export function clientKey(request: {
-  headers: { get(name: string): string | null };
-}): string {
-  const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) {
-    const first = forwarded.split(",")[0]?.trim();
-    if (first) return first;
-  }
-  return request.headers.get("x-real-ip")?.trim() || "unknown";
-}
 
 /** A 429 for an endpoint whose cost is an LLM call. */
 export function tooManyRequests(retryAfterSeconds: number, message: string) {

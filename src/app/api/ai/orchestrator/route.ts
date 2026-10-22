@@ -6,14 +6,14 @@ import { NextResponse } from "next/server";
 import { orchestrator } from "@/lib/ai/orchestrator";
 import { workflowPersistence } from "@/lib/workflow-persistence";
 import type { ConciergeState } from "@/lib/ai/workflow-engine";
-import { clientKey, llmCostLimiter, tooManyRequests } from "@/lib/public-rate-limiter";
+import { llmCostLimiter, resolveClientIp, tooManyRequests } from "@/lib/public-rate-limiter";
 import { gateAiAction, ActionBlockedError, actionBlockedResponse } from "@/lib/ai/action-gate";
 
 export async function POST(request: Request) {
   try {
     // Each call reaches a paid LLM, so an unbounded endpoint is a billing
     // denial-of-wallet as much as a security problem.
-    const verdict = await llmCostLimiter.take(clientKey(request));
+    const verdict = await llmCostLimiter.take(resolveClientIp(request));
     if (!verdict.allowed) {
       return tooManyRequests(verdict.retryAfterSeconds, "Too many requests. Please try again shortly.");
     }

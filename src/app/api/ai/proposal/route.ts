@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { proposalEngine } from "@/lib/ai/proposal-engine";
 import { romanceEngine } from "@/lib/ai/romance-engine";
 import type { GuestProfile } from "@/lib/ai/types";
-import { clientKey, llmCostLimiter, tooManyRequests } from "@/lib/public-rate-limiter";
+import { llmCostLimiter, resolveClientIp, tooManyRequests } from "@/lib/public-rate-limiter";
 import { gateAiAction, ActionBlockedError, actionBlockedResponse } from "@/lib/ai/action-gate";
 
 /**
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
   try {
       // Each call reaches a paid LLM, so an unbounded endpoint is a billing
       // denial-of-wallet as much as a security problem.
-      const verdict = await llmCostLimiter.take(clientKey(request));
+      const verdict = await llmCostLimiter.take(resolveClientIp(request));
       if (!verdict.allowed) {
         return tooManyRequests(verdict.retryAfterSeconds, "Too many requests. Please try again shortly.");
       }

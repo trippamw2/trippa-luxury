@@ -109,6 +109,7 @@ export interface SupplierRecord {
   insuranceOnFile: boolean;
   rating: number | null;
   status: string | null;
+  complianceDocs?: { docType: string; expiresOn: string | null }[];
 }
 
 export interface JourneyRecord {
@@ -393,6 +394,51 @@ function detectSupplierCompliance(m: KoraMetrics): GapFinding | null {
   );
 }
 
+function detectExpiringSupplierCompliance(m: KoraMetrics): GapFinding | null {
+  const HORIZON_DAYS = 60;
+  const now = new Date(m.now);
+  const horizon = now.getTime() + HORIZON_DAYS * 24 * 60 * 60 * 1000;
+
+  const evidence: Array<{ kind: "supplier"; id: string; label: string; detail: string }> = [];
+  for (const s of m.suppliers) {
+    for (const doc of s.complianceDocs || []) {
+      if (!doc.expiresOn) continue;
+      const expiry = new Date(doc.expiresOn).getTime();
+      if (Number.isNaN(expiry)) continue;
+      if (expiry > horizon) continue;
+      const expired = expiry < now.getTime();
+      evidence.push({
+        kind: "supplier",
+        id: s.id,
+        label: s.name,
+        detail: `${doc.docType} ${expired ? "expired" : "expires"} ${doc.expiresOn}`,
+      });
+    }
+  }
+
+  if (evidence.length === 0) return null;
+
+  return finding(
+    "supplier-compliance-expiring",
+    {
+      ruleId: "supplier-compliance-expiring",
+      category: "risk",
+      title: "Supplier compliance documents are expiring or expired",
+      description:
+        "Supplier contract/insurance/license documents are within 60 days of expiry (or already past). Renewal is the company's job to chase, not the operator's.",
+      severity: evidence.some((e) => e.detail.includes("expired")) ? "high" : "medium",
+      businessImpact: `${evidence.length} supplier document(s) need renewal attention.`,
+      recommendation:
+        "Chase renewals now, with a named owner per supplier, before a live itinerary depends on an expired file.",
+      implementationPlan:
+        "1. Weekly compliance digest to the operations lead. 2. Block new bookings through a supplier whose critical document is expired. 3. Track expiry dates on supplier_documents.",
+      expectedRoi: "Avoids the tail risk that dominates the downside of the whole business.",
+      risk: "Low technical risk, real commercial friction: enforcement will block some bookings until paperwork arrives.",
+    },
+    evidence
+  );
+}
+
 function detectMissingSupplierRatings(m: KoraMetrics): GapFinding | null {
   const evidence = m.suppliers
     .filter((s) => s.rating === null)
@@ -466,6 +512,7 @@ function detectThinMarginJourneys(m: KoraMetrics, t: KoraThresholds): GapFinding
 const DETECTORS: ReadonlyArray<(m: KoraMetrics, t: KoraThresholds) => GapFinding | null> = [
   detectInquirySlaBreach,
   detectSupplierCompliance,
+  detectExpiringSupplierCompliance,
   detectThinMarginJourneys,
   detectExpiredProposals,
   detectNeverConvertedInquiries,
@@ -737,7 +784,7 @@ export function isOpenInquiryRow(raw: Record<string, unknown>): boolean {
  */
 export async function collectMetrics(now: string): Promise<KoraMetrics> {
   const supabase = createAdminClient();
-  const [inquiries, proposals, suppliers, journeys] = await Promise.all([
+  const [inquiries, proposals, suppliers, journeys, supplierDocs] = await Promise.all([
     supabase
       .from("inquiries")
       .select(
@@ -752,10 +799,13 @@ export async function collectMetrics(now: string): Promise<KoraMetrics> {
     supabase
       .from("journeys")
       .select("id, journey_name, gross_profit, gross_margin, total_selling_price"),
+    supabase
+      .from("supplier_documents")
+      .select("supplier_id, doc_type, expires_on"),
   ]);
 
   const readError =
-    inquiries.error || proposals.error || suppliers.error || journeys.error;
+    inquiries.error || proposals.error || suppliers.error || journeys.error || supplierDocs.error;
   if (readError) {
     throw new Error(
       `KORA could not read the platform: ${inquiries.error?.message ?? proposals.error?.message ?? suppliers.error?.message ?? journeys.error?.message ?? "unknown error"}`
@@ -807,6 +857,12 @@ export async function collectMetrics(now: string): Promise<KoraMetrics> {
       insuranceOnFile: asBoolean(rowValue(raw, "insurance_on_file")),
       rating: asNumber(rowValue(raw, "rating")),
       status: asString(rowValue(raw, "status")),
+      complianceDocs: ((supplierDocs.data ?? []) as Record<string, unknown>[])
+        .filter((d) => String(rowValue(d, "supplier_id")) === String(rowValue(raw, "id")))
+        .map((d) => ({
+          docType: String(rowValue(d, "doc_type") ?? "other"),
+          expiresOn: asString(rowValue(d, "expires_on")),
+        })),
     })),
     journeys: ((journeys.data ?? []) as Record<string, unknown>[]).map((raw) => ({
       id: String(rowValue(raw, "id")),

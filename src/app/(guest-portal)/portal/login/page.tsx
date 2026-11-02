@@ -104,7 +104,7 @@ export default function PortalLoginPage() {
                 Check Your Email
               </h2>
               <p className="text-sm text-[#8B7D6B] mb-6">
-                We&apos;ve sent a 6-digit code to <strong className="text-[#1A1A1A]">{email}</strong>. Enter it below to access your portal.
+                If a booking exists for this email, your code is on its way.
               </p>
               <form onSubmit={handleVerifyOtp} className="space-y-4">
                 <div>

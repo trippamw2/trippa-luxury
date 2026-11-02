@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useId } from "react";
-import { CheckCircle, AlertCircle, CreditCard, Plane, Mail, ShieldAlert, ShieldCheck, Scale, Gauge } from "lucide-react";
+import { CheckCircle, AlertCircle, CreditCard, Plane, Mail, ShieldAlert, ShieldCheck, Scale, Gauge, UserCheck } from "lucide-react";
 import { AUTONOMY_LEVEL_LABELS, type AutonomyLevel } from "@/lib/ai/autonomy-policy";
 
 interface BankDetailsData {
@@ -58,6 +58,22 @@ interface SettingsData {
 }
 
 const LS_KEY = "kivara_settings";
+
+/** One address the guest portal backfill could not provision. */
+interface GuestPortalBackfillFailure {
+  email: string;
+  reason: string;
+}
+
+/** The summary `POST /api/admin/guest-portal/backfill` answers with. */
+interface GuestPortalBackfillSummary {
+  attempted: number;
+  created: number;
+  skipped: number;
+  failed: number;
+  failures: GuestPortalBackfillFailure[];
+  hasMore: boolean;
+}
 
 const defaultBankDetails: BankDetailsData = {
   bankName: "",
@@ -455,6 +471,40 @@ export default function AdminSettings() {
     guidance?: string[];
   } | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
+
+  // ── Guest portal access backfill ───────────────────────────────────
+  // Deliberately an explicit button, never a page-load effect: provisioning
+  // mints auth users, so it happens only when an operator asks for it.
+  const [backfillRunning, setBackfillRunning] = useState(false);
+  const [backfillResult, setBackfillResult] = useState<GuestPortalBackfillSummary | null>(null);
+  const [backfillError, setBackfillError] = useState<string | null>(null);
+
+  async function runGuestPortalBackfill() {
+    setBackfillRunning(true);
+    setBackfillError(null);
+    setBackfillResult(null);
+    try {
+      // One bare POST per click - never retried here. The endpoint runs the
+      // first batch and reports `hasMore` instead of walking the whole list.
+      const res = await fetch("/api/admin/guest-portal/backfill", { method: "POST" });
+      const json = await res.json();
+      // 401/403/500 all answer { error }, so the inline error says what the
+      // server refused rather than a bare status code.
+      if (!res.ok || json.error) throw new Error(json.error || `HTTP ${res.status}`);
+      setBackfillResult({
+        attempted: typeof json.attempted === "number" ? json.attempted : 0,
+        created: typeof json.created === "number" ? json.created : 0,
+        skipped: typeof json.skipped === "number" ? json.skipped : 0,
+        failed: typeof json.failed === "number" ? json.failed : 0,
+        failures: Array.isArray(json.failures) ? json.failures : [],
+        hasMore: json.hasMore === true,
+      });
+    } catch (err: unknown) {
+      setBackfillError(err instanceof Error ? err.message : "Backfill failed");
+    } finally {
+      setBackfillRunning(false);
+    }
+  }
 
   async function runEmailTest() {
     setEmailTesting(true);
@@ -945,6 +995,91 @@ export default function AdminSettings() {
                 />
               </div>
             </div>
+          </div>
+
+          {/* ─── Guest Portal Access Section ─────────────────────────── */}
+          <div className="pt-6 border-t border-sand-light/50">
+            <div className="flex items-center gap-2 mb-4">
+              <UserCheck className="w-4 h-4 text-gold" />
+              <h2 className="text-sm font-semibold text-soft-black uppercase tracking-wider">Guest portal access</h2>
+            </div>
+            <p className="text-xs text-earth mb-4">
+              The guest portal only signs in addresses that already have an account, so the login form can
+              never reveal who booked. This backfill creates the missing accounts from the guest emails on
+              existing bookings, up to 500 addresses per run. It creates accounts only: no booking is
+              changed, no email is sent, and nothing is deleted or deactivated.
+            </p>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={runGuestPortalBackfill}
+                disabled={backfillRunning}
+                className="px-4 py-2 bg-soft-black text-cream text-sm tracking-widest uppercase hover:bg-soft-black-light transition-colors disabled:opacity-40"
+              >
+                {backfillRunning ? "Running..." : "Run backfill"}
+              </button>
+              {backfillRunning && (
+                <span className="text-xs text-earth">Creating missing guest accounts...</span>
+              )}
+            </div>
+            {backfillError && (
+              <p className="text-sm text-red-600 flex items-center gap-1 mt-4">
+                <AlertCircle className="w-4 h-4" />
+                {backfillError}
+              </p>
+            )}
+            {backfillResult && (
+              <div className={`mt-4 p-4 border ${backfillResult.failed > 0 ? "border-amber-200 bg-amber-50/40" : "border-emerald-200 bg-emerald-50/40"}`}>
+                <p className="flex items-center gap-1.5 text-sm font-medium text-soft-black">
+                  {backfillResult.failed > 0 ? (
+                    <><AlertCircle className="w-4 h-4 text-amber-600" /> Backfill finished with failures</>
+                  ) : (
+                    <><CheckCircle className="w-4 h-4 text-emerald-600" /> Backfill finished</>
+                  )}
+                </p>
+                <dl className="mt-3 grid grid-cols-1 gap-2 text-sm">
+                  <div className="flex gap-2">
+                    <dt className="w-32 text-earth">Attempted</dt>
+                    <dd className="text-soft-black">{backfillResult.attempted}</dd>
+                  </div>
+                  <div className="flex gap-2">
+                    <dt className="w-32 text-earth">Created</dt>
+                    <dd className="text-soft-black">{backfillResult.created}</dd>
+                  </div>
+                  <div className="flex gap-2">
+                    <dt className="w-32 text-earth">Skipped</dt>
+                    <dd className="text-soft-black">{backfillResult.skipped}</dd>
+                  </div>
+                  <div className="flex gap-2">
+                    <dt className="w-32 text-earth">Failed</dt>
+                    <dd className={backfillResult.failed > 0 ? "text-red-600" : "text-soft-black"}>
+                      {backfillResult.failed}
+                    </dd>
+                  </div>
+                </dl>
+                {backfillResult.hasMore && (
+                  <p className="text-xs text-earth mt-3">
+                    More booking addresses remain. Run the backfill again to continue with the next batch.
+                  </p>
+                )}
+                {backfillResult.failures.length > 0 && (
+                  <details className="mt-3">
+                    <summary className="cursor-pointer text-xs text-earth">
+                      Failed addresses ({backfillResult.failures.length})
+                    </summary>
+                    <ul className="mt-2 space-y-1 text-xs text-amber-800">
+                      {backfillResult.failures.map((failure) => (
+                        <li key={`${failure.email}-${failure.reason}`} className="flex gap-1.5">
+                          <span className="text-amber-600">•</span>
+                          <span>
+                            {failure.email} <span className="text-amber-700">reason: {failure.reason}</span>
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
+              </div>
+            )}
           </div>
 
           {apiError && (

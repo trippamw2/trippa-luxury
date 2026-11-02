@@ -3,6 +3,7 @@ import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createAuditLog, sanitizeForAudit, getIpFromRequest } from "@/lib/audit";
 import { joinSingle } from "@/lib/api-helpers";
+import { createNotification } from "@/lib/notifications";
 import { registerTaskStage } from "@/lib/pipeline/register";
 
 const TABLE = "tasks";
@@ -134,6 +135,17 @@ export async function POST(request: NextRequest) {
       if (!taskCompleted.registered && taskCompleted.error) {
         console.warn("registerTaskStage (completed):", taskCompleted.error);
       }
+    }
+
+    if (assigneeId && assigneeId !== auth.profile.id) {
+      void createNotification({
+        type: "task_assigned",
+        title: `Task assigned: ${title}`,
+        body: `Priority: ${priority}${dueDate ? ` · due ${dueDate}` : ""}`,
+        link: "/admin/tasks",
+        entityType: "task",
+        entityId: task.id,
+      }).catch((err) => console.error("Failed to create task assignment notification:", err));
     }
 
     return NextResponse.json({

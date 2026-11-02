@@ -19,6 +19,9 @@
     {
       "path": "/api/cron/prune-rate-limits",
       "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/cron/purge-append-only",
+      "schedule": "0 3 * * 0"
     }
   ]
-}

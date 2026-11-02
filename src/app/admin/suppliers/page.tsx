@@ -6,6 +6,7 @@ import { Plus, Building2, Plane, Car, Ship, MapPin, Phone, Mail, Star, Shield, H
 import Image from "next/image";
 import { useApiData } from "@/lib/use-api-data";
 import { useToast } from "@/app/admin/components/Toast";
+import { expiryBadge } from "@/lib/supplier-documents";
 import { SkeletonText } from "@/app/admin/components/Skeleton";
 import { EmptyState } from "@/app/admin/components/EmptyState";
 import { FormInput, FormTextarea, FormSelect, FormGroup } from "@/app/admin/components/FormField";
@@ -138,6 +139,9 @@ export default function AdminSuppliers() {
   const [showModal, setShowModal] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [docsSupplier, setDocsSupplier] = useState<Supplier | null>(null);
+  const [docs, setDocs] = useState<Array<{ id: string; doc_type: string; original_name: string; expires_on: string | null }>>([]);
+  const [docsLoading, setDocsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "", category: "lodge" as SupplierCategory, location: "", country: "",
     contactPerson: "", email: "", phone: "", commissionRate: "", rating: "",
@@ -191,6 +195,20 @@ export default function AdminSuppliers() {
       toast("Supplier created", "success");
     } else {
       toast("Failed to create supplier", "error");
+    }
+  };
+
+const openDocsModal = async (supplier: Supplier) => {
+    setDocsSupplier(supplier);
+    setDocsLoading(true);
+    try {
+      const res = await fetch(`/api/admin/suppliers/${supplier.id}/documents`);
+      const json = await res.json();
+      setDocs(Array.isArray(json?.data) ? json.data : []);
+    } catch {
+      setDocs([]);
+    } finally {
+      setDocsLoading(false);
     }
   };
 
@@ -296,6 +314,7 @@ export default function AdminSuppliers() {
                 <div className="flex items-center justify-between pt-3 border-t border-sand-light">
                   <span className="text-xs text-earth">{supplier.bookingsCount} bookings{supplier.paymentTerms ? ` · ${supplier.paymentTerms}` : ""}</span>
                   <div className="flex gap-3">
+                    <button onClick={() => openDocsModal(supplier)} className="flex items-center gap-1 text-xs text-gold hover:underline">Docs</button>
                     <button onClick={() => openEditModal(supplier)} className="flex items-center gap-1 text-xs text-gold hover:underline"><Edit2 className="w-3 h-3" />Edit</button>
                     <button onClick={() => setDeleteConfirm(supplier.id)} className="text-xs text-red-500 hover:underline">Delete</button>
                   </div>
@@ -389,6 +408,74 @@ export default function AdminSuppliers() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <AnimatePresence>
+        {docsSupplier && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-soft-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setDocsSupplier(null)}>
+            <motion.div initial={{ scale: 0.95 }} className="bg-cream border border-sand-light p-6 w-full max-w-lg max-h-[80vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-soft-black">Compliance documents — {docsSupplier.name}</h3>
+                <button onClick={() => setDocsSupplier(null)}><X className="w-5 h-5 text-earth" /></button>
+              </div>
+              {docsLoading ? (
+                <p className="text-earth text-sm">Loading…</p>
+              ) : docs.length === 0 ? (
+                <p className="text-earth text-sm">No documents uploaded.</p>
+              ) : (
+                <ul className="space-y-2 mb-4">
+                  {docs.map((d) => {
+                    const badge = expiryBadge(d.expires_on);
+                    const badgeClass = badge === "red" ? "bg-red-100 text-red-700" : badge === "amber" ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-600";
+                    return (
+                      <li key={d.id} className="flex items-center justify-between gap-3 border border-sand-light/50 rounded p-3">
+                        <div>
+                          <p className="text-sm font-medium text-soft-black">{d.original_name}</p>
+                          <p className="text-xs text-earth">{d.doc_type}{d.expires_on ? ` · expires ${d.expires_on}` : ""}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs px-2 py-0.5 rounded ${badgeClass}`}>{badge}</span>
+                          <button onClick={async () => {
+                            await fetch(`/api/admin/suppliers/${docsSupplier!.id}/documents/${d.id}`, { method: "DELETE" });
+                            setDocs((prev) => prev.filter((x) => x.id !== d.id));
+                          }} className="text-xs text-red-500 hover:underline">Delete</button>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                const fd = new FormData(e.currentTarget);
+                const file = fd.get("file") as File | null;
+                if (!file) return;
+                const res = await fetch(`/api/admin/suppliers/${docsSupplier!.id}/documents`, { method: "POST", body: fd });
+                if (res.ok) {
+                  const json = await res.json();
+                  if (json?.data) setDocs((prev) => [json.data, ...prev]);
+                  (e.target as HTMLFormElement).reset();
+                } else {
+                  const json = await res.json().catch(() => ({}));
+                  alert(json?.error || "Upload failed");
+                }
+              }} className="space-y-3 pt-3 border-t border-sand-light">
+                <input type="file" name="file" className="text-sm" />
+                <select name="doc_type" className="border border-sand-light/50 rounded px-3 py-2 text-sm">
+                  <option value="contract">Contract</option>
+                  <option value="insurance">Insurance</option>
+                  <option value="license">License</option>
+                  <option value="other">Other</option>
+                </select>
+                <input type="date" name="expires_on" className="border border-sand-light/50 rounded px-3 py-2 text-sm" />
+                <button type="submit" className="px-4 py-2 bg-soft-black text-cream text-sm tracking-widest uppercase hover:bg-soft-black-light transition-colors">Upload</button>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }

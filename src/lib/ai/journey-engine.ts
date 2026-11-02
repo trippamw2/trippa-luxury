@@ -477,6 +477,9 @@ const DEFAULT_TRANSFER_PRICING: TransferPricing = {
  */
 let transferPricingCache: TransferPricing | null = null;
 
+/** Per-property base_rate overrides loaded from property_pricing. null until warmed. */
+let propertyPricingCache: Map<string, number> | null = null;
+
 /**
  * Read transfer pricing from `platform_settings`. Idempotent and never throws.
  *
@@ -537,7 +540,7 @@ function transferPricing(): TransferPricing {
  * fetched, so the LLM path pays for no extra query.
  */
 export async function warmJourneyInputs(): Promise<void> {
-  await Promise.all([warmTransferPricing(), warmCatalog()]);
+  await Promise.all([warmTransferPricing(), warmCatalog(), warmPropertyPricing()]);
 }
 
 /**
@@ -550,6 +553,27 @@ async function warmCatalog(): Promise<void> {
     primeLiveCatalog(await getActiveProducts());
   } catch {
     // Stay on the constants mirror and let the next warm retry.
+  }
+}
+
+async function warmPropertyPricing(): Promise<void> {
+  if (propertyPricingCache) return;
+  try {
+    const { createAdminClient } = await import("@/lib/supabase/admin");
+    const supabase = createAdminClient();
+    const { data, error } = await supabase.from("property_pricing").select("property_id, base_rate");
+    if (error) throw error;
+    const map = new Map<string, number>();
+    (data || []).forEach((row: { property_id: string; base_rate: number | string | null }) => {
+      const rate = Number(row.base_rate);
+      if (row.property_id && Number.isFinite(rate) && rate > 0) {
+        map.set(row.property_id, rate);
+      }
+    });
+    propertyPricingCache = map;
+  } catch {
+    // Leave null so the next warm retries; fallback to priceRange parsing.
+    propertyPricingCache = new Map();
   }
 }
 
@@ -758,8 +782,9 @@ function calculatePricing(
   const pricing = transferPricing();
 
   for (const { property, nights } of propertyAssignments) {
-    // 1. Extract the maximum seasonal PPPN price
-    const baseRate = extractMaxPppn(property.priceRange || "");
+    // 1. Extract the maximum seasonal PPPN price (operator override wins)
+    const override = propertyPricingCache?.get(property.id);
+    const baseRate = override ?? extractMaxPppn(property.priceRange || "");
     // 2. Apply 45% universal markup
     const rateAfterMarkup = Math.round(baseRate * (1 + PPPN_MARKUP));
     // 3. Ultra-luxury guests get an additional premium tier on top

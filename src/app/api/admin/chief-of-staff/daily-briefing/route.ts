@@ -12,7 +12,21 @@ export async function GET(_request: NextRequest) {
   try {
     await requireAdmin({ module: "chief-of-staff", minRole: "admin" });
 
-    const briefing = await generateDailyBriefing();
+const briefing = await generateDailyBriefing();
+
+    // Persist a durable record of this briefing run (best-effort, never blocks).
+    try {
+      const { persistAgentReport } = await import("@/lib/ai/agent-persistence");
+      await persistAgentReport({
+        agent: "chief-of-staff",
+        scope: "operational",
+        title: "Daily briefing",
+        statement: "Executive daily briefing generated.",
+        report: briefing as unknown as Record<string, unknown>,
+      });
+    } catch (persistErr) {
+      console.error("Failed to persist daily briefing report:", persistErr);
+    }
 
     return NextResponse.json(briefing, { status: 200 });
   } catch (error) {

@@ -18,6 +18,18 @@ export async function GET(request: NextRequest) {
     }
 
     const report = await marketIntelligence.analyzeMarket();
+    try {
+      const { persistAgentReport } = await import("@/lib/ai/agent-persistence");
+      await persistAgentReport({
+        agent: "market-intelligence",
+        scope: "commercial",
+        title: "Market analysis",
+        statement: "Market intelligence report generated.",
+        report: (report ?? {}) as unknown as Record<string, unknown>,
+      });
+    } catch (persistErr) {
+      console.error("Failed to persist market intelligence report:", persistErr);
+    }
     return NextResponse.json({ report });
   } catch (err) {
     if (err instanceof AdminAuthError) {

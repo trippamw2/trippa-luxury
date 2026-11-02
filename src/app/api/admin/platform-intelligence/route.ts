@@ -10,6 +10,18 @@ export async function GET() {
   try {
     await requireAdmin({ module: "analytics", minRole: "editor" });
     const health = await platformIntelligence.health();
+    try {
+      const { persistAgentReport } = await import("@/lib/ai/agent-persistence");
+      await persistAgentReport({
+        agent: "platform-intelligence",
+        scope: "operational",
+        title: "Platform health",
+        statement: "Platform intelligence health report generated.",
+        report: (health ?? {}) as unknown as Record<string, unknown>,
+      });
+    } catch (persistErr) {
+      console.error("Failed to persist platform intelligence report:", persistErr);
+    }
     return NextResponse.json({ health });
   } catch (err) {
     if (err instanceof AdminAuthError) {

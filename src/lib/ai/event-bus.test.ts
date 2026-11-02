@@ -101,9 +101,9 @@ function row(overrides: Partial<SystemEventRow> = {}): SystemEventRow {
 }
 
 describe("canonical event vocabulary", () => {
-  it("contains exactly the sixteen constitutional types", () => {
-    expect(CANONICAL_EVENT_TYPES).toHaveLength(16);
-    expect(new Set(CANONICAL_EVENT_TYPES).size).toBe(16);
+  it("contains exactly the seventeen constitutional types", () => {
+    expect(CANONICAL_EVENT_TYPES).toHaveLength(17);
+    expect(new Set(CANONICAL_EVENT_TYPES).size).toBe(17);
   });
 
   it("recognises every canonical type", () => {
@@ -160,7 +160,7 @@ describe("isSystemEventType", () => {
       expect(isSystemEventType(t)).toBe(true);
     }
 // The exact count guards against a type being added to one list only.
-  expect(CANONICAL_EVENT_TYPES.length + OPERATIONAL_EVENT_TYPES.length).toBe(23);
+  expect(CANONICAL_EVENT_TYPES.length + OPERATIONAL_EVENT_TYPES.length).toBe(24);
   });
 
   it("rejects anything outside both vocabularies", () => {

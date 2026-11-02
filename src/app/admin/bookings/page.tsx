@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, X, FileText, Mail, Send, Printer, Loader2, Edit2, Trash2, Calendar, CalendarDays, AlertTriangle, RefreshCw, Download, History, UserRound, BadgeCheck, Wallet } from "lucide-react";
 import { useApiData } from "@/lib/use-api-data";
@@ -571,7 +572,11 @@ export default function AdminBookings() {
       key: "ref",
       header: "Ref",
       className: "font-medium text-gold font-mono text-xs",
-      render: (b) => b.ref,
+      render: (b) => (
+        <Link href={`/admin/bookings/${b.id}`} className="hover:underline">
+          {b.ref}
+        </Link>
+      ),
     },
     {
       key: "clientName",

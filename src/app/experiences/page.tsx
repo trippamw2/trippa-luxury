@@ -26,12 +26,13 @@ export default function ExperiencesPage() {
     [experiences, activeCategory]
   );
 
-  const getDestinationName = (slug: string) => {
+  const getDestinationName = (slug: string | null | undefined) => {
+    if (!slug) return "Experiences";
     const dest = destinations.find((d) => d.slug === slug);
     return dest?.title ?? slug;
   };
 
-  const getDestinationHref = (slug: string) => `/${slug}`;
+  const getDestinationHref = (slug: string | null | undefined) => (slug ? `/${slug}` : "/experiences");
 
   const categories = EXPERIENCE_CATEGORIES;
 

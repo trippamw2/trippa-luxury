@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, X, Loader2, Banknote } from "lucide-react";
 import { useApiData } from "@/lib/use-api-data";
+import { getUsdRates } from "@/lib/fx-rates";
 import { useToast } from "@/app/admin/components/Toast";
 import { SkeletonText } from "@/app/admin/components/Skeleton";
 import { FormInput, FormSelect, FormTextarea } from "@/app/admin/components/FormField";
@@ -19,6 +20,20 @@ interface Invoice {
 interface Expense {
   id: string; category: string; description: string; amount: number;
   date: string; status: string; receipt?: string;
+}
+interface WireRow {
+  paymentId: string;
+  bookingId: string;
+  bookingRef: string;
+  clientName: string | null;
+  clientEmail: string | null;
+  checkIn: string | null;
+  checkOut: string | null;
+  amount: number;
+  currency: string;
+  reference: string | null;
+  status: string;
+  ageDays: number | null;
 }
 interface Payout {
   id: string;
@@ -213,7 +228,7 @@ const payoutStatusConfig: Record<string, { label: string; color: string; bg: str
 const PAYOUT_CURRENCIES = ["USD", "EUR", "GBP", "ZMW", "ZAR"];
 const PAYOUT_METHODS = ["Bank Transfer", "SWIFT", "Mobile Money", "Cash", "Card"];
 
-type Tab = "transactions" | "invoices" | "payouts" | "expenses";
+type Tab = "transactions" | "invoices" | "payouts" | "expenses" | "wires";
 
 const EXPENSE_CATEGORIES = ["Marketing", "Operations", "Staff", "Travel", "Technology"];
 const PAYMENT_METHODS = ["Stripe", "Bank Transfer", "PayPal", "Credit Card"];
@@ -233,6 +248,9 @@ export default function AdminFinance() {
   // ─── Payouts (custom API with supplier join) ──────
   const [payouts, setPayouts] = useState<Payout[]>([]);
   const [loadingPayouts, setLoadingPayouts] = useState(true);
+  const [wires, setWires] = useState<WireRow[]>([]);
+  const [loadingWires, setLoadingWires] = useState(false);
+  const [fxRates, setFxRates] = useState<{ EUR: number; GBP: number; ZAR: number } | null>(null);
   const [suppliers, setSuppliers] = useState<SupplierOption[]>([]);
   const [payoutFilter, setPayoutFilter] = useState("all");
   const [updatingPayout, setUpdatingPayout] = useState<string | null>(null);
@@ -270,7 +288,32 @@ export default function AdminFinance() {
     };
   }, [fetchPayoutRows, payoutFilter]);
 
-  // Load supplier options for the payout form on first open of the modal.
+  useEffect(() => {
+    if (activeTab !== "wires") return;
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      setLoadingWires(true);
+      fetch("/api/admin/finance/wires/pending")
+        .then((r) => (r.ok ? r.json() : null))
+        .then((json) => {
+          if (!cancelled && json?.wires) setWires(json.wires as WireRow[]);
+        })
+        .catch(() => {})
+        .finally(() => {
+          if (!cancelled) setLoadingWires(false);
+        });
+    }, 0);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [activeTab]);
+
+  useEffect(() => {
+    let cancelled = false;
+    getUsdRates().then((r) => { if (!cancelled) setFxRates(r); }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
   useEffect(() => {
     if (!showModal || modalType !== "payouts" || suppliers.length > 0) return;
     void (async () => {
@@ -315,6 +358,7 @@ export default function AdminFinance() {
     { id: "invoices", label: "Invoices" },
     { id: "payouts", label: "Payouts" },
     { id: "expenses", label: "Expenses" },
+    { id: "wires", label: "Wire confirmations" },
   ];
 
   const getStats = () => {
@@ -432,6 +476,7 @@ export default function AdminFinance() {
               {tab.label}
             </button>
           ))}
+          {fxRates && <span className="ml-auto text-xs text-earth self-center">Live FX: 1 USD = {fxRates.EUR.toFixed(2)} EUR · {fxRates.GBP.toFixed(2)} GBP · {fxRates.ZAR.toFixed(2)} ZAR</span>}
         </div>
 
         <div className="bg-white border border-sand-light overflow-hidden">
@@ -472,6 +517,66 @@ export default function AdminFinance() {
           )}
           {activeTab === "expenses" && (
             <table className="w-full text-sm"><thead className="bg-warm-white border-b border-sand-light"><tr><th className="text-left px-4 py-3 font-medium text-earth">Category</th><th className="text-left px-4 py-3 font-medium text-earth">Description</th><th className="text-left px-4 py-3 font-medium text-earth">Amount</th><th className="text-left px-4 py-3 font-medium text-earth">Date</th><th className="text-left px-4 py-3 font-medium text-earth">Status</th><th className="text-right px-4 py-3 font-medium text-earth">Actions</th></tr></thead><tbody className="divide-y divide-sand-light">{expenses.map(e => (<tr key={e.id} className="hover:bg-warm-white"><td className="px-4 py-3"><span className="px-2 py-1 text-xs bg-amber-50 text-amber-700 rounded">{e.category}</span></td><td className="px-4 py-3 text-soft-black">{e.description}</td><td className="px-4 py-3 font-medium text-soft-black">${(e.amount || 0).toLocaleString()}</td><td className="px-4 py-3 text-earth">{e.date}</td><td className="px-4 py-3"><span className={`px-2 py-1 text-xs rounded ${e.status === "approved" ? "bg-emerald-50 text-emerald-700" : e.status === "pending" ? "bg-amber-50 text-amber-700" : "bg-red-50 text-red-700"}`}>{e.status}</span></td><td className="px-4 py-3 text-right"><button onClick={() => { setEditItem(e); setFormData({ id: e.id, category: e.category, description: e.description, amount: e.amount.toString(), date: e.date, status: e.status }); setModalType("expenses"); setShowModal(true); }} className="text-xs text-gold mr-3 hover:underline">Edit</button><button onClick={() => handleDelete("expenses", e.id)} className="text-xs text-red-500 hover:underline">Delete</button></td></tr>))}</tbody></table>
+          )}
+          {activeTab === "wires" && (
+            <>
+              {loadingWires && <p className="px-4 py-6 text-earth text-sm">Loading wire confirmations…</p>}
+              {!loadingWires && wires.length === 0 && (
+                <p className="px-4 py-8 text-center text-earth text-sm">No wire transfers awaiting confirmation</p>
+              )}
+              {!loadingWires && wires.length > 0 && (
+                <table className="w-full text-sm">
+                  <thead className="bg-warm-white border-b border-sand-light">
+                    <tr>
+                      <th className="text-left px-4 py-3 font-medium text-earth">Guest</th>
+                      <th className="text-left px-4 py-3 font-medium text-earth">Booking</th>
+                      <th className="text-left px-4 py-3 font-medium text-earth">Dates</th>
+                      <th className="text-left px-4 py-3 font-medium text-earth">Amount</th>
+                      <th className="text-left px-4 py-3 font-medium text-earth">Reference</th>
+                      <th className="text-left px-4 py-3 font-medium text-earth">Age</th>
+                      <th className="text-right px-4 py-3 font-medium text-earth">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-sand-light">
+                    {wires.map((w) => (
+                      <tr key={w.paymentId} className="hover:bg-warm-white">
+                        <td className="px-4 py-3">
+                          <p className="font-medium text-soft-black">{w.clientName || "—"}</p>
+                          <p className="text-[11px] text-earth">{w.clientEmail || "—"}</p>
+                        </td>
+                        <td className="px-4 py-3 font-mono text-xs text-gold">{w.bookingRef}</td>
+                        <td className="px-4 py-3 text-earth text-xs">
+                          {w.checkIn ? new Date(w.checkIn).toLocaleDateString() : "—"} – {w.checkOut ? new Date(w.checkOut).toLocaleDateString() : "—"}
+                        </td>
+                        <td className="px-4 py-3 font-medium text-soft-black">{w.currency} {Number(w.amount).toLocaleString()}</td>
+                        <td className="px-4 py-3 font-mono text-xs text-earth">{w.reference || "—"}</td>
+                        <td className="px-4 py-3 text-earth">{w.ageDays ?? 0}d</td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            onClick={async () => {
+                              const res = await fetch(`/api/admin/bookings/${w.bookingId}/confirm-payment`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ paymentReference: w.reference, amount: w.amount, currency: w.currency, paymentMethod: "wire_transfer" }),
+                              });
+                              if (res.ok) {
+                                setWires((prev) => prev.filter((x) => x.paymentId !== w.paymentId));
+                              } else {
+                                const j = await res.json().catch(() => ({}));
+                                alert(j?.error || "Confirm failed");
+                              }
+                            }}
+                            className="text-xs text-emerald-600 hover:underline"
+                          >
+                            Mark confirmed
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </>
           )}
         </div>
       </>

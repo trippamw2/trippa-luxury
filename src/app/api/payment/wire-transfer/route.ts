@@ -117,6 +117,32 @@ export async function POST(request: NextRequest) {
       })
       .eq("id", bookingId);
 
+    // Register the declaration in the payments ledger as a pending row so the
+    // admin wire-confirmation queue can see it. Idempotent: a repeat
+    // declaration for the same reference does not create a duplicate.
+    try {
+      const { data: existing } = await supabase
+        .from("payments")
+        .select("id")
+        .eq("booking_id", bookingId)
+        .eq("reference", paymentRef.reference)
+        .eq("status", "pending")
+        .maybeSingle();
+      if (!existing) {
+        await supabase.from("payments").insert({
+          booking_id: bookingId,
+          amount,
+          currency,
+          payment_method: "wire_transfer",
+          payment_type: type === "deposit" ? "deposit" : type === "full" ? "full" : "balance",
+          reference: paymentRef.reference,
+          status: "pending",
+        });
+      }
+    } catch (ledgerErr) {
+      console.error("Failed to register pending wire payment:", ledgerErr);
+    }
+
     return NextResponse.json({
       reference: paymentRef.reference,
       amount,

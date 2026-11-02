@@ -9,6 +9,24 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 let client: BrevoClient | null = null;
 
+const HTML_ESCAPE_MAP: Record<string, string> = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#39;",
+};
+
+/**
+ * Escape a value before interpolating it into HTML. Only raw values are escaped;
+ * pre-built HTML snippets (campaign bodies, concierge replies, quote documents)
+ * are intentionally passed through untouched by their own templates.
+ */
+export function escapeHtml(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  return String(value).replace(/[&<>"']/g, (char) => HTML_ESCAPE_MAP[char]);
+}
+
 const BREVO_KEY_PLACEHOLDERS = ["", "xkeysib-xxxxxxxx", "your-brevo-api-key"];
 
 /**
@@ -211,19 +229,19 @@ export function newInquiryEmail(data: {
     htmlContent: emailShell("New Inquiry Received", `
       <h2 style="font-family: 'Times New Roman', serif; font-size: 20px; color: #1A1A1A; margin: 0 0 24px;">A new traveler has reached out</h2>
       <table style="width: 100%; border-collapse: collapse;">
-        <tr><td style="padding: 10px 0; color: #8B7D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; width: 120px;">Name</td><td style="padding: 10px 0; font-size: 14px;">${data.fullName}</td></tr>
-        <tr><td style="padding: 10px 0; color: #8B7D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Email</td><td style="padding: 10px 0; font-size: 14px;"><a href="mailto:${data.email}" style="color: #C9A96E;">${data.email}</a></td></tr>
-        ${data.phone ? `<tr><td style="padding: 10px 0; color: #8B7D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Phone</td><td style="padding: 10px 0; font-size: 14px;">${data.phone}</td></tr>` : ""}
-        ${data.country ? `<tr><td style="padding: 10px 0; color: #8B7D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Country</td><td style="padding: 10px 0; font-size: 14px;">${data.country}</td></tr>` : ""}
-        ${data.destination ? `<tr><td style="padding: 10px 0; color: #8B7D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Destination</td><td style="padding: 10px 0; font-size: 14px; text-transform: capitalize;">${formatDestination(data.destination)}</td></tr>` : ""}
-        ${data.preferredDates ? `<tr><td style="padding: 10px 0; color: #8B7D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Preferred Dates</td><td style="padding: 10px 0; font-size: 14px;">${data.preferredDates}</td></tr>` : ""}
-        ${data.guests ? `<tr><td style="padding: 10px 0; color: #8B7D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Guests</td><td style="padding: 10px 0; font-size: 14px;">${data.guests}</td></tr>` : ""}
-        ${data.referralSource ? `<tr><td style="padding: 10px 0; color: #8B7D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Referral</td><td style="padding: 10px 0; font-size: 14px;">${data.referralSource}</td></tr>` : ""}
+        <tr><td style="padding: 10px 0; color: #8B7D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; width: 120px;">Name</td><td style="padding: 10px 0; font-size: 14px;">${escapeHtml(data.fullName)}</td></tr>
+        <tr><td style="padding: 10px 0; color: #8B7D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Email</td><td style="padding: 10px 0; font-size: 14px;"><a href="mailto:${escapeHtml(data.email)}" style="color: #C9A96E;">${escapeHtml(data.email)}</a></td></tr>
+        ${data.phone ? `<tr><td style="padding: 10px 0; color: #8B7D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Phone</td><td style="padding: 10px 0; font-size: 14px;">${escapeHtml(data.phone)}</td></tr>` : ""}
+        ${data.country ? `<tr><td style="padding: 10px 0; color: #8B7D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Country</td><td style="padding: 10px 0; font-size: 14px;">${escapeHtml(data.country)}</td></tr>` : ""}
+        ${data.destination ? `<tr><td style="padding: 10px 0; color: #8B7D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Destination</td><td style="padding: 10px 0; font-size: 14px; text-transform: capitalize;">${escapeHtml(formatDestination(data.destination))}</td></tr>` : ""}
+        ${data.preferredDates ? `<tr><td style="padding: 10px 0; color: #8B7D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Preferred Dates</td><td style="padding: 10px 0; font-size: 14px;">${escapeHtml(data.preferredDates)}</td></tr>` : ""}
+        ${data.guests ? `<tr><td style="padding: 10px 0; color: #8B7D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Guests</td><td style="padding: 10px 0; font-size: 14px;">${escapeHtml(data.guests)}</td></tr>` : ""}
+        ${data.referralSource ? `<tr><td style="padding: 10px 0; color: #8B7D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Referral</td><td style="padding: 10px 0; font-size: 14px;">${escapeHtml(data.referralSource)}</td></tr>` : ""}
         ${typeof data.emailOptIn === "boolean" ? `<tr><td style="padding: 10px 0; color: #8B7D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Email Opt-in</td><td style="padding: 10px 0; font-size: 14px;">${data.emailOptIn ? "Yes" : "No"}</td></tr>` : ""}
       </table>
       <div style="margin-top: 24px; padding: 20px; background: #F5F0EB; border-left: 3px solid #C9A96E;">
         <p style="font-size: 12px; color: #8B7D6B; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 8px;">Message</p>
-        <p style="font-size: 14px; color: #1A1A1A; line-height: 1.6; margin: 0;">${data.message}</p>
+        <p style="font-size: 14px; color: #1A1A1A; line-height: 1.6; margin: 0;">${escapeHtml(data.message)}</p>
       </div>
       <div style="margin-top: 32px; text-align: center;">
         <a href="${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/admin/inquiries" style="display: inline-block; padding: 12px 32px; background: #1A1A1A; color: #FAF7F2; text-decoration: none; font-size: 11px; text-transform: uppercase; letter-spacing: 2px;">View in Admin Panel</a>
@@ -239,9 +257,9 @@ export function inquiryConfirmationEmail(data: {
   return {
     subject: "Your Inquiry Has Been Received with Care : kivara.africa",
     htmlContent: emailShell("Your Journey Begins", `
-      <h2 style="font-family: 'Times New Roman', serif; font-size: 20px; color: #1A1A1A; margin: 0 0 16px;">${data.fullName},</h2>
+      <h2 style="font-family: 'Times New Roman', serif; font-size: 20px; color: #1A1A1A; margin: 0 0 16px;">${escapeHtml(data.fullName)},</h2>
       <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 16px;">Thank you for reaching out to Kivara. Your inquiry has been received with the attention it deserves, and our concierge team is already beginning to understand the contours of your perfect escape.</p>
-      ${data.destination ? `<p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 16px;">We are delighted that you are considering <strong style="color: #C9A96E;">${formatDestination(data.destination)}</strong> : a choice that promises memories to treasure for a lifetime.</p>` : ""}
+      ${data.destination ? `<p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 16px;">We are delighted that you are considering <strong style="color: #C9A96E;">${escapeHtml(formatDestination(data.destination))}</strong> : a choice that promises memories to treasure for a lifetime.</p>` : ""}
       <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 24px;">You can expect a thoughtfully curated response from your personal concierge within <strong>24 hours</strong>, complete with a first glimpse of what your journey could hold.</p>
       <div style="background: #F5F0EB; padding: 24px; border-left: 3px solid #C9A96E; margin-bottom: 24px;">
         <p style="font-size: 11px; color: #8B7D6B; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 8px;">In the meantime</p>
@@ -262,14 +280,14 @@ export function newBookingNotification(data: {
   return {
     subject: `New Booking ${data.bookingRef} : ${data.clientName}`,
     htmlContent: emailShell("New Booking Confirmed", `
-      <h2 style="font-family: 'Times New Roman', serif; font-size: 20px; color: #1A1A1A; margin: 0 0 8px;">New Booking: ${data.bookingRef}</h2>
+      <h2 style="font-family: 'Times New Roman', serif; font-size: 20px; color: #1A1A1A; margin: 0 0 8px;">New Booking: ${escapeHtml(data.bookingRef)}</h2>
       <p style="font-size: 14px; color: #4A4A4A; margin: 0 0 24px;">A new journey has been thoughtfully reserved.</p>
       <table style="width: 100%; border-collapse: collapse;">
-        <tr><td style="padding: 8px 0; color: #8B7D6B; font-size: 12px;">Reference</td><td style="padding: 8px 0; font-size: 14px; font-weight: 600;">${data.bookingRef}</td></tr>
-        <tr><td style="padding: 8px 0; color: #8B7D6B; font-size: 12px;">Client</td><td style="padding: 8px 0; font-size: 14px;">${data.clientName}</td></tr>
-        ${data.destination ? `<tr><td style="padding: 8px 0; color: #8B7D6B; font-size: 12px;">Destination</td><td style="padding: 8px 0; font-size: 14px;">${data.destination}</td></tr>` : ""}
-        ${data.startDate ? `<tr><td style="padding: 8px 0; color: #8B7D6B; font-size: 12px;">Start Date</td><td style="padding: 8px 0; font-size: 14px;">${data.startDate}</td></tr>` : ""}
-        ${data.totalAmount ? `<tr><td style="padding: 8px 0; color: #8B7D6B; font-size: 12px;">Total Investment</td><td style="padding: 8px 0; font-size: 14px;">${data.totalAmount}</td></tr>` : ""}
+        <tr><td style="padding: 8px 0; color: #8B7D6B; font-size: 12px;">Reference</td><td style="padding: 8px 0; font-size: 14px; font-weight: 600;">${escapeHtml(data.bookingRef)}</td></tr>
+        <tr><td style="padding: 8px 0; color: #8B7D6B; font-size: 12px;">Client</td><td style="padding: 8px 0; font-size: 14px;">${escapeHtml(data.clientName)}</td></tr>
+        ${data.destination ? `<tr><td style="padding: 8px 0; color: #8B7D6B; font-size: 12px;">Destination</td><td style="padding: 8px 0; font-size: 14px;">${escapeHtml(data.destination)}</td></tr>` : ""}
+        ${data.startDate ? `<tr><td style="padding: 8px 0; color: #8B7D6B; font-size: 12px;">Start Date</td><td style="padding: 8px 0; font-size: 14px;">${escapeHtml(data.startDate)}</td></tr>` : ""}
+        ${data.totalAmount ? `<tr><td style="padding: 8px 0; color: #8B7D6B; font-size: 12px;">Total Investment</td><td style="padding: 8px 0; font-size: 14px;">${escapeHtml(data.totalAmount)}</td></tr>` : ""}
       </table>
       <div style="margin-top: 32px; text-align: center;">
         <a href="${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/admin/bookings" style="display: inline-block; padding: 12px 32px; background: #1A1A1A; color: #FAF7F2; text-decoration: none; font-size: 11px; text-transform: uppercase; letter-spacing: 2px;">View Booking</a>
@@ -337,7 +355,7 @@ export function inquiryReplyEmail(data: {
   return {
     subject: `Re: Your Journey Inquiry : kivara.africa`,
     htmlContent: emailShell("Your Personal Concierge", `
-      <h2 style="font-family: 'Times New Roman', serif; font-size: 20px; color: #1A1A1A; margin: 0 0 16px;">Dear ${data.clientName},</h2>
+      <h2 style="font-family: 'Times New Roman', serif; font-size: 20px; color: #1A1A1A; margin: 0 0 16px;">Dear ${escapeHtml(data.clientName)},</h2>
       <div style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 24px;">
         ${data.replyHtml}
       </div>
@@ -360,10 +378,10 @@ export function paymentLinkEmail(data: {
   return {
     subject: `Payment Reserved : ${data.bookingRef} : kivara.africa`,
     htmlContent: emailShell("Payment Reserved", `
-      <h2 style="font-family: 'Times New Roman', serif; font-size: 20px; color: #1A1A1A; margin: 0 0 16px;">${data.clientName},</h2>
-      <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 16px;">Your journey proposal for booking <strong>${data.bookingRef}</strong> remains reserved pending a ${label} payment of <strong style="color: #C9A96E; font-size: 18px;">${data.amount}</strong>. Once received, we will proceed with finalising every element of your itinerary.</p>
+      <h2 style="font-family: 'Times New Roman', serif; font-size: 20px; color: #1A1A1A; margin: 0 0 16px;">${escapeHtml(data.clientName)},</h2>
+      <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 16px;">Your journey proposal for booking <strong>${escapeHtml(data.bookingRef)}</strong> remains reserved pending a ${label} payment of <strong style="color: #C9A96E; font-size: 18px;">${escapeHtml(data.amount)}</strong>. Once received, we will proceed with finalising every element of your itinerary.</p>
       <div style="text-align: center; margin: 24px 0;">
-        <a href="${data.paymentUrl}" style="display: inline-block; padding: 14px 40px; background: #1A1A1A; color: #FAF7F2; text-decoration: none; font-size: 11px; text-transform: uppercase; letter-spacing: 2px;">Complete Your Reservation</a>
+        <a href="${escapeHtml(data.paymentUrl)}" style="display: inline-block; padding: 14px 40px; background: #1A1A1A; color: #FAF7F2; text-decoration: none; font-size: 11px; text-transform: uppercase; letter-spacing: 2px;">Complete Your Reservation</a>
       </div>
       <p style="font-size: 13px; color: #8B7D6B; line-height: 1.6; margin: 0;">Should you have any questions, your concierge is here to assist : simply reply to this email.</p>
       <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 16px 0 0;">With warmest regards,<br><strong style="color: #C9A96E;">Your Kivara Concierge</strong></p>
@@ -406,11 +424,11 @@ export function paymentReceiptEmail(data: {
         <div style="width: 60px; height: 60px; background: #D4BC8A; border-radius: 50%; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;">
           <span style="font-size: 28px; color: #1A1A1A;">✓</span>
         </div>
-        <h2 style="font-family: 'Times New Roman', serif; font-size: 20px; color: #1A1A1A; margin: 0 0 4px;">Thank you, ${data.clientName}</h2>
+        <h2 style="font-family: 'Times New Roman', serif; font-size: 20px; color: #1A1A1A; margin: 0 0 4px;">Thank you, ${escapeHtml(data.clientName)}</h2>
         <p style="font-size: 14px; color: #8B7D6B; margin: 0;">Your payment has been gracefully received.</p>
       </div>
-      <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 24px;">We have received your payment of <strong style="color: #C9A96E; font-size: 18px;">${data.amount}</strong> for booking <strong>${data.bookingRef}</strong>.</p>
-      ${data.paymentMethod ? `<p style="font-size: 13px; color: #8B7D6B; margin: 0 0 24px;">Payment method: ${data.paymentMethod}</p>` : ""}
+      <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 24px;">We have received your payment of <strong style="color: #C9A96E; font-size: 18px;">${escapeHtml(data.amount)}</strong> for booking <strong>${escapeHtml(data.bookingRef)}</strong>.</p>
+      ${data.paymentMethod ? `<p style="font-size: 13px; color: #8B7D6B; margin: 0 0 24px;">Payment method: ${escapeHtml(data.paymentMethod)}</p>` : ""}
       <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0;">Your journey is one step closer. Our team is curating every detail to ensure your experience is nothing short of remarkable.</p>
       <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 16px 0 0;">With warmest regards,<br><strong style="color: #C9A96E;">Your Kivara Concierge</strong></p>
     `),

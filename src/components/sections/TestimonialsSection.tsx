@@ -1,11 +1,49 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { HeartIcon, QuoteIcon } from "@/components/ui/icons";
 import { Container } from "@/components/ui/container";
 import { BRAND_POSITIONING, TESTIMONIALS } from "@/lib/constants";
 
+interface PublicTestimonial {
+  name: string;
+  text: string;
+  location: string | null;
+  rating: number;
+  tripSummary: string | null;
+  destination?: string;
+}
+
 export function TestimonialsSection() {
+  const [items, setItems] = useState<PublicTestimonial[] | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/data/testimonials")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((json) => {
+        if (cancelled) return;
+        const rows = Array.isArray(json?.data) ? json.data : [];
+        if (rows.length > 0) setItems(rows);
+        else setItems(null);
+      })
+      .catch(() => {
+        if (!cancelled) setItems(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const list = items && items.length > 0 ? items : TESTIMONIALS.map((t) => ({
+    name: t.name,
+    text: t.text,
+    location: t.location,
+    rating: t.rating,
+    tripSummary: null,
+    destination: t.destination,
+  }));
   return (
     <section className="py-28 md:py-40 bg-cream overflow-hidden">
       <Container>
@@ -37,7 +75,7 @@ export function TestimonialsSection() {
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {TESTIMONIALS.map((testimonial, index) => (
+          {list.map((testimonial, index) => (
             <motion.div
               key={testimonial.name}
               initial={{ opacity: 0, y: 40 }}

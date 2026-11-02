@@ -66,7 +66,7 @@ const JUSTIFIED_EXCEPTIONS: Record<string, string> = {
   "inquiry": "Public contact form. Writes only the inquiry row and emails the concierge; abuse is bounded by rate limiting, not by secrecy.",
   "newsletter": "Public signup. Writes one subscriber row and sends a confirmation; nothing is read back or disclosed.",
   "payment/paypal/execute": "PayPal's own return leg. Unauthenticated by design, but every booking change requires a verified capture whose amount and order binding match the booking.",
-  "payment/paypal/webhook": "PayPal server-to-server. Unauthenticated by design, but the notification is rejected unless the RSA-SHA256 signature verifies against PayPal's certificate.",
+  "data/testimonials": "Public read-only endpoint returning only published testimonials (name, quote, rating, summary). No PII beyond display name; admin client used because testimonials RLS is service-role only.",
 };
 
 function routeFiles(dir: string): string[] {

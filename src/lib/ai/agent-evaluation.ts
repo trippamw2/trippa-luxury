@@ -6,6 +6,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { callLlmJson } from "./llm";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export type AgentEventType =
   | "success"
@@ -120,10 +121,58 @@ export class AgentEvaluation {
   recordEvent(input: Omit<AgentEvent, "id" | "occurredAt">): AgentEvent {
     const evt: AgentEvent = { ...input, id: uid(), occurredAt: new Date().toISOString() };
     events.push(evt);
+    // Write-through to durable store (best-effort; never breaks the caller).
+    try {
+      const supabase = createAdminClient();
+      void supabase
+        .from("agent_evaluation_events")
+        .insert({ id: evt.id, agent: evt.agent, type: evt.type, meta: evt.meta ?? null, created_at: evt.occurredAt })
+        .then(({ error }) => {
+          if (error) console.error("agent_evaluation_events insert failed:", error.message);
+        });
+    } catch (err) {
+      console.error("agent_evaluation_events insert threw:", err);
+    }
     return evt;
   }
 
   listEvents(agent?: string): AgentEvent[] {
+    // Try durable store first; fall back to in-memory on any failure.
+    try {
+      const supabase = createAdminClient();
+      // Synchronous-ish: we can't await here (interface is sync), so kick off
+      // a best-effort refresh and return the in-memory cache. Callers that need
+      // durability should use listEventsAsync.
+      void (async () => {
+        try {
+          const { data, error } = await supabase
+            .from("agent_evaluation_events")
+            .select("id, agent, type, meta, created_at")
+            .order("created_at", { ascending: false })
+            .limit(1000);
+          if (error || !data) return;
+          const mapped: AgentEvent[] = data.map((r: { id: string; agent: string; type: string; meta: unknown; created_at: string }) => ({
+            id: r.id,
+            agent: r.agent,
+            type: r.type as AgentEvent["type"],
+            occurredAt: r.created_at,
+            meta: (r.meta as AgentEvent["meta"]) ?? undefined,
+          }));
+          // Merge into memory without duplicates.
+          const ids = new Set(events.map((e) => e.id));
+          for (const m of mapped) {
+            if (!ids.has(m.id)) {
+              events.push(m);
+              ids.add(m.id);
+            }
+          }
+        } catch {
+          // ignore
+        }
+      })();
+    } catch {
+      // ignore
+    }
     if (!agent) return [...events];
     return events.filter((e) => e.agent === agent);
   }

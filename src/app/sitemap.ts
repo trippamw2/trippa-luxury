@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
-import { SITE_URL, PACKAGES } from "@/lib/constants";
-import { getMergedDestinations, getMergedProperties, getMergedBlogPosts } from "@/lib/public-data";
+import { SITE_URL } from "@/lib/constants";
+import { getMergedDestinations, getMergedProperties, getMergedBlogPosts, getMergedPackages } from "@/lib/public-data";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = SITE_URL;
@@ -11,14 +11,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/about`, lastModified: new Date(), changeFrequency: "monthly" as const, priority: 0.8 },
     { url: `${siteUrl}/contact`, lastModified: new Date(), changeFrequency: "monthly" as const, priority: 0.8 },
     { url: `${siteUrl}/packages`, lastModified: new Date(), changeFrequency: "weekly" as const, priority: 0.9 },
+    { url: `${siteUrl}/experiences`, lastModified: new Date(), changeFrequency: "monthly" as const, priority: 0.8 },
     { url: `${siteUrl}/journal`, lastModified: new Date(), changeFrequency: "weekly" as const, priority: 0.7 },
+    { url: `${siteUrl}/faq`, lastModified: new Date(), changeFrequency: "monthly" as const, priority: 0.6 },
     { url: `${siteUrl}/privacy`, lastModified: new Date(), changeFrequency: "yearly" as const, priority: 0.3 },
+    { url: `${siteUrl}/terms`, lastModified: new Date(), changeFrequency: "yearly" as const, priority: 0.3 },
+    { url: `${siteUrl}/cookie`, lastModified: new Date(), changeFrequency: "yearly" as const, priority: 0.3 },
   ];
 
   // Dynamic data from API/DB
-  const [destinations, properties] = await Promise.all([
+  const [destinations, properties, packages] = await Promise.all([
     getMergedDestinations(),
     getMergedProperties(),
+    getMergedPackages(),
   ]);
 
   // Destination routes
@@ -38,7 +43,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   // Package routes
-  const packageRoutes = PACKAGES.map((pkg) => ({
+  const packageRoutes = packages.map((pkg) => ({
     url: `${siteUrl}/packages/${pkg.id}`,
     lastModified: new Date(),
     changeFrequency: "monthly" as const,

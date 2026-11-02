@@ -84,6 +84,15 @@ vi.mock("@/lib/payments/paypal-signature", () => ({
   verifyPayPalSignature: (...args: unknown[]) => mockVerifySignature(...args),
 }));
 
+// The guest portal's auth user is provisioned from the booking side; the
+// webhook calls the helper after the money is settled. The helper itself is
+// unit-tested in src/lib/guest-auth-provision.test.ts, so it is mocked here:
+// these tests are about the webhook's wiring and its isolation.
+const mockEnsureGuestAuthUser = vi.fn();
+vi.mock("@/lib/guest-auth-provision", () => ({
+  ensureGuestAuthUser: (...args: unknown[]) => mockEnsureGuestAuthUser(...args),
+}));
+
 import { POST } from "@/app/api/payment/paypal/webhook/route";
 
 const BOOKING_ID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
@@ -128,6 +137,11 @@ beforeEach(() => {
   mockReadHeaders.mockReturnValue({});
   mockVerifySignature.mockResolvedValue({ verified: true });
   mockSendEmail.mockResolvedValue(undefined);
+  mockEnsureGuestAuthUser.mockResolvedValue({
+    created: true,
+    skipped: false,
+    failed: false,
+  });
 });
 
 describe("POST /api/payment/paypal/webhook — settling real payments", () => {
@@ -320,12 +334,98 @@ describe("POST /api/payment/paypal/webhook — races and failures", () => {
     expect(mockSendEmail).not.toHaveBeenCalled();
   });
 
-  it("responds 400 to a body that is not JSON", async () => {
+it("responds 400 to a body that is not JSON", async () => {
     mockVerifySignature.mockResolvedValue({ verified: true });
 
     const res = await POST(makeRequest("this is not json"));
 
     expect(res.status).toBe(400);
     expect(mockFrom).not.toHaveBeenCalled();
+  });
+});
+
+describe("POST /api/payment/paypal/webhook — guest portal provisioning", () => {
+  it("provisions the guest portal user once the capture settles", async () => {
+    const res = await POST(makeRequest(completedEvent()));
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ received: true });
+    expect(mockEnsureGuestAuthUser).toHaveBeenCalledTimes(1);
+    expect(mockEnsureGuestAuthUser).toHaveBeenCalledWith(BOOKING.client_email);
+  });
+
+  it("provisions the guest on a balance capture as well", async () => {
+    const res = await POST(
+      makeRequest(
+        completedEvent({
+          resource: {
+            id: "CAPTURE-7",
+            custom_id: BOOKING_ID,
+            amount: { currency_code: "USD", value: "4500.00" },
+          },
+        })
+      )
+    );
+
+    expect(res.status).toBe(200);
+    expect(mockEnsureGuestAuthUser).toHaveBeenCalledTimes(1);
+    expect(mockEnsureGuestAuthUser).toHaveBeenCalledWith(BOOKING.client_email);
+  });
+
+  it("still settles when provisioning reports a failure", async () => {
+    mockEnsureGuestAuthUser.mockResolvedValue({
+      created: false,
+      skipped: false,
+      failed: true,
+      reason: "auth service down",
+    });
+
+    const res = await POST(makeRequest(completedEvent()));
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ received: true });
+    const table = mockFrom.mock.results[0].value;
+    expect(table.updated).toMatchObject({ status: "deposit_paid" });
+    expect(table.inserted).toMatchObject({ payment_type: "deposit" });
+  });
+
+  it("still settles when provisioning throws", async () => {
+    mockEnsureGuestAuthUser.mockRejectedValue(new Error("boom"));
+
+    const res = await POST(makeRequest(completedEvent()));
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ received: true });
+    const table = mockFrom.mock.results[0].value;
+    expect(table.updated).toMatchObject({ status: "deposit_paid" });
+    expect(table.inserted).toMatchObject({ payment_type: "deposit" });
+  });
+
+  it("never provisions a booking without an email address", async () => {
+    for (const clientEmail of [null, "", "   "]) {
+      mockFrom.mockReturnValue(webhookTable({ ...BOOKING, client_email: clientEmail }));
+
+      const res = await POST(makeRequest(completedEvent()));
+
+      expect(res.status).toBe(200);
+      expect(mockEnsureGuestAuthUser).not.toHaveBeenCalled();
+    }
+  });
+
+  it("does not provision when the capture matches no payable amount", async () => {
+    const res = await POST(
+      makeRequest(
+        completedEvent({
+          resource: {
+            id: "CAPTURE-8",
+            custom_id: BOOKING_ID,
+            amount: { currency_code: "USD", value: "42.00" },
+          },
+        })
+      )
+    );
+
+    expect(res.status).toBe(200);
+    expect(mockEnsureGuestAuthUser).not.toHaveBeenCalled();
   });
 });

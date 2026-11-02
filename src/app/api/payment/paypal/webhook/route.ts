@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail, paymentReceiptEmail } from "@/lib/email";
 import { readPayPalHeaders, verifyPayPalSignature } from "@/lib/payments/paypal-signature";
 import { amountsEqual, derivePayableAmount } from "@/lib/payments/amounts";
+import { ensureGuestAuthUser } from "@/lib/guest-auth-provision";
 
 /**
  * POST /api/payment/paypal/webhook
@@ -161,6 +162,29 @@ export async function POST(request: NextRequest) {
       });
       if (paymentError && paymentError.code !== "23505") {
         console.error("Webhook: failed to write payments ledger row:", paymentError.message);
+      }
+
+      // The money is settled: make sure the guest has a portal account, so
+      // the guest portal's OTP flow (which never creates users) can sign them
+      // in. The helper is idempotent and never throws, but it is still
+      // isolated in its own try/catch, because a portal account must never
+      // delay, fail or alter a payment webhook's response. The outcome is
+      // logged, never returned.
+      const guestEmail = booking.client_email;
+      if (typeof guestEmail === "string" && guestEmail.trim().length > 0) {
+        try {
+          const provisioned = await ensureGuestAuthUser(guestEmail);
+          console.log("Webhook: guest portal provisioning:", {
+            bookingId,
+            email: guestEmail,
+            created: provisioned.created,
+            skipped: provisioned.skipped,
+            failed: provisioned.failed,
+            reason: provisioned.reason,
+          });
+        } catch (provisionErr) {
+          console.error("Webhook: guest portal provisioning threw:", provisionErr);
+        }
       }
 
       // Send the receipt only when this webhook actually settled the booking.

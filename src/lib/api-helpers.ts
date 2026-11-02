@@ -79,7 +79,7 @@ const TABLE_AUTH: Record<string, AdminAuthOptions> = {
   proposals: { module: "proposals", minRole: "agent" },
   // Editor-level: content & operations
   properties: { module: "properties", minRole: "editor" },
-  packages: { module: "journeys", minRole: "editor" },
+  packages: { module: "packages", minRole: "editor" },
   tours: { module: "tours", minRole: "editor" },
   tour_availability: { module: "tours", minRole: "editor" },
   experiences: { module: "experiences", minRole: "editor" },

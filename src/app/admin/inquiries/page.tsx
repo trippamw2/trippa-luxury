@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Mail, Phone, MapPin, Calendar, Send, CheckCircle, X, AlertCircle, Trash2, UserPlus, Timer, MessageSquare, ArrowRight, Globe, Building2 } from "lucide-react";
@@ -25,6 +26,7 @@ interface Inquiry {
   responseCount?: number;
   guestProfileId?: string | null;
   convertedToBookingId?: string | null;
+  attribution?: Record<string, string> | null;
   propertyId?: string | null;
   referralSource?: string | null;
   emailOptIn?: boolean;
@@ -49,6 +51,7 @@ interface ApiInquiry {
   responseCount?: number;
   guestProfileId?: string | null;
   convertedToBookingId?: string | null;
+  attribution?: Record<string, string> | null;
   propertyId?: string | null;
   referralSource?: string | null;
   emailOptIn?: boolean;
@@ -379,13 +382,25 @@ export default function AdminInquiries() {
             <div className="mt-4 pt-4 border-t border-sand-light"><p className="text-xs text-earth uppercase mb-2">Message</p><p className="text-sm text-soft-black whitespace-pre-wrap">{selected.message}</p></div>
             {selected.repliedAt && (<div className="mt-4 p-3 bg-emerald-50 rounded"><p className="text-xs text-emerald-700">Last reply on {new Date(selected.repliedAt).toLocaleDateString()}</p></div>)}
             {selected.status === "closed" && selected.lostReason && (<div className="mt-4 p-3 bg-gray-100 rounded"><p className="text-xs text-gray-600 uppercase mb-1">Closed — reason</p><p className="text-sm text-soft-black whitespace-pre-wrap">{selected.lostReason}</p></div>)}
+            {selected.attribution && Object.keys(selected.attribution).length > 0 && (
+              <div className="mt-4 pt-4 border-t border-sand-light">
+                <p className="text-xs text-earth uppercase mb-2">Acquisition</p>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(selected.attribution).map(([k, v]) => (
+                    <span key={k} className="text-xs bg-sand-light/40 px-2 py-1 rounded">
+                      <span className="text-earth">{k}:</span> <span className="text-soft-black">{String(v)}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="mt-4"><p className="text-xs text-earth uppercase mb-2">Status</p><select value={selected.status} onChange={(e) => handleStatusChange(selected.id, e.target.value)} className="w-full px-3 py-2 border border-sand-light text-sm">{Object.entries(STATUS_STYLES).map(([key, val]) => (<option key={key} value={key}>{val.label}</option>))}</select></div>
 
             <div className="mt-4 space-y-2">
               {selected.convertedToBookingId ? (
-                <a href="/admin/bookings" className="flex w-full items-center justify-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded hover:bg-emerald-700">
+                <Link href="/admin/bookings" className="flex w-full items-center justify-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded hover:bg-emerald-700">
                   <ArrowRight className="w-4 h-4" />View in Bookings
-                </a>
+                </Link>
               ) : (
                 <button
                   onClick={handleConvert}

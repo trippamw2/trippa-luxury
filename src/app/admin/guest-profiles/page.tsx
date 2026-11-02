@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Mail, Phone, User, Star, Heart, Tag, Plus, Edit2, Trash2, X, Check, Loader2, Globe, MessageSquare, CalendarDays, ArrowUpRight, Inbox } from "lucide-react";
@@ -580,7 +581,7 @@ export default function AdminGuestProfiles() {
                                       </div>
                                       <div className="flex items-center gap-1.5">
                                         <span className={`text-[10px] px-1.5 py-0.5 ${style.bg} ${style.color}`}>{b.status}</span>
-                                        <a href="/admin/bookings" className="text-earth hover:text-soft-black" title="Open bookings"><ArrowUpRight className="w-3.5 h-3.5" /></a>
+                                        <Link href="/admin/bookings" className="text-earth hover:text-soft-black" title="Open bookings"><ArrowUpRight className="w-3.5 h-3.5" /></Link>
                                       </div>
                                     </div>
                                   );

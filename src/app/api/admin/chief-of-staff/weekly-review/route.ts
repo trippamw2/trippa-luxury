@@ -9,7 +9,7 @@ import { generateWeeklyReview } from "@/lib/ai/chief-of-staff";
  */
 export async function GET(_request: NextRequest) {
   try {
-    await requireAdmin({ module: "dashboard", minRole: "agent" });
+    await requireAdmin({ module: "chief-of-staff", minRole: "admin" });
 
     const review = await generateWeeklyReview();
 

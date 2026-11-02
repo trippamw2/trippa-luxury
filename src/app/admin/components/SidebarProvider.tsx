@@ -82,6 +82,7 @@ const NAV_ITEMS = [
   { label: "Destinations", href: "/admin/destinations", module: "destinations" },
   { label: "Properties", href: "/admin/properties", module: "properties" },
   { label: "Tours & Experiences", href: "/admin/tours", module: "tours" },
+  { label: "Experiences", href: "/admin/experiences", module: "experiences" },
   { label: "Packages", href: "/admin/packages", module: "packages" },
   // ── Marketing ───────────────────────────────────────────────────────
   { label: "Blog", href: "/admin/blog", module: "blog" },

@@ -12,6 +12,7 @@ import {
   supplierPaymentReceived,
 } from "@/lib/supplier-email";
 import { mapKeysToCamel } from "@/lib/api-helpers";
+import { createNotification } from "@/lib/notifications";
 import { ensureGuestAuthUser } from "@/lib/guest-auth-provision";
 import {
   registerSupplierReservationsForBooking,
@@ -466,6 +467,17 @@ async function updateBooking(
   if (result.status === 200 && body.status && oldStatus && oldStatus !== body.status) {
     sendStatusEmail(id, body.status, oldStatus);
     sendSupplierEmails(id, body.status, oldStatus);
+
+    // Surface the state change in the admin bell so operators notice it even
+    // when they are not watching the bookings page.
+    void createNotification({
+      type: "booking_status_changed",
+      title: `Booking ${id.slice(0, 8).toUpperCase()} → ${body.status}`,
+      body: `Status changed from ${oldStatus} to ${body.status}`,
+      link: `/admin/bookings/${id}`,
+      entityType: "booking",
+      entityId: id,
+    }).catch((err) => console.error("Failed to create booking status notification:", err));
 
     // Automated pipeline: operations & trip delivery. Derives supplier
     // reservations on confirmation, marks them confirmed as operations runs,

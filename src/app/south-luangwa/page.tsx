@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { getAttribution } from "@/lib/attribution";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight, TreePine, Moon, Compass, Camera } from "lucide-react";
@@ -72,6 +73,7 @@ export default function SouthLuangwaPage() {
           guests: parseInt(form.get("guests") as string) || 2,
           referralSource: form.get("referral") as string || null,
           emailOptIn: form.get("optIn") === "on",
+      attribution: getAttribution(),
           message: form.get("message") as string,
         }),
       });

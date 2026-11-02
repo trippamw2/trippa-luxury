@@ -1,11 +1,22 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { Suspense, useState, FormEvent } from "react";
+import { getAttribution } from "@/lib/attribution";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Mail, Phone, MapPin, MessageCircle, Clock, Send, CheckCircle, Loader2 } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { SITE_CONFIG } from "@/lib/constants";
 export default function ContactPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-cream" />}>
+      <ContactForm />
+    </Suspense>
+  );
+}
+
+function ContactForm() {
+  const searchParams = useSearchParams();
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -19,6 +30,14 @@ export default function ContactPage() {
     const formData = new FormData(form);
 
     try {
+      // Package listing CTAs link here with ?package=<slug>. Carry that context
+      // into the inquiry without discarding what the guest wrote.
+      const packageName = searchParams.get("package")?.trim();
+      const userMessage = (formData.get("message") as string) || "";
+      const message = packageName
+        ? `Interested in the ${packageName} package.\n\n${userMessage}`
+        : userMessage;
+
       const payload = {
         fullName: formData.get("name") as string,
         email: formData.get("email") as string,
@@ -29,7 +48,8 @@ export default function ContactPage() {
         guests: parseInt(formData.get("guests") as string) || 2,
         referralSource: formData.get("referral") as string || null,
         emailOptIn: formData.get("optIn") === "on",
-        message: formData.get("message") as string,
+      attribution: getAttribution(),
+        message,
       };
 
       const res = await fetch("/api/inquiry", {

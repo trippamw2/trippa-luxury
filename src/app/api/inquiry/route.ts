@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { fullName, email, phone, country, destination, preferredDates, guests, message, referralSource, emailOptIn, propertyId } = body;
+    const { fullName, email, phone, country, destination, preferredDates, guests, message, referralSource, emailOptIn, propertyId, attribution } = body;
 
     if (!fullName || !email || !message) {
       return NextResponse.json(
@@ -73,9 +73,42 @@ export async function POST(request: Request) {
 
     const supabase = createAdminClient();
     // The property page pins an inquiry to the property it was made from; the
-    // FK is real, so only a genuine UUID may enter the column. Everything else
-    // (and no property page) stays null rather than failing the whole insert.
-    const normalizedPropertyId = normalizeUuid(propertyId);
+    // FK is real, so only a genuine UUID may enter the column. Public property
+    // ids are slugs, so resolve a slug to its stored UUID first. An unknown or
+    // unresolvable value stays null rather than failing the whole insert.
+    let normalizedPropertyId = normalizeUuid(propertyId);
+    if (
+      !normalizedPropertyId &&
+      typeof propertyId === "string" &&
+      propertyId.trim().length > 0
+    ) {
+      try {
+        const { data: property } = await supabase
+          .from("properties")
+          .select("id")
+          .eq("slug", propertyId.trim())
+          .maybeSingle();
+        normalizedPropertyId = normalizeUuid(property?.id);
+      } catch (propertyError) {
+        console.error("Property slug lookup error:", propertyError);
+        normalizedPropertyId = null;
+      }
+    }
+    // Sanitize inbound attribution: plain object, <=10 keys, string values <=200 chars.
+    let sanitizedAttribution: Record<string, string> | null = null;
+    if (attribution && typeof attribution === "object" && !Array.isArray(attribution)) {
+      const out: Record<string, string> = {};
+      let count = 0;
+      for (const [k, v] of Object.entries(attribution as Record<string, unknown>)) {
+        if (count >= 10) break;
+        if (typeof v === "string") {
+          out[k.slice(0, 200)] = v.slice(0, 200);
+          count += 1;
+        }
+      }
+      sanitizedAttribution = Object.keys(out).length > 0 ? out : null;
+    }
+
     const { data: inquiry, error: dbError } = await supabase
       .from("inquiries")
       .insert({
@@ -92,13 +125,23 @@ export async function POST(request: Request) {
         referral_source: referralSource || null,
         email_opt_in: typeof emailOptIn === "boolean" ? emailOptIn : true,
         property_id: normalizedPropertyId,
+        attribution: sanitizedAttribution,
       })
       .select()
       .single();
 
     if (dbError) {
+      // Nothing was persisted. Running the paid AI/email pipeline for an inquiry
+      // that does not exist would burn quota and tell the guest a lie, so fail
+      // loudly and immediately instead of returning success with a null id.
       console.error("Supabase insert error:", dbError);
-    } else if (inquiry?.id) {
+      return NextResponse.json(
+        { error: "We could not save your inquiry. Please try again." },
+        { status: 500 }
+      );
+    }
+
+    if (inquiry?.id) {
       // Stage 0 on the event bus: the raw inquiry is the seed of every
       // downstream correlation (lead -> journey -> proposal -> booking).
       // Never throws, so a failed event write cannot fail the inquiry.
@@ -327,7 +370,7 @@ export async function POST(request: Request) {
         // automated pipeline (enquiry → lead → journey → proposal). Never
         // throws, so a failed lead cannot fail the inquiry that produced it.
         if (inquiry?.id) {
-          const lead = await registerLeadFromInquiry(inquiry.id, { guestProfileId });
+          const lead = await registerLeadFromInquiry(inquiry.id, { guestProfileId, attribution: sanitizedAttribution });
           if (lead.error) {
             console.error("Lead registration skipped:", lead.error);
           }

@@ -10,6 +10,7 @@ import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { SITE_CONFIG, SITE_URL } from "@/lib/constants";
 import { useProperties, useDestinations } from "@/lib/use-public-data";
+import { getAttribution } from "@/lib/attribution";
 import { getPropertyTransfer } from "@/lib/journey-routes";
 import { TransferTimeline } from "@/components/sections/TransferTimeline";
 import dynamic from "next/dynamic";
@@ -72,6 +73,7 @@ export default function PropertyDetailPage() {
           guests: parseInt(inquiryForm.guests) || 2,
           referralSource: inquiryForm.referralSource,
           emailOptIn: inquiryForm.emailOptIn,
+      attribution: getAttribution(),
           propertyId: property.id,
           message: `Interested in ${property.name}. ${inquiryForm.message}`,
         }),

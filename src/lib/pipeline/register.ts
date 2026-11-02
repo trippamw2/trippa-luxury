@@ -124,13 +124,13 @@ export function computeProposalFinancials(pricing: CuratedPricing) {
  */
 export async function registerLeadFromInquiry(
   inquiryId: string,
-  options?: { guestProfileId?: string | null; source?: string | null }
+  options?: { guestProfileId?: string | null; source?: string | null; attribution?: Record<string, unknown> | null }
 ): Promise<{ leadId: string | null; registered: boolean; error: string | null }> {
   const db = createAdminClient();
   try {
     const { data: inquiry, error: inquiryError } = await db
       .from("inquiries")
-      .select("id, full_name, email, phone, destination, preferred_dates, guests, message, source")
+      .select("id, full_name, email, phone, destination, preferred_dates, guests, message, source, attribution")
       .eq("id", inquiryId)
       .single();
 
@@ -175,6 +175,7 @@ export async function registerLeadFromInquiry(
         lead_status: "new",
         priority: "medium",
         story: inquiry.message || null,
+        attribution: options?.attribution ?? inquiry.attribution ?? null,
       })
       .select("id")
       .single();

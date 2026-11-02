@@ -43,6 +43,11 @@ vi.mock("@/lib/api-helpers", () => ({
   mapKeysToCamel: (obj: unknown) => obj,
 }));
 
+const mockEnsureGuestAuthUser = vi.fn();
+vi.mock("@/lib/guest-auth-provision", () => ({
+  ensureGuestAuthUser: (...args: unknown[]) => mockEnsureGuestAuthUser(...args),
+}));
+
 /**
  * Supabase double. `.from(table)` returns a chainable that resolves reads via
  * single() and write chains via the thenable, so the guard's status fetch and
@@ -57,13 +62,21 @@ vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => ({ from: mockFrom }),
 }));
 
-import { PUT } from "@/app/api/admin/bookings/[id]/route";
+import { PUT, PATCH } from "@/app/api/admin/bookings/[id]/route";
 
 const BOOKING_ID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
 
 function makeRequest(body: Record<string, unknown>): NextRequest {
   return new NextRequest(`http://localhost/api/admin/bookings/${BOOKING_ID}`, {
     method: "PUT",
+    body: JSON.stringify(body),
+    headers: { "content-type": "application/json" },
+  });
+}
+
+function makePatchRequest(body: Record<string, unknown>): NextRequest {
+  return new NextRequest(`http://localhost/api/admin/bookings/${BOOKING_ID}`, {
+    method: "PATCH",
     body: JSON.stringify(body),
     headers: { "content-type": "application/json" },
   });
@@ -86,6 +99,11 @@ beforeEach(() => {
   mockSuppliers = [];
   mockRequireAdmin.mockResolvedValue({ profile: { id: "admin-1" } });
   mockSendEmail.mockResolvedValue(undefined);
+  mockEnsureGuestAuthUser.mockResolvedValue({
+    created: true,
+    skipped: false,
+    failed: false,
+  });
   mockHandleUpdate.mockResolvedValue(
     NextResponse.json({ id: BOOKING_ID, status: "paid" })
   );
@@ -240,6 +258,149 @@ describe("PUT /api/admin/bookings/[id] — wire-transfer ledger guard", () => {
 
     expect(res.status).toBe(200);
     expect(mockHandleUpdate).toHaveBeenCalled();
+  });
+});
+
+describe("PUT/PATCH /api/admin/bookings/[id] — guest portal provisioning", () => {
+  /** A stored booking that already carries an address. */
+  function bookingWithEmail(email: string | null): Record<string, unknown> {
+    return {
+      id: BOOKING_ID,
+      status: "provisional",
+      payment_method: "paypal",
+      swift_confirmation_code: null,
+      deposit_method: null,
+      client_email: email,
+    };
+  }
+
+  it("provisions the new address when the booking's email changes", async () => {
+    currentBooking = bookingWithEmail("old@guest.com");
+
+    const res = await PATCH(
+      makePatchRequest({ client_email: "new@guest.com" }),
+      params()
+    );
+
+    expect(res.status).toBe(200);
+    expect(mockEnsureGuestAuthUser).toHaveBeenCalledTimes(1);
+    expect(mockEnsureGuestAuthUser).toHaveBeenCalledWith("new@guest.com");
+  });
+
+  it("provisions the new address through PUT as well", async () => {
+    currentBooking = bookingWithEmail("old@guest.com");
+
+    const res = await PUT(
+      makeRequest({ client_email: "new@guest.com" }),
+      params()
+    );
+
+    expect(res.status).toBe(200);
+    expect(mockEnsureGuestAuthUser).toHaveBeenCalledTimes(1);
+    expect(mockEnsureGuestAuthUser).toHaveBeenCalledWith("new@guest.com");
+  });
+
+  it("provisions an address that is newly set on a booking that had none", async () => {
+    currentBooking = bookingWithEmail(null);
+
+    const res = await PATCH(
+      makePatchRequest({ client_email: "new@guest.com" }),
+      params()
+    );
+
+    expect(res.status).toBe(200);
+    expect(mockEnsureGuestAuthUser).toHaveBeenCalledTimes(1);
+    expect(mockEnsureGuestAuthUser).toHaveBeenCalledWith("new@guest.com");
+  });
+
+  it("does not provision when the email is re-saved unchanged", async () => {
+    currentBooking = bookingWithEmail("same@guest.com");
+
+    const res = await PATCH(
+      makePatchRequest({ client_email: "same@guest.com" }),
+      params()
+    );
+
+    expect(res.status).toBe(200);
+    expect(mockEnsureGuestAuthUser).not.toHaveBeenCalled();
+  });
+
+  it("does not treat a case-only difference as a new address", async () => {
+    currentBooking = bookingWithEmail("same@guest.com");
+
+    const res = await PATCH(
+      makePatchRequest({ client_email: "Same@Guest.com" }),
+      params()
+    );
+
+    expect(res.status).toBe(200);
+    expect(mockEnsureGuestAuthUser).not.toHaveBeenCalled();
+  });
+
+  it("does not provision an update that carries no email", async () => {
+    currentBooking = bookingWithEmail("same@guest.com");
+
+    const res = await PATCH(
+      makePatchRequest({ client_name: "Martin Kaponda" }),
+      params()
+    );
+
+    expect(res.status).toBe(200);
+    expect(mockEnsureGuestAuthUser).not.toHaveBeenCalled();
+  });
+
+  it("does not provision when the update failed", async () => {
+    currentBooking = bookingWithEmail("old@guest.com");
+    mockHandleUpdate.mockResolvedValue(
+      NextResponse.json({ error: "boom" }, { status: 500 })
+    );
+
+    const res = await PATCH(
+      makePatchRequest({ client_email: "new@guest.com" }),
+      params()
+    );
+
+    expect(res.status).toBe(500);
+    expect(mockEnsureGuestAuthUser).not.toHaveBeenCalled();
+  });
+
+  it("still saves the booking when provisioning reports a failure", async () => {
+    currentBooking = bookingWithEmail("old@guest.com");
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    mockEnsureGuestAuthUser.mockResolvedValue({
+      created: false,
+      skipped: false,
+      failed: true,
+      reason: "auth_unavailable",
+    });
+
+    const res = await PATCH(
+      makePatchRequest({ client_email: "new@guest.com" }),
+      params()
+    );
+
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.id).toBe(BOOKING_ID);
+    expect(consoleError).toHaveBeenCalled();
+    consoleError.mockRestore();
+  });
+
+  it("still saves the booking when provisioning throws", async () => {
+    currentBooking = bookingWithEmail("old@guest.com");
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    mockEnsureGuestAuthUser.mockRejectedValue(new Error("network down"));
+
+    const res = await PATCH(
+      makePatchRequest({ client_email: "new@guest.com" }),
+      params()
+    );
+
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.id).toBe(BOOKING_ID);
+    expect(consoleError).toHaveBeenCalled();
+    consoleError.mockRestore();
   });
 });
 

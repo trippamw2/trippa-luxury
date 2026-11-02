@@ -12,6 +12,7 @@ import {
   supplierPaymentReceived,
 } from "@/lib/supplier-email";
 import { mapKeysToCamel } from "@/lib/api-helpers";
+import { ensureGuestAuthUser } from "@/lib/guest-auth-provision";
 import {
   registerSupplierReservationsForBooking,
   registerTripDelivery,
@@ -44,6 +45,34 @@ type BookingSupplierRow = {
   cost: number | null;
   suppliers: SupplierRow | null;
 };
+
+/**
+ * The guest's address from a booking payload, or null when it carries none.
+ *
+ * The admin editor sends `client_email` (snake_case, the column name);
+ * `clientEmail` is accepted too, because the generic admin helpers accept
+ * both spellings. A booking without an address has no guest to provision.
+ */
+function readClientEmail(body: Record<string, unknown>): string | null {
+  const raw = body.client_email ?? body.clientEmail;
+  if (typeof raw !== "string") return null;
+  const trimmed = raw.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+/**
+ * True when the incoming address is new for this booking or differs from the
+ * one the booking carries today.
+ *
+ * The comparison is case- and whitespace-insensitive: an address that differs
+ * only in case or padding is the same guest, not a new one. A booking that
+ * had no address at all counts as new the moment one is set.
+ */
+function clientEmailChanged(stored: string | null, incoming: string): boolean {
+  const storedNormalized = (stored ?? "").trim().toLowerCase();
+  if (storedNormalized.length === 0) return true;
+  return storedNormalized !== incoming.trim().toLowerCase();
+}
 
 /**
  * Map a new booking status to the appropriate email type and template data.
@@ -286,9 +315,57 @@ async function findNonCompliantSuppliers(
     .map((s) => ({ id: s.id, name: s.name || "Unnamed supplier" }));
 }
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+  return updateBooking(request, context);
+}
+
+/**
+ * PATCH is an alias for PUT.
+ *
+ * The admin editor updates a booking with PUT, but PATCH is the verb the
+ * platform's booking API is described with, and the update is field-wise at
+ * the database level anyway (only the posted columns are written). Both verbs
+ * therefore run the same handler — including the guest-portal provisioning
+ * below — so the two can never drift apart.
+ */
+export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+  return updateBooking(request, context);
+}
+
+async function updateBooking(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const { id } = await params;
   const body = await request.json();
+
+  // The guest's address on the incoming payload, and the one the booking
+  // carries today. Both are needed to decide whether this edit is the moment
+  // the guest gains portal access (a new address, or a different one).
+  //
+  // The stored address is read BEFORE the update, so the comparison is
+  // against the booking as it stands today and not against the value this
+  // very request is about to write.
+  const incomingClientEmail = readClientEmail(body);
+  let storedClientEmail: string | null = null;
+  if (incomingClientEmail) {
+    try {
+      const supabase = createAdminClient();
+      const { data: current } = await supabase
+        .from("bookings")
+        .select("client_email")
+        .eq("id", id)
+        .single();
+      const stored = current?.client_email;
+      storedClientEmail = typeof stored === "string" ? stored : null;
+    } catch (err) {
+      // Not being able to read the booking back is no reason to fail the edit:
+      // fall back to "no stored address", which provisions the incoming one.
+      // The helper is idempotent, so a repeat is harmless.
+      console.error(`Could not read the stored guest address for booking ${id}:`, err);
+      storedClientEmail = null;
+    }
+  }
 
   // A booking paid by wire transfer must move to a money status exclusively
   // through the confirm-payment endpoint, which writes the finance ledger
@@ -351,6 +428,39 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 
   const result = await handleUpdate(TABLE, id, body, request);
+
+  // Guest portal access.
+  //
+  // The guest's address arrives with the booking, and the portal's own login
+  // flow never creates users (it only signs in addresses that already exist),
+  // so the booking is where the address has to be provisioned from.
+  //
+  // "Changed-or-new" is decided against the STORED booking, read before the
+  // update above: the incoming address is compared with the one the booking
+  // carries today. An address that was empty and is now set counts as new, a
+  // genuinely different address counts as changed, and re-saving the same
+  // address does not provision at all (the helper is idempotent, so there
+  // would be nothing to gain).
+  //
+  // Only a successful update provisions, and the call is isolated: the helper
+  // never throws, and the try/catch makes sure of it. A provisioning problem
+  // must never turn a saved booking into a failed request.
+  if (result.status === 200 && incomingClientEmail && clientEmailChanged(storedClientEmail, incomingClientEmail)) {
+    try {
+      const outcome = await ensureGuestAuthUser(incomingClientEmail);
+      if (outcome.failed) {
+        console.error(
+          `Guest portal provisioning failed for ${incomingClientEmail}: ${outcome.reason ?? "unknown_error"}`
+        );
+      } else {
+        console.log(
+          `Guest portal provisioning for ${incomingClientEmail}: ${outcome.created ? "created" : "skipped"}`
+        );
+      }
+    } catch (err) {
+      console.error(`Guest portal provisioning error for ${incomingClientEmail}:`, err);
+    }
+  }
 
   // If status changed and update succeeded, send auto-emails in background
   if (result.status === 200 && body.status && oldStatus && oldStatus !== body.status) {

@@ -92,7 +92,7 @@ const BOOKING = {
 };
 const BALANCE_DUE = 4500;
 
-function makeRequest(params: Record<string, string> = {}): NextRequest {
+function makeRequest(params: Record<string, string | undefined> = {}): NextRequest {
   const url = new URL("http://localhost/api/payment/paypal/execute");
   for (const [k, v] of Object.entries({
     paymentId: "PAYID-1",
@@ -102,7 +102,7 @@ function makeRequest(params: Record<string, string> = {}): NextRequest {
     type: "balance",
     ...params,
   })) {
-    url.searchParams.set(k, v);
+    if (typeof v === "string") url.searchParams.set(k, v);
   }
   return new NextRequest(url);
 }
@@ -276,6 +276,14 @@ describe("GET /api/payment/paypal/execute — refusing unearned settlement", () 
 
     expect(locationOf(res)).toContain("error=booking_not_found");
     expect(mockExecutePayment).not.toHaveBeenCalled();
+  });
+
+  it("confirms the booking when PayPal returns the order id as token only", async () => {
+    const res = await GET(makeRequest({ paymentId: undefined, token: "ORDER-TOKEN-1" }));
+
+    expect(res.status).toBe(307);
+    expect(locationOf(res)).toContain("/payment/success");
+    expect(locationOf(res)).toContain(`bookingId=${BOOKING_ID}`);
   });
 
   it("refuses when required parameters are missing", async () => {

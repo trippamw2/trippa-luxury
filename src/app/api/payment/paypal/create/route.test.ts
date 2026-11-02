@@ -128,7 +128,7 @@ describe("POST /api/payment/paypal/create", () => {
     mockAdminFrom.mockReturnValueOnce(chainedQuery(null));
     // 2nd admin .from("bookings").select().eq().maybeSingle() -> booking owned by another email
     mockAdminFrom.mockReturnValueOnce(
-      chainedQuery({ id: bookingId, guest_email: "owner@example.com" })
+      chainedQuery({ id: bookingId, client_email: "owner@example.com" })
     );
 
     const res = await POST(makeRequest({ bookingId, type: "balance" }));
@@ -165,7 +165,7 @@ describe("POST /api/payment/paypal/create", () => {
     mockAdminFrom.mockReturnValueOnce(chainedQuery(null));
     // bookings -> owned by this guest
     mockAdminFrom.mockReturnValueOnce(
-      chainedQuery({ id: bookingId, guest_email: "owner@example.com" })
+      chainedQuery({ id: bookingId, client_email: "owner@example.com" })
     );
     // bookings -> priced booking
     mockAdminFrom.mockReturnValueOnce(chainedQuery(pricedBooking()));
@@ -176,6 +176,35 @@ describe("POST /api/payment/paypal/create", () => {
     expect(res.status).toBe(200);
     expect(mockCreatePayment).toHaveBeenCalledTimes(1);
     expect(mockCreatePayment.mock.calls[0][0].amount).toBe("500.00");
+  });
+
+  it("matches the guest owner case-insensitively and ignoring whitespace", async () => {
+    mockGetUser.mockResolvedValue({
+      data: { user: { id: "guest-1", email: "  Owner@Example.COM " } },
+    });
+    mockAdminFrom.mockReturnValueOnce(chainedQuery(null)); // not an admin
+    mockAdminFrom.mockReturnValueOnce(
+      chainedQuery({ id: bookingId, client_email: "owner@example.com" })
+    );
+    mockAdminFrom.mockReturnValueOnce(chainedQuery(pricedBooking()));
+    mockAdminFrom.mockReturnValueOnce(chainedQuery(null));
+
+    const res = await POST(makeRequest({ bookingId, type: "balance" }));
+    expect(res.status).toBe(200);
+  });
+
+  it("builds a returnUrl that identifies the booking and payment type", async () => {
+    mockAdminFrom.mockReturnValueOnce(chainedQuery({ id: "user-1" })); // admin
+    mockAdminFrom.mockReturnValueOnce(chainedQuery(pricedBooking()));
+    mockAdminFrom.mockReturnValueOnce(chainedQuery(null));
+
+    const res = await POST(makeRequest({ bookingId, type: "deposit" }));
+    expect(res.status).toBe(200);
+
+    const params = mockCreatePayment.mock.calls[0][0];
+    expect(params.returnUrl).toContain("/api/payment/paypal/execute");
+    expect(params.returnUrl).toContain(`bookingId=${bookingId}`);
+    expect(params.returnUrl).toContain("type=deposit");
   });
 
   it("returns 500 when PayPal creation fails", async () => {

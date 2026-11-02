@@ -52,11 +52,17 @@ export async function POST(request: NextRequest) {
       // Not an admin — verify guest owns this booking
       const { data: booking } = await adminClient
         .from("bookings")
-        .select("id, guest_email")
+        .select("id, client_email")
         .eq("id", bookingId)
         .maybeSingle();
 
-      if (!booking || booking.guest_email !== user.email) {
+      // `bookings` stores the guest's address in `client_email`; `guest_email`
+      // only exists on saved_journeys. Compare trimmed and case-insensitively
+      // so a normal address cannot be locked out by casing or stray whitespace.
+      const bookingEmail = booking?.client_email?.trim().toLowerCase();
+      const userEmail = user.email?.trim().toLowerCase();
+
+      if (!booking || !bookingEmail || !userEmail || bookingEmail !== userEmail) {
         return NextResponse.json({ error: "Access denied" }, { status: 403 });
       }
     }
@@ -124,6 +130,9 @@ export async function POST(request: NextRequest) {
       amount: payable.amount.toFixed(2),
       currency: payable.currency,
       description: `Kivara ${type === "deposit" ? "Deposit" : type === "balance" ? "Balance Payment" : "Full Payment"} — ${paymentRef.reference}`,
+      // PayPal appends the order id to this URL as `token` on return. The order
+      // id (paymentId) does not exist until createPayment returns, so it cannot
+      // be embedded here; execute/route.ts accepts the token in its place.
       returnUrl: `${baseUrl}/api/payment/paypal/execute?bookingId=${bookingId}&type=${type}`,
       cancelUrl: `${baseUrl}/payment/cancel?bookingId=${bookingId}`,
     });

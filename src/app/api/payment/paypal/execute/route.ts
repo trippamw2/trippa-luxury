@@ -25,7 +25,9 @@ export async function GET(request: NextRequest) {
 
   try {
     const searchParams = request.nextUrl.searchParams;
-    const paymentId = searchParams.get("paymentId");
+    // `paymentId` is appended by the caller when known; PayPal returns the order
+    // id as `token` (they are the same id). Accept either and require one.
+    const paymentId = searchParams.get("paymentId") || searchParams.get("token");
     const payerID = searchParams.get("PayerID");
     const bookingId = searchParams.get("bookingId");
     const orderId = searchParams.get("token");

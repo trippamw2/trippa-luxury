@@ -6,6 +6,7 @@ import { JourneyEngine } from "./journey-engine";
 import { getCommercialPolicy } from "./knowledge";
 import type { GuestProfile, CuratedJourney } from "./types";
 import { journeyIntro } from "@/lib/voice";
+import { getSiteUrl } from "@/lib/site-url";
 
 const engine = new JourneyEngine();
 
@@ -147,7 +148,7 @@ export class QuoteEngine {
         </div>
 
         <div style="text-align: center; margin-bottom: 24px;">
-          <a href="${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/payment?ref=${quote.quoteRef}" style="display: inline-block; padding: 14px 40px; background: #1C1A17; color: #F4F0E8; text-decoration: none; font-size: 11px; text-transform: uppercase; letter-spacing: 2px;">Reserve Your Journey</a>
+          <a href="${getSiteUrl()}/payment?ref=${quote.quoteRef}" style="display: inline-block; padding: 14px 40px; background: #1C1A17; color: #F4F0E8; text-decoration: none; font-size: 11px; text-transform: uppercase; letter-spacing: 2px;">Reserve Your Journey</a>
         </div>
 
         <p style="font-size: 14px; color: #1C1A17; line-height: 1.7; margin: 0;">Should you wish to refine any element of this journey, simply reply to this email. Your personal concierge is ready to adjust every detail until it feels perfectly yours.</p>
@@ -156,7 +157,7 @@ export class QuoteEngine {
 
       <div style="background: #D8CBB8; padding: 20px 40px; text-align: center;">
         <p style="font-size: 10px; color: #C2B39C; margin: 0;">kivara.africa · concierge@kivara.africa</p>
-        <p style="font-size: 10px; color: #C2B39C; margin: 4px 0 0;">${process.env.NEXT_PUBLIC_SITE_URL || "kivara.africa"}</p>
+        <p style="font-size: 10px; color: #C2B39C; margin: 4px 0 0;">${getSiteUrl()}</p>
       </div>
     </div>`;
   }

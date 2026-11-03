@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getSiteUrl } from "@/lib/site-url";
 import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 import {
   DEFAULT_GOVERNANCE_SETTINGS,
@@ -34,7 +35,7 @@ export async function GET() {
       whatsapp: settingsMap.whatsapp_number || "",
       email: settingsMap.contact_email || "",
       currency: settingsMap.default_currency || "USD",
-      siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+      siteUrl: getSiteUrl(),
       supabaseConfigured: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
       brevoConfigured: !!process.env.NEXT_BREVO_KEY,
       // `inForce` is what the runtime is really enforcing right now. `stored` is

@@ -8,6 +8,8 @@ import {
   postTripDay30,
 } from "@/lib/voice";
 
+import { getSiteUrl } from "@/lib/site-url";
+
 export type FollowUpType = "d1" | "d7" | "d30";
 
 export interface FollowUpSchedule {
@@ -83,7 +85,7 @@ export class FollowUpEngine {
           <h2 style="font-family: 'Times New Roman', serif; font-size: 20px; color: #1A1A1A; margin: 0 0 16px;">We value your perspective, ${clientName}</h2>
           <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 16px;">${postTripDay7(clientName, destination).replace(/^Dear [^,]*, /, "")}</p>
           <div style="text-align: center; margin: 24px 0;">
-            <a href="${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/review" style="display: inline-block; padding: 12px 32px; background: #1A1A1A; color: #FAF7F2; text-decoration: none; font-size: 11px; text-transform: uppercase; letter-spacing: 2px;">Share Your Reflection</a>
+            <a href="${getSiteUrl()}/review" style="display: inline-block; padding: 12px 32px; background: #1A1A1A; color: #FAF7F2; text-decoration: none; font-size: 11px; text-transform: uppercase; letter-spacing: 2px;">Share Your Reflection</a>
           </div>
           <p style="font-size: 13px; color: #8B7D6B; line-height: 1.6; margin: 0;">Alternatively, simply reply to this email with your thoughts.</p>
         `,

@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { PayPalClient } from "@/lib/paypal";
 import { generatePaymentReference } from "@/lib/wire-transfer";
+import { getSiteUrl } from "@/lib/site-url";
 
 /**
  * POST /api/payment
@@ -78,7 +79,7 @@ export async function POST(request: NextRequest) {
     }
 
     const currency = booking.currency || "USD";
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const baseUrl = getSiteUrl();
 
     // Generate payment reference for all payments
     const paymentRef = generatePaymentReference(type, bookingId);

@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { PayPalClient } from "@/lib/paypal";
 import { generatePaymentReference } from "@/lib/wire-transfer";
+import { getSiteUrl } from "@/lib/site-url";
 import { derivePayableAmount, isPaymentType, isPricedWithinLimit } from "@/lib/payments/amounts";
 
 /**
@@ -123,7 +124,7 @@ export async function POST(request: NextRequest) {
       .update({ swift_confirmation_code: paymentRef.reference })
       .eq("id", bookingId);
 
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const baseUrl = getSiteUrl();
 
     const paypal = new PayPalClient();
     const payment = await paypal.createPayment({

@@ -28,6 +28,7 @@ import type { InvoiceData } from "@/lib/documents/invoice";
 import type { ReceiptDocumentData } from "@/lib/documents/receipt";
 import type { PaymentReminderData } from "@/lib/documents/payment-reminder";
 import type { TravelBriefData } from "@/lib/documents/travel-brief";
+import { getSiteUrl } from "@/lib/site-url";
 
 /** Document types this module can build from a booking row. */
 export type BookingDocumentType =
@@ -428,7 +429,7 @@ function buildPaymentReminder(booking: BookingRow, ctx: BuildContext): PaymentRe
   const total = num(booking.totalAmount) || num(booking.finalAmount);
   const deposit = num(booking.depositAmount);
   const balance = num(booking.balanceAmount) || Math.max(0, total - deposit);
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "").replace(/\/$/, "");
+  const siteUrl = getSiteUrl();
   return {
     clientName: str(booking.clientName, "Valued Guest"),
     bookingRef: ref,

@@ -2,6 +2,8 @@
 // Generates payment links, receipts, and payment communications.
 // All guest-facing prose uses the KIVARA brand voice.
 
+import { getSiteUrl } from "@/lib/site-url";
+
 export interface PaymentLinkData {
   bookingRef: string;
   clientName: string;
@@ -32,7 +34,7 @@ export class PaymentEngine {
    * Generate a payment link for a booking.
    */
   generatePaymentLink(data: Omit<PaymentLinkData, "paymentUrl">): PaymentLinkData {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const baseUrl = getSiteUrl();
     const paymentUrl = `${baseUrl}/api/payment/process?ref=${data.bookingRef}&type=${data.type}&amount=${data.amount}`;
 
     return { ...data, paymentUrl };

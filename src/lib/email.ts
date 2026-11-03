@@ -6,6 +6,7 @@
 import { BrevoClient } from "@getbrevo/brevo";
 import { formatDestination } from "@/lib/utils";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getSiteUrl } from "@/lib/site-url";
 
 let client: BrevoClient | null = null;
 
@@ -244,7 +245,7 @@ export function newInquiryEmail(data: {
         <p style="font-size: 14px; color: #1A1A1A; line-height: 1.6; margin: 0;">${escapeHtml(data.message)}</p>
       </div>
       <div style="margin-top: 32px; text-align: center;">
-        <a href="${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/admin/inquiries" style="display: inline-block; padding: 12px 32px; background: #1A1A1A; color: #FAF7F2; text-decoration: none; font-size: 11px; text-transform: uppercase; letter-spacing: 2px;">View in Admin Panel</a>
+        <a href="${getSiteUrl()}/admin/inquiries" style="display: inline-block; padding: 12px 32px; background: #1A1A1A; color: #FAF7F2; text-decoration: none; font-size: 11px; text-transform: uppercase; letter-spacing: 2px;">View in Admin Panel</a>
       </div>
     `),
   };
@@ -263,7 +264,7 @@ export function inquiryConfirmationEmail(data: {
       <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0 0 24px;">You can expect a thoughtfully curated response from your personal concierge within <strong>24 hours</strong>, complete with a first glimpse of what your journey could hold.</p>
       <div style="background: #F5F0EB; padding: 24px; border-left: 3px solid #C9A96E; margin-bottom: 24px;">
         <p style="font-size: 11px; color: #8B7D6B; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 8px;">In the meantime</p>
-        <p style="font-size: 13px; color: #4A4A4A; line-height: 1.6; margin: 0;">Browse our <a href="${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/journal" style="color: #C9A96E;">Journal</a> for travel inspiration, or reach out to us directly on <a href="https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || ""}" style="color: #C9A96E;">WhatsApp</a> for immediate assistance.</p>
+        <p style="font-size: 13px; color: #4A4A4A; line-height: 1.6; margin: 0;">Browse our <a href="${getSiteUrl()}/journal" style="color: #C9A96E;">Journal</a> for travel inspiration, or reach out to us directly on <a href="https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || ""}" style="color: #C9A96E;">WhatsApp</a> for immediate assistance.</p>
       </div>
       <p style="font-size: 14px; color: #4A4A4A; line-height: 1.7; margin: 0;">With warmest regards,<br><strong style="color: #C9A96E;">Your Kivara Concierge</strong></p>
     `),
@@ -290,14 +291,14 @@ export function newBookingNotification(data: {
         ${data.totalAmount ? `<tr><td style="padding: 8px 0; color: #8B7D6B; font-size: 12px;">Total Investment</td><td style="padding: 8px 0; font-size: 14px;">${escapeHtml(data.totalAmount)}</td></tr>` : ""}
       </table>
       <div style="margin-top: 32px; text-align: center;">
-        <a href="${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/admin/bookings" style="display: inline-block; padding: 12px 32px; background: #1A1A1A; color: #FAF7F2; text-decoration: none; font-size: 11px; text-transform: uppercase; letter-spacing: 2px;">View Booking</a>
+        <a href="${getSiteUrl()}/admin/bookings" style="display: inline-block; padding: 12px 32px; background: #1A1A1A; color: #FAF7F2; text-decoration: none; font-size: 11px; text-transform: uppercase; letter-spacing: 2px;">View Booking</a>
       </div>
     `),
   };
 }
 
 export function newsletterWelcomeEmail() {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const siteUrl = getSiteUrl();
   return {
     subject: "Welcome to Kivara : Africa's Finest Curated Journeys",
     htmlContent: emailShell("Welcome to the Journey", `
@@ -317,7 +318,7 @@ export function newsletterWelcomeEmail() {
  * (paragraph-safe), rendered inside the Kivara shell.
  */
 export function newsletterCampaignEmail(data: { subject: string; bodyHtml: string }) {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const siteUrl = getSiteUrl();
   return {
     subject: data.subject,
     htmlContent: emailShell("The Kivara Edit", `

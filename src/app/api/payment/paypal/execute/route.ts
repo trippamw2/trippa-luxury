@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail, paymentReceiptEmail } from "@/lib/email";
 import { PayPalClient } from "@/lib/paypal";
+import { getSiteUrl } from "@/lib/site-url";
 import { amountsEqual, derivePayableAmount, isPaymentType } from "@/lib/payments/amounts";
 
 /**
@@ -19,7 +20,7 @@ import { amountsEqual, derivePayableAmount, isPaymentType } from "@/lib/payments
  * have an unrelated booking marked paid.
  */
 export async function GET(request: NextRequest) {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const baseUrl = getSiteUrl();
   const cancel = (error: string) =>
     NextResponse.redirect(new URL(`/payment/cancel?error=${error}`, baseUrl));
 

@@ -11,6 +11,7 @@ import type { GuestProfile, CuratedJourney } from "./types";
 import type { EmotionalProfile } from "./romance-engine";
 import { callLlmJson } from "./llm";
 import { journeyIntro, journeyOverview } from "@/lib/voice";
+import { getSiteUrl } from "@/lib/site-url";
 
 const engine = new JourneyEngine();
 
@@ -159,7 +160,7 @@ export class ProposalEngine {
         <p style="font-size: 12px; color: #8B7D6B; margin-top: 8px;">Valid until ${proposal.validUntil}. ${proposal.paymentTerms}</p>
 
         <div style="text-align: center; margin-top: 24px;">
-          <a href="${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/payment?ref=${proposal.ref}" style="display: inline-block; padding: 14px 40px; background: #1A1A1A; color: #FAF7F2; text-decoration: none; font-size: 11px; text-transform: uppercase; letter-spacing: 2px;">Reserve This Story</a>
+          <a href="${getSiteUrl()}/payment?ref=${proposal.ref}" style="display: inline-block; padding: 14px 40px; background: #1A1A1A; color: #FAF7F2; text-decoration: none; font-size: 11px; text-transform: uppercase; letter-spacing: 2px;">Reserve This Story</a>
         </div>
         <p style="font-size: 13px; color: #4A4A4A; text-align: center; margin-top: 24px;">With warmest regards,<br><strong style="color: #C9A96E;">Your Kivara Concierge</strong></p>
       </div>

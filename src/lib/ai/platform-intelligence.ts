@@ -164,6 +164,13 @@ async function collectReadiness(client: AdminClient): Promise<ReadinessReport> {
 
   const integrations = [
     { key: "SUPABASE_SERVICE_ROLE_KEY", label: "Supabase service role", present: hasEnv("SUPABASE_SERVICE_ROLE_KEY") },
+    {
+      key: "NEXT_PUBLIC_SITE_URL",
+      label: "Public site URL",
+      // Present-but-empty is the failure mode: `|| localhost` fallbacks then
+      // ship localhost into payment redirects and email links.
+      present: Boolean(process.env.NEXT_PUBLIC_SITE_URL?.trim()),
+    },
     { key: "NEXT_BREVO_KEY", label: "Brevo email", present: hasEnv("NEXT_BREVO_KEY") },
     { key: "PAYPAL_CLIENT_ID", label: "PayPal client id", present: hasEnv("PAYPAL_CLIENT_ID") },
     { key: "PAYPAL_CLIENT_SECRET", label: "PayPal secret", present: hasEnv("PAYPAL_CLIENT_SECRET") },
@@ -189,7 +196,7 @@ async function collectReadiness(client: AdminClient): Promise<ReadinessReport> {
     .from("bookings")
     .select("id", { count: "exact", head: true })
     .in("status", ["confirmed", "paid", "completed"])
-    .is("total_amount", null);
+    .or("total_amount.is.null,total_amount.lte.0");
 
   const missingContact = await client
     .from("bookings")
@@ -208,9 +215,9 @@ async function collectReadiness(client: AdminClient): Promise<ReadinessReport> {
     },
     {
       key: "confirmed_booking_amounts",
-      label: "Confirmed bookings have amounts",
+      label: "Confirmed bookings carry a value",
       ok: !missingAmount.error && (missingAmount.count ?? 0) === 0,
-      detail: missingAmount.error ? "check failed" : `${missingAmount.count ?? 0} missing`,
+      detail: missingAmount.error ? "check failed" : `${missingAmount.count ?? 0} missing or zero`,
     },
     {
       key: "confirmed_booking_contacts",

@@ -8,6 +8,7 @@ import {
 } from "@/lib/email";
 import { createAuditLog, sanitizeForAudit, getIpFromRequest } from "@/lib/audit";
 import { partitionSuppressed, normalizeEmail } from "@/lib/email-consent";
+import { getSiteUrl } from "@/lib/site-url";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 const TABLE = "newsletter_subscribers";
@@ -256,7 +257,7 @@ export async function POST(request: NextRequest) {
     }
 
     const template = newsletterCampaignEmail({ subject, bodyHtml });
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const siteUrl = getSiteUrl();
     const headers = {
       // Presence of List-Unsubscribe is what most receivers require of bulk mail.
       "List-Unsubscribe": `<mailto:${FROM_EMAIL}?subject=unsubscribe>, <${siteUrl}/unsubscribe>`,

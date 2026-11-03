@@ -37,6 +37,18 @@ interface PlatformHealth {
     outstandingBalance: number;
   };
   score: number;
+  readiness: {
+    score: number;
+    checks: {
+      key: string;
+      label: string;
+      group: string;
+      ok: boolean;
+      weight: number;
+      detail: string;
+    }[];
+    missing: string[];
+  };
   flags: string[];
 }
 
@@ -44,6 +56,13 @@ function scoreTone(score: number) {
   if (score >= 70) return { text: "text-emerald-600", ring: "border-emerald-200", label: "Healthy" };
   if (score >= 45) return { text: "text-amber-600", ring: "border-amber-200", label: "Developing" };
   return { text: "text-red-600", ring: "border-red-200", label: "Attention" };
+}
+
+/** Readiness is a completeness measure, not a revenue measure. */
+function readinessTone(score: number) {
+  if (score >= 90) return { text: "text-emerald-600", ring: "border-emerald-200", label: "Production ready" };
+  if (score >= 70) return { text: "text-amber-600", ring: "border-amber-200", label: "Nearly complete" };
+  return { text: "text-red-600", ring: "border-red-200", label: "Incomplete" };
 }
 
 // ─── Page ────────────────────────────────────────────────────────────────
@@ -106,6 +125,7 @@ export default function PlatformHealthPage() {
   }
 
   const tone = scoreTone(health.score);
+  const ready = readinessTone(health.readiness.score);
 
   return (
     <div>
@@ -114,7 +134,8 @@ export default function PlatformHealthPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Platform Health</h1>
           <p className="text-sm text-gray-500 mt-1">
-            The operating report that ties every AI agent&apos;s contribution into one score.
+            Two independent scores: commercial performance from live data, and engineering readiness from the
+            platform&apos;s own configuration.
           </p>
         </div>
         <button
@@ -125,26 +146,39 @@ export default function PlatformHealthPage() {
         </button>
       </div>
 
-      {/* Score + flags */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      {/* Scores + flags */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          className={`lg:col-span-1 bg-white border ${tone.ring} p-6 flex flex-col items-center justify-center`}
+          className={`bg-white border ${tone.ring} p-6 flex flex-col items-center justify-center`}
         >
           <div className={`text-5xl font-bold ${tone.text}`}>{health.score}</div>
-          <p className="text-[11px] text-gray-400 uppercase tracking-widest mt-1">Platform score / 100</p>
+          <p className="text-[11px] text-gray-400 uppercase tracking-widest mt-1">Business score / 100</p>
           <span className={`mt-3 inline-flex items-center px-2.5 py-1 text-xs font-medium ${tone.text} border ${tone.ring}`}>
             <Activity className="w-3.5 h-3.5 mr-1.5" /> {tone.label}
           </span>
-          <p className="text-[10px] text-gray-400 mt-3">{new Date(health.generatedAt).toLocaleString()}</p>
+          <p className="text-[10px] text-gray-400 mt-3">Commercial data volume</p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`bg-white border ${ready.ring} p-6 flex flex-col items-center justify-center`}
+        >
+          <div className={`text-5xl font-bold ${ready.text}`}>{health.readiness.score}</div>
+          <p className="text-[11px] text-gray-400 uppercase tracking-widest mt-1">Readiness score / 100</p>
+          <span className={`mt-3 inline-flex items-center px-2.5 py-1 text-xs font-medium ${ready.text} border ${ready.ring}`}>
+            <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" /> {ready.label}
+          </span>
+          <p className="text-[10px] text-gray-400 mt-3">Engineering &amp; configuration</p>
         </motion.div>
 
         <div className="lg:col-span-2 space-y-4">
           {health.flags.length === 0 ? (
             <div className="bg-white border border-gray-100 p-5 flex items-center gap-3">
               <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-              <p className="text-sm text-gray-700">No flags — the organisation is running clean.</p>
+              <p className="text-sm text-gray-700">No flags - the organisation is running clean.</p>
             </div>
           ) : (
             health.flags.map((f, i) => (
@@ -154,6 +188,43 @@ export default function PlatformHealthPage() {
               </div>
             ))
           )}
+        </div>
+      </div>
+
+      {/* Readiness checklist */}
+      <div className="bg-white border border-gray-100 p-5 mb-4">
+        <div className="flex items-center gap-2 mb-4">
+          <CheckCircle2 className="w-4 h-4 text-gold" />
+          <h2 className="text-xs font-semibold text-gray-900 uppercase tracking-wider">
+            Readiness checklist
+          </h2>
+        </div>
+        {health.readiness.missing.length > 0 && (
+          <div className="mb-4 p-3 bg-amber-50 border border-amber-100">
+            <p className="text-xs font-medium text-amber-900 mb-1">
+              {health.readiness.missing.length} item(s) still open:
+            </p>
+            <ul className="text-xs text-amber-800 list-disc list-inside space-y-0.5">
+              {health.readiness.missing.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+          {health.readiness.checks.map((check) => (
+            <div key={check.key} className="flex items-start gap-2 text-sm">
+              {check.ok ? (
+                <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+              ) : (
+                <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+              )}
+              <span className="text-gray-700">
+                {check.label}
+                <span className="text-gray-400"> · {check.detail}</span>
+              </span>
+            </div>
+          ))}
         </div>
       </div>
 

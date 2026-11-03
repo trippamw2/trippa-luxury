@@ -7,6 +7,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { computeReadiness, type ReadinessReport } from "./platform-readiness";
 
 export interface PlatformHealth {
   generatedAt: string;
@@ -29,7 +30,13 @@ export interface PlatformHealth {
     totalRevenue: number;
     outstandingBalance: number;
   };
-  score: number; // 0..100 composite platform health
+  score: number; // 0..100 composite business health
+  /**
+   * Engineering/deployment completeness, separate from the business score.
+   * The business score reflects commercial data volume; readiness reflects
+   * whether the platform itself is fully built and configured.
+   */
+  readiness: ReadinessReport;
   flags: string[];
 }
 
@@ -86,6 +93,8 @@ export class PlatformIntelligence {
       conversionScore * 0.3 + supplyScore * 0.25 + pipelineScore * 0.25 + engagementScore * 0.2
     );
 
+    const readiness = await collectReadiness(client);
+
     const flags: string[] = [];
     if (inquiries.length > 0 && conversionRate < 0.2) {
       flags.push("Conversion below 20% — sales follow-up needs attention.");
@@ -109,6 +118,7 @@ export class PlatformIntelligence {
       engagement: { savedJourneys: journeys.length, interactions: inquiryCount(inquiries) },
       finance: { totalRevenue, outstandingBalance },
       score,
+      readiness,
       flags,
     };
   }
@@ -116,6 +126,107 @@ export class PlatformIntelligence {
 
 function inquiryCount(inquiries: unknown[]): number {
   return inquiries.length;
+}
+
+// ─── Readiness signals ───────────────────────────────────────────────────────
+
+type AdminClient = ReturnType<typeof createAdminClient>;
+
+async function probeSchema(
+  client: AdminClient,
+  table: string,
+  column: string
+): Promise<{ key: string; present: boolean }> {
+  const { error } = await client.from(table).select(column).limit(1);
+  return { key: `${table}.${column}`, present: !error };
+}
+
+async function collectReadiness(client: AdminClient): Promise<ReadinessReport> {
+  const schemaArtifacts = await Promise.all([
+    probeSchema(client, "inquiries", "attribution"),
+    probeSchema(client, "leads", "attribution"),
+    probeSchema(client, "testimonials", "published"),
+    probeSchema(client, "testimonials", "source_feedback_id"),
+    probeSchema(client, "agent_evaluation_events", "id"),
+    probeSchema(client, "supplier_documents", "id"),
+    probeSchema(client, "insights", "report"),
+  ]);
+
+  let storageBuckets: string[] = [];
+  try {
+    const { data } = await client.storage.listBuckets();
+    storageBuckets = (data ?? []).map((bucket) => bucket.name);
+  } catch {
+    storageBuckets = [];
+  }
+
+  const hasEnv = (key: string) => Boolean(process.env[key]);
+
+  const integrations = [
+    { key: "SUPABASE_SERVICE_ROLE_KEY", label: "Supabase service role", present: hasEnv("SUPABASE_SERVICE_ROLE_KEY") },
+    { key: "NEXT_BREVO_KEY", label: "Brevo email", present: hasEnv("NEXT_BREVO_KEY") },
+    { key: "PAYPAL_CLIENT_ID", label: "PayPal client id", present: hasEnv("PAYPAL_CLIENT_ID") },
+    { key: "PAYPAL_CLIENT_SECRET", label: "PayPal secret", present: hasEnv("PAYPAL_CLIENT_SECRET") },
+    { key: "CRON_SECRET", label: "Cron secret", present: hasEnv("CRON_SECRET") },
+    {
+      key: "LLM_PROVIDER",
+      label: "LLM provider key",
+      present: hasEnv("GEMINI_API_KEY") || hasEnv("GROQ_API_KEY") || hasEnv("DEEPSEEK_API_KEY"),
+    },
+    {
+      key: "SENTRY_DSN",
+      label: "Sentry error tracking",
+      present: hasEnv("SENTRY_DSN") || hasEnv("NEXT_PUBLIC_SENTRY_DSN"),
+    },
+  ];
+
+  const legacyStatuses = await client
+    .from("bookings")
+    .select("id", { count: "exact", head: true })
+    .in("status", ["deposit-paid", "balance-due", "in-progress"]);
+
+  const missingAmount = await client
+    .from("bookings")
+    .select("id", { count: "exact", head: true })
+    .in("status", ["confirmed", "paid", "completed"])
+    .is("total_amount", null);
+
+  const missingContact = await client
+    .from("bookings")
+    .select("id", { count: "exact", head: true })
+    .in("status", ["confirmed", "paid", "completed"])
+    .is("client_email", null);
+
+  const dataIntegrity = [
+    {
+      key: "legacy_status_slugs",
+      label: "Booking statuses normalised",
+      ok: !legacyStatuses.error && (legacyStatuses.count ?? 0) === 0,
+      detail: legacyStatuses.error
+        ? "check failed"
+        : `${legacyStatuses.count ?? 0} legacy row(s)`,
+    },
+    {
+      key: "confirmed_booking_amounts",
+      label: "Confirmed bookings have amounts",
+      ok: !missingAmount.error && (missingAmount.count ?? 0) === 0,
+      detail: missingAmount.error ? "check failed" : `${missingAmount.count ?? 0} missing`,
+    },
+    {
+      key: "confirmed_booking_contacts",
+      label: "Confirmed bookings have guest email",
+      ok: !missingContact.error && (missingContact.count ?? 0) === 0,
+      detail: missingContact.error ? "check failed" : `${missingContact.count ?? 0} missing`,
+    },
+  ];
+
+  return computeReadiness({
+    schemaArtifacts,
+    storageBuckets,
+    requiredBuckets: ["supplier-docs"],
+    integrations,
+    dataIntegrity,
+  });
 }
 
 export const platformIntelligence = new PlatformIntelligence();

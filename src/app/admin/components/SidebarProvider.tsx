@@ -102,6 +102,7 @@ const NAV_ITEMS = [
   { label: "Email Log", href: "/admin/email-log", module: "settings" },
   { label: "Audit Log", href: "/admin/audit-log", module: "audit-log" },
   { label: "Analytics", href: "/admin/analytics", module: "analytics" },
+  { label: "Feedback", href: "/admin/feedback", module: "analytics" },
 ];
 
 const ROLE_LABEL: Record<string, string> = {

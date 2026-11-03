@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
-import { createAuditLog, getIpFromRequest, sanitizeForAudit } from "@/lib/audit";
 
 export async function GET(request: NextRequest) {
   try {

@@ -87,6 +87,15 @@ export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
     };
   }, [pathname, router, isLoginPage, hasProfile]);
 
+  // A staff session can end while the panel is open (idle timeout above, or a
+  // sign-out in another tab). Drop the cached profile on the login page so the
+  // next sign-in is re-verified instead of reusing the previous user's role.
+  useEffect(() => {
+    if (!isLoginPage || !hasProfile) return;
+    const timer = window.setTimeout(() => setProfile(null), 0);
+    return () => window.clearTimeout(timer);
+  }, [isLoginPage, hasProfile]);
+
   if (checking) {
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center">

@@ -121,7 +121,13 @@ export function AdminIdleWatcher() {
     const timer = window.setInterval(evaluate, CHECK_INTERVAL_MS);
 
     const onStorage = (event: StorageEvent) => {
-      if (event.key !== ADMIN_LAST_ACTIVE_KEY || !event.newValue) return;
+      if (event.key !== ADMIN_LAST_ACTIVE_KEY) return;
+      // Another tab hit the idle timeout and cleared the shared stamp: these
+      // tabs share the same auth cookies, so they must all end their session.
+      if (!event.newValue) {
+        expire();
+        return;
+      }
       const stamp = Number(event.newValue);
       if (!Number.isFinite(stamp) || stamp <= 0) return;
       lastActiveRef.current = stamp;
@@ -148,7 +154,7 @@ export function AdminIdleWatcher() {
       window.removeEventListener("storage", onStorage);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [evaluate, markActive]);
+  }, [evaluate, markActive, expire]);
 
   if (!expiring && secondsLeft <= 0) return null;
 

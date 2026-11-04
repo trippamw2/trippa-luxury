@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import { canonicalUrl } from "@/lib/seo";
 import { UnsubscribeForm } from "@/components/sections/UnsubscribeForm";
 
 export const metadata: Metadata = {
   title: "Unsubscribe | Kivara",
   description: "Unsubscribe from the Kivara newsletter.",
+  alternates: { canonical: canonicalUrl("/unsubscribe") },
   robots: { index: false, follow: false },
 };
 

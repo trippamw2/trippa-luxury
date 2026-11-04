@@ -1,11 +1,29 @@
 "use client";
 
-import { useState, FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState, FormEvent } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { ADMIN_LAST_ACTIVE_KEY } from "@/lib/admin-idle";
+
+const REASON_MESSAGES: Record<string, string> = {
+  idle: "You were signed out after a period of inactivity. Sign in again to continue.",
+  "not-staff": "That account is no longer active staff. Contact an administrator.",
+  "auth-failed": "Your session could not be verified. Sign in again.",
+  "password-updated": "Your password has been updated. Sign in with your new password.",
+};
 
 export default function AdminLoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-cream" />}>
+      <AdminLoginForm />
+    </Suspense>
+  );
+}
+
+function AdminLoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const reasonMessage = REASON_MESSAGES[searchParams.get("error") ?? ""] ?? null;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,6 +50,14 @@ export default function AdminLoginPage() {
 
       if (!res.ok) {
         throw new Error(body.error || "Invalid email or password");
+      }
+
+      // Fresh activity stamp: a stale value from a previous browser session
+      // must not make the new session look idle the moment it starts.
+      try {
+        window.localStorage.setItem(ADMIN_LAST_ACTIVE_KEY, String(Date.now()));
+      } catch {
+        // Storage disabled: the in-memory timer still applies.
       }
 
       router.push("/admin");
@@ -66,11 +92,17 @@ export default function AdminLoginPage() {
             </p>
           </div>
 
-          {/* Error */}
-          {error && (
-            <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 text-red-700 text-sm">
+          {/* Error / notice */}
+          {(error ?? reasonMessage) && (
+            <div
+              className={
+                !error && searchParams.get("error") === "password-updated"
+                  ? "flex items-start gap-2 p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm"
+                  : "flex items-start gap-2 p-3 bg-red-50 border border-red-200 text-red-700 text-sm"
+              }
+            >
               <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-              <span>{error}</span>
+              <span>{error ?? reasonMessage}</span>
             </div>
           )}
 

@@ -1,11 +1,31 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Mail, Send, Users, CheckCircle2, XCircle, Loader2, Trash2 } from "lucide-react";
+import {
+  Mail,
+  Send,
+  Users,
+  CheckCircle2,
+  XCircle,
+  Loader2,
+  Trash2,
+  UserRound,
+  Sparkles,
+  Eye,
+  AlertTriangle,
+} from "lucide-react";
 import { useToast } from "@/app/admin/components/Toast";
 import { SkeletonText } from "@/app/admin/components/Skeleton";
 import { EmptyState } from "@/app/admin/components/EmptyState";
-import { FormInput, FormTextarea } from "@/app/admin/components/FormField";
+import { FormInput, FormSelect, FormTextarea } from "@/app/admin/components/FormField";
+
+type AudienceSource = "newsletter" | "guests";
+
+interface AudiencePreview {
+  matched: number;
+  recipients: number;
+  suppressed: number;
+}
 
 interface Subscriber {
   id: string;
@@ -30,6 +50,31 @@ export default function AdminMarketing() {
   const [subject, setSubject] = useState("");
   const [bodyHtml, setBodyHtml] = useState("");
   const [sending, setSending] = useState(false);
+
+  // Segmentation. The API already supports it; the composer used to always
+  // send to the whole newsletter list.
+  const [audienceSource, setAudienceSource] = useState<AudienceSource>("newsletter");
+  const [vipOnly, setVipOnly] = useState(false);
+  const [tagsInput, setTagsInput] = useState("");
+  const [preview, setPreview] = useState<AudiencePreview | null>(null);
+  const [previewing, setPreviewing] = useState(false);
+
+  const tags = tagsInput
+    .split(",")
+    .map((t) => t.trim())
+    .filter(Boolean);
+
+  const audience = {
+    source: audienceSource,
+    tags,
+    vipOnly: audienceSource === "guests" ? vipOnly : false,
+  };
+
+  /** Any audience change invalidates a previous preview count. */
+  const changeAudience = (fn: () => void) => {
+    fn();
+    setPreview(null);
+  };
 
   const loadNewsletter = useCallback(async () => {
     const res = await fetch(NEWSLETTER_ENDPOINT);
@@ -58,6 +103,40 @@ export default function AdminMarketing() {
     };
   }, [loadNewsletter]);
 
+  const handlePreview = async () => {
+    if (previewing || sending) return;
+    setPreviewing(true);
+    try {
+      const res = await fetch(NEWSLETTER_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          // Preview only resolves the audience; the API still validates these
+          // two fields, so send harmless placeholders when they are blank.
+          subject: subject.trim() || "Audience preview",
+          bodyHtml: bodyHtml.trim() || "<p>Audience preview</p>",
+          audience,
+          preview: true,
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setPreview(null);
+        toast(json.error || "Could not resolve this audience.", "error");
+        return;
+      }
+      setPreview({
+        matched: json.matched ?? 0,
+        recipients: json.recipients ?? 0,
+        suppressed: json.suppressed ?? 0,
+      });
+    } catch {
+      toast("Could not reach the campaign service.", "error");
+    } finally {
+      setPreviewing(false);
+    }
+  };
+
   const handleSend = async () => {
     if (!subject.trim() || !bodyHtml.trim()) {
       toast("Subject and message body are required.", "error");
@@ -68,16 +147,26 @@ export default function AdminMarketing() {
       const res = await fetch(NEWSLETTER_ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subject: subject.trim(), bodyHtml: bodyHtml.trim() }),
+        body: JSON.stringify({
+          subject: subject.trim(),
+          bodyHtml: bodyHtml.trim(),
+          audience,
+        }),
       });
       const json = await res.json();
       if (!res.ok) {
         toast(json.error || "Campaign failed to send.", "error");
         return;
       }
-      toast(`Campaign sent to ${json.sent} subscriber(s).`, "success");
+      toast(
+        json.suppressed
+          ? `Campaign sent to ${json.sent} recipient(s); ${json.suppressed} on the do-not-email list were skipped.`
+          : `Campaign sent to ${json.sent} recipient(s).`,
+        "success"
+      );
       setSubject("");
       setBodyHtml("");
+      setPreview(null);
     } catch {
       toast("Could not reach the campaign service.", "error");
     } finally {
@@ -161,19 +250,123 @@ export default function AdminMarketing() {
               rows={10}
               placeholder="<p>Write your newsletter content here. Simple HTML like <strong>, <em>, and <a> links are supported.</p>"
             />
-            <div className="flex items-center justify-between">
+
+            {/* Audience / segmentation */}
+            <div className="border border-sand-light bg-warm-white/40 p-4 space-y-3">
+              <p className="text-xs font-medium text-soft-black uppercase tracking-wider">
+                Audience
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <FormSelect
+                  label="Send to"
+                  name="audienceSource"
+                  value={audienceSource}
+                  onChange={(e) => {
+                    const source = e.target.value as AudienceSource;
+                    changeAudience(() => setAudienceSource(source));
+                  }}
+                  options={[
+                    { value: "newsletter", label: "Newsletter subscribers" },
+                    { value: "guests", label: "Guests (opted in)" },
+                  ]}
+                />
+                {audienceSource === "guests" ? (
+                  <FormInput
+                    label="Tags (comma separated)"
+                    name="audienceTags"
+                    value={tagsInput}
+                    onChange={(e) => changeAudience(() => setTagsInput(e.target.value))}
+                    placeholder="e.g. honeymoon, safari"
+                  />
+                ) : (
+                  <div className="flex items-end">
+                    <p className="text-xs text-earth pb-3">
+                      Everyone who signed up on the site and has not unsubscribed.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {audienceSource === "guests" && (
+                <label className="flex items-center gap-2 text-sm text-earth cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={vipOnly}
+                    onChange={(e) => changeAudience(() => setVipOnly(e.target.checked))}
+                    className="accent-gold"
+                  />
+                  <Sparkles className="w-3.5 h-3.5 text-gold" />
+                  VIP guests only
+                </label>
+              )}
+
+              <div className="flex flex-wrap items-center gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={() => void handlePreview()}
+                  disabled={previewing || sending}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-sand-light bg-white text-earth hover:border-gold disabled:opacity-50 transition-colors"
+                >
+                  {previewing ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Eye className="w-3.5 h-3.5" />
+                  )}
+                  Preview audience
+                </button>
+                {preview && (
+                  <p className="text-xs text-earth">
+                    <span className="font-medium text-soft-black">{preview.recipients}</span>{" "}
+                    will receive this
+                    {preview.suppressed > 0 && (
+                      <>
+                        {" "}
+                        · {preview.suppressed} on the do-not-email list skipped
+                      </>
+                    )}
+                    {preview.matched !== preview.recipients + preview.suppressed && (
+                      <> · {preview.matched} matched before de-duplication</>
+                    )}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between gap-4">
               <p className="text-xs text-earth">
-                Will be sent to <span className="font-medium text-soft-black">{stats.activeCount}</span> active subscriber(s) via Brevo.
+                {audienceSource === "newsletter" ? (
+                  <>
+                    Will be sent to{" "}
+                    <span className="font-medium text-soft-black">{stats.activeCount}</span> active
+                    subscriber(s) via Brevo.
+                  </>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5">
+                    <UserRound className="w-3.5 h-3.5" />
+                    Guests who opted in
+                    {vipOnly ? ", VIP only" : ""}
+                    {tags.length > 0 ? `, tagged ${tags.join(", ")}` : ""}.
+                  </span>
+                )}
               </p>
               <button
                 onClick={handleSend}
-                disabled={sending || stats.activeCount === 0}
+                disabled={sending || (audienceSource === "newsletter" && stats.activeCount === 0)}
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-soft-black hover:bg-earth disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                 {sending ? "Sending…" : "Send Campaign"}
               </button>
             </div>
+            {preview && preview.recipients === 0 && (
+              <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 text-amber-800 text-xs">
+                <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <span>
+                  No one matches this audience. Widen the tags, turn off VIP-only, or send to the
+                  newsletter list instead.
+                </span>
+              </div>
+            )}
           </div>
         </section>
 

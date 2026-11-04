@@ -8,8 +8,10 @@ import { Footer } from "@/components/layout/Footer";
 export function SiteShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdmin = pathname.startsWith("/admin");
+  // Staff-only screens (password setup) render their own chrome.
+  const isBare = isAdmin || pathname === "/reset-password";
 
-  if (isAdmin) {
+  if (isBare) {
     return <>{children}</>;
   }
 

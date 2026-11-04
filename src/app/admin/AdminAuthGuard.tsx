@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { AdminRole } from "@/lib/admin-permissions";
 import { Loader2 } from "lucide-react";
+import { AdminIdleWatcher } from "./components/AdminIdleWatcher";
 
 /* ─── Admin profile context ────────────────────────────── */
 
@@ -99,6 +100,7 @@ export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
 
   return (
     <AdminProfileContext.Provider value={profile}>
+      {hasProfile && !isLoginPage && <AdminIdleWatcher />}
       {children}
     </AdminProfileContext.Provider>
   );

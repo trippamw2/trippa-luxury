@@ -3,6 +3,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
 import { createAuditLog, sanitizeForAudit, getIpFromRequest } from "@/lib/audit";
 import { mapKeysToSnake, mapKeysToCamel } from "@/lib/api-helpers";
+import { getSiteUrl } from "@/lib/site-url";
+import { sendEmail } from "@/lib/email";
 
 const TABLE = "admin_profiles";
 
@@ -81,32 +83,63 @@ export async function POST(request: NextRequest) {
       // them to the profile insert fails with 42703 (column does not exist).
       const { password, email, ...profileFields } = body;
 
-      if (!password || password.length < 6) {
-        return NextResponse.json(
-          { error: "Password is required and must be at least 6 characters" },
-          { status: 400 }
-        );
-      }
-      if (!email) {
+      if (!email || typeof email !== "string") {
         return NextResponse.json({ error: "Email is required" }, { status: 400 });
       }
 
-      // ── Step 1. Create Supabase Auth user ────────────────────────────────
-      const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: true,
-      });
+      // A password is optional. Without one the account is created through an
+      // emailed invite, so an admin never has to invent or transmit a password.
+      const wantsInvite = typeof password !== "string" || password.length === 0;
+      if (!wantsInvite && password.length < 6) {
+        return NextResponse.json(
+          { error: "Password must be at least 6 characters" },
+          { status: 400 }
+        );
+      }
 
-    if (authError) {
-      console.error("Error creating auth user:", authError);
-      return NextResponse.json({ error: authError.message }, { status: 500 });
-    }
+      const siteUrl = getSiteUrl();
+      const redirectTo = `${siteUrl}/reset-password`;
+
+      // ── Step 1. Create the Supabase Auth user ────────────────────────────
+      let authUserId: string;
+      let inviteLink: string | null = null;
+      let authEmail: string = email;
+
+      if (wantsInvite) {
+        const { data: link, error: linkError } = await supabase.auth.admin.generateLink({
+          type: "invite",
+          email,
+          options: { redirectTo },
+        });
+        if (linkError || !link.user) {
+          console.error("Error generating invite link:", linkError);
+          return NextResponse.json(
+            { error: linkError?.message ?? "Invite could not be created" },
+            { status: 500 }
+          );
+        }
+        authUserId = link.user.id;
+        authEmail = link.user.email ?? email;
+        inviteLink = link.properties?.action_link ?? null;
+      } else {
+        const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+          email,
+          password,
+          email_confirm: true,
+        });
+        if (authError) {
+          console.error("Error creating auth user:", authError);
+          return NextResponse.json({ error: authError.message }, { status: 500 });
+        }
+        authUserId = authUser.user.id;
+        authEmail = authUser.user.email ?? email;
+      }
 
     // ── 2. Insert into admin_profiles ─────────────────────────────────
     const dbData = mapKeysToSnake({
       ...profileFields,
-      id: authUser.user.id, // Link profile to auth user
+      id: authUserId, // Link profile to auth user
+      ...(wantsInvite ? { invite_sent_at: new Date().toISOString() } : {}),
     });
 
     const { data, error } = await supabase
@@ -117,9 +150,27 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       // Rollback: delete the auth user we just created
-      await supabase.auth.admin.deleteUser(authUser.user.id);
+      await supabase.auth.admin.deleteUser(authUserId);
       console.error(`Error creating ${TABLE}:`, error);
       return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // Invite mail is best-effort: the account exists even if Brevo is down, and
+    // the admin can resend from the Users screen.
+    let inviteEmail: { sent: boolean; error?: string } | null = null;
+    if (wantsInvite && inviteLink) {
+      try {
+        await sendEmail({
+          to: [{ email: authEmail }],
+          subject: "You have been invited to the Kivara admin panel",
+          htmlContent: staffInviteEmail(inviteLink),
+        });
+        inviteEmail = { sent: true };
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Email failed";
+        console.error(`Invite email to ${authEmail} failed:`, message);
+        inviteEmail = { sent: false, error: message };
+      }
     }
 
     // ── 3. Audit log ─────────────────────────────────────────────────
@@ -127,14 +178,14 @@ export async function POST(request: NextRequest) {
       tableName: TABLE,
       recordId: data?.id,
       action: "CREATE",
-      newData: sanitizeForAudit(data),
+      newData: sanitizeForAudit({ ...data, invited: wantsInvite, invite_email_sent: inviteEmail?.sent ?? null }),
       performedBy: auth.profile.id,
       ipAddress: getIpFromRequest(request),
     });
 
       // The profile row has no email column; the auth user does.
       return NextResponse.json(
-        mapKeysToCamel({ ...data, email: authUser.user.email || "" }),
+        mapKeysToCamel({ ...data, email: authEmail, inviteEmail }),
         { status: 201 },
       );
   } catch (err: unknown) {
@@ -145,4 +196,20 @@ export async function POST(request: NextRequest) {
     const message = err instanceof Error ? err.message : "Internal server error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
+}
+
+/** Styled invite mail. The link is generated by Supabase, the delivery by Brevo. */
+function staffInviteEmail(actionLink: string): string {
+  return `
+  <div style="background:#faf7f2;padding:32px;font-family:Georgia,'Times New Roman',serif;color:#2b2b2b">
+    <div style="max-width:520px;margin:0 auto;background:#ffffff;border:1px solid #e8e0d4;padding:32px">
+      <p style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#b08d57;margin:0 0 12px">Kivara · Staff console</p>
+      <h1 style="font-size:22px;margin:0 0 16px;font-weight:normal">You have been invited</h1>
+      <p style="font-size:14px;line-height:1.6">An administrator created a staff account for this address. Set a password to activate it.</p>
+      <p style="margin:24px 0">
+        <a href="${actionLink}" style="background:#2b2b2b;color:#faf7f2;padding:12px 20px;text-decoration:none;font-size:14px">Set your password</a>
+      </p>
+      <p style="font-size:12px;color:#6b6b6b;line-height:1.6">This link expires in 24 hours. If you were not expecting this invitation, ignore this email.</p>
+    </div>
+  </div>`;
 }

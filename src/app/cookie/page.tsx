@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { canonicalUrl } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Cookie Policy | Kivara",
   description: "Details of cookies used on kivara.africa, their purposes, and your choices.",
+  alternates: { canonical: canonicalUrl("/cookie") },
   robots: {
     index: false,
     follow: false,

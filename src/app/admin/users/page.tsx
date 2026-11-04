@@ -19,6 +19,9 @@ interface AdminUser {
   phone?: string;
   avatar?: string;
   createdAt?: string;
+  inviteSentAt?: string | null;
+  /** Result of the invite mail for the just-created account. */
+  inviteEmail?: { sent: boolean; error?: string } | null;
   /** Per-module permission overrides: module -> role or false (deny). */
   permissions?: Record<string, string | false>;
 }
@@ -31,6 +34,8 @@ interface ApiAdminUser {
   isActive?: boolean;
   updatedAt?: string;
   createdAt?: string;
+  inviteSentAt?: string | null;
+  inviteEmail?: { sent: boolean; error?: string } | null;
   password?: string;
   permissions?: Record<string, unknown>;
 }
@@ -46,6 +51,8 @@ function mapUser(item: ApiAdminUser): AdminUser {
     status: item.isActive ? "active" : "suspended",
     lastActive: item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : "Never",
     createdAt: item.createdAt ? item.createdAt.split("T")[0] : "",
+    inviteSentAt: item.inviteSentAt ?? null,
+    inviteEmail: item.inviteEmail ?? null,
     permissions: mapPermissionsFromApi(item.permissions),
   };
 }
@@ -182,6 +189,7 @@ export default function AdminUsers() {
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [resetSending, setResetSending] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormState>(INITIAL_FORM);
 
   const resetForm = () => setFormData(INITIAL_FORM);
@@ -191,9 +199,38 @@ export default function AdminUsers() {
     if (result) {
       setShowModal(false);
       resetForm();
-      toast("User created", "success");
+      if (result.inviteEmail) {
+        if (result.inviteEmail.sent) {
+          toast(`Invite emailed to ${result.email}`, "success");
+        } else {
+          toast(
+            `User created, but the invite email failed: ${result.inviteEmail.error ?? "unknown error"}`,
+            "error"
+          );
+        }
+      } else {
+        toast("User created", "success");
+      }
     } else {
       toast("Failed to create user", "error");
+    }
+  };
+
+  const handleSendReset = async (user: AdminUser) => {
+    if (resetSending) return;
+    setResetSending(user.id);
+    try {
+      const res = await fetch(`/api/admin/users/${user.id}/reset`, { method: "POST" });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error || `HTTP ${res.status}`);
+      toast(`Password link emailed to ${body.emailedTo ?? user.email}`, "success");
+    } catch (err: unknown) {
+      toast(
+        `Could not send the reset link: ${err instanceof Error ? err.message : "unknown error"}`,
+        "error"
+      );
+    } finally {
+      setResetSending(null);
     }
   };
 
@@ -271,6 +308,11 @@ export default function AdminUsers() {
                       <ShieldCheck className="w-3 h-3" />{overrideCount(u.permissions)} module permission override{overrideCount(u.permissions) === 1 ? "" : "s"}
                     </p>
                   )}
+                  {u.inviteSentAt && (
+                    <p className="text-[11px] text-blue-700 mt-0.5">
+                      Invite sent {new Date(u.inviteSentAt).toLocaleDateString()} · password not yet set
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -278,6 +320,14 @@ export default function AdminUsers() {
                 <span className={`px-2 py-0.5 text-xs font-medium border ${STATUS_BADGES[u.status] || ""}`}>{u.status}</span>
                 <span className="text-xs text-earth hidden md:inline">{u.lastActive}</span>
                 <button onClick={() => openEditModal(u)} className="text-xs text-gold ml-3 hover:underline">Edit</button>
+                <button
+                  onClick={() => void handleSendReset(u)}
+                  disabled={resetSending !== null}
+                  className="text-xs text-blue-600 hover:underline disabled:opacity-50 inline-flex items-center gap-1"
+                >
+                  {resetSending === u.id ? <Mail className="w-3 h-3 animate-pulse" /> : null}
+                  Send reset
+                </button>
                 <button onClick={() => setDeleteConfirm(u.id)} className="text-xs text-red-500 hover:underline">Delete</button>
               </div>
             </div>
@@ -300,7 +350,12 @@ export default function AdminUsers() {
                 <FormInput label="Name" name="name" value={formData.name} onChange={e => setFormData(p => ({ ...p, name: e.target.value }))} required />
                 <FormInput label="Email" name="email" type="email" value={formData.email} onChange={e => setFormData(p => ({ ...p, email: e.target.value }))} required />
                 {!editingUser && (
-                  <FormInput label="Password" name="password" type="password" value={formData.password} onChange={e => setFormData(p => ({ ...p, password: e.target.value }))} required placeholder="Min. 6 characters" />
+                  <div>
+                    <FormInput label="Initial password (optional)" name="password" type="password" value={formData.password} onChange={e => setFormData(p => ({ ...p, password: e.target.value }))} placeholder="Leave blank to email an invite" />
+                    <p className="text-[11px] text-earth mt-1">
+                      Leave blank and the user receives an email invite to choose their own password.
+                    </p>
+                  </div>
                 )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormSelect label="Role" name="role" value={formData.role} onChange={e => setFormData(p => ({ ...p, role: e.target.value as AdminUser["role"] }))} options={ROLES} />

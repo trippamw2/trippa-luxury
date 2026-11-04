@@ -47,7 +47,10 @@ export class PlatformIntelligence {
       client.from("inquiries").select("id, status"),
       client
         .from("bookings")
-        .select("id, status, total_amount, balance_amount, final_amount"),
+        .select("id, status, total_amount, balance_amount, final_amount")
+        // Archived rows are financial history, not live pipeline: counting them
+        // would inflate conversion and revenue with retired test bookings.
+        .is("archived_at", null),
       client.from("suppliers").select("id, status, rating"),
       client.from("saved_journeys").select("id"),
     ]);
@@ -150,6 +153,9 @@ async function collectReadiness(client: AdminClient): Promise<ReadinessReport> {
     probeSchema(client, "agent_evaluation_events", "id"),
     probeSchema(client, "supplier_documents", "id"),
     probeSchema(client, "insights", "report"),
+    probeSchema(client, "bookings", "archived_at"),
+    probeSchema(client, "booking_amendments", "applied_at"),
+    probeSchema(client, "partnerships", "id"),
   ]);
 
   let storageBuckets: string[] = [];
@@ -160,8 +166,10 @@ async function collectReadiness(client: AdminClient): Promise<ReadinessReport> {
     storageBuckets = [];
   }
 
-  const hasEnv = (key: string) => Boolean(process.env[key]);
+  const hasEnv = (key: string) => Boolean(process.env[key]?.trim());
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "").trim();
 
+  // Required: the platform cannot operate without these.
   const integrations = [
     { key: "SUPABASE_SERVICE_ROLE_KEY", label: "Supabase service role", present: hasEnv("SUPABASE_SERVICE_ROLE_KEY") },
     {
@@ -169,21 +177,37 @@ async function collectReadiness(client: AdminClient): Promise<ReadinessReport> {
       label: "Public site URL",
       // Present-but-empty is the failure mode: `|| localhost` fallbacks then
       // ship localhost into payment redirects and email links.
-      present: Boolean(process.env.NEXT_PUBLIC_SITE_URL?.trim()),
+      present: siteUrl.length > 0 && !siteUrl.includes("localhost"),
     },
     { key: "NEXT_BREVO_KEY", label: "Brevo email", present: hasEnv("NEXT_BREVO_KEY") },
-    { key: "PAYPAL_CLIENT_ID", label: "PayPal client id", present: hasEnv("PAYPAL_CLIENT_ID") },
-    { key: "PAYPAL_CLIENT_SECRET", label: "PayPal secret", present: hasEnv("PAYPAL_CLIENT_SECRET") },
     { key: "CRON_SECRET", label: "Cron secret", present: hasEnv("CRON_SECRET") },
     {
       key: "LLM_PROVIDER",
       label: "LLM provider key",
       present: hasEnv("GEMINI_API_KEY") || hasEnv("GROQ_API_KEY") || hasEnv("DEEPSEEK_API_KEY"),
     },
+  ];
+
+  // Optional capabilities: reported, never scored.
+  const paypalReady = hasEnv("PAYPAL_CLIENT_ID") && hasEnv("PAYPAL_CLIENT_SECRET");
+  const advisories = [
+    {
+      key: "PAYPAL",
+      label: "Card checkout (PayPal)",
+      present: paypalReady,
+      detail: paypalReady ? "configured" : "not configured — wire transfer is the active rail",
+    },
     {
       key: "SENTRY_DSN",
       label: "Sentry error tracking",
       present: hasEnv("SENTRY_DSN") || hasEnv("NEXT_PUBLIC_SENTRY_DSN"),
+      detail: hasEnv("SENTRY_DSN") || hasEnv("NEXT_PUBLIC_SENTRY_DSN") ? "configured" : "not configured",
+    },
+    {
+      key: "BRAND_DOMAIN",
+      label: "Brand domain",
+      present: Boolean(siteUrl) && !siteUrl.includes("vercel.app") && !siteUrl.includes("localhost"),
+      detail: siteUrl && !siteUrl.includes("vercel.app") ? siteUrl : "serving from the platform domain",
     },
   ];
 
@@ -196,7 +220,8 @@ async function collectReadiness(client: AdminClient): Promise<ReadinessReport> {
     .from("bookings")
     .select("id", { count: "exact", head: true })
     .in("status", ["confirmed", "paid", "completed"])
-    .or("total_amount.is.null,total_amount.lte.0");
+    .or("total_amount.is.null,total_amount.lte.0")
+    .is("archived_at", null);
 
   const missingContact = await client
     .from("bookings")
@@ -233,6 +258,7 @@ async function collectReadiness(client: AdminClient): Promise<ReadinessReport> {
     requiredBuckets: ["supplier-docs"],
     integrations,
     dataIntegrity,
+    advisories,
   });
 }
 

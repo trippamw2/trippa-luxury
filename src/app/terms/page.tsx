@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { canonicalUrl } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Terms & Conditions | Kivara",
   description: "kivara.africa Terms and Conditions. Please read these terms carefully before booking your journey.",
+  alternates: { canonical: canonicalUrl("/terms") },
   robots: { index: true, follow: true },
 };
 

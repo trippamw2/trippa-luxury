@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, X, FileText, Mail, Send, Printer, Loader2, Edit2, Trash2, Calendar, CalendarDays, AlertTriangle, RefreshCw, Download, History, UserRound, BadgeCheck, Wallet } from "lucide-react";
+import { Plus, X, FileText, Mail, Send, Printer, Loader2, Edit2, Calendar, CalendarDays, AlertTriangle, RefreshCw, Download, History, UserRound, BadgeCheck, Wallet, Archive, RotateCcw, Check } from "lucide-react";
 import { useApiData } from "@/lib/use-api-data";
 import { useToast } from "@/app/admin/components/Toast";
 import { DataTable, type Column } from "@/app/admin/components/DataTable";
@@ -34,6 +34,8 @@ interface Booking {
   depositNotes?: string;
   guestProfileId?: string | null;
   paymentMethod?: string;
+  /** Set when the booking was archived — the row still exists and is restorable. */
+  archivedAt?: string | null;
 }
 
 /** Raw row shape returned by the bookings admin API (DB column names). */
@@ -59,6 +61,7 @@ interface ApiBooking {
   depositNotes?: string | null;
   guestProfileId?: string | null;
   paymentMethod?: string | null;
+  archivedAt?: string | null;
 }
 
 interface BookingFormData {
@@ -168,6 +171,7 @@ function mapBooking(item: ApiBooking): Booking {
     depositNotes: item.depositNotes || "",
     guestProfileId: item.guestProfileId || null,
     paymentMethod: item.paymentMethod || "wire_transfer",
+    archivedAt: item.archivedAt || null,
   };
 }
 
@@ -209,9 +213,11 @@ const STATUS_STYLES: Record<string, { label: string; color: string; bg: string }
 const STATUS_OPTIONS = Object.entries(STATUS_STYLES).map(([value, s]) => ({ value, label: s.label }));
 
 export default function AdminBookings() {
+  const [showArchived, setShowArchived] = useState(false);
   const { data: bookings, loading, create, update, remove, refresh } = useApiData("bookings", {
     mapFromApi: mapBooking,
     mapToApi: mapBookingToApi,
+    query: showArchived ? { include_archived: "true" } : undefined,
   });
   const { toast } = useToast();
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -316,12 +322,15 @@ export default function AdminBookings() {
     reason: string | null;
     changedByName: string | null;
     createdAt: string;
+    appliedAt?: string | null;
+    appliedBy?: string | null;
   }
   const [historyBooking, setHistoryBooking] = useState<Booking | null>(null);
   const [amendments, setAmendments] = useState<Amendment[]>([]);
   const [loadingAmendments, setLoadingAmendments] = useState(false);
   const [amendmentForm, setAmendmentForm] = useState({ field: "", oldValue: "", newValue: "", reason: "" });
   const [savingAmendment, setSavingAmendment] = useState(false);
+  const [applyingAmendment, setApplyingAmendment] = useState<string | null>(null);
 
   const openHistory = async (booking: Booking) => {
     setHistoryBooking(booking);
@@ -366,6 +375,39 @@ export default function AdminBookings() {
       toast(`Failed to record amendment: ${err instanceof Error ? err.message : "unknown error"}`, "error");
     }
     setSavingAmendment(false);
+  };
+
+  const handleApplyAmendment = async (amendmentId: string) => {
+    if (!historyBooking || applyingAmendment) return;
+    setApplyingAmendment(amendmentId);
+    try {
+      const res = await fetch(
+        `/api/admin/bookings/${historyBooking.id}/amendments/${amendmentId}/apply`,
+        { method: "POST" }
+      );
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (res.status === 409 && json.currentValue !== undefined) {
+          throw new Error(
+            `Booking already changed (now: ${json.currentValue ?? "empty"}). Review the current value and record a fresh amendment.`
+          );
+        }
+        throw new Error(json.error || "Failed to apply amendment");
+      }
+      setAmendments((prev) =>
+        prev.map((a) =>
+          a.id === amendmentId
+            ? { ...a, appliedAt: json.data?.appliedAt ?? new Date().toISOString() }
+            : a
+        )
+      );
+      await refresh();
+      toast("Amendment applied to the booking", "success");
+    } catch (err: unknown) {
+      toast(`Failed to apply amendment: ${err instanceof Error ? err.message : "unknown error"}`, "error");
+    } finally {
+      setApplyingAmendment(null);
+    }
   };
 
   // ─── Provisional holds ─────────────────────────────
@@ -413,17 +455,20 @@ export default function AdminBookings() {
     setReleasing(false);
   };
 
+  const liveBookings = useMemo(() => bookings.filter(b => !b.archivedAt), [bookings]);
+
   const stats = useMemo(() => ({
-    total: bookings.length,
-    active: bookings.filter(b => ["provisional","deposit_paid","confirmed","balance_due","paid","in_progress"].includes(b.status)).length,
-    completed: bookings.filter(b => b.status === "completed").length,
-    cancelled: bookings.filter(b => b.status === "cancelled" || b.status === "refunded").length,
-  }), [bookings]);
+    total: liveBookings.length,
+    active: liveBookings.filter(b => ["provisional","deposit_paid","confirmed","balance_due","paid","in_progress"].includes(b.status)).length,
+    completed: liveBookings.filter(b => b.status === "completed").length,
+    cancelled: liveBookings.filter(b => b.status === "cancelled" || b.status === "refunded").length,
+  }), [liveBookings]);
 
   const filtered = useMemo(() => {
-    if (statusFilter === "all") return bookings;
-    return bookings.filter(b => b.status === statusFilter);
-  }, [bookings, statusFilter]);
+    const pool = showArchived ? bookings : liveBookings;
+    if (statusFilter === "all") return pool;
+    return pool.filter(b => b.status === statusFilter);
+  }, [bookings, liveBookings, showArchived, statusFilter]);
 
   // ─── CRUD Handlers ──────────────────────────────────
   const handleAdd = async () => {
@@ -475,9 +520,22 @@ export default function AdminBookings() {
     const ok = await remove(id);
     if (ok) {
       setDeleteConfirm(null);
-      toast("Booking deleted", "success");
+      toast("Booking archived", "success");
+      if (showArchived) await refresh();
     } else {
-      toast("Failed to delete booking", "error");
+      toast("Failed to archive booking", "error");
+    }
+  };
+
+  const handleRestore = async (id: string) => {
+    try {
+      const res = await fetch(`/api/admin/bookings/${id}?restore=true`, { method: "DELETE" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await refresh();
+      toast("Booking restored", "success");
+    } catch (err) {
+      console.error("Failed to restore booking:", err);
+      toast("Failed to restore booking", "error");
     }
   };
 
@@ -711,12 +769,28 @@ export default function AdminBookings() {
             </button>
           )}
 
-          <button onClick={() => openEditModal(b)} className="p-1.5 text-xs text-gold hover:bg-sand-light rounded">
-            <Edit2 className="w-3.5 h-3.5" />
-          </button>
-          <button onClick={() => setDeleteConfirm(b.id)} className="p-1.5 text-xs text-red-400 hover:bg-sand-light rounded">
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
+          {b.archivedAt ? (
+            <button
+              onClick={() => handleRestore(b.id)}
+              className="p-1.5 text-xs text-emerald-600 hover:bg-sand-light rounded"
+              title="Restore archived booking"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+            </button>
+          ) : (
+            <>
+              <button onClick={() => openEditModal(b)} className="p-1.5 text-xs text-gold hover:bg-sand-light rounded">
+                <Edit2 className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => setDeleteConfirm(b.id)}
+                className="p-1.5 text-xs text-earth hover:bg-sand-light rounded"
+                title="Archive booking"
+              >
+                <Archive className="w-3.5 h-3.5" />
+              </button>
+            </>
+          )}
         </div>
       ),
     },
@@ -788,6 +862,15 @@ export default function AdminBookings() {
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
+        <label className="flex items-center gap-2 text-sm text-earth cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={showArchived}
+            onChange={(e) => setShowArchived(e.target.checked)}
+            className="accent-gold"
+          />
+          Show archived
+        </label>
       </div>
 
       {/* Table */}
@@ -945,6 +1028,30 @@ export default function AdminBookings() {
                           <span className="text-soft-black font-medium">{a.newValue || "—"}</span>
                         </div>
                         {a.reason && <p className="text-[11px] text-earth mt-1.5 italic">Reason: {a.reason}</p>}
+                        <div className="mt-3 flex items-center justify-between gap-3">
+                          {a.appliedAt ? (
+                            <span className="inline-flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wide text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-1">
+                              <BadgeCheck className="w-3 h-3" />
+                              Applied {new Date(a.appliedAt).toLocaleString()}
+                            </span>
+                          ) : (
+                            <>
+                              <span className="text-[10px] text-earth/70">Recorded only — booking unchanged</span>
+                              <button
+                                onClick={() => void handleApplyAmendment(a.id)}
+                                disabled={applyingAmendment !== null}
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium bg-soft-black text-cream hover:bg-soft-black-light disabled:opacity-50 transition-colors"
+                              >
+                                {applyingAmendment === a.id ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <Check className="w-3 h-3" />
+                                )}
+                                Apply to booking
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -1011,11 +1118,13 @@ export default function AdminBookings() {
               className="bg-cream border border-sand-light p-6 w-full max-w-sm"
               onClick={e => e.stopPropagation()}
             >
-              <h3 className="text-lg font-bold text-soft-black mb-2">Confirm Delete</h3>
-              <p className="text-sm text-earth mb-6">Delete this booking?</p>
+              <h3 className="text-lg font-bold text-soft-black mb-2">Archive Booking</h3>
+              <p className="text-sm text-earth mb-6">
+                Archive this booking? It is removed from the working list but kept with its invoices and payments, and can be restored from “Show archived”.
+              </p>
               <div className="flex gap-3">
                 <button onClick={() => setDeleteConfirm(null)} className="flex-1 px-4 py-2.5 border border-sand-light text-earth text-sm transition-colors hover:bg-warm-white">Cancel</button>
-                <button onClick={() => handleDelete(deleteConfirm)} className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition-colors">Delete</button>
+                <button onClick={() => handleDelete(deleteConfirm)} className="flex-1 px-4 py-2.5 bg-gold text-soft-black text-sm font-medium hover:bg-gold/90 transition-colors">Archive</button>
               </div>
             </motion.div>
           </motion.div>

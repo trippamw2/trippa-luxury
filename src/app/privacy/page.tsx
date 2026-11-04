@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { canonicalUrl } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Privacy Policy | Kivara",
   description: "kivara.africa Privacy Policy. How we collect, use, and protect your personal information.",
+  alternates: { canonical: canonicalUrl("/privacy") },
   robots: { index: true, follow: true },
 };
 

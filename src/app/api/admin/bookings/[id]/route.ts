@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { handleGetOne, handleUpdate, handleDelete } from "@/lib/api-helpers";
+import { handleGetOne, handleUpdate, mapKeysToCamel } from "@/lib/api-helpers";
+import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
+import { createAuditLog, getIpFromRequest } from "@/lib/audit";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   sendEmail,
@@ -11,7 +13,6 @@ import {
   supplierBookingUpdated,
   supplierPaymentReceived,
 } from "@/lib/supplier-email";
-import { mapKeysToCamel } from "@/lib/api-helpers";
 import { createNotification } from "@/lib/notifications";
 import { ensureGuestAuthUser } from "@/lib/guest-auth-provision";
 import {
@@ -506,7 +507,69 @@ async function updateBooking(
   return result;
 }
 
-export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+/**
+ * DELETE /api/admin/bookings/[id]
+ *
+ * Bookings are financial records, so "delete" archives them: `archived_at` is
+ * stamped, the row and its invoices/payments stay intact, and the list hides it
+ * unless archives are requested. `?restore=true` clears the stamp.
+ *
+ * A hard delete would orphan invoices and payments (and destroy the audit
+ * trail), which is why the generic `handleDelete` must not be used here.
+ */
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  return handleDelete(TABLE, id);
+  const restore = new URL(request.url).searchParams.get("restore") === "true";
+  try {
+    const auth = await requireAdmin({ module: "bookings", minRole: "editor" });
+    const supabase = createAdminClient();
+
+    const { data: existing, error: fetchError } = await supabase
+      .from(TABLE)
+      .select("id, booking_reference, archived_at")
+      .eq("id", id)
+      .single();
+
+    if (fetchError || !existing) {
+      return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+    }
+
+    const archivedAt = restore ? null : new Date().toISOString();
+    const { data: updated, error } = await supabase
+      .from(TABLE)
+      .update({ archived_at: archivedAt, updated_at: new Date().toISOString() })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error(`Error ${restore ? "restoring" : "archiving"} ${TABLE}/${id}:`, error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    await createAuditLog({
+      tableName: TABLE,
+      recordId: id,
+      action: "DELETE",
+      oldData: { archived_at: existing.archived_at ?? null },
+      newData: { archived_at: archivedAt, restored: restore, reference: existing.booking_reference },
+      performedBy: auth.profile.id,
+      ipAddress: getIpFromRequest(request),
+    });
+
+    return NextResponse.json({
+      success: true,
+      archived: !restore,
+      data: mapKeysToCamel(updated),
+    });
+  } catch (err) {
+    if (err instanceof AdminAuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
+    console.error(`Error in DELETE /api/admin/${TABLE}/${id}:`, err);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Internal server error" },
+      { status: 500 }
+    );
+  }
 }

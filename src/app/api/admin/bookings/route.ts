@@ -1,8 +1,19 @@
-import { NextRequest } from "next/server";
-import { handleGetList, handleCreate } from "@/lib/api-helpers";
+import { NextRequest, NextResponse } from "next/server";
+import { handleCreate, mapKeysToCamel } from "@/lib/api-helpers";
+import { requireAdmin, AdminAuthError } from "@/lib/admin-auth";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { ensureGuestAuthUser } from "@/lib/guest-auth-provision";
 
 const TABLE = "bookings";
+
+const DEFAULT_LIMIT = 250;
+const MAX_LIMIT = 500;
+
+function clampInt(raw: string | null, fallback: number, min: number, max: number): number {
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(Math.max(Math.trunc(parsed), min), max);
+}
 
 /**
  * The guest's address from a booking payload, or null when it carries none.
@@ -18,8 +29,52 @@ function readClientEmail(body: Record<string, unknown>): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
+/**
+ * GET /api/admin/bookings
+ *
+ * Archived bookings are hidden by default: the operation archives financial
+ * records instead of deleting them, so they must not clutter the working list.
+ * `?include_archived=true` returns both, `?archived=only` returns the archive.
+ */
 export async function GET(request: NextRequest) {
-  return handleGetList(TABLE, request, { orderBy: { column: "created_at", direction: "desc" } });
+  try {
+    await requireAdmin({ module: "bookings", minRole: "agent" });
+    const url = new URL(request.url);
+    const archivedMode = url.searchParams.get("archived");
+    const includeArchived = url.searchParams.get("include_archived") === "true";
+    const limit = clampInt(url.searchParams.get("limit"), DEFAULT_LIMIT, 1, MAX_LIMIT);
+    const offset = clampInt(url.searchParams.get("offset"), 0, 0, Number.MAX_SAFE_INTEGER);
+
+    const supabase = createAdminClient();
+    let query = supabase
+      .from(TABLE)
+      .select("*", { count: "exact" })
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (archivedMode === "only") {
+      query = query.not("archived_at", "is", null);
+    } else if (!includeArchived) {
+      query = query.is("archived_at", null);
+    }
+
+    const { data, error, count } = await query;
+    if (error) {
+      console.error(`Error fetching ${TABLE}:`, error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ data: mapKeysToCamel(data || []), count: count || 0 });
+  } catch (err) {
+    if (err instanceof AdminAuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
+    console.error("Error in GET /api/admin/bookings:", err);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Internal server error" },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(request: NextRequest) {

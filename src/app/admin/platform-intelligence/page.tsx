@@ -48,6 +48,12 @@ interface PlatformHealth {
       detail: string;
     }[];
     missing: string[];
+    advisories: {
+      key: string;
+      label: string;
+      ok: boolean;
+      detail: string;
+    }[];
   };
   flags: string[];
 }
@@ -220,6 +226,34 @@ export default function PlatformHealthPage() {
                 <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
               )}
               <span className="text-gray-700">
+                {check.label}
+                <span className="text-gray-400"> · {check.detail}</span>
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Optional capabilities: shown, never scored */}
+      <div className="bg-white border border-gray-100 p-5 mb-4">
+        <div className="flex items-center gap-2 mb-1">
+          <CheckCircle2 className="w-4 h-4 text-gray-400" />
+          <h2 className="text-xs font-semibold text-gray-900 uppercase tracking-wider">
+            Advisory · not scored
+          </h2>
+        </div>
+        <p className="text-[11px] text-gray-400 mb-4">
+          Optional capabilities. The platform runs without them; they never affect the readiness score.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+          {health.readiness.advisories.map((check) => (
+            <div key={check.key} className="flex items-start gap-2 text-sm">
+              {check.ok ? (
+                <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+              ) : (
+                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-gray-300 flex-shrink-0" />
+              )}
+              <span className="text-gray-600">
                 {check.label}
                 <span className="text-gray-400"> · {check.detail}</span>
               </span>

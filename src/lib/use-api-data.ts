@@ -35,6 +35,12 @@ export function useApiData<
     mapFromApi?: (item: From) => T;
     mapToApi?: (item: Partial<T>) => To;
     initialData?: T[];
+    /**
+     * Query string parameters for the collection GET only. Writes always target
+     * the bare resource path. Changing a value refetches, which is what list
+     * toggles (e.g. `include_archived`) need.
+     */
+    query?: Record<string, string | undefined>;
   }
 ): UseApiDataResult<T> {
   const [data, setData] = useState<T[]>(options?.initialData || []);
@@ -42,6 +48,12 @@ export function useApiData<
   const [error, setError] = useState<string | null>(null);
 
   const baseUrl = `/api/admin/${resource}`;
+  const queryString = options?.query
+    ? new URLSearchParams(
+        Object.entries(options.query).filter((entry): entry is [string, string] => entry[1] !== undefined)
+      ).toString()
+    : "";
+  const fetchUrl = queryString ? `${baseUrl}?${queryString}` : baseUrl;
 
   // Use refs for mapper functions so inline arrows from consumers don't
   // trigger infinite re-fetch loops via useCallback dependency changes.
@@ -61,7 +73,7 @@ export function useApiData<
   const fetchData = useCallback(async () => {
     const mapFrom = mapFromApiRef.current;
     try {
-      const res = await fetch(baseUrl);
+      const res = await fetch(fetchUrl);
       if (!res.ok) {
         const errData = await res.json().catch(() => ({ error: "Request failed" }));
         throw new Error(errData.error || `HTTP ${res.status}`);
@@ -74,7 +86,7 @@ export function useApiData<
     } finally {
       setLoading(false);
     }
-  }, [baseUrl, resource]);
+  }, [fetchUrl, resource]);
 
   useEffect(() => {
     void fetchData();

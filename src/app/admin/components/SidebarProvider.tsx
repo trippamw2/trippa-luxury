@@ -96,6 +96,7 @@ const NAV_ITEMS = [
   { label: "Agent Registry", href: "/admin/agent-registry", module: "analytics" },
   // ── Administration ──────────────────────────────────────────────────
   { label: "Suppliers", href: "/admin/suppliers", module: "suppliers" },
+  { label: "Partnerships", href: "/admin/partnerships", module: "suppliers" },
   { label: "Services", href: "/admin/services", module: "services" },
   { label: "Users", href: "/admin/users", module: "users" },
   { label: "Settings", href: "/admin/settings", module: "settings" },

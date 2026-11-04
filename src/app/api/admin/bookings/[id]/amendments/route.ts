@@ -16,7 +16,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
     const { data: amendments, error } = await supabase
       .from("booking_amendments")
-      .select("id, field, old_value, new_value, reason, changed_by, created_at, admin_profiles(full_name)")
+      .select("id, field, old_value, new_value, reason, changed_by, created_at, applied_at, applied_by, admin_profiles(full_name)")
       .eq("booking_id", id)
       .order("created_at", { ascending: false })
       .limit(100);
@@ -34,6 +34,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
         reason: a.reason,
         changedByName: joinSingle(a.admin_profiles)?.full_name ?? null,
         createdAt: a.created_at,
+        appliedAt: a.applied_at,
+        appliedBy: a.applied_by,
       })),
     });
   } catch (err: unknown) {

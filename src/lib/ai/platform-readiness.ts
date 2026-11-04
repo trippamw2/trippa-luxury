@@ -7,6 +7,12 @@
  * pipeline is young. This module answers the other question: *is the platform
  * itself complete and correctly configured?*
  *
+ * Checks are either **required** (the platform cannot operate correctly without
+ * them, so they count toward the score) or **advisory** (nice to have; shown on
+ * the page but never able to hide or deflate a required check). Splitting the
+ * two keeps 100 reachable for a working platform without pretending that, say,
+ * an unconfigured error tracker is free.
+ *
  * Pure and deterministic — callers pass the signals in, so every check is unit
  * testable without a database.
  */
@@ -24,19 +30,22 @@ export interface ReadinessSignals {
   /** Storage buckets the platform writes to. */
   storageBuckets: string[];
   requiredBuckets: string[];
-  /** Integration credentials. Presence only — never the value. */
+  /** Required integrations. Presence only — never the value. */
   integrations: { key: string; label: string; present: boolean }[];
   /** Live data invariants that should hold after migrations run. */
   dataIntegrity: { key: string; label: string; ok: boolean; detail: string }[];
+  /** Optional capabilities. Reported, never scored. */
+  advisories?: { key: string; label: string; present: boolean; detail?: string }[];
 }
 
 export interface ReadinessCheck {
   key: string;
   label: string;
-  group: ReadinessGroup;
+  group: ReadinessGroup | "advisory";
   ok: boolean;
   weight: number;
   detail: string;
+  optional?: boolean;
 }
 
 export interface ReadinessReport {
@@ -44,6 +53,8 @@ export interface ReadinessReport {
   checks: ReadinessCheck[];
   /** Human-readable list of what is holding the score back. */
   missing: string[];
+  /** Optional checks that are not configured. Never affects `score`. */
+  advisories: ReadinessCheck[];
 }
 
 const GROUP_WEIGHT: Record<ReadinessGroup, number> = {
@@ -62,7 +73,8 @@ function groupWeight(group: ReadinessGroup, count: number): number {
  * Compute the readiness score from explicit signals.
  *
  * A group with no signals contributes nothing, which would silently deflate the
- * score, so the score is normalised by the total weight of the checks present.
+ * score, so the score is normalised by the total weight of the scored checks.
+ * Optional checks carry no weight and never enter the denominator.
  */
 export function computeReadiness(signals: ReadinessSignals): ReadinessReport {
   const checks: ReadinessCheck[] = [];
@@ -112,13 +124,25 @@ export function computeReadiness(signals: ReadinessSignals): ReadinessReport {
     });
   }
 
-  const totalWeight = checks.reduce((sum, c) => sum + c.weight, 0);
-  const earned = checks.reduce((sum, c) => sum + (c.ok ? c.weight : 0), 0);
+  const advisories: ReadinessCheck[] = (signals.advisories ?? []).map((item) => ({
+    key: `advisory:${item.key}`,
+    label: item.label,
+    group: "advisory",
+    ok: item.present,
+    weight: 0,
+    detail: item.detail ?? (item.present ? "configured" : "not configured"),
+    optional: true,
+  }));
+
+  const scored = checks.filter((c) => !c.optional);
+  const totalWeight = scored.reduce((sum, c) => sum + c.weight, 0);
+  const earned = scored.reduce((sum, c) => sum + (c.ok ? c.weight : 0), 0);
   const score = totalWeight > 0 ? Math.round((earned / totalWeight) * 100) : 0;
 
   return {
     score,
-    checks,
-    missing: checks.filter((c) => !c.ok).map((c) => `${c.label} — ${c.detail}`),
+    checks: scored,
+    missing: scored.filter((c) => !c.ok).map((c) => `${c.label} — ${c.detail}`),
+    advisories,
   };
 }

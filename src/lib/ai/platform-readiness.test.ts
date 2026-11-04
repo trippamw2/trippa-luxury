@@ -72,4 +72,30 @@ describe("computeReadiness", () => {
     expect(schema[0].weight).toBe(17.5);
     expect(schema[1].weight).toBe(17.5);
   });
+
+  it("keeps the score at 100 when an advisory is missing", () => {
+    const report = computeReadiness(
+      signals({
+        advisories: [
+          { key: "SENTRY_DSN", label: "Sentry error tracking", present: false, detail: "not configured" },
+        ],
+      })
+    );
+    expect(report.score).toBe(100);
+    expect(report.missing).toHaveLength(0);
+    expect(report.advisories).toHaveLength(1);
+    expect(report.advisories[0].ok).toBe(false);
+    expect(report.advisories[0].weight).toBe(0);
+  });
+
+  it("never lets an advisory hide a failing required check", () => {
+    const report = computeReadiness(
+      signals({
+        storageBuckets: [],
+        advisories: [{ key: "SENTRY_DSN", label: "Sentry", present: false }],
+      })
+    );
+    expect(report.score).toBe(85);
+    expect(report.missing).toContain("Storage · supplier-docs — bucket missing");
+  });
 });

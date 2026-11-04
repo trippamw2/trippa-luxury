@@ -152,10 +152,6 @@ function round1(v: number): number {
 }
 
 export class SupplierIntelligence {
-  private async withNarrative<T>(input: T, build: (t: T) => Promise<string | null>): Promise<T> {
-    return build(input).then(() => input).catch(() => input);
-  }
-
   /**
    * Score every supplier from the real `suppliers` + `supplier_services` tables.
    * Never throws on missing data — returns an empty list if the table is empty.

@@ -257,13 +257,19 @@ export default function AdminTours() {
     setFormData({ ...formData, itinerary: [...formData.itinerary, { ...DEFAULT_ITINERARY, day: formData.itinerary.length + 1 }] });
   };
 
-  const updateItineraryDay = (index: number, field: keyof ItineraryDay, value: ItineraryDay[keyof ItineraryDay]) => {
-    const updated = [...formData.itinerary];
-    const day = { ...updated[index] };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (day as any)[field] = value;
-    updated[index] = day;
-    setFormData({ ...formData, itinerary: updated });
+  // `K` keeps the key and value correlated, so a caller cannot pass a field name
+  // with a value of the wrong type and the update needs no `any` cast.
+  const updateItineraryDay = <K extends keyof ItineraryDay>(
+    index: number,
+    field: K,
+    value: ItineraryDay[K]
+  ) => {
+    setFormData((current) => ({
+      ...current,
+      itinerary: current.itinerary.map((day, i) =>
+        i === index ? { ...day, [field]: value } : day
+      ),
+    }));
   };
 
   const removeItineraryDay = (index: number) => {

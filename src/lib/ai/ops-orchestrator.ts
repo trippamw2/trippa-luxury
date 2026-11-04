@@ -97,7 +97,7 @@ export function buildOpsPlan(
       timing: timingFor(leg, ctx.startDate, ctx.durationNights),
       matchedSuppliers: matched,
       gaps: matched.length ? [] : [`No matched supplier for ${leg}`],
-      notes: noteFor(leg, matched),
+      notes: noteFor(matched),
     };
   });
 
@@ -124,7 +124,7 @@ function timingFor(leg: string, startDate?: string, _nights?: number): string {
   return "During stay";
 }
 
-function noteFor(leg: string, matched: SupplierRef[]): string {
+function noteFor(matched: SupplierRef[]): string {
   if (matched.length) return `Matched ${matched.length} supplier(s).`;
   return "No supplier matched — coordinate manually.";
 }

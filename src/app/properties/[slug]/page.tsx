@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { SITE_CONFIG, SITE_URL } from "@/lib/constants";
 import { useProperties, useDestinations } from "@/lib/use-public-data";
 import { getAttribution } from "@/lib/attribution";
+import { serializeJsonLd } from "@/lib/json-ld";
 import { getPropertyTransfer } from "@/lib/journey-routes";
 import { TransferTimeline } from "@/components/sections/TransferTimeline";
 import dynamic from "next/dynamic";
@@ -107,7 +108,7 @@ export default function PropertyDetailPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
       {/* Hero */}
       <section className="relative h-screen w-full overflow-hidden bg-soft-black">

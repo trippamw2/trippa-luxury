@@ -22,6 +22,19 @@ const securityHeaders = [
     key: "X-DNS-Prefetch-Control",
     value: "on",
   },
+  {
+    // Two years, subdomains included. Only meaningful over HTTPS, where it
+    // stops a downgrade to plaintext before the first request is protected.
+    key: "Strict-Transport-Security",
+    value: "max-age=63072000; includeSubDomains; preload",
+  },
+  {
+    // Deliberately narrow rather than a full page CSP: these directives close
+    // base-tag injection, plugin/object embedding and framing, and none of them
+    // needs a nonce or hash, so they cannot break Next's inline bootstrap.
+    key: "Content-Security-Policy",
+    value: "base-uri 'self'; object-src 'none'; frame-ancestors 'none'",
+  },
 ];
 
 const nextConfig: NextConfig = {

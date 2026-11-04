@@ -8,7 +8,7 @@ import { getCustomerTimeline } from "@/lib/ai/customer-intelligence";
  * across inquiries, bookings, journeys, and communications.
  */
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {

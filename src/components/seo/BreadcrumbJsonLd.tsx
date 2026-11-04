@@ -1,3 +1,5 @@
+import { serializeJsonLd } from "@/lib/json-ld";
+
 type BreadcrumbItem = {
   name: string;
   url: string;
@@ -10,7 +12,7 @@ export function BreadcrumbJsonLd({ items }: { items: BreadcrumbItem[] }) {
     <script
       type="application/ld+json"
       dangerouslySetInnerHTML={{
-        __html: JSON.stringify({
+        __html: serializeJsonLd({
           "@context": "https://schema.org",
           "@type": "BreadcrumbList",
           itemListElement: items.map((item, i) => ({

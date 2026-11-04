@@ -1,3 +1,5 @@
+import { serializeJsonLd } from "@/lib/json-ld";
+
 type ProductJsonLdProps = {
   name: string;
   description: string;
@@ -24,7 +26,7 @@ export function ProductJsonLd({
     <script
       type="application/ld+json"
       dangerouslySetInnerHTML={{
-        __html: JSON.stringify({
+        __html: serializeJsonLd({
           "@context": "https://schema.org",
           "@type": "Product",
           name,

@@ -8,6 +8,8 @@ import { ChevronLeft, Clock, BookOpen, ArrowRight } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { useBlogPosts } from "@/lib/use-public-data";
+import { serializeJsonLd } from "@/lib/json-ld";
+import { sanitizeBlogHtml } from "@/lib/sanitize-html";
 
 export default function JournalPostPage() {
   const params = useParams();
@@ -43,7 +45,7 @@ export default function JournalPostPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
       {/* Article */}
       <section className="pt-32 pb-24 bg-cream">
@@ -100,7 +102,7 @@ export default function JournalPostPage() {
                 </p>
                 <div
                   className="text-base text-earth leading-relaxed space-y-4 [&_h3]:text-lg [&_h3]:font-heading [&_h3]:font-medium [&_h3]:text-soft-black [&_h3]:mt-8 [&_h3]:mb-3"
-                  dangerouslySetInnerHTML={{ __html: post.content || "" }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeBlogHtml(post.content || "") }}
                 />
               </div>
 

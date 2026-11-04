@@ -41,7 +41,7 @@ export type AdminProfile = {
  * Must be called within a Route Handler or Server Component.
  *
  * Uses the Supabase server client (cookie-based session) to check:
- *   1. A valid session exists
+ *   1. The access token is valid according to the Auth server
  *   2. The user has an admin_profiles entry that is active
  *   3. The user's effective role (base role + per-module overrides) is at
  *      least the required minimum for the requested module
@@ -51,15 +51,21 @@ export type AdminProfile = {
  * triggers "infinite recursion detected in policy for relation").
  *
  * Throws AdminAuthError (401/403) if unauthorized.
- * Returns the session and profile on success.
+ * Returns the verified user and profile on success.
  */
 export async function requireAdmin(options: AdminAuthOptions = {}) {
   const { module, minRole } = options;
   const supabase = await createClient();
 
-  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  // Verify the access token with the Auth server instead of trusting a decoded
+  // cookie: `getSession()` only reads the cookie, so a forged or revoked token
+  // would still look like a session. `getUser()` validates it server-side.
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
 
-  if (sessionError || !sessionData.session) {
+  if (userError || !user) {
     throw new AdminAuthError("Unauthorized : no valid session");
   }
 
@@ -69,7 +75,7 @@ export async function requireAdmin(options: AdminAuthOptions = {}) {
   const { data: profile, error: profileError } = await adminClient
     .from("admin_profiles")
     .select("role, permissions, is_active")
-    .eq("id", sessionData.session.user.id)
+    .eq("id", user.id)
     .single();
 
   if (profileError || !profile) {
@@ -97,9 +103,9 @@ export async function requireAdmin(options: AdminAuthOptions = {}) {
   }
 
   return {
-    session: sessionData.session,
+    user,
     profile: {
-      id: sessionData.session.user.id,
+      id: user.id,
       role: baseRole,
       effectiveRole,
       permissions: profile.permissions,

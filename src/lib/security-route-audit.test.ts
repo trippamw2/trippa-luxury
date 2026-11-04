@@ -26,7 +26,6 @@ const CAPABILITIES: { name: string; pattern: RegExp }[] = [
 const GUARDS: { name: string; pattern: RegExp }[] = [
   { name: "requireAdmin", pattern: /\brequireAdmin\b/ },
   { name: "getUser", pattern: /\.auth\.getUser\s*\(/ },
-  { name: "getSession", pattern: /\.auth\.getSession\s*\(/ },
   { name: "CRON_SECRET", pattern: /\bCRON_SECRET\b/ },
   { name: "ADMIN_SEED_SECRET", pattern: /\bADMIN_SEED_SECRET\b/ },
   { name: "PayPal signature verification", pattern: /\bverifyPayPalSignature\b/ },
@@ -153,6 +152,23 @@ describe("public API routes are authenticated or justified", () => {
 
   it("rate-limits every public route that reaches a paid LLM", () => {
     expect(llbWithoutLimit).toEqual([]);
+  });
+});
+
+describe("server routes verify tokens instead of decoding cookies", () => {
+  /**
+   * `getSession()` only decodes the cookie's JWT; it does not ask the Auth
+   * server whether the token is still valid. A revoked or forged token would
+   * therefore pass a route that treats it as authentication. Verification is
+   * `getUser()`. This caught the admin and guest-booking routes still trusting
+   * the cookie, so it is asserted structurally rather than route by route.
+   */
+  it("no API route authenticates with auth.getSession()", () => {
+    const offenders = routeFiles(API_ROOT)
+      .filter((file) => /\.auth\.getSession\s*\(/.test(readFileSync(file, "utf8")))
+      .map((file) => relative(process.cwd(), file).replace(/\\/g, "/"));
+
+    expect(offenders).toEqual([]);
   });
 });
 

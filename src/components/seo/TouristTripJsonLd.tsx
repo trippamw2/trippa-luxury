@@ -1,3 +1,5 @@
+import { serializeJsonLd } from "@/lib/json-ld";
+
 type ItineraryItem = {
   day: number;
   title: string;
@@ -52,7 +54,7 @@ export function TouristTripJsonLd({
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(trip) }}
+      dangerouslySetInnerHTML={{ __html: serializeJsonLd(trip) }}
     />
   );
 }

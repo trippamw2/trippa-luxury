@@ -12,6 +12,7 @@
  * The key is the platform-verified client address (`loginAttemptKey`), not a
  * header the caller wrote.
  */
+import { createPublicRateLimiter } from "@/lib/public-rate-limiter";
 import { resolveClientIp, type HeaderReader } from "@/lib/rate-limit-store";
 
 export interface LoginAttemptState {
@@ -103,3 +104,24 @@ export function createRateLimiter(): LoginRateLimiter {
 
 // Module singleton used by the login route.
 export const loginRateLimiter = createRateLimiter();
+
+/**
+ * Durable companion to the in-process failure counter above.
+ *
+ * The failure limiter is authoritative for lockout semantics, but a `Map` only
+ * sees one process: on a serverless deployment every instance (and every cold
+ * start) would hand the same address a fresh burst. This fixed window counts in
+ * Postgres, so the cap holds across instances.
+ *
+ * It counts *all* attempts rather than only failures. That is intentional: the
+ * quantity an attacker controls is the number of password guesses, and counting
+ * before the credential check is the only point where concurrent requests can
+ * be stopped atomically. A successful sign-in still spends a unit; an admin
+ * logging in five times inside fifteen minutes is far outside normal use.
+ */
+export const loginAttemptLimiter = createPublicRateLimiter({
+  limit: MAX_ATTEMPTS,
+  windowMs: WINDOW_MS,
+  name: "admin-login",
+  durable: true,
+});

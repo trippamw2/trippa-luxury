@@ -9,13 +9,15 @@ import { createAdminClient } from "@/lib/supabase/admin";
 export async function GET() {
   try {
     const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    // Verify the token with the Auth server; a cookie-decoded session is not
+    // proof the guest still holds a valid, unrevoked token.
+    const { data: { user } } = await supabase.auth.getUser();
 
-    if (!session?.user?.email) {
+    if (!user?.email) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const guestEmail = session.user.email.toLowerCase();
+    const guestEmail = user.email.toLowerCase();
 
     const admin = createAdminClient();
     const { data: bookings, error } = await admin

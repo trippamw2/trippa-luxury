@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { loginAttemptKey, loginRateLimiter } from "@/lib/login-rate-limiter";
+import {
+  loginAttemptKey,
+  loginAttemptLimiter,
+  loginRateLimiter,
+} from "@/lib/login-rate-limiter";
 import { createAuditLog } from "@/lib/audit";
 import { resolveEffectiveRole } from "@/lib/admin-permissions";
 
@@ -24,6 +28,17 @@ export async function POST(request: NextRequest) {
   const client = createClient();
 
   try {
+    // Durable cap first: it is the one that holds across instances. The
+    // in-process lockout below remains as a fast path and a fallback when the
+    // shared store is unavailable.
+    const attempt = await loginAttemptLimiter.take(ip);
+    if (!attempt.allowed) {
+      return NextResponse.json(
+        { error: `Too many attempts. Try again in ${attempt.retryAfterSeconds}s.` },
+        { status: 429, headers: { "Retry-After": String(attempt.retryAfterSeconds) } }
+      );
+    }
+
     const { allowed, retryAfterMs } = loginRateLimiter.check(ip);
     if (!allowed) {
       return NextResponse.json(

@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     // Fetch booking
     const { data: booking, error: bookingError } = await supabase
       .from("bookings")
-      .select("id, client_name, client_email, booking_reference, total_amount, deposit_amount, balance_amount, currency")
+      .select("id, client_name, client_email, booking_reference, total_amount, deposit_amount, balance_amount, currency, archived_at")
       .eq("id", bookingId)
       .single();
 
@@ -53,9 +53,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Booking not found" }, { status: 404 });
     }
 
-    // If not admin, verify guest owns this booking
+    // Archived rows are retained as financial history. They are no longer a
+    // live trip, so no new payment instructions may be raised against them.
+    if (booking.archived_at) {
+      return NextResponse.json({ error: "This booking is archived" }, { status: 409 });
+    }
+
+    // If not admin, verify guest owns this booking. Emails are case-insensitive,
+    // so compare normalized values rather than the stored spelling.
     if (!adminProfile) {
-      if (booking.client_email !== user.email) {
+      const guestEmail = typeof booking.client_email === "string" ? booking.client_email.trim().toLowerCase() : "";
+      const userEmail = (user.email ?? "").trim().toLowerCase();
+      if (!guestEmail || guestEmail !== userEmail) {
         return NextResponse.json({ error: "Access denied" }, { status: 403 });
       }
     }

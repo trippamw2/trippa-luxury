@@ -9,7 +9,7 @@ import { getCustomerIntelligence } from "@/lib/ai/customer-intelligence";
  * understand a customer before any interaction.
  */
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {

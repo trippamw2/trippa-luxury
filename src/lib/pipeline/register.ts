@@ -25,6 +25,8 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { joinSingle } from "@/lib/api-helpers";
 import { recordEvent } from "@/lib/ai/event-bus";
+import { kivaraCallLlmJson } from "@/lib/ai/kivara-llm";
+import { recordLesson } from "@/lib/ai/learning";
 
 /** A curated day from the AI journey engine (subset of JourneyDay). */
 export interface CuratedDay {
@@ -1090,6 +1092,38 @@ export async function registerTripDelivery(
         payload: { bookingId, source: "trip-completion" },
         autonomyLevel: 3,
       });
+
+      // KIVARA LLM learning step: distil the completed trip into a reusable
+      // lesson and persist it, so future journey design and supplier matching
+      // are grounded in what actually worked. Non-fatal: a learning failure
+      // never fails the trip-delivery registration.
+      try {
+        const { data: booking } = await db
+          .from("bookings")
+          .select("destination, client_name")
+          .eq("id", bookingId)
+          .maybeSingle();
+        const lessonRes = await kivaraCallLlmJson<{ title: string; statement: string }>(
+          [
+            { role: "system", content: "You are KIVARA LLM. Distil a completed trip into one concise, reusable lesson for future journey design. Return JSON: { \"title\": string, \"statement\": string }." },
+            { role: "user", content: `Trip completed for booking ${bookingId}. Destination: ${String((booking as { destination?: string } | null)?.destination ?? "unknown")}. Extract one lesson about what worked (suppliers, timing, experience) that should inform future trips.` },
+          ],
+          { domain: "journey", temperature: 0.3, maxTokens: 200 }
+        );
+        const lesson = lessonRes.data;
+        if (lesson?.title && lesson?.statement) {
+          await recordLesson({
+            domain: "journey",
+            agent: "trip-delivery",
+            title: lesson.title,
+            statement: lesson.statement,
+            report: { bookingId, journeyId },
+          });
+        }
+      } catch {
+        // Learning is best-effort.
+      }
+
       return { journeyId, registered: true, error: null };
     }
 

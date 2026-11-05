@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { registerGuestFeedback } from "@/lib/pipeline/register";
+import { recordLesson } from "@/lib/ai/learning";
 
 /**
  * POST /api/guest/bookings/[id]/feedback
@@ -70,6 +71,22 @@ export async function POST(
     const result = await registerGuestFeedback(booking.id, { rating, comment });
     if (result.error) {
       console.error("Feedback registration issue:", result.error);
+    }
+
+    // Kivara learning step: capture the guest's rating/comment as a lesson
+    // so future journey design reflects real guest sentiment. Non-fatal.
+    try {
+      await recordLesson({
+        domain: "customer",
+        agent: "guest-feedback",
+        title: `Guest feedback ${rating}/5`,
+        statement: comment
+          ? `Guest rated a completed trip ${rating}/5: ${comment}`
+          : `Guest rated a completed trip ${rating}/5 with no written comment.`,
+        report: { bookingId: booking.id, rating, comment },
+      });
+    } catch {
+      // Learning is best-effort.
     }
 
     return NextResponse.json({

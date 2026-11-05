@@ -201,7 +201,7 @@ beforeEach(() => {
         new Proxy({} as object, {
           get(_target, prop) {
             if (prop === "then") return (resolve: (v: unknown) => void) => resolve(settle);
-            if (prop === "select" || prop === "in" || prop === "not" || prop === "eq" || prop === "lte" || prop === "gt") {
+            if (prop === "select" || prop === "in" || prop === "not" || prop === "eq" || prop === "lte" || prop === "gt" || prop === "is") {
               return () => chainable();
             }
             if (prop === "update") {

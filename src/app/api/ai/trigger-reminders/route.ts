@@ -107,7 +107,8 @@ export async function POST(request: NextRequest) {
       .from("bookings")
       .select("id, booking_reference, client_name, client_email, destination, start_date, reminders_sent")
       .in("status", PRE_TRIP_STATES)
-      .not("start_date", "is", null);
+      .not("start_date", "is", null)
+      .is("archived_at", null);
 
     if (preTripError) {
       console.error("Trigger-reminders: error fetching pre-trip bookings:", preTripError);
@@ -119,7 +120,8 @@ export async function POST(request: NextRequest) {
       .from("bookings")
       .select("id, booking_reference, client_name, client_email, destination, end_date, followups_sent")
       .in("status", POST_TRIP_STATES)
-      .not("end_date", "is", null);
+      .not("end_date", "is", null)
+      .is("archived_at", null);
 
     if (postTripError) {
       console.error("Trigger-reminders: error fetching post-trip bookings:", postTripError);
@@ -136,6 +138,7 @@ export async function POST(request: NextRequest) {
       .select("id, booking_reference, client_name, client_email, destination, start_date, balance_amount, currency, reminders_sent")
       .in("status", BALANCE_DUE_STATES)
       .not("start_date", "is", null)
+      .is("archived_at", null)
       .lte("start_date", balanceCutoff.toISOString())
       .gt("balance_amount", 0);
 

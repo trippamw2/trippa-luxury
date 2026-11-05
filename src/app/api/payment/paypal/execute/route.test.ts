@@ -35,6 +35,9 @@ function bookingsTable(row: unknown, opts: { updateError?: unknown; insertError?
     eq() {
       return api;
     },
+    is() {
+      return api;
+    },
     single() {
       return Promise.resolve({ data: row, error: row ? null : { message: "not found" } });
     },

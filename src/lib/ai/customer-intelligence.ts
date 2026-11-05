@@ -322,6 +322,7 @@ export async function getCustomerIntelligence(guestProfileId: string): Promise<C
       .from("bookings")
       .select("*")
       .eq("guest_profile_id", guestProfileId)
+      .is("archived_at", null)
       .order("created_at", { ascending: false }),
     supabase
       .from("saved_journeys")
@@ -586,7 +587,8 @@ export async function getCustomerTimeline(guestProfileId: string): Promise<Custo
     supabase
       .from("bookings")
       .select("id, booking_reference, status, created_at")
-      .eq("guest_profile_id", guestProfileId),
+      .eq("guest_profile_id", guestProfileId)
+      .is("archived_at", null),
     supabase
       .from("saved_journeys")
       .select("id, title, quote_ref, status, created_at")

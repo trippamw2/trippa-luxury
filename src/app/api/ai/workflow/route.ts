@@ -224,7 +224,10 @@ export async function DELETE(request: NextRequest) {
     if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
 
     const supabase = (await import("@/lib/supabase/admin")).createAdminClient();
-    const { error } = await supabase.from("bookings").delete().eq("id", id);
+    const { error } = await supabase
+      .from("bookings")
+      .update({ archived_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+      .eq("id", id);
 
     if (error) {
       console.error("Workflow DELETE error:", error);

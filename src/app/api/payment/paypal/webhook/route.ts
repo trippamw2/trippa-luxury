@@ -75,6 +75,7 @@ export async function POST(request: NextRequest) {
         .from("bookings")
         .select("id, client_name, client_email, booking_reference, total_amount, deposit_amount, balance_amount, currency, status, swift_confirmation_code")
         .eq("id", bookingId)
+        .is("archived_at", null)
         .single();
 
       if (!booking) {
@@ -141,7 +142,8 @@ export async function POST(request: NextRequest) {
             payment_method: "paypal",
             balance_amount: payable.remainingBalance,
           })
-          .eq("id", bookingId);
+          .eq("id", bookingId)
+          .is("archived_at", null);
       }
 
       // Write the payments ledger. The execute route may have written this

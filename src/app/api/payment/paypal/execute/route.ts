@@ -49,6 +49,7 @@ export async function GET(request: NextRequest) {
       .from("bookings")
       .select("id, client_name, client_email, booking_reference, total_amount, deposit_amount, currency")
       .eq("id", bookingId)
+      .is("archived_at", null)
       .single();
 
     if (fetchError || !booking) {
@@ -125,7 +126,8 @@ export async function GET(request: NextRequest) {
         payment_method: "paypal",
         balance_amount: payable.remainingBalance,
       })
-      .eq("id", bookingId);
+      .eq("id", bookingId)
+      .is("archived_at", null);
 
     if (updateError) {
       // The money is captured but the booking is not updated. Do not report

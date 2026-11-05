@@ -40,6 +40,9 @@ function webhookTable(
     eq() {
       return api;
     },
+    is() {
+      return api;
+    },
     single() {
       return Promise.resolve({
         data: booking,

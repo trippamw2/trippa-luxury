@@ -38,6 +38,7 @@ export async function POST(
       .select("id, status")
       .eq("id", id)
       .ilike("client_email", guestEmail)
+      .is("archived_at", null)
       .single();
 
     if (error || !booking) {

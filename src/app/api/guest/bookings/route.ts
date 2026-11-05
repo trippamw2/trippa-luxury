@@ -24,6 +24,7 @@ export async function GET() {
       .from("bookings")
       .select("id, booking_reference, client_name, client_email, destination, start_date, end_date, guests_count, total_amount, balance_amount, currency, status")
       .ilike("client_email", guestEmail)
+      .is("archived_at", null)
       .order("start_date", { ascending: false });
 
     if (error) {

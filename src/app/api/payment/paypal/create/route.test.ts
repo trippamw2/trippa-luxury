@@ -17,6 +17,7 @@ function chainedQuery(row: unknown, error: unknown = null): unknown {
         if (
           prop === "select" ||
           prop === "eq" ||
+          prop === "is" ||
           prop === "maybeSingle" ||
           prop === "update"
         ) {

@@ -168,6 +168,7 @@ export class OpsOrchestrator {
       .from("bookings")
       .select("*")
       .eq("id", bookingId)
+      .is("archived_at", null)
       .single();
 
     if (error || !booking) return null;

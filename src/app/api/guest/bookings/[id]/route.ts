@@ -31,6 +31,7 @@ export async function GET(
       .select("*")
       .eq("id", id)
       .ilike("client_email", guestEmail)
+      .is("archived_at", null)
       .single();
 
     if (error || !booking) {

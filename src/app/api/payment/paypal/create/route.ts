@@ -55,6 +55,7 @@ export async function POST(request: NextRequest) {
         .from("bookings")
         .select("id, client_email")
         .eq("id", bookingId)
+        .is("archived_at", null)
         .maybeSingle();
 
       // `bookings` stores the guest's address in `client_email`; `guest_email`
@@ -75,6 +76,7 @@ export async function POST(request: NextRequest) {
       .from("bookings")
       .select("id, total_amount, deposit_amount, currency")
       .eq("id", bookingId)
+      .is("archived_at", null)
       .maybeSingle();
 
     const payable = pricedBooking

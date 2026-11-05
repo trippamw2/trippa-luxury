@@ -64,6 +64,8 @@ export interface LlmMessage {
 export interface LlmConfig {
   /** Optional model override. Defaults to the provider's recommended model. */
   model?: string;
+  /** Optional provider pin. When set, only that provider is tried. */
+  provider?: "gemini" | "groq" | "deepseek";
   temperature?: number;
   maxTokens?: number;
   responseFormat?: "json_object" | "text";
@@ -361,9 +363,18 @@ export async function callLlm(
     throw new Error("No LLM API key configured (set GEMINI_API_KEY and/or DEEPSEEK_API_KEY)");
   }
 
+  // When a provider is pinned (e.g. a fine-tuned Kivara model that only
+  // runs on one backend), restrict the attempt list to it.
+  const candidates = config.provider
+    ? enabled.filter((p) => p.name === config.provider)
+    : enabled;
+  if (candidates.length === 0) {
+    throw new Error(`Pinned LLM provider ${config.provider} is not configured`);
+  }
+
   const lastError: Error[] = [];
 
-  for (const provider of enabled) {
+  for (const provider of candidates) {
     const startedAt = Date.now();
     try {
       const response = await callProvider(provider, messages, config);

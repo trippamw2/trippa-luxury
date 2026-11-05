@@ -13,9 +13,18 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const OPENAI_API_BASE = "https://api.openai.com/v1";
+const DEEPSEEK_API_BASE = "https://api.deepseek.com";
 
 export interface TrainingExample {
   messages: Array<{ role: "system" | "user" | "assistant"; content: string }>;
+}
+
+export type TrainingProvider = "deepseek" | "openai";
+
+export function getTrainingProvider(): TrainingProvider | null {
+  if (process.env.DEEPSEEK_API_KEY && process.env.DEEPSEEK_API_KEY.trim()) return "deepseek";
+  if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.trim()) return "openai";
+  return null;
 }
 
 const KIVARA_SYSTEM = "You are KIVARA LLM, the intelligence layer for Kivara luxury romance travel. You design journeys, write proposals, profile guests, match suppliers, and plan operations. You are warm, precise, and on-brand. You never invent prices, availability, or supplier commitments.";
@@ -23,28 +32,46 @@ const KIVARA_SYSTEM = "You are KIVARA LLM, the intelligence layer for Kivara lux
 /**
  * Read the configured Kivara model id, if any.
  */
-export async function getKivaraModel(): Promise<string | null> {
+export interface KivaraModelInfo {
+  model: string;
+  provider: TrainingProvider;
+}
+
+export async function getKivaraModel(): Promise<KivaraModelInfo | null> {
   const envModel = process.env.KIVARA_LLM_MODEL;
-  if (envModel && envModel.trim()) return envModel.trim();
+  if (envModel && envModel.trim()) {
+    const provider = (process.env.KIVARA_LLM_PROVIDER as TrainingProvider | undefined) ?? getTrainingProvider() ?? "deepseek";
+    return { model: envModel.trim(), provider };
+  }
   try {
     const supabase = createAdminClient();
-    const { data } = await supabase
+    const { data: modelRow } = await supabase
       .from("platform_settings")
       .select("value")
       .eq("key", "kivara_llm_model")
       .maybeSingle();
-    const value = (data as { value?: string } | null)?.value;
-    return value && value.trim() ? value.trim() : null;
+    const model = (modelRow as { value?: string } | null)?.value;
+    if (!model || !model.trim()) return null;
+    const { data: provRow } = await supabase
+      .from("platform_settings")
+      .select("value")
+      .eq("key", "kivara_llm_provider")
+      .maybeSingle();
+    const provider = ((provRow as { value?: string } | null)?.value as TrainingProvider | undefined) ?? getTrainingProvider() ?? "deepseek";
+    return { model: model.trim(), provider };
   } catch {
     return null;
   }
 }
 
-export async function setKivaraModel(model: string): Promise<void> {
+export async function setKivaraModel(model: string, provider: TrainingProvider): Promise<void> {
   const supabase = createAdminClient();
   await supabase
     .from("platform_settings")
     .upsert({ key: "kivara_llm_model", value: model }, { onConflict: "key" });
+  await supabase
+    .from("platform_settings")
+    .upsert({ key: "kivara_llm_provider", value: provider }, { onConflict: "key" });
 }
 
 /**
@@ -134,15 +161,19 @@ export function datasetToJsonl(examples: TrainingExample[]): string {
  */
 export async function launchFineTuneJob(
   trainingJsonl: string,
-  baseModel: string = "gpt-4o-mini-2024-07-18"
-): Promise<{ jobId?: string; model?: string; error?: string }> {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey || !apiKey.trim()) {
-    return { error: "OPENAI_API_KEY is not configured; cannot launch fine-tuning job" };
+  baseModel?: string
+): Promise<{ jobId?: string; model?: string; provider?: TrainingProvider; error?: string }> {
+  const provider = getTrainingProvider();
+  if (!provider) {
+    return { error: "No training API key configured (set DEEPSEEK_API_KEY or OPENAI_API_KEY)" };
   }
   if (!trainingJsonl.trim()) {
     return { error: "empty training dataset" };
   }
+
+  const apiKey = provider === "deepseek" ? process.env.DEEPSEEK_API_KEY! : process.env.OPENAI_API_KEY!;
+  const apiBase = provider === "deepseek" ? DEEPSEEK_API_BASE : OPENAI_API_BASE;
+  const model = baseModel ?? (provider === "deepseek" ? "deepseek-chat" : "gpt-4o-mini-2024-07-18");
 
   try {
     // 1. Upload the training file.
@@ -160,7 +191,7 @@ export async function launchFineTuneJob(
       `--${boundary}--`,
     ].join("\r\n");
 
-    const uploadRes = await fetch(`${OPENAI_API_BASE}/files`, {
+    const uploadRes = await fetch(`${apiBase}/files`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -169,25 +200,25 @@ export async function launchFineTuneJob(
       body,
     });
     if (!uploadRes.ok) {
-      return { error: `file upload failed: ${uploadRes.status} ${await uploadRes.text()}` };
+      return { error: `file upload failed: ${uploadRes.status} ${await uploadRes.text()}`, provider };
     }
     const upload = (await uploadRes.json()) as { id: string };
 
     // 2. Create the fine-tuning job.
-    const jobRes = await fetch(`${OPENAI_API_BASE}/fine_tuning/jobs`, {
+    const jobRes = await fetch(`${apiBase}/fine_tuning/jobs`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ training_file: upload.id, model: baseModel }),
+      body: JSON.stringify({ training_file: upload.id, model }),
     });
     if (!jobRes.ok) {
-      return { error: `fine-tune job creation failed: ${jobRes.status} ${await jobRes.text()}` };
+      return { error: `fine-tune job creation failed: ${jobRes.status} ${await jobRes.text()}`, provider };
     }
     const job = (await jobRes.json()) as { id: string; fine_tuned_model?: string };
-    return { jobId: job.id, model: job.fine_tuned_model };
+    return { jobId: job.id, model: job.fine_tuned_model, provider };
   } catch (err) {
-    return { error: err instanceof Error ? err.message : "unknown error" };
+    return { error: err instanceof Error ? err.message : "unknown error", provider };
   }
 }

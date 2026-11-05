@@ -28,11 +28,11 @@ export async function POST(request: NextRequest) {
     const examples = await buildTrainingDataset();
     const jsonl = datasetToJsonl(examples);
 
-    let job: { jobId?: string; model?: string; error?: string } | null = null;
+    let job: { jobId?: string; model?: string; provider?: string; error?: string } | null = null;
     if (launch) {
       job = await launchFineTuneJob(jsonl, baseModel);
-      if (job?.model) {
-        await setKivaraModel(job.model);
+      if (job?.model && job?.provider) {
+        await setKivaraModel(job.model, job.provider as "deepseek" | "openai");
       }
     }
 

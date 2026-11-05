@@ -53,13 +53,14 @@ async function injectLearning(
   return [{ role: "system", content: identity }, ...messages];
 }
 
-async function resolveModel(config: KivaraLlmConfig): Promise<string | undefined> {
-  if (config.model) return config.model;
+async function resolveModel(config: KivaraLlmConfig): Promise<{ model?: string; provider?: string }> {
+  if (config.model) return { model: config.model, provider: config.provider };
   try {
-    const model = await getKivaraModel();
-    return model ?? undefined;
+    const info = await getKivaraModel();
+    if (!info) return {};
+    return { model: info.model, provider: info.provider };
   } catch {
-    return undefined;
+    return {};
   }
 }
 
@@ -68,8 +69,12 @@ export async function kivaraCallLlm(
   config: KivaraLlmConfig = {}
 ): Promise<LlmResponse> {
   const enriched = await injectLearning(messages, config);
-  const model = await resolveModel(config);
-  const merged: LlmConfig = { ...config, model: model ?? config.model };
+  const resolved = await resolveModel(config);
+  const merged: LlmConfig = {
+    ...config,
+    model: resolved.model ?? config.model,
+    provider: (resolved.provider as LlmConfig["provider"]) ?? config.provider,
+  };
   const response = await callLlm(enriched, merged);
   // Stamp the brand in the returned model name when the base provider is used.
   if (!response.model || !response.model.toLowerCase().includes("kivara")) {
@@ -83,8 +88,12 @@ export async function kivaraCallLlmJson<T = Record<string, unknown>>(
   config: KivaraLlmConfig = {}
 ): Promise<{ data: T; usage?: LlmResponse["usage"] }> {
   const enriched = await injectLearning(messages, config);
-  const model = await resolveModel(config);
-  const merged: LlmConfig = { ...config, model: model ?? config.model };
+  const resolved = await resolveModel(config);
+  const merged: LlmConfig = {
+    ...config,
+    model: resolved.model ?? config.model,
+    provider: (resolved.provider as LlmConfig["provider"]) ?? config.provider,
+  };
   return callLlmJson<T>(enriched, merged);
 }
 

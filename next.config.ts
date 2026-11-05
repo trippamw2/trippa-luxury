@@ -38,6 +38,8 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Keep production bundles lean: no source maps in the deployed output.
+  productionBrowserSourceMaps: false,
   images: {
     remotePatterns: [
       {

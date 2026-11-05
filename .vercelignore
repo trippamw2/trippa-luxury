@@ -19,3 +19,8 @@ node_modules
 
 # Local tooling
 .omo
+.playwright-mcp
+.sisyphus
+e2e
+supabase
+scripts

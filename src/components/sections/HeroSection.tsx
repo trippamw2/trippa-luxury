@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button";
 import { IMAGES } from "@/lib/constants";
 
 const HERO_VIDEOS = [
-  { src: "/videos/kivara-safari-aerial.mp4", label: "safari" },
-  { src: "/videos/kivara-zanzibar-aerial.mp4", label: "zanzibar" },
+  { src: "https://lgpdnmtauvkpkgmyyjcr.supabase.co/storage/v1/object/public/media/videos/kivara-safari-aerial.mp4", label: "safari" },
+  { src: "https://lgpdnmtauvkpkgmyyjcr.supabase.co/storage/v1/object/public/media/videos/kivara-zanzibar-aerial.mp4", label: "zanzibar" },
 ];
 
 const VIDEO_INTERVAL = 10000; // 10 seconds per video

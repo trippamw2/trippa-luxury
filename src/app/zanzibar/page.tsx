@@ -119,7 +119,7 @@ export default function ZanzibarPage() {
           className="absolute inset-0 w-full h-full object-cover"
           preload="auto"
         >
-          <source src="/videos/kivara-zanzibar-aerial.mp4" type="video/mp4" />
+          <source src="https://lgpdnmtauvkpkgmyyjcr.supabase.co/storage/v1/object/public/media/videos/kivara-zanzibar-aerial.mp4" type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-gradient-to-br from-soft-black/80 via-sand-dark/40 to-gold/20" />
         <div className="absolute inset-0 bg-gradient-to-t from-soft-black/50 via-transparent to-soft-black/30" />

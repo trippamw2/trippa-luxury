@@ -117,7 +117,7 @@ export default function SouthLuangwaPage() {
           className="absolute inset-0 w-full h-full object-cover"
           preload="auto"
         >
-          <source src="/videos/kivara-safari-aerial.mp4" type="video/mp4" />
+          <source src="https://lgpdnmtauvkpkgmyyjcr.supabase.co/storage/v1/object/public/media/videos/kivara-safari-aerial.mp4" type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-gradient-to-br from-soft-black/80 via-soft-black/60 to-earth/40" />
         <div className="absolute inset-0 bg-gradient-to-t from-soft-black/70 via-transparent to-soft-black/20" />
